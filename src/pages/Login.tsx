@@ -51,7 +51,7 @@ const Login = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Digite seu usuário"
-                className="bg-white/90 border-white/50"
+                className="bg-white/90 border-white/50 text-black"
                 required
               />
             </div>
@@ -63,7 +63,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Digite sua senha"
-                className="bg-white/90 border-white/50"
+                className="bg-white/90 border-white/50 text-black"
                 required
               />
             </div>
