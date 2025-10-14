@@ -6,7 +6,7 @@ import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { TotalsChart } from "@/components/dashboard/TotalsChart";
 import { MilitaryData } from "@/types/military";
-import { getUniqueValues } from "@/data/mockData";
+import { getUniqueValues, mockMilitaryData } from "@/data/mockData";
 import militaryBg from "@/assets/military-background.png";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,17 +28,35 @@ const Index = () => {
       
       if (error) {
         console.error('Error fetching data:', error);
-        toast.error("Erro ao carregar dados da planilha");
+        toast.error("Erro ao carregar dados da planilha. Usando dados de exemplo.");
+        setMilitaryData(mockMilitaryData);
         return;
       }
       
-      if (data?.data) {
+      if (data?.data && data.data.length > 0) {
         console.log(`Loaded ${data.data.length} records from sheets`);
-        setMilitaryData(data.data);
-        toast.success("Dados atualizados!");
+        // Se a planilha tem poucos dados, use os mock data
+        if (data.data.length < 10) {
+          console.log('Planilha com poucos dados, usando dados de exemplo');
+          toast("Planilha com poucos dados. Usando dados de exemplo.", {
+            description: "Adicione mais dados na planilha para ver informações reais."
+          });
+          setMilitaryData(mockMilitaryData);
+        } else {
+          setMilitaryData(data.data);
+          toast.success("Dados da planilha carregados!");
+        }
+      } else {
+        console.log('No data from sheets, using mock data');
+        toast("Usando dados de exemplo", {
+          description: "Adicione dados na planilha para ver informações reais."
+        });
+        setMilitaryData(mockMilitaryData);
       }
     } catch (error) {
       console.error('Error:', error);
+      toast.error("Erro ao conectar. Usando dados de exemplo.");
+      setMilitaryData(mockMilitaryData);
     } finally {
       setIsLoading(false);
     }
