@@ -51,12 +51,13 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
               <LabelList 
                 dataKey="valor" 
                 position="top"
-                content={({ x, y, width, value, index }) => {
+                content={({ x, y, width, value, height }) => {
                   const numValue = Number(value);
                   const numY = Number(y);
                   const numX = Number(x);
                   const numWidth = Number(width);
-                  const yPos = numValue >= 0 ? numY - 5 : numY + 20;
+                  const numHeight = Number(height);
+                  const yPos = numValue >= 0 ? numY - 5 : numY + numHeight + 15;
                   return (
                     <text x={numX + numWidth / 2} y={yPos} fill="#000" fontWeight="bold" textAnchor="middle">
                       {numValue}
