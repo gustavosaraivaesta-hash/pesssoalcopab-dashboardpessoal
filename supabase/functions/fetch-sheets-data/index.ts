@@ -76,6 +76,7 @@ serve(async (req) => {
       { name: 'DepFMRJ', startCol: 34 },
       { name: 'CDU-BAMRJ', startCol: 37 },
       { name: 'CDU-1DN', startCol: 40 },
+      { name: 'TOTAL', startCol: 43 },
     ];
     
     // Process each row (each row is a graduacao)
