@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Shield, Users, TrendingDown, TrendingUp, LogOut } from "lucide-react";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
-import { DataTable } from "@/components/dashboard/DataTable";
 import { PercentageChart } from "@/components/dashboard/PercentageChart";
 import { mockMilitaryData, getUniqueValues } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
@@ -121,9 +120,6 @@ const Index = () => {
 
         {/* Gráfico de Percentuais */}
         <PercentageChart data={filteredData} />
-
-        {/* Tabela de dados */}
-        <DataTable data={filteredData} />
       </main>
     </div>
   );
