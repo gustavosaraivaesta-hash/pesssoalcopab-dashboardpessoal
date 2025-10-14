@@ -60,37 +60,56 @@ serve(async (req) => {
     const headerCells = rows[0].c || [];
     console.log('Processing matrix data with', rows.length - 1, 'rows');
     
-    // Process each row using only TOTAL column (columns 43-45)
-    const totalColStart = 43;
+    // Define OMs and their column positions (TMFT, EXI, DIF)
+    const oms = [
+      { name: 'DAbM', startCol: 1 },
+      { name: 'COMRJ', startCol: 4 },
+      { name: 'COpAb', startCol: 7 },
+      { name: 'BAMRJ', startCol: 10 },
+      { name: 'CMM', startCol: 13 },
+      { name: 'DepCMRJ', startCol: 16 },
+      { name: 'CDAM', startCol: 19 },
+      { name: 'DepSMRJ', startCol: 22 },
+      { name: 'CSupAb', startCol: 25 },
+      { name: 'DepSIMRJ', startCol: 28 },
+      { name: 'DepMSMRJ', startCol: 31 },
+      { name: 'DepFMRJ', startCol: 34 },
+      { name: 'CDU-BAMRJ', startCol: 37 },
+      { name: 'CDU-1DN', startCol: 40 },
+    ];
     
+    // Process each row (each row is a graduacao)
     for (let i = 1; i < rows.length; i++) {
       const cells = rows[i].c || [];
       const graduacao = cells[0]?.v || '';
       
       if (!graduacao) continue;
       
-      const tmft = Number(cells[totalColStart]?.v || 0);
-      const exi = Number(cells[totalColStart + 1]?.v || 0);
-      const dif = Number(cells[totalColStart + 2]?.v || 0);
-      
-      if (tmft > 0 || exi > 0) { // Only add if there's data
-        transformedData.push({
-          id: `${graduacao}-TOTAL`,
-          nome: graduacao,
-          especialidade: graduacao,
-          graduacao: graduacao,
-          om: 'TOTAL',
-          sdp: '',
-          tmft: tmft,
-          exi: exi,
-          dif: dif,
-          previsaoEmbarque: '',
-          pracasTTC: 0,
-          servidoresCivis: 0,
-          percentualPracasAtiva: 0,
-          percentualForcaTrabalho: 0,
-        });
-      }
+      // Create one record for each OM
+      oms.forEach(om => {
+        const tmft = Number(cells[om.startCol]?.v || 0);
+        const exi = Number(cells[om.startCol + 1]?.v || 0);
+        const dif = Number(cells[om.startCol + 2]?.v || 0);
+        
+        if (tmft > 0 || exi > 0) { // Only add if there's data
+          transformedData.push({
+            id: `${graduacao}-${om.name}`,
+            nome: `${graduacao} - ${om.name}`,
+            especialidade: graduacao,
+            graduacao: graduacao,
+            om: om.name,
+            sdp: '',
+            tmft: tmft,
+            exi: exi,
+            dif: dif,
+            previsaoEmbarque: '',
+            pracasTTC: 0,
+            servidoresCivis: 0,
+            percentualPracasAtiva: 0,
+            percentualForcaTrabalho: 0,
+          });
+        }
+      });
     }
     
     console.log(`Transformed ${transformedData.length} records`);
