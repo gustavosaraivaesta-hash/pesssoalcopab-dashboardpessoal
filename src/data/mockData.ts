@@ -3,6 +3,8 @@ import { MilitaryData } from "@/types/military";
 export const GRADUACOES = ["SO", "1SG", "2SG", "3SG", "CB", "MN"];
 
 export const OMS = [
+  "DAbM",
+  "COMRJ",
   "COpAb",
   "BAMRJ",
   "CMM",
@@ -11,12 +13,10 @@ export const OMS = [
   "DepSMRJ",
   "CSupAb",
   "DepSIMRJ",
-  "DAbM",
+  "DepMSMRJ",
   "DepFMRJ",
   "CDU-BAMRJ",
-  "CDU-1DN",
-  "OM 13",
-  "COMRJ"
+  "CDU-1DN"
 ];
 
 export const ESPECIALIDADES = [
@@ -162,13 +162,13 @@ export const mockMilitaryData: MilitaryData[] = [
   { id: "71", nome: "CB-CDU-1DN", especialidade: "OS", graduacao: "CB", om: "CDU-1DN", sdp: "SDP-12", tmft: 8, exi: 3, dif: -5, previsaoEmbarque: "2025-03", pracasTTC: 9, servidoresCivis: 0, percentualPracasAtiva: 113, percentualForcaTrabalho: 100 },
   { id: "72", nome: "MN-CDU-1DN", especialidade: "ES", graduacao: "MN", om: "CDU-1DN", sdp: "SDP-12", tmft: 2, exi: 2, dif: 0, previsaoEmbarque: "2025-03", pracasTTC: 9, servidoresCivis: 0, percentualPracasAtiva: 113, percentualForcaTrabalho: 100 },
 
-  // OM 13 - Coluna 13 da planilha
-  { id: "73", nome: "SO-OM13", especialidade: "MR", graduacao: "SO", om: "OM 13", sdp: "SDP-13", tmft: 3, exi: 5, dif: 2, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 0, percentualPracasAtiva: 60, percentualForcaTrabalho: 82 },
-  { id: "74", nome: "1SG-OM13", especialidade: "AD", graduacao: "1SG", om: "OM 13", sdp: "SDP-13", tmft: 2, exi: 8, dif: 6, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 0, percentualPracasAtiva: 60, percentualForcaTrabalho: 82 },
-  { id: "75", nome: "2SG-OM13", especialidade: "MA", graduacao: "2SG", om: "OM 13", sdp: "SDP-13", tmft: 8, exi: 7, dif: -1, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 0, percentualPracasAtiva: 60, percentualForcaTrabalho: 82 },
-  { id: "76", nome: "3SG-OM13", especialidade: "EL", graduacao: "3SG", om: "OM 13", sdp: "SDP-13", tmft: 7, exi: 6, dif: -1, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 0, percentualPracasAtiva: 60, percentualForcaTrabalho: 82 },
-  { id: "77", nome: "CB-OM13", especialidade: "CN", graduacao: "CB", om: "OM 13", sdp: "SDP-13", tmft: 31, exi: 2, dif: -29, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 0, percentualPracasAtiva: 60, percentualForcaTrabalho: 82 },
-  { id: "78", nome: "MN-OM13", especialidade: "SI", graduacao: "MN", om: "OM 13", sdp: "SDP-13", tmft: 4, exi: 5, dif: 1, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 0, percentualPracasAtiva: 60, percentualForcaTrabalho: 82 },
+  // DepMSMRJ - Coluna 13 da planilha
+  { id: "73", nome: "SO-DepMSMRJ", especialidade: "MR", graduacao: "SO", om: "DepMSMRJ", sdp: "SDP-13", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "74", nome: "1SG-DepMSMRJ", especialidade: "AD", graduacao: "1SG", om: "DepMSMRJ", sdp: "SDP-13", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "75", nome: "2SG-DepMSMRJ", especialidade: "MA", graduacao: "2SG", om: "DepMSMRJ", sdp: "SDP-13", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "76", nome: "3SG-DepMSMRJ", especialidade: "EL", graduacao: "3SG", om: "DepMSMRJ", sdp: "SDP-13", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "77", nome: "CB-DepMSMRJ", especialidade: "CN", graduacao: "CB", om: "DepMSMRJ", sdp: "SDP-13", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "78", nome: "MN-DepMSMRJ", especialidade: "SI", graduacao: "MN", om: "DepMSMRJ", sdp: "SDP-13", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
 
   // COMRJ - Coluna 14 da planilha
   { id: "79", nome: "SO-COMRJ", especialidade: "MR", graduacao: "SO", om: "COMRJ", sdp: "SDP-14", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
