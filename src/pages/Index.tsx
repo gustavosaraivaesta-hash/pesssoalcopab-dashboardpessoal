@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, TrendingDown, TrendingUp, LogOut } from "lucide-react";
+import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
@@ -19,9 +19,11 @@ const Index = () => {
   });
   const [militaryData, setMilitaryData] = useState<MilitaryData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch data from Google Sheets
-  const fetchData = async () => {
+  const fetchData = async (showToast = false) => {
+    if (showToast) setIsRefreshing(true);
     try {
       console.log('Fetching data from edge function...');
       const { data, error } = await supabase.functions.invoke('fetch-sheets-data');
@@ -38,13 +40,17 @@ const Index = () => {
         // Se a planilha tem poucos dados, use os mock data
         if (data.data.length < 10) {
           console.log('Planilha com poucos dados, usando dados de exemplo');
-          toast("Planilha com poucos dados. Usando dados de exemplo.", {
-            description: "Adicione mais dados na planilha para ver informações reais."
-          });
+          if (showToast) {
+            toast("Planilha com poucos dados. Usando dados de exemplo.", {
+              description: "Adicione mais dados na planilha para ver informações reais."
+            });
+          }
           setMilitaryData(mockMilitaryData);
         } else {
           setMilitaryData(data.data);
-          toast.success("Dados da planilha carregados!");
+          if (showToast) {
+            toast.success("Dados atualizados da planilha!");
+          }
         }
       } else {
         console.log('No data from sheets, using mock data');
@@ -59,7 +65,12 @@ const Index = () => {
       setMilitaryData(mockMilitaryData);
     } finally {
       setIsLoading(false);
+      if (showToast) setIsRefreshing(false);
     }
+  };
+
+  const handleManualRefresh = () => {
+    fetchData(true);
   };
 
   useEffect(() => {
@@ -153,6 +164,15 @@ const Index = () => {
                 <p className="text-sm opacity-90">Diretoria de Abastecimento - Análise do Pessoal Militar e Civil</p>
               </div>
             </div>
+            <Button
+              variant="outline"
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="border-white text-white hover:bg-white hover:text-blue-600"
+            >
+              <RefreshCw size={18} className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Atualizar
+            </Button>
           </div>
         </div>
       </header>

@@ -17,8 +17,9 @@ serve(async (req) => {
     // Extract spreadsheet ID from the URL
     const spreadsheetId = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
     
-    // Using Google Sheets API v4 - public access
-    const sheetsUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json`;
+    // Using Google Sheets API v4 - public access with cache busting
+    const timestamp = new Date().getTime();
+    const sheetsUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&timestamp=${timestamp}`;
     
     console.log('Calling Google Sheets API...');
     const response = await fetch(sheetsUrl);
