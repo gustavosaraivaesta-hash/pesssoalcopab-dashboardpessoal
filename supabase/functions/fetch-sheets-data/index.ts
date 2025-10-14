@@ -22,7 +22,13 @@ serve(async (req) => {
     const sheetsUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&timestamp=${timestamp}`;
     
     console.log('Calling Google Sheets API...');
-    const response = await fetch(sheetsUrl);
+    const response = await fetch(sheetsUrl, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
     
     if (!response.ok) {
       throw new Error(`Google Sheets API returned ${response.status}`);

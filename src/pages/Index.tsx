@@ -37,20 +37,9 @@ const Index = () => {
       
       if (data?.data && data.data.length > 0) {
         console.log(`Loaded ${data.data.length} records from sheets`);
-        // Se a planilha tem poucos dados, use os mock data
-        if (data.data.length < 10) {
-          console.log('Planilha com poucos dados, usando dados de exemplo');
-          if (showToast) {
-            toast("Planilha com poucos dados. Usando dados de exemplo.", {
-              description: "Adicione mais dados na planilha para ver informações reais."
-            });
-          }
-          setMilitaryData(mockMilitaryData);
-        } else {
-          setMilitaryData(data.data);
-          if (showToast) {
-            toast.success("Dados atualizados da planilha!");
-          }
+        setMilitaryData(data.data);
+        if (showToast) {
+          toast.success(`Dados atualizados! ${data.data.length} registros carregados.`);
         }
       } else {
         console.log('No data from sheets, using mock data');
