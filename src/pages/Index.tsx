@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Shield, Users, TrendingDown, TrendingUp, LogOut } from "lucide-react";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
-import { PercentageChart } from "@/components/dashboard/PercentageChart";
 import { mockMilitaryData, getUniqueValues } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -125,9 +124,6 @@ const Index = () => {
             variant={metrics.totalDIF >= 0 ? "success" : "destructive"}
           />
         </div>
-
-        {/* Gráfico de Percentuais */}
-        <PercentageChart data={filteredData} />
       </main>
     </div>
   );
