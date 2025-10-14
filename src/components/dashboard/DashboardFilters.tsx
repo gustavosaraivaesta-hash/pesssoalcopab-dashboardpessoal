@@ -33,13 +33,13 @@ export const DashboardFilters = ({
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="pracasTTC">PRAÇAS TTC</SelectItem>
-                <SelectItem value="servidoresCivis">SERVIDORES CIVIS (NA + NI)</SelectItem>
                 {filterOptions.graduacoes.map((grad) => (
                   <SelectItem key={grad} value={grad}>
                     {grad}
                   </SelectItem>
                 ))}
+                <SelectItem value="pracasTTC">PRAÇAS TTC</SelectItem>
+                <SelectItem value="servidoresCivis">SERVIDORES CIVIS (NA + NI)</SelectItem>
               </SelectContent>
             </Select>
           </div>
