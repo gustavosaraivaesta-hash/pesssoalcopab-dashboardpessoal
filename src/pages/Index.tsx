@@ -24,9 +24,8 @@ const Index = () => {
     navigate("/login");
   };
   const [filters, setFilters] = useState({
-    graduacao: "all",
-    om: "all",
-    tipo: "all" // all, pracasTTC, servidoresCivis
+    pessoal: "all",
+    om: "all"
   });
 
   const filterOptions = useMemo(() => getUniqueValues(mockMilitaryData), []);
@@ -34,14 +33,14 @@ const Index = () => {
   const filteredData = useMemo(() => {
     let data = mockMilitaryData;
     
-    // Filtrar por tipo de dados
-    if (filters.tipo === "pracasTTC") {
+    // Filtrar por tipo de pessoal
+    if (filters.pessoal === "pracasTTC") {
       data = data.map(item => ({
         ...item,
         exi: item.pracasTTC,
         dif: item.pracasTTC - item.tmft
       }));
-    } else if (filters.tipo === "servidoresCivis") {
+    } else if (filters.pessoal === "servidoresCivis") {
       data = data.map(item => ({
         ...item,
         exi: item.servidoresCivis,
@@ -50,7 +49,10 @@ const Index = () => {
     }
     
     return data.filter(item => {
-      if (filters.graduacao !== "all" && item.graduacao !== filters.graduacao) return false;
+      // Filtrar por graduação específica (se não for "all", "pracasTTC" ou "servidoresCivis")
+      if (filters.pessoal !== "all" && filters.pessoal !== "pracasTTC" && filters.pessoal !== "servidoresCivis") {
+        if (item.graduacao !== filters.pessoal) return false;
+      }
       if (filters.om !== "all" && item.om !== filters.om) return false;
       return true;
     });

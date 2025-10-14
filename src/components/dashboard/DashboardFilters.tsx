@@ -5,9 +5,8 @@ import { FilterOptions } from "@/types/military";
 interface DashboardFiltersProps {
   filterOptions: FilterOptions;
   selectedFilters: {
-    graduacao: string;
+    pessoal: string;
     om: string;
-    tipo: string;
   };
   onFilterChange: (filterType: string, value: string) => void;
 }
@@ -20,39 +19,22 @@ export const DashboardFilters = ({
   return (
     <Card className="shadow-card bg-gradient-card">
       <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
-              Tipo de Dados
+              Pessoal
             </label>
             <Select 
-              value={selectedFilters.tipo} 
-              onValueChange={(value) => onFilterChange("tipo", value)}
+              value={selectedFilters.pessoal} 
+              onValueChange={(value) => onFilterChange("pessoal", value)}
             >
               <SelectTrigger className="bg-background">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
-                <SelectItem value="all">Praças da Ativa</SelectItem>
-                <SelectItem value="pracasTTC">Praças TTC</SelectItem>
-                <SelectItem value="servidoresCivis">Servidores Civis (NA + NI)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
-              Graduação
-            </label>
-            <Select 
-              value={selectedFilters.graduacao} 
-              onValueChange={(value) => onFilterChange("graduacao", value)}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover z-50">
-                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="pracasTTC">PRAÇAS TTC</SelectItem>
+                <SelectItem value="servidoresCivis">SERVIDORES CIVIS (NA + NI)</SelectItem>
                 {filterOptions.graduacoes.map((grad) => (
                   <SelectItem key={grad} value={grad}>
                     {grad}
