@@ -96,7 +96,7 @@ const Index = () => {
     if (filters.pessoal === "pracasTTC") {
       data = data.filter(item => item.graduacao === "PRAÇAS TTC");
     } else if (filters.pessoal === "servidoresCivis") {
-      data = data.filter(item => item.graduacao === "SERVIDORES CIVIS");
+      data = data.filter(item => item.graduacao === "SERVIDORES CIVIS (NA + NI)");
     } else if (filters.pessoal !== "all") {
       data = data.filter(item => item.graduacao === filters.pessoal);
     }
