@@ -26,7 +26,6 @@ const Index = () => {
     navigate("/login");
   };
   const [filters, setFilters] = useState({
-    especialidade: "all",
     graduacao: "all",
     om: "all"
   });
@@ -35,7 +34,6 @@ const Index = () => {
 
   const filteredData = useMemo(() => {
     return mockMilitaryData.filter(item => {
-      if (filters.especialidade !== "all" && item.especialidade !== filters.especialidade) return false;
       if (filters.graduacao !== "all" && item.graduacao !== filters.graduacao) return false;
       if (filters.om !== "all" && item.om !== filters.om) return false;
       return true;

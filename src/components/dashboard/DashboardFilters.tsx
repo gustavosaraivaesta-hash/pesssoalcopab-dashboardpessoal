@@ -5,7 +5,6 @@ import { FilterOptions } from "@/types/military";
 interface DashboardFiltersProps {
   filterOptions: FilterOptions;
   selectedFilters: {
-    especialidade: string;
     graduacao: string;
     om: string;
   };
@@ -20,29 +19,7 @@ export const DashboardFilters = ({
   return (
     <Card className="shadow-card bg-gradient-card">
       <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
-              Especialidade
-            </label>
-            <Select 
-              value={selectedFilters.especialidade} 
-              onValueChange={(value) => onFilterChange("especialidade", value)}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover z-50">
-                <SelectItem value="all">Todas</SelectItem>
-                {filterOptions.especialidades.map((esp) => (
-                  <SelectItem key={esp} value={esp}>
-                    {esp}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
               Graduação
