@@ -7,6 +7,7 @@ import { TotalsChart } from "@/components/dashboard/TotalsChart";
 import { mockMilitaryData, getUniqueValues } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import backgroundImage from "@/assets/military-background.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -71,9 +72,15 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50">
+    <div className="min-h-screen bg-blue-50 relative">
+      {/* Background Image with Overlay */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20 pointer-events-none"
+        style={{ backgroundImage: `url(${backgroundImage})` }}
+      />
+      <div className="fixed inset-0 bg-blue-50/80 pointer-events-none" />
       {/* Header */}
-      <header className="bg-blue-600 text-primary-foreground shadow-elevated">
+      <header className="bg-blue-600 text-primary-foreground shadow-elevated relative z-10">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -88,7 +95,7 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 space-y-6">
+      <main className="container mx-auto px-4 py-8 space-y-6 relative z-10">
         {/* Filtros */}
         <DashboardFilters 
           filterOptions={filterOptions}
@@ -127,7 +134,7 @@ const Index = () => {
       </main>
 
       {/* Botão Sair - Canto Inferior Esquerdo */}
-      <div className="fixed bottom-6 left-6">
+      <div className="fixed bottom-6 left-6 z-20">
         <Button 
           variant="outline" 
           onClick={handleLogout}
