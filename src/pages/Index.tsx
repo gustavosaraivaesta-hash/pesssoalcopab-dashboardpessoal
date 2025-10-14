@@ -42,11 +42,9 @@ const Index = () => {
       data = data.filter(item => item.graduacao === "SERVIDORES CIVIS");
     } else if (filters.pessoal !== "all") {
       // Filtrar por graduação específica (SO, 1SG, etc) - exclui PRAÇAS TTC e SERVIDORES CIVIS
-      data = data.filter(item => item.graduacao === filters.pessoal && item.graduacao !== "PRAÇAS TTC" && item.graduacao !== "SERVIDORES CIVIS");
-    } else {
-      // "all" - mostra apenas graduações normais (exclui PRAÇAS TTC e SERVIDORES CIVIS)
-      data = data.filter(item => item.graduacao !== "PRAÇAS TTC" && item.graduacao !== "SERVIDORES CIVIS");
+      data = data.filter(item => item.graduacao === filters.pessoal);
     }
+    // Se for "all", mostra TODOS os dados (incluindo PRAÇAS TTC e SERVIDORES CIVIS)
     
     // Filtrar por OM
     if (filters.om !== "all") {
