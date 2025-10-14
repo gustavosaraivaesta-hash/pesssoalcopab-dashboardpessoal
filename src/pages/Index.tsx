@@ -1,22 +1,66 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Shield, Users, TrendingDown, TrendingUp, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { TotalsChart } from "@/components/dashboard/TotalsChart";
-import { mockMilitaryData, getUniqueValues } from "@/data/mockData";
-import { Button } from "@/components/ui/button";
+import { MilitaryData } from "@/types/military";
+import { getUniqueValues } from "@/data/mockData";
+import militaryBg from "@/assets/military-background.png";
 import { toast } from "sonner";
-import backgroundImage from "@/assets/military-background.png";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [filters, setFilters] = useState({
+    pessoal: "all",
+    om: "all",
+  });
+  const [militaryData, setMilitaryData] = useState<MilitaryData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch data from Google Sheets
+  const fetchData = async () => {
+    try {
+      console.log('Fetching data from edge function...');
+      const { data, error } = await supabase.functions.invoke('fetch-sheets-data');
+      
+      if (error) {
+        console.error('Error fetching data:', error);
+        toast.error("Erro ao carregar dados da planilha");
+        return;
+      }
+      
+      if (data?.data) {
+        console.log(`Loaded ${data.data.length} records from sheets`);
+        setMilitaryData(data.data);
+        toast.success("Dados atualizados!");
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
     if (!isAuthenticated) {
       navigate("/login");
+      return;
     }
+
+    // Initial fetch
+    fetchData();
+
+    // Set up auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      console.log('Auto-refreshing data...');
+      fetchData();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [navigate]);
 
   const handleLogout = () => {
@@ -24,28 +68,20 @@ const Index = () => {
     toast.success("Logout realizado com sucesso!");
     navigate("/login");
   };
-  const [filters, setFilters] = useState({
-    pessoal: "all",
-    om: "all"
-  });
 
-  const filterOptions = useMemo(() => getUniqueValues(mockMilitaryData), []);
+  const filterOptions = useMemo(() => getUniqueValues(militaryData), [militaryData]);
 
   const filteredData = useMemo(() => {
-    let data = mockMilitaryData;
+    let data = militaryData;
     
     // Filtrar por tipo de pessoal
     if (filters.pessoal === "pracasTTC") {
-      // Mostra apenas as linhas de PRAÇAS TTC
       data = data.filter(item => item.graduacao === "PRAÇAS TTC");
     } else if (filters.pessoal === "servidoresCivis") {
-      // Mostra apenas as linhas de SERVIDORES CIVIS
       data = data.filter(item => item.graduacao === "SERVIDORES CIVIS");
     } else if (filters.pessoal !== "all") {
-      // Filtrar por graduação específica (SO, 1SG, etc) - exclui PRAÇAS TTC e SERVIDORES CIVIS
       data = data.filter(item => item.graduacao === filters.pessoal);
     }
-    // Se for "all", mostra TODOS os dados (incluindo PRAÇAS TTC e SERVIDORES CIVIS)
     
     // Filtrar por OM
     if (filters.om !== "all") {
@@ -53,7 +89,7 @@ const Index = () => {
     }
     
     return data;
-  }, [filters]);
+  }, [filters, militaryData]);
 
   const metrics = useMemo(() => {
     const totalTMFT = filteredData.reduce((sum, item) => sum + item.tmft, 0);
@@ -71,14 +107,23 @@ const Index = () => {
     setFilters(prev => ({ ...prev, [filterType]: value }));
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
+        <div className="text-xl font-semibold text-blue-600">Carregando dados da planilha...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-blue-50 relative">
       {/* Background Image with Overlay */}
       <div 
         className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20 pointer-events-none"
-        style={{ backgroundImage: `url(${backgroundImage})` }}
+        style={{ backgroundImage: `url(${militaryBg})` }}
       />
       <div className="fixed inset-0 bg-blue-50/80 pointer-events-none" />
+      
       {/* Header */}
       <header className="bg-blue-600 text-primary-foreground shadow-elevated relative z-10">
         <div className="container mx-auto px-4 py-6">
