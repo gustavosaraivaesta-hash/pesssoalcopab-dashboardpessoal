@@ -26,6 +26,11 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
     }
   ];
 
+  const maxValue = Math.max(totalTMFT, totalEXI, Math.abs(totalDIF));
+  const minValue = Math.min(0, totalDIF);
+  const yAxisMax = Math.ceil(maxValue * 1.2);
+  const yAxisMin = Math.floor(minValue * 1.2);
+
   return (
     <Card className="shadow-card bg-gradient-card">
       <CardHeader>
@@ -36,7 +41,7 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
-            <YAxis domain={['auto', 'auto']} />
+            <YAxis domain={[yAxisMin, yAxisMax]} />
             <Tooltip />
             <Legend formatter={(value) => value === "valor" ? "Valor" : value} />
             <Bar dataKey="valor" radius={[8, 8, 0, 0]}>
