@@ -7,6 +7,7 @@ interface DashboardFiltersProps {
   selectedFilters: {
     especialidade: string;
     graduacao: string;
+    om: string;
     sdp: string;
     mes: string;
   };
@@ -21,7 +22,7 @@ export const DashboardFilters = ({
   return (
     <Card className="shadow-card bg-gradient-card">
       <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
               Especialidade
@@ -60,6 +61,28 @@ export const DashboardFilters = ({
                 {filterOptions.graduacoes.map((grad) => (
                   <SelectItem key={grad} value={grad}>
                     {grad}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">
+              OM
+            </label>
+            <Select 
+              value={selectedFilters.om} 
+              onValueChange={(value) => onFilterChange("om", value)}
+            >
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="Todas" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="all">Todas</SelectItem>
+                {filterOptions.oms.map((om) => (
+                  <SelectItem key={om} value={om}>
+                    {om}
                   </SelectItem>
                 ))}
               </SelectContent>

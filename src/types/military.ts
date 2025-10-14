@@ -3,6 +3,7 @@ export interface MilitaryData {
   nome: string;
   especialidade: string;
   graduacao: string;
+  om: string;
   sdp: string;
   tmft: number;
   exi: number;
@@ -20,6 +21,7 @@ export interface DashboardMetrics {
 export interface FilterOptions {
   especialidades: string[];
   graduacoes: string[];
+  oms: string[];
   sdps: string[];
   meses: string[];
 }

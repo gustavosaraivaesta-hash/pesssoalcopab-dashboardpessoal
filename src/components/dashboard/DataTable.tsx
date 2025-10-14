@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { MilitaryData } from "@/types/military";
 import { Badge } from "@/components/ui/badge";
+import { getEspecialidadeName } from "@/data/mockData";
 
 interface DataTableProps {
   data: MilitaryData[];
@@ -28,6 +29,7 @@ export const DataTable = ({ data }: DataTableProps) => {
               <TableRow className="bg-muted/50">
                 <TableHead className="font-semibold">Especialidade</TableHead>
                 <TableHead className="font-semibold">Graduação</TableHead>
+                <TableHead className="font-semibold">OM</TableHead>
                 <TableHead className="font-semibold">SDP DAbM</TableHead>
                 <TableHead className="font-semibold text-center">TMFT</TableHead>
                 <TableHead className="font-semibold text-center">EXI</TableHead>
@@ -38,15 +40,18 @@ export const DataTable = ({ data }: DataTableProps) => {
             <TableBody>
               {data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Nenhum dado encontrado com os filtros selecionados
                   </TableCell>
                 </TableRow>
               ) : (
                 data.map((item) => (
                   <TableRow key={item.id} className="hover:bg-muted/20">
-                    <TableCell className="font-medium">{item.especialidade}</TableCell>
-                    <TableCell>{item.graduacao}</TableCell>
+                    <TableCell className="font-medium text-sm">
+                      {getEspecialidadeName(item.especialidade)}
+                    </TableCell>
+                    <TableCell className="font-semibold">{item.graduacao}</TableCell>
+                    <TableCell>{item.om}</TableCell>
                     <TableCell>{item.sdp}</TableCell>
                     <TableCell className="text-center font-semibold">{item.tmft}</TableCell>
                     <TableCell className="text-center font-semibold">{item.exi}</TableCell>
