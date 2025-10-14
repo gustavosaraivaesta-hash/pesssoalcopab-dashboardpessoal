@@ -79,11 +79,14 @@ serve(async (req) => {
     ];
     
     // Process each row (each row is a graduacao)
+    // Skip summary rows (PRAÇAS TTC, SERVIDORES CIVIS, FORÇA DE TRABALHO)
+    const skipRows = ['PRAÇAS TTC', 'SERVIDORES CIVIS', 'SERVIDORES CIVIS (NA + NI)', 'FORÇA DE TRABALHO'];
+    
     for (let i = 1; i < rows.length; i++) {
       const cells = rows[i].c || [];
       const graduacao = cells[0]?.v || '';
       
-      if (!graduacao) continue;
+      if (!graduacao || skipRows.includes(graduacao)) continue;
       
       // Create one record for each OM
       oms.forEach(om => {
