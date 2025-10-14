@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from "recharts";
 
 interface TotalsChartProps {
   totalTMFT: number;
@@ -54,6 +54,17 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
+              <LabelList 
+                dataKey="valor" 
+                position="top" 
+                formatter={(value: number, index: number) => {
+                  if (index === 2) {
+                    return totalDIF;
+                  }
+                  return value;
+                }}
+                style={{ fill: '#000', fontWeight: 'bold' }}
+              />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
