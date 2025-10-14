@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, TrendingDown, TrendingUp, LogOut } from "lucide-react";
-import { MetricsCard } from "@/components/dashboard/MetricsCard";
+import { Shield, LogOut } from "lucide-react";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { PercentageChart } from "@/components/dashboard/PercentageChart";
 import { mockMilitaryData, getUniqueValues } from "@/data/mockData";
@@ -37,20 +36,6 @@ const Index = () => {
       return true;
     });
   }, [filters]);
-
-  const metrics = useMemo(() => {
-    const totalTMFT = filteredData.reduce((sum, item) => sum + item.tmft, 0);
-    const totalEXI = filteredData.reduce((sum, item) => sum + item.exi, 0);
-    const totalDIF = filteredData.reduce((sum, item) => sum + item.dif, 0);
-    const percentualPreenchimento = totalTMFT > 0 ? Math.round((totalEXI / totalTMFT) * 100) : 0;
-
-    return {
-      totalTMFT,
-      totalEXI,
-      totalDIF,
-      percentualPreenchimento
-    };
-  }, [filteredData]);
 
   const handleFilterChange = (filterType: string, value: string) => {
     setFilters(prev => ({ ...prev, [filterType]: value }));
@@ -89,34 +74,6 @@ const Index = () => {
           selectedFilters={filters}
           onFilterChange={handleFilterChange}
         />
-
-        {/* Métricas principais */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <MetricsCard 
-            title="Total TMFT"
-            value={metrics.totalTMFT}
-            icon={Shield}
-            variant="default"
-          />
-          <MetricsCard 
-            title="Total Existente"
-            value={metrics.totalEXI}
-            icon={Users}
-            variant="success"
-          />
-          <MetricsCard 
-            title="Diferença"
-            value={metrics.totalDIF}
-            icon={metrics.totalDIF >= 0 ? TrendingUp : TrendingDown}
-            variant={metrics.totalDIF >= 0 ? "success" : "destructive"}
-          />
-          <MetricsCard 
-            title="Taxa de Preenchimento"
-            value={metrics.percentualPreenchimento}
-            icon={TrendingUp}
-            variant={metrics.percentualPreenchimento >= 90 ? "success" : "warning"}
-          />
-        </div>
 
         {/* Gráfico de Percentuais */}
         <PercentageChart data={filteredData} />
