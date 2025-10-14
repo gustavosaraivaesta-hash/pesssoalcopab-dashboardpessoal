@@ -11,14 +11,12 @@ export const OMS = [
   "DepSMRJ",
   "CSupAb",
   "DepSIMRJ",
-  "DepMSMRJ",
   "DepFMRJ",
   "CDU-BAMRJ",
   "CDU-1DN",
   "OM 13",
   "OM 14",
-  "OM 15",
-  "OM 16"
+  "OM 15"
 ];
 
 export const ESPECIALIDADES = [
@@ -132,14 +130,6 @@ export const mockMilitaryData: MilitaryData[] = [
   { id: "47", nome: "CB-DepSIMRJ", especialidade: "OS", graduacao: "CB", om: "DepSIMRJ", sdp: "SDP-8", tmft: 27, exi: 5, dif: -22, previsaoEmbarque: "2025-02", pracasTTC: 19, servidoresCivis: 2, percentualPracasAtiva: 77, percentualForcaTrabalho: 86 },
   { id: "48", nome: "MN-DepSIMRJ", especialidade: "ES", graduacao: "MN", om: "DepSIMRJ", sdp: "SDP-8", tmft: 2, exi: 3, dif: 1, previsaoEmbarque: "2025-02", pracasTTC: 19, servidoresCivis: 2, percentualPracasAtiva: 77, percentualForcaTrabalho: 86 },
 
-  // DepMSMRJ - Coluna 9 da planilha
-  { id: "49", nome: "SO-DepMSMRJ", especialidade: "MR", graduacao: "SO", om: "DepMSMRJ", sdp: "SDP-9", tmft: 29, exi: 58, dif: 29, previsaoEmbarque: "2025-03", pracasTTC: 62, servidoresCivis: 16, percentualPracasAtiva: 83, percentualForcaTrabalho: 91 },
-  { id: "50", nome: "1SG-DepMSMRJ", especialidade: "AD", graduacao: "1SG", om: "DepMSMRJ", sdp: "SDP-9", tmft: 51, exi: 62, dif: 11, previsaoEmbarque: "2025-03", pracasTTC: 62, servidoresCivis: 16, percentualPracasAtiva: 83, percentualForcaTrabalho: 91 },
-  { id: "51", nome: "2SG-DepMSMRJ", especialidade: "MA", graduacao: "2SG", om: "DepMSMRJ", sdp: "SDP-9", tmft: 48, exi: 99, dif: 51, previsaoEmbarque: "2025-03", pracasTTC: 62, servidoresCivis: 16, percentualPracasAtiva: 83, percentualForcaTrabalho: 91 },
-  { id: "52", nome: "3SG-DepMSMRJ", especialidade: "EL", graduacao: "3SG", om: "DepMSMRJ", sdp: "SDP-9", tmft: 152, exi: 121, dif: -31, previsaoEmbarque: "2025-03", pracasTTC: 62, servidoresCivis: 16, percentualPracasAtiva: 83, percentualForcaTrabalho: 91 },
-  { id: "53", nome: "CB-DepMSMRJ", especialidade: "CN", graduacao: "CB", om: "DepMSMRJ", sdp: "SDP-9", tmft: 250, exi: 97, dif: -153, previsaoEmbarque: "2025-03", pracasTTC: 62, servidoresCivis: 16, percentualPracasAtiva: 83, percentualForcaTrabalho: 91 },
-  { id: "54", nome: "MN-DepMSMRJ", especialidade: "SI", graduacao: "MN", om: "DepMSMRJ", sdp: "SDP-9", tmft: 120, exi: 103, dif: -17, previsaoEmbarque: "2025-03", pracasTTC: 62, servidoresCivis: 16, percentualPracasAtiva: 83, percentualForcaTrabalho: 91 },
-
   // DepFMRJ - Coluna 10 da planilha
   { id: "55", nome: "SO-DepFMRJ", especialidade: "ET", graduacao: "SO", om: "DepFMRJ", sdp: "SDP-10", tmft: 8, exi: 4, dif: -4, previsaoEmbarque: "2025-01", pracasTTC: 9, servidoresCivis: 1, percentualPracasAtiva: 85, percentualForcaTrabalho: 91 },
   { id: "56", nome: "1SG-DepFMRJ", especialidade: "CL", graduacao: "1SG", om: "DepFMRJ", sdp: "SDP-10", tmft: 9, exi: 12, dif: 3, previsaoEmbarque: "2025-01", pracasTTC: 9, servidoresCivis: 1, percentualPracasAtiva: 85, percentualForcaTrabalho: 91 },
@@ -188,13 +178,6 @@ export const mockMilitaryData: MilitaryData[] = [
   { id: "89", nome: "CB-OM15", especialidade: "CN", graduacao: "CB", om: "OM 15", sdp: "SDP-15", tmft: 1, exi: 0, dif: -1, previsaoEmbarque: "2025-03", pracasTTC: 6, servidoresCivis: 0, percentualPracasAtiva: 125, percentualForcaTrabalho: 100 },
   { id: "90", nome: "MN-OM15", especialidade: "SI", graduacao: "MN", om: "OM 15", sdp: "SDP-15", tmft: 2, exi: 3, dif: 1, previsaoEmbarque: "2025-03", pracasTTC: 6, servidoresCivis: 0, percentualPracasAtiva: 125, percentualForcaTrabalho: 100 },
 
-  // OM 16 - Coluna 16 da planilha
-  { id: "91", nome: "SO-OM16", especialidade: "ET", graduacao: "SO", om: "OM 16", sdp: "SDP-16", tmft: 17, exi: 26, dif: 9, previsaoEmbarque: "2025-01", pracasTTC: 54, servidoresCivis: 10, percentualPracasAtiva: 85, percentualForcaTrabalho: 90 },
-  { id: "92", nome: "1SG-OM16", especialidade: "CL", graduacao: "1SG", om: "OM 16", sdp: "SDP-16", tmft: 22, exi: 33, dif: 11, previsaoEmbarque: "2025-01", pracasTTC: 54, servidoresCivis: 10, percentualPracasAtiva: 85, percentualForcaTrabalho: 90 },
-  { id: "93", nome: "2SG-OM16", especialidade: "MO", graduacao: "2SG", om: "OM 16", sdp: "SDP-16", tmft: 29, exi: 38, dif: 9, previsaoEmbarque: "2025-01", pracasTTC: 54, servidoresCivis: 10, percentualPracasAtiva: 85, percentualForcaTrabalho: 90 },
-  { id: "94", nome: "3SG-OM16", especialidade: "AM", graduacao: "3SG", om: "OM 16", sdp: "SDP-16", tmft: 42, exi: 33, dif: -9, previsaoEmbarque: "2025-01", pracasTTC: 54, servidoresCivis: 10, percentualPracasAtiva: 85, percentualForcaTrabalho: 90 },
-  { id: "95", nome: "CB-OM16", especialidade: "OS", graduacao: "CB", om: "OM 16", sdp: "SDP-16", tmft: 71, exi: 17, dif: -54, previsaoEmbarque: "2025-01", pracasTTC: 54, servidoresCivis: 10, percentualPracasAtiva: 85, percentualForcaTrabalho: 90 },
-  { id: "96", nome: "MN-OM16", especialidade: "ES", graduacao: "MN", om: "OM 16", sdp: "SDP-16", tmft: 17, exi: 21, dif: 4, previsaoEmbarque: "2025-01", pracasTTC: 54, servidoresCivis: 10, percentualPracasAtiva: 85, percentualForcaTrabalho: 90 },
 ];
 
 export const getUniqueValues = (data: MilitaryData[]) => {
