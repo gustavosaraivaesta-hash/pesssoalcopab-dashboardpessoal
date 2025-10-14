@@ -80,7 +80,8 @@ serve(async (req) => {
     
     // Process each row (each row is a graduacao/pessoal)
     // Skip the summary row "FORÇA DE TRABALHO"
-    for (let i = 1; i < rows.length; i++) {
+    // Start from index 0 to include SO row
+    for (let i = 0; i < rows.length; i++) {
       const cells = rows[i].c || [];
       const graduacao = cells[0]?.v || '';
       
