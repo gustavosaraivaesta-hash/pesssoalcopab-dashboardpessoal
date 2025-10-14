@@ -11,7 +11,6 @@ const Index = () => {
     especialidade: "all",
     graduacao: "all",
     om: "all",
-    sdp: "all",
     mes: "all"
   });
 
@@ -22,7 +21,6 @@ const Index = () => {
       if (filters.especialidade !== "all" && item.especialidade !== filters.especialidade) return false;
       if (filters.graduacao !== "all" && item.graduacao !== filters.graduacao) return false;
       if (filters.om !== "all" && item.om !== filters.om) return false;
-      if (filters.sdp !== "all" && item.sdp !== filters.sdp) return false;
       if (filters.mes !== "all" && item.previsaoEmbarque !== filters.mes) return false;
       return true;
     });
