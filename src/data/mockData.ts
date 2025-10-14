@@ -15,7 +15,8 @@ export const OMS = [
   "DepFMRJ",
   "CDU-BAMRJ",
   "CDU-1DN",
-  "OM 13"
+  "OM 13",
+  "COMRJ"
 ];
 
 export const ESPECIALIDADES = [
@@ -167,7 +168,15 @@ export const mockMilitaryData: MilitaryData[] = [
   { id: "75", nome: "2SG-OM13", especialidade: "MA", graduacao: "2SG", om: "OM 13", sdp: "SDP-13", tmft: 8, exi: 7, dif: -1, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 0, percentualPracasAtiva: 60, percentualForcaTrabalho: 82 },
   { id: "76", nome: "3SG-OM13", especialidade: "EL", graduacao: "3SG", om: "OM 13", sdp: "SDP-13", tmft: 7, exi: 6, dif: -1, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 0, percentualPracasAtiva: 60, percentualForcaTrabalho: 82 },
   { id: "77", nome: "CB-OM13", especialidade: "CN", graduacao: "CB", om: "OM 13", sdp: "SDP-13", tmft: 31, exi: 2, dif: -29, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 0, percentualPracasAtiva: 60, percentualForcaTrabalho: 82 },
-  { id: "78", nome: "MN-OM13", especialidade: "SI", graduacao: "MN", om: "OM 13", sdp: "SDP-13", tmft: 4, exi: 5, dif: 1, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 0, percentualPracasAtiva: 60, percentualForcaTrabalho: 82 }
+  { id: "78", nome: "MN-OM13", especialidade: "SI", graduacao: "MN", om: "OM 13", sdp: "SDP-13", tmft: 4, exi: 5, dif: 1, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 0, percentualPracasAtiva: 60, percentualForcaTrabalho: 82 },
+
+  // COMRJ - Coluna 14 da planilha
+  { id: "79", nome: "SO-COMRJ", especialidade: "MR", graduacao: "SO", om: "COMRJ", sdp: "SDP-14", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "80", nome: "1SG-COMRJ", especialidade: "AD", graduacao: "1SG", om: "COMRJ", sdp: "SDP-14", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "81", nome: "2SG-COMRJ", especialidade: "MA", graduacao: "2SG", om: "COMRJ", sdp: "SDP-14", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "82", nome: "3SG-COMRJ", especialidade: "EL", graduacao: "3SG", om: "COMRJ", sdp: "SDP-14", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "83", nome: "CB-COMRJ", especialidade: "CN", graduacao: "CB", om: "COMRJ", sdp: "SDP-14", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "84", nome: "MN-COMRJ", especialidade: "SI", graduacao: "MN", om: "COMRJ", sdp: "SDP-14", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 }
 
 ];
 
