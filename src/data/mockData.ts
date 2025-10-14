@@ -11,6 +11,7 @@ export const OMS = [
   "DepSMRJ",
   "CSupAb",
   "DepSIMRJ",
+  "DAbM",
   "DepFMRJ",
   "CDU-BAMRJ",
   "CDU-1DN",
@@ -129,6 +130,14 @@ export const mockMilitaryData: MilitaryData[] = [
   { id: "46", nome: "3SG-DepSIMRJ", especialidade: "AM", graduacao: "3SG", om: "DepSIMRJ", sdp: "SDP-8", tmft: 19, exi: 6, dif: -13, previsaoEmbarque: "2025-02", pracasTTC: 19, servidoresCivis: 2, percentualPracasAtiva: 77, percentualForcaTrabalho: 86 },
   { id: "47", nome: "CB-DepSIMRJ", especialidade: "OS", graduacao: "CB", om: "DepSIMRJ", sdp: "SDP-8", tmft: 27, exi: 5, dif: -22, previsaoEmbarque: "2025-02", pracasTTC: 19, servidoresCivis: 2, percentualPracasAtiva: 77, percentualForcaTrabalho: 86 },
   { id: "48", nome: "MN-DepSIMRJ", especialidade: "ES", graduacao: "MN", om: "DepSIMRJ", sdp: "SDP-8", tmft: 2, exi: 3, dif: 1, previsaoEmbarque: "2025-02", pracasTTC: 19, servidoresCivis: 2, percentualPracasAtiva: 77, percentualForcaTrabalho: 86 },
+
+  // DAbM - Coluna 9 da planilha (COMRJ)
+  { id: "49", nome: "SO-DAbM", especialidade: "MR", graduacao: "SO", om: "DAbM", sdp: "SDP-9", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "50", nome: "1SG-DAbM", especialidade: "AD", graduacao: "1SG", om: "DAbM", sdp: "SDP-9", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "51", nome: "2SG-DAbM", especialidade: "MA", graduacao: "2SG", om: "DAbM", sdp: "SDP-9", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "52", nome: "3SG-DAbM", especialidade: "EL", graduacao: "3SG", om: "DAbM", sdp: "SDP-9", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "53", nome: "CB-DAbM", especialidade: "CN", graduacao: "CB", om: "DAbM", sdp: "SDP-9", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
+  { id: "54", nome: "MN-DAbM", especialidade: "SI", graduacao: "MN", om: "DAbM", sdp: "SDP-9", tmft: 0, exi: 0, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
 
   // DepFMRJ - Coluna 10 da planilha
   { id: "55", nome: "SO-DepFMRJ", especialidade: "ET", graduacao: "SO", om: "DepFMRJ", sdp: "SDP-10", tmft: 8, exi: 4, dif: -4, previsaoEmbarque: "2025-01", pracasTTC: 9, servidoresCivis: 1, percentualPracasAtiva: 85, percentualForcaTrabalho: 91 },
