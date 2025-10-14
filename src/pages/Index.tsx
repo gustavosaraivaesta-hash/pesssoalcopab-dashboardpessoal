@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Shield, Users, TrendingDown, TrendingUp, LogOut } from "lucide-react";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
+import { TotalsChart } from "@/components/dashboard/TotalsChart";
 import { mockMilitaryData, getUniqueValues } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -124,6 +125,13 @@ const Index = () => {
             variant={metrics.totalDIF >= 0 ? "success" : "destructive"}
           />
         </div>
+
+        {/* Gráfico de Totais */}
+        <TotalsChart 
+          totalTMFT={metrics.totalTMFT}
+          totalEXI={metrics.totalEXI}
+          totalDIF={metrics.totalDIF}
+        />
       </main>
     </div>
   );
