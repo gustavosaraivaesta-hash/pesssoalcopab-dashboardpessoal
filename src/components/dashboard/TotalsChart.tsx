@@ -21,7 +21,7 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
     },
     {
       name: "DIF",
-      valor: Math.abs(totalDIF),
+      valor: totalDIF,
       color: totalDIF >= 0 ? "#000000" : "#ef4444"
     }
   ];
@@ -36,19 +36,8 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip 
-              formatter={(value: number, name: string) => {
-                if (name === "valor") {
-                  const item = data.find(d => d.valor === Math.abs(value));
-                  if (item?.name === "DIF") {
-                    return totalDIF;
-                  }
-                  return value;
-                }
-                return value;
-              }}
-            />
+            <YAxis domain={['auto', 'auto']} />
+            <Tooltip />
             <Legend formatter={(value) => value === "valor" ? "Valor" : value} />
             <Bar dataKey="valor" radius={[8, 8, 0, 0]}>
               {data.map((entry, index) => (
@@ -56,14 +45,19 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
               ))}
               <LabelList 
                 dataKey="valor" 
-                position="top" 
-                formatter={(value: number, index: number) => {
-                  if (index === 2) {
-                    return totalDIF;
-                  }
-                  return value;
+                position="top"
+                content={({ x, y, width, value, index }) => {
+                  const numValue = Number(value);
+                  const numY = Number(y);
+                  const numX = Number(x);
+                  const numWidth = Number(width);
+                  const yPos = numValue >= 0 ? numY - 5 : numY + 20;
+                  return (
+                    <text x={numX + numWidth / 2} y={yPos} fill="#000" fontWeight="bold" textAnchor="middle">
+                      {numValue}
+                    </text>
+                  );
                 }}
-                style={{ fill: '#000', fontWeight: 'bold' }}
               />
             </Bar>
           </BarChart>
