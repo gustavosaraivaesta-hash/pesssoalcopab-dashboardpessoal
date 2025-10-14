@@ -83,14 +83,6 @@ const Index = () => {
                 <p className="text-sm opacity-90">Diretoria de Abastecimento - Análise do Pessoal Militar e Civil</p>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={handleLogout}
-              className="border-blue-200 text-blue-100 hover:bg-blue-700 hover:text-white font-semibold"
-            >
-              <LogOut size={18} className="mr-2" />
-              Sair
-            </Button>
           </div>
         </div>
       </header>
@@ -133,6 +125,18 @@ const Index = () => {
           totalDIF={metrics.totalDIF}
         />
       </main>
+
+      {/* Botão Sair - Canto Inferior Esquerdo */}
+      <div className="fixed bottom-6 left-6">
+        <Button 
+          variant="outline" 
+          onClick={handleLogout}
+          className="border-blue-600 bg-white text-blue-600 hover:bg-blue-600 hover:text-white font-semibold shadow-lg"
+        >
+          <LogOut size={18} className="mr-2" />
+          Sair
+        </Button>
+      </div>
     </div>
   );
 };
