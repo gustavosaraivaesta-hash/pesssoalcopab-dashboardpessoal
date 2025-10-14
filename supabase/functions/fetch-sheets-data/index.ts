@@ -60,35 +60,53 @@ serve(async (req) => {
     const headerCells = rows[0].c || [];
     console.log('Processing matrix data with', rows.length - 1, 'rows');
     
-    // Get only the "FORÇA DE TRABALHO" row from TOTAL column
-    const totalColumn = 43;
+    // Define OMs and their column positions (TMFT, EXI, DIF)
+    const oms = [
+      { name: 'DAbM', startCol: 1 },
+      { name: 'COMRJ', startCol: 4 },
+      { name: 'COpAb', startCol: 7 },
+      { name: 'BAMRJ', startCol: 10 },
+      { name: 'CMM', startCol: 13 },
+      { name: 'DepCMRJ', startCol: 16 },
+      { name: 'CDAM', startCol: 19 },
+      { name: 'DepSMRJ', startCol: 22 },
+      { name: 'CSupAb', startCol: 25 },
+      { name: 'DepSIMRJ', startCol: 28 },
+      { name: 'DepMSMRJ', startCol: 31 },
+      { name: 'DepFMRJ', startCol: 34 },
+      { name: 'CDU-BAMRJ', startCol: 37 },
+      { name: 'CDU-1DN', startCol: 40 },
+    ];
     
-    // Process each row to find "FORÇA DE TRABALHO"
+    // Process only the "FORÇA DE TRABALHO" row for each OM
     for (let i = 1; i < rows.length; i++) {
       const cells = rows[i].c || [];
       const graduacao = cells[0]?.v || '';
       
       // Only process the summary row "FORÇA DE TRABALHO"
       if (graduacao === 'FORÇA DE TRABALHO') {
-        const tmft = Number(cells[totalColumn]?.v || 0);
-        const exi = Number(cells[totalColumn + 1]?.v || 0);
-        const dif = Number(cells[totalColumn + 2]?.v || 0);
-        
-        transformedData.push({
-          id: 'TOTAL',
-          nome: 'Total Geral',
-          especialidade: 'TOTAL',
-          graduacao: 'TOTAL',
-          om: 'TOTAL',
-          sdp: '',
-          tmft: tmft,
-          exi: exi,
-          dif: dif,
-          previsaoEmbarque: '',
-          pracasTTC: 0,
-          servidoresCivis: 0,
-          percentualPracasAtiva: 0,
-          percentualForcaTrabalho: 0,
+        // Create one record for each OM
+        oms.forEach(om => {
+          const tmft = Number(cells[om.startCol]?.v || 0);
+          const exi = Number(cells[om.startCol + 1]?.v || 0);
+          const dif = Number(cells[om.startCol + 2]?.v || 0);
+          
+          transformedData.push({
+            id: `FORÇA_DE_TRABALHO-${om.name}`,
+            nome: `Força de Trabalho - ${om.name}`,
+            especialidade: 'FORÇA DE TRABALHO',
+            graduacao: 'FORÇA DE TRABALHO',
+            om: om.name,
+            sdp: '',
+            tmft: tmft,
+            exi: exi,
+            dif: dif,
+            previsaoEmbarque: '',
+            pracasTTC: 0,
+            servidoresCivis: 0,
+            percentualPracasAtiva: 0,
+            percentualForcaTrabalho: 0,
+          });
         });
         break; // Found it, no need to continue
       }
