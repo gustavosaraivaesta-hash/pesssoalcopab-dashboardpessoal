@@ -28,8 +28,7 @@ const Index = () => {
   const [filters, setFilters] = useState({
     especialidade: "all",
     graduacao: "all",
-    om: "all",
-    mes: "all"
+    om: "all"
   });
 
   const filterOptions = useMemo(() => getUniqueValues(mockMilitaryData), []);
@@ -39,7 +38,6 @@ const Index = () => {
       if (filters.especialidade !== "all" && item.especialidade !== filters.especialidade) return false;
       if (filters.graduacao !== "all" && item.graduacao !== filters.graduacao) return false;
       if (filters.om !== "all" && item.om !== filters.om) return false;
-      if (filters.mes !== "all" && item.previsaoEmbarque !== filters.mes) return false;
       return true;
     });
   }, [filters]);
