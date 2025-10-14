@@ -43,9 +43,17 @@ serve(async (req) => {
     
     // Transform the data to match our MilitaryData interface
     const rows = sheetsData.table.rows;
+    
+    // Log header row for debugging
+    if (rows.length > 0) {
+      const headerCells = rows[0].c || [];
+      const headers = headerCells.map((cell: any) => cell?.v || '');
+      console.log('Header columns:', JSON.stringify(headers));
+    }
+    
     const transformedData = rows.slice(1).map((row: any, index: number) => {
       const cells = row.c || [];
-      return {
+      const rowData = {
         id: `${index + 1}`,
         nome: cells[0]?.v || '',
         especialidade: cells[1]?.v || '',
@@ -61,6 +69,13 @@ serve(async (req) => {
         percentualPracasAtiva: Number(cells[11]?.v || 0),
         percentualForcaTrabalho: Number(cells[12]?.v || 0),
       };
+      
+      // Log first row for debugging
+      if (index === 0) {
+        console.log('First row sample:', JSON.stringify(rowData));
+      }
+      
+      return rowData;
     });
     
     console.log(`Transformed ${transformedData.length} records`);
