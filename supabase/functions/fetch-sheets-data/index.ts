@@ -79,11 +79,12 @@ serve(async (req) => {
     ];
     
     // Process each row (each row is a graduacao/pessoal)
+    // Skip the summary row "FORÇA DE TRABALHO"
     for (let i = 1; i < rows.length; i++) {
       const cells = rows[i].c || [];
       const graduacao = cells[0]?.v || '';
       
-      if (!graduacao) continue;
+      if (!graduacao || graduacao === 'FORÇA DE TRABALHO') continue;
       
       // Create one record for each OM
       oms.forEach(om => {
