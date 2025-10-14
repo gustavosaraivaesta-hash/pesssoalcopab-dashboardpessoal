@@ -60,27 +60,25 @@ serve(async (req) => {
     const headerCells = rows[0].c || [];
     console.log('Processing matrix data with', rows.length - 1, 'rows');
     
-    // Use only TOTAL column (columns 43, 44, 45 = TMFT, EXI, DIF)
+    // Get only the "FORÇA DE TRABALHO" row from TOTAL column
     const totalColumn = 43;
     
-    // Process each row (each row is a graduacao)
+    // Process each row to find "FORÇA DE TRABALHO"
     for (let i = 1; i < rows.length; i++) {
       const cells = rows[i].c || [];
       const graduacao = cells[0]?.v || '';
       
-      if (!graduacao) continue;
-      
-      // Get values from TOTAL column only
-      const tmft = Number(cells[totalColumn]?.v || 0);
-      const exi = Number(cells[totalColumn + 1]?.v || 0);
-      const dif = Number(cells[totalColumn + 2]?.v || 0);
-      
-      if (tmft > 0 || exi > 0) { // Only add if there's data
+      // Only process the summary row "FORÇA DE TRABALHO"
+      if (graduacao === 'FORÇA DE TRABALHO') {
+        const tmft = Number(cells[totalColumn]?.v || 0);
+        const exi = Number(cells[totalColumn + 1]?.v || 0);
+        const dif = Number(cells[totalColumn + 2]?.v || 0);
+        
         transformedData.push({
-          id: graduacao,
-          nome: graduacao,
-          especialidade: graduacao,
-          graduacao: graduacao,
+          id: 'TOTAL',
+          nome: 'Total Geral',
+          especialidade: 'TOTAL',
+          graduacao: 'TOTAL',
           om: 'TOTAL',
           sdp: '',
           tmft: tmft,
@@ -92,6 +90,7 @@ serve(async (req) => {
           percentualPracasAtiva: 0,
           percentualForcaTrabalho: 0,
         });
+        break; // Found it, no need to continue
       }
     }
     
