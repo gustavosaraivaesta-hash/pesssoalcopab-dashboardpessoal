@@ -4,7 +4,6 @@ import { Shield, Users, TrendingDown, TrendingUp, LogOut } from "lucide-react";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { DataTable } from "@/components/dashboard/DataTable";
-import { ChartsSection } from "@/components/dashboard/ChartsSection";
 import { PercentageChart } from "@/components/dashboard/PercentageChart";
 import { mockMilitaryData, getUniqueValues } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
@@ -119,9 +118,6 @@ const Index = () => {
             variant={metrics.percentualPreenchimento >= 90 ? "success" : "warning"}
           />
         </div>
-
-        {/* Gráficos */}
-        <ChartsSection data={filteredData} />
 
         {/* Gráfico de Percentuais */}
         <PercentageChart data={filteredData} />
