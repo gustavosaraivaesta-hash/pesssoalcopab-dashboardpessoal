@@ -86,12 +86,12 @@ export const mockMilitaryData: MilitaryData[] = [
   { id: "12", nome: "MN-OM2", especialidade: "ES", graduacao: "MN", om: "OM 2", sdp: "SDP-2", tmft: 5, exi: 7, dif: 2, previsaoEmbarque: "2025-02", pracasTTC: 16, servidoresCivis: 11, percentualPracasAtiva: 75, percentualForcaTrabalho: 75 },
 
   // OM 3 - Coluna 3 da planilha
-  { id: "13", nome: "SO-OM3", especialidade: "MR", graduacao: "SO", om: "OM 3", sdp: "SDP-3", tmft: 7, exi: 9, dif: 2, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 0, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
-  { id: "14", nome: "1SG-OM3", especialidade: "AD", graduacao: "1SG", om: "OM 3", sdp: "SDP-3", tmft: 12, exi: 15, dif: 3, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 0, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
-  { id: "15", nome: "2SG-OM3", especialidade: "MA", graduacao: "2SG", om: "OM 3", sdp: "SDP-3", tmft: 7, exi: 2, dif: -5, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 0, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
-  { id: "16", nome: "3SG-OM3", especialidade: "EL", graduacao: "3SG", om: "OM 3", sdp: "SDP-3", tmft: 6, exi: 6, dif: 0, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 0, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
-  { id: "17", nome: "CB-OM3", especialidade: "CN", graduacao: "CB", om: "OM 3", sdp: "SDP-3", tmft: 4, exi: 0, dif: -4, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 0, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
-  { id: "18", nome: "MN-OM3", especialidade: "SI", graduacao: "MN", om: "OM 3", sdp: "SDP-3", tmft: 3, exi: 3, dif: 0, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 0, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
+  { id: "13", nome: "SO-OM3", especialidade: "MR", graduacao: "SO", om: "OM 3", sdp: "SDP-3", tmft: 7, exi: 9, dif: 2, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 2, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
+  { id: "14", nome: "1SG-OM3", especialidade: "AD", graduacao: "1SG", om: "OM 3", sdp: "SDP-3", tmft: 12, exi: 15, dif: 3, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 2, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
+  { id: "15", nome: "2SG-OM3", especialidade: "MA", graduacao: "2SG", om: "OM 3", sdp: "SDP-3", tmft: 7, exi: 2, dif: -5, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 2, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
+  { id: "16", nome: "3SG-OM3", especialidade: "EL", graduacao: "3SG", om: "OM 3", sdp: "SDP-3", tmft: 6, exi: 6, dif: 0, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 2, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
+  { id: "17", nome: "CB-OM3", especialidade: "CN", graduacao: "CB", om: "OM 3", sdp: "SDP-3", tmft: 4, exi: 0, dif: -4, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 2, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
+  { id: "18", nome: "MN-OM3", especialidade: "SI", graduacao: "MN", om: "OM 3", sdp: "SDP-3", tmft: 3, exi: 3, dif: 0, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 2, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
 
   // OM 4 - Coluna 4 da planilha
   { id: "19", nome: "SO-OM4", especialidade: "ET", graduacao: "SO", om: "OM 4", sdp: "SDP-4", tmft: 9, exi: 19, dif: 10, previsaoEmbarque: "2025-01", pracasTTC: 24, servidoresCivis: 10, percentualPracasAtiva: 93, percentualForcaTrabalho: 105 },
@@ -110,12 +110,12 @@ export const mockMilitaryData: MilitaryData[] = [
   { id: "30", nome: "MN-OM5", especialidade: "SI", graduacao: "MN", om: "OM 5", sdp: "SDP-5", tmft: 25, exi: 42, dif: 17, previsaoEmbarque: "2025-02", pracasTTC: 5, servidoresCivis: 2, percentualPracasAtiva: 86, percentualForcaTrabalho: 96 },
 
   // OM 6  - Coluna 6 da planilha
-  { id: "31", nome: "SO-OM6", especialidade: "ET", graduacao: "SO", om: "OM 6", sdp: "SDP-6", tmft: 1, exi: 7, dif: 6, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 0, percentualPracasAtiva: 75, percentualForcaTrabalho: 77 },
-  { id: "32", nome: "1SG-OM6", especialidade: "CL", graduacao: "1SG", om: "OM 6", sdp: "SDP-6", tmft: 9, exi: 6, dif: -3, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 0, percentualPracasAtiva: 75, percentualForcaTrabalho: 77 },
-  { id: "33", nome: "2SG-OM6", especialidade: "MO", graduacao: "2SG", om: "OM 6", sdp: "SDP-6", tmft: 12, exi: 21, dif: 9, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 0, percentualPracasAtiva: 75, percentualForcaTrabalho: 77 },
-  { id: "34", nome: "3SG-OM6", especialidade: "AM", graduacao: "3SG", om: "OM 6", sdp: "SDP-6", tmft: 24, exi: 30, dif: 6, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 0, percentualPracasAtiva: 75, percentualForcaTrabalho: 77 },
-  { id: "35", nome: "CB-OM6", especialidade: "OS", graduacao: "CB", om: "OM 6", sdp: "SDP-6", tmft: 61, exi: 27, dif: -34, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 0, percentualPracasAtiva: 75, percentualForcaTrabalho: 77 },
-  { id: "36", nome: "MN-OM6", especialidade: "ES", graduacao: "MN", om: "OM 6", sdp: "SDP-6", tmft: 57, exi: 32, dif: -25, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 0, percentualPracasAtiva: 75, percentualForcaTrabalho: 77 },
+  { id: "31", nome: "SO-OM6", especialidade: "ET", graduacao: "SO", om: "OM 6", sdp: "SDP-6", tmft: 1, exi: 7, dif: 6, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 5, percentualPracasAtiva: 75, percentualForcaTrabalho: 77 },
+  { id: "32", nome: "1SG-OM6", especialidade: "CL", graduacao: "1SG", om: "OM 6", sdp: "SDP-6", tmft: 9, exi: 6, dif: -3, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 5, percentualPracasAtiva: 75, percentualForcaTrabalho: 77 },
+  { id: "33", nome: "2SG-OM6", especialidade: "MO", graduacao: "2SG", om: "OM 6", sdp: "SDP-6", tmft: 12, exi: 21, dif: 9, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 5, percentualPracasAtiva: 75, percentualForcaTrabalho: 77 },
+  { id: "34", nome: "3SG-OM6", especialidade: "AM", graduacao: "3SG", om: "OM 6", sdp: "SDP-6", tmft: 24, exi: 30, dif: 6, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 5, percentualPracasAtiva: 75, percentualForcaTrabalho: 77 },
+  { id: "35", nome: "CB-OM6", especialidade: "OS", graduacao: "CB", om: "OM 6", sdp: "SDP-6", tmft: 61, exi: 27, dif: -34, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 5, percentualPracasAtiva: 75, percentualForcaTrabalho: 77 },
+  { id: "36", nome: "MN-OM6", especialidade: "ES", graduacao: "MN", om: "OM 6", sdp: "SDP-6", tmft: 57, exi: 32, dif: -25, previsaoEmbarque: "2025-03", pracasTTC: 7, servidoresCivis: 5, percentualPracasAtiva: 75, percentualForcaTrabalho: 77 },
 
   // OM 7 - Coluna 7 da planilha
   { id: "37", nome: "SO-OM7", especialidade: "MR", graduacao: "SO", om: "OM 7", sdp: "SDP-7", tmft: 6, exi: 9, dif: 3, previsaoEmbarque: "2025-01", pracasTTC: 7, servidoresCivis: 2, percentualPracasAtiva: 77, percentualForcaTrabalho: 78 },
@@ -174,12 +174,12 @@ export const mockMilitaryData: MilitaryData[] = [
   { id: "78", nome: "MN-OM13", especialidade: "SI", graduacao: "MN", om: "OM 13", sdp: "SDP-13", tmft: 4, exi: 5, dif: 1, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 0, percentualPracasAtiva: 60, percentualForcaTrabalho: 82 },
 
   // OM 14 - Coluna 14 da planilha
-  { id: "79", nome: "SO-OM14", especialidade: "ET", graduacao: "SO", om: "OM 14", sdp: "SDP-14", tmft: 2, exi: 1, dif: -1, previsaoEmbarque: "2025-02", pracasTTC: 4, servidoresCivis: 0, percentualPracasAtiva: 120, percentualForcaTrabalho: 114 },
-  { id: "80", nome: "1SG-OM14", especialidade: "CL", graduacao: "1SG", om: "OM 14", sdp: "SDP-14", tmft: 1, exi: 1, dif: 0, previsaoEmbarque: "2025-02", pracasTTC: 4, servidoresCivis: 0, percentualPracasAtiva: 120, percentualForcaTrabalho: 114 },
-  { id: "81", nome: "2SG-OM14", especialidade: "MO", graduacao: "2SG", om: "OM 14", sdp: "SDP-14", tmft: 1, exi: 3, dif: 2, previsaoEmbarque: "2025-02", pracasTTC: 4, servidoresCivis: 0, percentualPracasAtiva: 120, percentualForcaTrabalho: 114 },
-  { id: "82", nome: "3SG-OM14", especialidade: "AM", graduacao: "3SG", om: "OM 14", sdp: "SDP-14", tmft: 2, exi: 1, dif: -1, previsaoEmbarque: "2025-02", pracasTTC: 4, servidoresCivis: 0, percentualPracasAtiva: 120, percentualForcaTrabalho: 114 },
-  { id: "83", nome: "CB-OM14", especialidade: "OS", graduacao: "CB", om: "OM 14", sdp: "SDP-14", tmft: 3, exi: 3, dif: 0, previsaoEmbarque: "2025-02", pracasTTC: 4, servidoresCivis: 0, percentualPracasAtiva: 120, percentualForcaTrabalho: 114 },
-  { id: "84", nome: "MN-OM14", especialidade: "ES", graduacao: "MN", om: "OM 14", sdp: "SDP-14", tmft: 1, exi: 3, dif: 2, previsaoEmbarque: "2025-02", pracasTTC: 4, servidoresCivis: 0, percentualPracasAtiva: 120, percentualForcaTrabalho: 114 },
+  { id: "79", nome: "SO-OM14", especialidade: "ET", graduacao: "SO", om: "OM 14", sdp: "SDP-14", tmft: 2, exi: 1, dif: -1, previsaoEmbarque: "2025-02", pracasTTC: 4, servidoresCivis: 9, percentualPracasAtiva: 120, percentualForcaTrabalho: 114 },
+  { id: "80", nome: "1SG-OM14", especialidade: "CL", graduacao: "1SG", om: "OM 14", sdp: "SDP-14", tmft: 1, exi: 1, dif: 0, previsaoEmbarque: "2025-02", pracasTTC: 4, servidoresCivis: 9, percentualPracasAtiva: 120, percentualForcaTrabalho: 114 },
+  { id: "81", nome: "2SG-OM14", especialidade: "MO", graduacao: "2SG", om: "OM 14", sdp: "SDP-14", tmft: 1, exi: 3, dif: 2, previsaoEmbarque: "2025-02", pracasTTC: 4, servidoresCivis: 9, percentualPracasAtiva: 120, percentualForcaTrabalho: 114 },
+  { id: "82", nome: "3SG-OM14", especialidade: "AM", graduacao: "3SG", om: "OM 14", sdp: "SDP-14", tmft: 2, exi: 1, dif: -1, previsaoEmbarque: "2025-02", pracasTTC: 4, servidoresCivis: 9, percentualPracasAtiva: 120, percentualForcaTrabalho: 114 },
+  { id: "83", nome: "CB-OM14", especialidade: "OS", graduacao: "CB", om: "OM 14", sdp: "SDP-14", tmft: 3, exi: 3, dif: 0, previsaoEmbarque: "2025-02", pracasTTC: 4, servidoresCivis: 9, percentualPracasAtiva: 120, percentualForcaTrabalho: 114 },
+  { id: "84", nome: "MN-OM14", especialidade: "ES", graduacao: "MN", om: "OM 14", sdp: "SDP-14", tmft: 1, exi: 3, dif: 2, previsaoEmbarque: "2025-02", pracasTTC: 4, servidoresCivis: 9, percentualPracasAtiva: 120, percentualForcaTrabalho: 114 },
 
   // OM 15 - Coluna 15 da planilha
   { id: "85", nome: "SO-OM15", especialidade: "MR", graduacao: "SO", om: "OM 15", sdp: "SDP-15", tmft: 1, exi: 2, dif: 1, previsaoEmbarque: "2025-03", pracasTTC: 6, servidoresCivis: 0, percentualPracasAtiva: 125, percentualForcaTrabalho: 100 },
