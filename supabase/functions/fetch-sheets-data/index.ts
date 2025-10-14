@@ -78,38 +78,36 @@ serve(async (req) => {
       { name: 'CDU-1DN', startCol: 40 },
     ];
     
-    // Process only the "FORÇA DE TRABALHO" row for each OM
+    // Process each row (each row is a graduacao/pessoal)
     for (let i = 1; i < rows.length; i++) {
       const cells = rows[i].c || [];
       const graduacao = cells[0]?.v || '';
       
-      // Only process the summary row "FORÇA DE TRABALHO"
-      if (graduacao === 'FORÇA DE TRABALHO') {
-        // Create one record for each OM
-        oms.forEach(om => {
-          const tmft = Number(cells[om.startCol]?.v || 0);
-          const exi = Number(cells[om.startCol + 1]?.v || 0);
-          const dif = Number(cells[om.startCol + 2]?.v || 0);
-          
-          transformedData.push({
-            id: `FORÇA_DE_TRABALHO-${om.name}`,
-            nome: `Força de Trabalho - ${om.name}`,
-            especialidade: 'FORÇA DE TRABALHO',
-            graduacao: 'FORÇA DE TRABALHO',
-            om: om.name,
-            sdp: '',
-            tmft: tmft,
-            exi: exi,
-            dif: dif,
-            previsaoEmbarque: '',
-            pracasTTC: 0,
-            servidoresCivis: 0,
-            percentualPracasAtiva: 0,
-            percentualForcaTrabalho: 0,
-          });
+      if (!graduacao) continue;
+      
+      // Create one record for each OM
+      oms.forEach(om => {
+        const tmft = Number(cells[om.startCol]?.v || 0);
+        const exi = Number(cells[om.startCol + 1]?.v || 0);
+        const dif = Number(cells[om.startCol + 2]?.v || 0);
+        
+        transformedData.push({
+          id: `${graduacao}-${om.name}`,
+          nome: `${graduacao} - ${om.name}`,
+          especialidade: graduacao,
+          graduacao: graduacao,
+          om: om.name,
+          sdp: '',
+          tmft: tmft,
+          exi: exi,
+          dif: dif,
+          previsaoEmbarque: '',
+          pracasTTC: 0,
+          servidoresCivis: 0,
+          percentualPracasAtiva: 0,
+          percentualForcaTrabalho: 0,
         });
-        break; // Found it, no need to continue
-      }
+      });
     }
     
     console.log(`Transformed ${transformedData.length} records`);
