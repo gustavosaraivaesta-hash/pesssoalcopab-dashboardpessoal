@@ -84,7 +84,12 @@ serve(async (req) => {
       const cells = rows[i].c || [];
       const graduacao = cells[0]?.v || '';
       
-      if (!graduacao || graduacao === 'FORÇA DE TRABALHO') continue;
+      console.log(`Row ${i}: graduacao="${graduacao}"`);
+      
+      if (!graduacao || graduacao === 'FORÇA DE TRABALHO') {
+        console.log(`Skipping row ${i}: graduacao="${graduacao}"`);
+        continue;
+      }
       
       // Create one record for each OM
       oms.forEach(om => {
