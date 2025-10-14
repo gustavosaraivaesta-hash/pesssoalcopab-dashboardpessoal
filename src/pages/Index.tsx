@@ -25,13 +25,31 @@ const Index = () => {
   };
   const [filters, setFilters] = useState({
     graduacao: "all",
-    om: "all"
+    om: "all",
+    tipo: "all" // all, pracasTTC, servidoresCivis
   });
 
   const filterOptions = useMemo(() => getUniqueValues(mockMilitaryData), []);
 
   const filteredData = useMemo(() => {
-    return mockMilitaryData.filter(item => {
+    let data = mockMilitaryData;
+    
+    // Filtrar por tipo de dados
+    if (filters.tipo === "pracasTTC") {
+      data = data.map(item => ({
+        ...item,
+        exi: item.pracasTTC,
+        dif: item.pracasTTC - item.tmft
+      }));
+    } else if (filters.tipo === "servidoresCivis") {
+      data = data.map(item => ({
+        ...item,
+        exi: item.servidoresCivis,
+        dif: item.servidoresCivis - item.tmft
+      }));
+    }
+    
+    return data.filter(item => {
       if (filters.graduacao !== "all" && item.graduacao !== filters.graduacao) return false;
       if (filters.om !== "all" && item.om !== filters.om) return false;
       return true;

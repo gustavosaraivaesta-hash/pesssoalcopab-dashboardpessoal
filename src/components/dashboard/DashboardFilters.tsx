@@ -7,6 +7,7 @@ interface DashboardFiltersProps {
   selectedFilters: {
     graduacao: string;
     om: string;
+    tipo: string;
   };
   onFilterChange: (filterType: string, value: string) => void;
 }
@@ -19,7 +20,26 @@ export const DashboardFilters = ({
   return (
     <Card className="shadow-card bg-gradient-card">
       <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">
+              Tipo de Dados
+            </label>
+            <Select 
+              value={selectedFilters.tipo} 
+              onValueChange={(value) => onFilterChange("tipo", value)}
+            >
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="all">Praças da Ativa</SelectItem>
+                <SelectItem value="pracasTTC">Praças TTC</SelectItem>
+                <SelectItem value="servidoresCivis">Servidores Civis (NA + NI)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
               Graduação
