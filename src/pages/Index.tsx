@@ -35,27 +35,25 @@ const Index = () => {
     
     // Filtrar por tipo de pessoal
     if (filters.pessoal === "pracasTTC") {
-      data = data.map(item => ({
-        ...item,
-        exi: item.pracasTTC,
-        dif: item.pracasTTC - item.tmft
-      }));
+      // Mostra apenas as linhas de PRAÇAS TTC
+      data = data.filter(item => item.graduacao === "PRAÇAS TTC");
     } else if (filters.pessoal === "servidoresCivis") {
-      data = data.map(item => ({
-        ...item,
-        exi: item.servidoresCivis,
-        dif: item.servidoresCivis - item.tmft
-      }));
+      // Mostra apenas as linhas de SERVIDORES CIVIS
+      data = data.filter(item => item.graduacao === "SERVIDORES CIVIS");
+    } else if (filters.pessoal !== "all") {
+      // Filtrar por graduação específica (SO, 1SG, etc) - exclui PRAÇAS TTC e SERVIDORES CIVIS
+      data = data.filter(item => item.graduacao === filters.pessoal && item.graduacao !== "PRAÇAS TTC" && item.graduacao !== "SERVIDORES CIVIS");
+    } else {
+      // "all" - mostra apenas graduações normais (exclui PRAÇAS TTC e SERVIDORES CIVIS)
+      data = data.filter(item => item.graduacao !== "PRAÇAS TTC" && item.graduacao !== "SERVIDORES CIVIS");
     }
     
-    return data.filter(item => {
-      // Filtrar por graduação específica (se não for "all", "pracasTTC" ou "servidoresCivis")
-      if (filters.pessoal !== "all" && filters.pessoal !== "pracasTTC" && filters.pessoal !== "servidoresCivis") {
-        if (item.graduacao !== filters.pessoal) return false;
-      }
-      if (filters.om !== "all" && item.om !== filters.om) return false;
-      return true;
-    });
+    // Filtrar por OM
+    if (filters.om !== "all") {
+      data = data.filter(item => item.om === filters.om);
+    }
+    
+    return data;
   }, [filters]);
 
   const metrics = useMemo(() => {
