@@ -33,39 +33,41 @@ const Login = () => {
         style={{ backgroundImage: `url(${backgroundImage})` }}
       />
       
-      <Card className="w-full max-w-md relative z-10 bg-white/95 backdrop-blur-sm">
+      <Card className="w-full max-w-md relative z-10 bg-blue-600/90 backdrop-blur-sm text-white border-blue-700">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Shield size={48} className="text-primary" />
+            <Shield size={48} className="text-white" />
           </div>
-          <CardTitle className="text-2xl">Dashboard DAbM</CardTitle>
-          <CardDescription>Diretoria de Abastecimento - Análise de Militares</CardDescription>
+          <CardTitle className="text-2xl text-white">Dashboard DAbM</CardTitle>
+          <CardDescription className="text-white/90">Diretoria de Abastecimento - Análise de Militares</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Usuário</Label>
+              <Label htmlFor="username" className="text-white">Usuário</Label>
               <Input
                 id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Digite seu usuário"
+                className="bg-white/90 border-white/50"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password" className="text-white">Senha</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Digite sua senha"
+                className="bg-white/90 border-white/50"
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full bg-white text-blue-600 hover:bg-white/90">
               Entrar
             </Button>
           </form>
