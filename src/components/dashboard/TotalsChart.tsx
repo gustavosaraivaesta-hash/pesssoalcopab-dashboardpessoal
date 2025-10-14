@@ -22,7 +22,7 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
     {
       name: "DIF",
       valor: Math.abs(totalDIF),
-      color: totalDIF >= 0 ? "#10b981" : "#ef4444"
+      color: "#ef4444"
     }
   ];
 
