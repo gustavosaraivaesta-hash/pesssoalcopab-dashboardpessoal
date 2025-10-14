@@ -34,13 +34,17 @@ export const DataTable = ({ data }: DataTableProps) => {
                 <TableHead className="font-semibold text-center">TMFT</TableHead>
                 <TableHead className="font-semibold text-center">EXI</TableHead>
                 <TableHead className="font-semibold text-center">DIF</TableHead>
+                <TableHead className="font-semibold text-center">Praças TTC</TableHead>
+                <TableHead className="font-semibold text-center">Servidores Civis</TableHead>
+                <TableHead className="font-semibold text-center">% N/A Praças Ativa</TableHead>
+                <TableHead className="font-semibold text-center">% N/A Força Trabalho</TableHead>
                 <TableHead className="font-semibold">Previsão Embarque</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                     Nenhum dado encontrado com os filtros selecionados
                   </TableCell>
                 </TableRow>
@@ -60,6 +64,10 @@ export const DataTable = ({ data }: DataTableProps) => {
                         {item.dif > 0 ? `+${item.dif}` : item.dif}
                       </Badge>
                     </TableCell>
+                    <TableCell className="text-center font-semibold">{item.pracasTTC}</TableCell>
+                    <TableCell className="text-center font-semibold">{item.servidoresCivis}</TableCell>
+                    <TableCell className="text-center font-semibold">{item.percentualPracasAtiva}%</TableCell>
+                    <TableCell className="text-center font-semibold">{item.percentualForcaTrabalho}%</TableCell>
                     <TableCell>
                       {new Date(item.previsaoEmbarque + "-01").toLocaleDateString("pt-BR", {
                         month: "short",

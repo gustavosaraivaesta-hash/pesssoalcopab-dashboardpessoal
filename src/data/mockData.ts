@@ -74,7 +74,11 @@ export const mockMilitaryData: MilitaryData[] = [
     tmft: 15,
     exi: 12,
     dif: -3,
-    previsaoEmbarque: "2025-01"
+    previsaoEmbarque: "2025-01",
+    pracasTTC: 10,
+    servidoresCivis: 2,
+    percentualPracasAtiva: 80,
+    percentualForcaTrabalho: 75
   },
   {
     id: "2",
@@ -86,7 +90,11 @@ export const mockMilitaryData: MilitaryData[] = [
     tmft: 20,
     exi: 18,
     dif: -2,
-    previsaoEmbarque: "2025-02"
+    previsaoEmbarque: "2025-02",
+    pracasTTC: 15,
+    servidoresCivis: 3,
+    percentualPracasAtiva: 90,
+    percentualForcaTrabalho: 85
   },
   {
     id: "3",
@@ -98,7 +106,11 @@ export const mockMilitaryData: MilitaryData[] = [
     tmft: 10,
     exi: 11,
     dif: 1,
-    previsaoEmbarque: "2025-01"
+    previsaoEmbarque: "2025-01",
+    pracasTTC: 8,
+    servidoresCivis: 1,
+    percentualPracasAtiva: 110,
+    percentualForcaTrabalho: 95
   },
   {
     id: "4",
@@ -110,7 +122,11 @@ export const mockMilitaryData: MilitaryData[] = [
     tmft: 25,
     exi: 20,
     dif: -5,
-    previsaoEmbarque: "2025-03"
+    previsaoEmbarque: "2025-03",
+    pracasTTC: 18,
+    servidoresCivis: 4,
+    percentualPracasAtiva: 80,
+    percentualForcaTrabalho: 72
   },
   {
     id: "5",
@@ -122,7 +138,11 @@ export const mockMilitaryData: MilitaryData[] = [
     tmft: 18,
     exi: 18,
     dif: 0,
-    previsaoEmbarque: "2025-02"
+    previsaoEmbarque: "2025-02",
+    pracasTTC: 14,
+    servidoresCivis: 2,
+    percentualPracasAtiva: 100,
+    percentualForcaTrabalho: 88
   },
   {
     id: "6",
@@ -134,7 +154,11 @@ export const mockMilitaryData: MilitaryData[] = [
     tmft: 12,
     exi: 10,
     dif: -2,
-    previsaoEmbarque: "2025-01"
+    previsaoEmbarque: "2025-01",
+    pracasTTC: 8,
+    servidoresCivis: 1,
+    percentualPracasAtiva: 83,
+    percentualForcaTrabalho: 75
   },
   {
     id: "7",
@@ -146,7 +170,11 @@ export const mockMilitaryData: MilitaryData[] = [
     tmft: 8,
     exi: 9,
     dif: 1,
-    previsaoEmbarque: "2025-03"
+    previsaoEmbarque: "2025-03",
+    pracasTTC: 7,
+    servidoresCivis: 1,
+    percentualPracasAtiva: 112,
+    percentualForcaTrabalho: 100
   },
   {
     id: "8",
@@ -158,7 +186,11 @@ export const mockMilitaryData: MilitaryData[] = [
     tmft: 30,
     exi: 28,
     dif: -2,
-    previsaoEmbarque: "2025-02"
+    previsaoEmbarque: "2025-02",
+    pracasTTC: 22,
+    servidoresCivis: 5,
+    percentualPracasAtiva: 93,
+    percentualForcaTrabalho: 82
   },
   {
     id: "9",
@@ -170,7 +202,11 @@ export const mockMilitaryData: MilitaryData[] = [
     tmft: 14,
     exi: 14,
     dif: 0,
-    previsaoEmbarque: "2025-01"
+    previsaoEmbarque: "2025-01",
+    pracasTTC: 11,
+    servidoresCivis: 2,
+    percentualPracasAtiva: 100,
+    percentualForcaTrabalho: 92
   },
   {
     id: "10",
@@ -182,7 +218,11 @@ export const mockMilitaryData: MilitaryData[] = [
     tmft: 22,
     exi: 19,
     dif: -3,
-    previsaoEmbarque: "2025-03"
+    previsaoEmbarque: "2025-03",
+    pracasTTC: 16,
+    servidoresCivis: 3,
+    percentualPracasAtiva: 86,
+    percentualForcaTrabalho: 78
   },
   {
     id: "11",
@@ -194,7 +234,11 @@ export const mockMilitaryData: MilitaryData[] = [
     tmft: 16,
     exi: 17,
     dif: 1,
-    previsaoEmbarque: "2025-02"
+    previsaoEmbarque: "2025-02",
+    pracasTTC: 13,
+    servidoresCivis: 2,
+    percentualPracasAtiva: 106,
+    percentualForcaTrabalho: 94
   },
   {
     id: "12",
@@ -206,7 +250,11 @@ export const mockMilitaryData: MilitaryData[] = [
     tmft: 19,
     exi: 16,
     dif: -3,
-    previsaoEmbarque: "2025-01"
+    previsaoEmbarque: "2025-01",
+    pracasTTC: 13,
+    servidoresCivis: 2,
+    percentualPracasAtiva: 84,
+    percentualForcaTrabalho: 76
   },
 ];
 

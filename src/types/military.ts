@@ -9,6 +9,10 @@ export interface MilitaryData {
   exi: number;
   dif: number;
   previsaoEmbarque: string;
+  pracasTTC: number;
+  servidoresCivis: number;
+  percentualPracasAtiva: number;
+  percentualForcaTrabalho: number;
 }
 
 export interface DashboardMetrics {
