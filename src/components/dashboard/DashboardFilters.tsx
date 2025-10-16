@@ -1,14 +1,23 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { FilterOptions } from "@/types/military";
+import { ChevronDown } from "lucide-react";
 
 interface DashboardFiltersProps {
   filterOptions: FilterOptions;
   selectedFilters: {
-    pessoal: string;
-    om: string;
+    pessoal: string[];
+    om: string[];
   };
-  onFilterChange: (filterType: string, value: string) => void;
+  onFilterChange: (filterType: string, values: string[]) => void;
 }
 
 export const DashboardFilters = ({ 
@@ -16,6 +25,42 @@ export const DashboardFilters = ({
   selectedFilters, 
   onFilterChange 
 }: DashboardFiltersProps) => {
+  const handlePessoalToggle = (value: string) => {
+    const newValues = selectedFilters.pessoal.includes(value)
+      ? selectedFilters.pessoal.filter(v => v !== value)
+      : [...selectedFilters.pessoal, value];
+    onFilterChange("pessoal", newValues);
+  };
+
+  const handleOmToggle = (value: string) => {
+    const newValues = selectedFilters.om.includes(value)
+      ? selectedFilters.om.filter(v => v !== value)
+      : [...selectedFilters.om, value];
+    onFilterChange("om", newValues);
+  };
+
+  const pessoalOptions = [
+    ...filterOptions.graduacoes,
+    "pracasTTC",
+    "servidoresCivis"
+  ];
+
+  const getPessoalLabel = (value: string) => {
+    if (value === "pracasTTC") return "PRAÇAS TTC";
+    if (value === "servidoresCivis") return "SERVIDORES CIVIS (NA + NI)";
+    return value;
+  };
+
+  const getSelectedLabel = (values: string[], allOptions: string[], type: string) => {
+    if (values.length === 0) {
+      return type === "pessoal" ? "Selecione pessoal" : "Selecione OMs";
+    }
+    if (values.length === allOptions.length) {
+      return type === "pessoal" ? "Todos selecionados" : "Todas selecionadas";
+    }
+    return `${values.length} ${type === "pessoal" ? "selecionado(s)" : "selecionada(s)"}`;
+  };
+
   return (
     <Card className="shadow-card bg-gradient-card">
       <CardContent className="p-6">
@@ -24,46 +69,68 @@ export const DashboardFilters = ({
             <label className="text-sm font-medium text-foreground mb-2 block">
               Pessoal
             </label>
-            <Select 
-              value={selectedFilters.pessoal} 
-              onValueChange={(value) => onFilterChange("pessoal", value)}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder="Todos" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover z-50">
-                <SelectItem value="all">Todos</SelectItem>
-                {filterOptions.graduacoes.map((grad) => (
-                  <SelectItem key={grad} value={grad}>
-                    {grad}
-                  </SelectItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between bg-background">
+                  {getSelectedLabel(selectedFilters.pessoal, pessoalOptions, "pessoal")}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-full bg-popover z-50" align="start">
+                <DropdownMenuCheckboxItem
+                  checked={selectedFilters.pessoal.length === pessoalOptions.length}
+                  onCheckedChange={(checked) => {
+                    onFilterChange("pessoal", checked ? pessoalOptions : []);
+                  }}
+                >
+                  Selecionar todos
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
+                {pessoalOptions.map((option) => (
+                  <DropdownMenuCheckboxItem
+                    key={option}
+                    checked={selectedFilters.pessoal.includes(option)}
+                    onCheckedChange={() => handlePessoalToggle(option)}
+                  >
+                    {getPessoalLabel(option)}
+                  </DropdownMenuCheckboxItem>
                 ))}
-                <SelectItem value="pracasTTC">PRAÇAS TTC</SelectItem>
-                <SelectItem value="servidoresCivis">SERVIDORES CIVIS (NA + NI)</SelectItem>
-              </SelectContent>
-            </Select>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
               OM
             </label>
-            <Select 
-              value={selectedFilters.om} 
-              onValueChange={(value) => onFilterChange("om", value)}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover z-50">
-                <SelectItem value="all">Todas</SelectItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between bg-background">
+                  {getSelectedLabel(selectedFilters.om, filterOptions.oms, "om")}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-full bg-popover z-50" align="start">
+                <DropdownMenuCheckboxItem
+                  checked={selectedFilters.om.length === filterOptions.oms.length}
+                  onCheckedChange={(checked) => {
+                    onFilterChange("om", checked ? filterOptions.oms : []);
+                  }}
+                >
+                  Selecionar todas
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
                 {filterOptions.oms.map((om) => (
-                  <SelectItem key={om} value={om}>
+                  <DropdownMenuCheckboxItem
+                    key={om}
+                    checked={selectedFilters.om.includes(om)}
+                    onCheckedChange={() => handleOmToggle(om)}
+                  >
                     {om}
-                  </SelectItem>
+                  </DropdownMenuCheckboxItem>
                 ))}
-              </SelectContent>
-            </Select>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </CardContent>

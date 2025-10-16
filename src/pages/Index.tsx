@@ -14,8 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 const Index = () => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
-    pessoal: "all",
-    om: "all",
+    pessoal: [] as string[],
+    om: [] as string[],
   });
   const [militaryData, setMilitaryData] = useState<MilitaryData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,17 +93,24 @@ const Index = () => {
     let data = militaryData;
     
     // Filtrar por tipo de pessoal
-    if (filters.pessoal === "pracasTTC") {
-      data = data.filter(item => item.graduacao === "PRAÇAS TTC");
-    } else if (filters.pessoal === "servidoresCivis") {
-      data = data.filter(item => item.graduacao === "SERVIDORES CIVIS (NA + NI)");
-    } else if (filters.pessoal !== "all") {
-      data = data.filter(item => item.graduacao === filters.pessoal);
+    if (filters.pessoal.length > 0) {
+      data = data.filter(item => {
+        // Verifica se algum dos filtros selecionados corresponde ao item
+        return filters.pessoal.some(filterValue => {
+          if (filterValue === "pracasTTC") {
+            return item.graduacao === "PRAÇAS TTC";
+          } else if (filterValue === "servidoresCivis") {
+            return item.graduacao === "SERVIDORES CIVIS (NA + NI)";
+          } else {
+            return item.graduacao === filterValue;
+          }
+        });
+      });
     }
     
     // Filtrar por OM
-    if (filters.om !== "all") {
-      data = data.filter(item => item.om === filters.om);
+    if (filters.om.length > 0) {
+      data = data.filter(item => filters.om.includes(item.om));
     }
     
     return data;
@@ -121,8 +128,8 @@ const Index = () => {
     };
   }, [filteredData]);
 
-  const handleFilterChange = (filterType: string, value: string) => {
-    setFilters(prev => ({ ...prev, [filterType]: value }));
+  const handleFilterChange = (filterType: string, values: string[]) => {
+    setFilters(prev => ({ ...prev, [filterType]: values }));
   };
 
   if (isLoading) {
