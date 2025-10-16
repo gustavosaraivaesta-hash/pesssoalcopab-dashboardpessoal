@@ -180,6 +180,8 @@ const Index = () => {
           filterOptions={filterOptions}
           selectedFilters={filters}
           onFilterChange={handleFilterChange}
+          filteredData={filteredData}
+          metrics={metrics}
         />
 
         {/* Métricas principais */}

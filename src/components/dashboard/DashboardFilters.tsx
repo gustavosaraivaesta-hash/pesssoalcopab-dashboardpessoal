@@ -9,8 +9,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { FilterOptions } from "@/types/military";
-import { ChevronDown, X } from "lucide-react";
+import { FilterOptions, MilitaryData } from "@/types/military";
+import { ChevronDown, X, FileText } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface DashboardFiltersProps {
   filterOptions: FilterOptions;
@@ -19,12 +21,20 @@ interface DashboardFiltersProps {
     om: string[];
   };
   onFilterChange: (filterType: string, values: string[]) => void;
+  filteredData: MilitaryData[];
+  metrics: {
+    totalTMFT: number;
+    totalEXI: number;
+    totalDIF: number;
+  };
 }
 
 export const DashboardFilters = ({ 
   filterOptions, 
   selectedFilters, 
-  onFilterChange 
+  onFilterChange,
+  filteredData,
+  metrics
 }: DashboardFiltersProps) => {
   const handlePessoalToggle = (value: string) => {
     const newValues = selectedFilters.pessoal.includes(value)
@@ -69,9 +79,98 @@ export const DashboardFilters = ({
     onFilterChange(filterType, newValues);
   };
 
+  const handleGeneratePDF = () => {
+    const doc = new jsPDF();
+    
+    // Título
+    doc.setFontSize(18);
+    doc.text("Relatório DAbM - Dashboard", 14, 20);
+    
+    // Filtros aplicados
+    doc.setFontSize(12);
+    doc.text("Filtros Aplicados:", 14, 30);
+    
+    let yPosition = 38;
+    
+    if (selectedFilters.pessoal.length > 0) {
+      doc.setFontSize(10);
+      doc.text("Pessoal:", 14, yPosition);
+      yPosition += 6;
+      selectedFilters.pessoal.forEach(value => {
+        doc.text(`  • ${getPessoalLabel(value)}`, 14, yPosition);
+        yPosition += 5;
+      });
+      yPosition += 3;
+    }
+    
+    if (selectedFilters.om.length > 0) {
+      doc.setFontSize(10);
+      doc.text("OM:", 14, yPosition);
+      yPosition += 6;
+      selectedFilters.om.forEach(value => {
+        doc.text(`  • ${value}`, 14, yPosition);
+        yPosition += 5;
+      });
+      yPosition += 3;
+    }
+    
+    if (selectedFilters.pessoal.length === 0 && selectedFilters.om.length === 0) {
+      doc.setFontSize(10);
+      doc.text("Nenhum filtro aplicado", 14, yPosition);
+      yPosition += 8;
+    }
+    
+    yPosition += 5;
+    
+    // Métricas
+    doc.setFontSize(12);
+    doc.text("Métricas Totais:", 14, yPosition);
+    yPosition += 8;
+    
+    doc.setFontSize(10);
+    doc.text(`Total TMFT: ${metrics.totalTMFT}`, 14, yPosition);
+    yPosition += 6;
+    doc.text(`Total EXI: ${metrics.totalEXI}`, 14, yPosition);
+    yPosition += 6;
+    doc.text(`Total DIF: ${metrics.totalDIF}`, 14, yPosition);
+    yPosition += 10;
+    
+    // Tabela de dados
+    const tableData = filteredData.map(item => [
+      item.graduacao,
+      item.om,
+      item.tmft.toString(),
+      item.exi.toString(),
+      item.dif.toString()
+    ]);
+    
+    autoTable(doc, {
+      head: [['Graduação', 'OM', 'TMFT', 'EXI', 'DIF']],
+      body: tableData,
+      startY: yPosition,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [37, 99, 235] }
+    });
+    
+    // Salvar PDF
+    doc.save(`relatorio-dabm-${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
   return (
     <Card className="shadow-card bg-gradient-card">
       <CardContent className="p-6">
+        {/* PDF Button */}
+        <div className="flex justify-end mb-4">
+          <Button 
+            onClick={handleGeneratePDF}
+            variant="outline"
+            className="gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            Gerar PDF
+          </Button>
+        </div>
+
         {/* Selected Filters Display */}
         {hasSelectedFilters && (
           <div className="mb-4 pb-4 border-b border-border">
