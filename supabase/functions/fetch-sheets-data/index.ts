@@ -19,9 +19,11 @@ serve(async (req) => {
     
     // Using Google Sheets API v4 - public access with cache busting
     const timestamp = new Date().getTime();
+    
+    // Fetch Page 1 (main data)
     const sheetsUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&timestamp=${timestamp}`;
     
-    console.log('Calling Google Sheets API...');
+    console.log('Calling Google Sheets API for Page 1...');
     const response = await fetch(sheetsUrl, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -38,6 +40,41 @@ serve(async (req) => {
     // Google returns JSONP, we need to extract the JSON
     const jsonString = text.substring(47).slice(0, -2);
     const sheetsData = JSON.parse(jsonString);
+    
+    // Fetch Page 3 (especialidades)
+    const sheet3Url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=2&tqx=out:json&timestamp=${timestamp}`;
+    
+    console.log('Calling Google Sheets API for Page 3 (especialidades)...');
+    const response3 = await fetch(sheet3Url, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+    
+    if (!response3.ok) {
+      throw new Error(`Google Sheets API Page 3 returned ${response3.status}`);
+    }
+    
+    const text3 = await response3.text();
+    const jsonString3 = text3.substring(47).slice(0, -2);
+    const sheet3Data = JSON.parse(jsonString3);
+    
+    // Build especialidade mapping from Page 3
+    const especialidadeMap: { [key: string]: string } = {};
+    if (sheet3Data.table.rows && sheet3Data.table.rows.length > 0) {
+      console.log('Processing especialidades from Page 3...');
+      for (const row of sheet3Data.table.rows) {
+        const cells = row.c || [];
+        const graduacao = cells[0]?.v || '';
+        const especialidade = cells[1]?.v || '';
+        if (graduacao && especialidade) {
+          especialidadeMap[graduacao] = especialidade;
+        }
+      }
+    }
+    console.log('Especialidade mapping created:', Object.keys(especialidadeMap).length, 'entries');
     
     console.log('Raw sheets data received');
     
@@ -93,10 +130,13 @@ serve(async (req) => {
         const exi = Number(cells[om.startCol + 1]?.v || 0);
         const dif = Number(cells[om.startCol + 2]?.v || 0);
         
+        // Get especialidade from mapping, fallback to graduacao if not found
+        const especialidade = especialidadeMap[graduacao] || graduacao;
+        
         transformedData.push({
           id: `${graduacao}-${om.name}`,
           nome: `${graduacao} - ${om.name}`,
-          especialidade: graduacao,
+          especialidade: especialidade,
           graduacao: graduacao,
           om: om.name,
           sdp: '',
