@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const navigate = useNavigate();
+  const chartRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState({
     pessoal: [] as string[],
     om: [] as string[],
@@ -182,6 +183,7 @@ const Index = () => {
           onFilterChange={handleFilterChange}
           filteredData={filteredData}
           metrics={metrics}
+          chartRef={chartRef}
         />
 
         {/* Métricas principais */}
@@ -207,11 +209,13 @@ const Index = () => {
         </div>
 
         {/* Gráfico de Totais */}
-        <TotalsChart 
-          totalTMFT={metrics.totalTMFT}
-          totalEXI={metrics.totalEXI}
-          totalDIF={metrics.totalDIF}
-        />
+        <div ref={chartRef}>
+          <TotalsChart 
+            totalTMFT={metrics.totalTMFT}
+            totalEXI={metrics.totalEXI}
+            totalDIF={metrics.totalDIF}
+          />
+        </div>
       </main>
 
       {/* Botão Sair - Canto Inferior Esquerdo */}

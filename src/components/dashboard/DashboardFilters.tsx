@@ -13,6 +13,7 @@ import { FilterOptions, MilitaryData } from "@/types/military";
 import { ChevronDown, X, FileText } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import html2canvas from "html2canvas";
 
 interface DashboardFiltersProps {
   filterOptions: FilterOptions;
@@ -27,6 +28,7 @@ interface DashboardFiltersProps {
     totalEXI: number;
     totalDIF: number;
   };
+  chartRef: React.RefObject<HTMLDivElement>;
 }
 
 export const DashboardFilters = ({ 
@@ -34,7 +36,8 @@ export const DashboardFilters = ({
   selectedFilters, 
   onFilterChange,
   filteredData,
-  metrics
+  metrics,
+  chartRef
 }: DashboardFiltersProps) => {
   const handlePessoalToggle = (value: string) => {
     const newValues = selectedFilters.pessoal.includes(value)
@@ -79,7 +82,7 @@ export const DashboardFilters = ({
     onFilterChange(filterType, newValues);
   };
 
-  const handleGeneratePDF = () => {
+  const handleGeneratePDF = async () => {
     const doc = new jsPDF();
     
     // Título
@@ -135,7 +138,28 @@ export const DashboardFilters = ({
     doc.text(`Total DIF: ${metrics.totalDIF}`, 14, yPosition);
     yPosition += 10;
     
+    // Capturar e adicionar o gráfico
+    if (chartRef.current) {
+      try {
+        const canvas = await html2canvas(chartRef.current, {
+          scale: 2,
+          backgroundColor: '#ffffff'
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 180;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        doc.addPage();
+        doc.setFontSize(12);
+        doc.text("Gráfico de Totais:", 14, 20);
+        doc.addImage(imgData, 'PNG', 14, 30, imgWidth, imgHeight);
+      } catch (error) {
+        console.error('Erro ao capturar gráfico:', error);
+      }
+    }
+    
     // Tabela de dados
+    doc.addPage();
     const tableData = filteredData.map(item => [
       item.graduacao,
       item.om,
@@ -147,7 +171,7 @@ export const DashboardFilters = ({
     autoTable(doc, {
       head: [['Graduação', 'OM', 'TMFT', 'EXI', 'DIF']],
       body: tableData,
-      startY: yPosition,
+      startY: 20,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [37, 99, 235] }
     });
