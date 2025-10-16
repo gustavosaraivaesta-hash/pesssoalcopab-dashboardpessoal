@@ -11,6 +11,52 @@ import {
 import { FilterOptions, MilitaryData } from "@/types/military";
 import { ChevronDown, X, FileText } from "lucide-react";
 
+const ESPECIALIDADES = [
+  "MANOBRAS E REPAROS (MR)",
+  "MÁQUINAS (MA)",
+  "CALDEIRA (CA)",
+  "COMUNICAÇÕES NAVAIS (CN)",
+  "SINAIS (SI)",
+  "ELETRICIDADE (EL)",
+  "SISTEMAS DE CONTROLE E ELETRICIDADE (CE)",
+  "ARMAMENTO (AM)",
+  "MOTORES (MO)",
+  "ARRUMADOR (AR)",
+  "COZINHEIRO (CO)",
+  "COMUNICAÇÕES INTERIORES (CI)",
+  "CARPINTARIA (CP)",
+  "ARTÍFICE DE METALURGIA (MT)",
+  "ELETRÔNICA (ET)",
+  "ARTÍFICE DE MECÂNICA (MC)",
+  "AVIAÇÃO (AV)",
+  "DIREÇÃO DE TIRO (DT)",
+  "HIDROGRAFIA E NAVEGAÇÃO (HN)",
+  "OPERADOR DE RADAR (OR)",
+  "OPERADOR DE SONAR (OS)",
+  "ESCRITA (ES)",
+  "PAIOL (PL)",
+  "CONTABILIDADE (CL)",
+  "PROCESSAMENTO DE DADOS (PD)",
+  "ADMINISTRAÇÃO (AD)",
+  "COMUNICAÇÃO SOCIAL (CS)",
+  "NUTRIÇÃO E DIETÉTICA (ND)",
+  "PATOLOGIA CLÍNICA (PC)",
+  "HIGIENE DENTAL (HD)",
+  "QUÍMICA (QI)",
+  "ENFERMAGEM (EF)",
+  "EDUCAÇÃO FÍSICA (EP)",
+  "BARBEIRO (BA)",
+  "ARQUITETURA E URBANISMO (DA)",
+  "SECRETARIADO (SC)",
+  "ELETROTÉCNICA (TE)",
+  "MECÂNICA (MI)",
+  "MARCENARIA (NA)",
+  "MOTORES (MS)",
+  "ELETRÔNICA (EO)",
+  "METALURGIA (ML)",
+  "ESTATÍSTICA (AE)"
+];
+
 interface DashboardFiltersProps {
   filterOptions: FilterOptions;
   selectedFilters: {
@@ -322,23 +368,23 @@ export const DashboardFilters = ({
                 <Button variant="outline" className="w-full justify-between bg-background">
                   {selectedFilters.especialidade.length === 0
                     ? "Selecione especialidades"
-                    : selectedFilters.especialidade.length === filterOptions.especialidades.length
+                    : selectedFilters.especialidade.length === ESPECIALIDADES.length
                     ? "Todas selecionadas"
                     : `${selectedFilters.especialidade.length} selecionada(s)`}
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-full bg-popover z-50" align="start">
+              <DropdownMenuContent className="w-full max-h-[400px] overflow-y-auto bg-popover z-50" align="start">
                 <DropdownMenuCheckboxItem
-                  checked={selectedFilters.especialidade.length === filterOptions.especialidades.length}
+                  checked={selectedFilters.especialidade.length === ESPECIALIDADES.length}
                   onCheckedChange={(checked) => {
-                    onFilterChange("especialidade", checked ? filterOptions.especialidades : []);
+                    onFilterChange("especialidade", checked ? ESPECIALIDADES : []);
                   }}
                 >
                   Selecionar todas
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuSeparator />
-                {filterOptions.especialidades.map((especialidade) => (
+                {ESPECIALIDADES.map((especialidade) => (
                   <DropdownMenuCheckboxItem
                     key={especialidade}
                     checked={selectedFilters.especialidade.includes(especialidade)}
