@@ -41,8 +41,8 @@ serve(async (req) => {
     const jsonString = text.substring(47).slice(0, -2);
     const sheetsData = JSON.parse(jsonString);
     
-    // Fetch Page 3 (especialidades)
-    const sheet3Url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=2&tqx=out:json&timestamp=${timestamp}`;
+    // Fetch Page 3 (especialidades) - using correct gid
+    const sheet3Url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=1875983157&tqx=out:json&timestamp=${timestamp}`;
     
     console.log('Calling Google Sheets API for Page 3 (especialidades)...');
     const response3 = await fetch(sheet3Url, {
