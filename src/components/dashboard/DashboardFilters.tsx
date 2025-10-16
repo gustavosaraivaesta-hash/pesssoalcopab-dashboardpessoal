@@ -1,6 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -11,9 +10,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { FilterOptions, MilitaryData } from "@/types/military";
 import { ChevronDown, X, FileText } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import html2canvas from "html2canvas";
 
 interface DashboardFiltersProps {
   filterOptions: FilterOptions;
@@ -83,62 +79,67 @@ export const DashboardFilters = ({
   };
 
   const handleGeneratePDF = async () => {
-    const doc = new jsPDF();
+    const { jsPDF } = await import('jspdf');
+    const autoTable = (await import('jspdf-autotable')).default;
+    const html2canvas = (await import('html2canvas')).default;
+    
+    const pdf = new jsPDF();
+    let yPos = 20;
     
     // Título
-    doc.setFontSize(18);
-    doc.text("Relatório DAbM - Dashboard", 14, 20);
+    pdf.setFontSize(18);
+    pdf.text("Relatório DAbM - Dashboard", 14, yPos);
+    yPos += 10;
     
     // Filtros aplicados
-    doc.setFontSize(12);
-    doc.text("Filtros Aplicados:", 14, 30);
-    
-    let yPosition = 38;
+    pdf.setFontSize(12);
+    pdf.text("Filtros Aplicados:", 14, yPos);
+    yPos += 7;
     
     if (selectedFilters.pessoal.length > 0) {
-      doc.setFontSize(10);
-      doc.text("Pessoal:", 14, yPosition);
-      yPosition += 6;
+      pdf.setFontSize(10);
+      pdf.text("Pessoal:", 14, yPos);
+      yPos += 5;
       selectedFilters.pessoal.forEach(value => {
-        doc.text(`  • ${getPessoalLabel(value)}`, 14, yPosition);
-        yPosition += 5;
+        pdf.text(`  • ${getPessoalLabel(value)}`, 14, yPos);
+        yPos += 4;
       });
-      yPosition += 3;
+      yPos += 3;
     }
     
     if (selectedFilters.om.length > 0) {
-      doc.setFontSize(10);
-      doc.text("OM:", 14, yPosition);
-      yPosition += 6;
+      pdf.setFontSize(10);
+      pdf.text("OM:", 14, yPos);
+      yPos += 5;
       selectedFilters.om.forEach(value => {
-        doc.text(`  • ${value}`, 14, yPosition);
-        yPosition += 5;
+        pdf.text(`  • ${value}`, 14, yPos);
+        yPos += 4;
       });
-      yPosition += 3;
+      yPos += 3;
     }
     
-    if (selectedFilters.pessoal.length === 0 && selectedFilters.om.length === 0) {
-      doc.setFontSize(10);
-      doc.text("Nenhum filtro aplicado", 14, yPosition);
-      yPosition += 8;
+    if (!hasSelectedFilters) {
+      pdf.setFontSize(10);
+      pdf.text("Nenhum filtro aplicado", 14, yPos);
+      yPos += 3;
     }
     
-    yPosition += 5;
+    yPos += 10;
     
     // Métricas
-    doc.setFontSize(12);
-    doc.text("Métricas Totais:", 14, yPosition);
-    yPosition += 8;
+    pdf.setFontSize(12);
+    pdf.text("Métricas Totais:", 14, yPos);
+    yPos += 7;
     
-    doc.setFontSize(10);
-    doc.text(`Total TMFT: ${metrics.totalTMFT}`, 14, yPosition);
-    yPosition += 6;
-    doc.text(`Total EXI: ${metrics.totalEXI}`, 14, yPosition);
-    yPosition += 6;
-    doc.text(`Total DIF: ${metrics.totalDIF}`, 14, yPosition);
-    yPosition += 10;
+    pdf.setFontSize(10);
+    pdf.text(`Total TMFT: ${metrics.totalTMFT}`, 14, yPos);
+    yPos += 5;
+    pdf.text(`Total EXI: ${metrics.totalEXI}`, 14, yPos);
+    yPos += 5;
+    pdf.text(`Total DIF: ${metrics.totalDIF}`, 14, yPos);
+    yPos += 10;
     
-    // Capturar e adicionar o gráfico
+    // Capturar gráfico
     if (chartRef.current) {
       try {
         const canvas = await html2canvas(chartRef.current, {
@@ -149,17 +150,17 @@ export const DashboardFilters = ({
         const imgWidth = 180;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         
-        doc.addPage();
-        doc.setFontSize(12);
-        doc.text("Gráfico de Totais:", 14, 20);
-        doc.addImage(imgData, 'PNG', 14, 30, imgWidth, imgHeight);
+        pdf.addPage();
+        pdf.setFontSize(12);
+        pdf.text("Gráfico de Totais:", 14, 20);
+        pdf.addImage(imgData, 'PNG', 14, 30, imgWidth, imgHeight);
       } catch (error) {
         console.error('Erro ao capturar gráfico:', error);
       }
     }
     
     // Tabela de dados
-    doc.addPage();
+    pdf.addPage();
     const tableData = filteredData.map(item => [
       item.graduacao,
       item.om,
@@ -168,7 +169,7 @@ export const DashboardFilters = ({
       item.dif.toString()
     ]);
     
-    autoTable(doc, {
+    autoTable(pdf, {
       head: [['Graduação', 'OM', 'TMFT', 'EXI', 'DIF']],
       body: tableData,
       startY: 20,
@@ -176,14 +177,13 @@ export const DashboardFilters = ({
       headStyles: { fillColor: [37, 99, 235] }
     });
     
-    // Salvar PDF
-    doc.save(`relatorio-dabm-${new Date().toISOString().split('T')[0]}.pdf`);
+    // Salvar
+    pdf.save(`relatorio-dabm-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
     <Card className="shadow-card bg-gradient-card">
       <CardContent className="p-6">
-        {/* PDF Button */}
         <div className="flex justify-end mb-4">
           <Button 
             onClick={handleGeneratePDF}
@@ -195,7 +195,6 @@ export const DashboardFilters = ({
           </Button>
         </div>
 
-        {/* Selected Filters Display */}
         {hasSelectedFilters && (
           <div className="mb-4 pb-4 border-b border-border">
             <h3 className="text-sm font-medium text-foreground mb-2">Filtros Selecionados:</h3>
