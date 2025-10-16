@@ -17,6 +17,7 @@ const Index = () => {
   const [filters, setFilters] = useState({
     pessoal: [] as string[],
     om: [] as string[],
+    especialidade: [] as string[],
   });
   const [militaryData, setMilitaryData] = useState<MilitaryData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -112,6 +113,11 @@ const Index = () => {
     // Filtrar por OM
     if (filters.om.length > 0) {
       data = data.filter(item => filters.om.includes(item.om));
+    }
+
+    // Filtrar por especialidade
+    if (filters.especialidade.length > 0) {
+      data = data.filter(item => filters.especialidade.includes(item.especialidade));
     }
     
     return data;

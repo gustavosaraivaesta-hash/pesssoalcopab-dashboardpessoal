@@ -16,6 +16,7 @@ interface DashboardFiltersProps {
   selectedFilters: {
     pessoal: string[];
     om: string[];
+    especialidade: string[];
   };
   onFilterChange: (filterType: string, values: string[]) => void;
   filteredData: MilitaryData[];
@@ -49,6 +50,13 @@ export const DashboardFilters = ({
     onFilterChange("om", newValues);
   };
 
+  const handleEspecialidadeToggle = (value: string) => {
+    const newValues = selectedFilters.especialidade.includes(value)
+      ? selectedFilters.especialidade.filter(v => v !== value)
+      : [...selectedFilters.especialidade, value];
+    onFilterChange("especialidade", newValues);
+  };
+
   const pessoalOptions = [
     ...filterOptions.graduacoes,
     "pracasTTC",
@@ -71,9 +79,9 @@ export const DashboardFilters = ({
     return `${values.length} ${type === "pessoal" ? "selecionado(s)" : "selecionada(s)"}`;
   };
 
-  const hasSelectedFilters = selectedFilters.pessoal.length > 0 || selectedFilters.om.length > 0;
+  const hasSelectedFilters = selectedFilters.pessoal.length > 0 || selectedFilters.om.length > 0 || selectedFilters.especialidade.length > 0;
 
-  const handleRemoveFilter = (filterType: 'pessoal' | 'om', value: string) => {
+  const handleRemoveFilter = (filterType: 'pessoal' | 'om' | 'especialidade', value: string) => {
     const newValues = selectedFilters[filterType].filter(v => v !== value);
     onFilterChange(filterType, newValues);
   };
@@ -221,11 +229,22 @@ export const DashboardFilters = ({
                   </button>
                 </Badge>
               ))}
+              {selectedFilters.especialidade.map((value) => (
+                <Badge key={`especialidade-${value}`} variant="secondary" className="gap-1">
+                  {value}
+                  <button
+                    onClick={() => handleRemoveFilter('especialidade', value)}
+                    className="ml-1 hover:bg-background/20 rounded-full"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
               Pessoal
@@ -288,6 +307,44 @@ export const DashboardFilters = ({
                     onCheckedChange={() => handleOmToggle(om)}
                   >
                     {om}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">
+              Especialidade
+            </label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between bg-background">
+                  {selectedFilters.especialidade.length === 0
+                    ? "Selecione especialidades"
+                    : selectedFilters.especialidade.length === filterOptions.especialidades.length
+                    ? "Todas selecionadas"
+                    : `${selectedFilters.especialidade.length} selecionada(s)`}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-full bg-popover z-50" align="start">
+                <DropdownMenuCheckboxItem
+                  checked={selectedFilters.especialidade.length === filterOptions.especialidades.length}
+                  onCheckedChange={(checked) => {
+                    onFilterChange("especialidade", checked ? filterOptions.especialidades : []);
+                  }}
+                >
+                  Selecionar todas
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
+                {filterOptions.especialidades.map((especialidade) => (
+                  <DropdownMenuCheckboxItem
+                    key={especialidade}
+                    checked={selectedFilters.especialidade.includes(especialidade)}
+                    onCheckedChange={() => handleEspecialidadeToggle(especialidade)}
+                  >
+                    {especialidade}
                   </DropdownMenuCheckboxItem>
                 ))}
               </DropdownMenuContent>
