@@ -316,7 +316,7 @@ export const DashboardFilters = ({
                   Selecionar todos
                 </label>
               </div>
-              <ScrollArea className="h-[400px] pr-4">
+              <div className="max-h-[60vh] overflow-y-auto pr-4">
                 <div className="space-y-2">
                   {pessoalOptions.map((option) => (
                     <div key={option} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded">
@@ -334,7 +334,7 @@ export const DashboardFilters = ({
                     </div>
                   ))}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
           </TabsContent>
 
@@ -355,7 +355,7 @@ export const DashboardFilters = ({
                   Selecionar todas
                 </label>
               </div>
-              <ScrollArea className="h-[400px] pr-4">
+              <div className="max-h-[60vh] overflow-y-auto pr-4">
                 <div className="space-y-2">
                   {filterOptions.oms.map((om) => (
                     <div key={om} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded">
@@ -373,7 +373,7 @@ export const DashboardFilters = ({
                     </div>
                   ))}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
           </TabsContent>
 
@@ -394,7 +394,7 @@ export const DashboardFilters = ({
                   Selecionar todas
                 </label>
               </div>
-              <ScrollArea className="h-[400px] pr-4">
+              <div className="max-h-[60vh] overflow-y-auto pr-4">
                 <div className="space-y-2">
                   {ESPECIALIDADES.map((especialidade) => (
                     <div key={especialidade} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded">
@@ -412,7 +412,7 @@ export const DashboardFilters = ({
                     </div>
                   ))}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
