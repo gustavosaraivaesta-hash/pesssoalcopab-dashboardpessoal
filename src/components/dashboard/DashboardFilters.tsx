@@ -230,10 +230,26 @@ export const DashboardFilters = ({
     pdf.save(`relatorio-dabm-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
+  const handleClearFilters = () => {
+    onFilterChange("pessoal", []);
+    onFilterChange("om", []);
+    onFilterChange("especialidade", []);
+  };
+
   return (
     <Card className="shadow-card bg-gradient-card">
       <CardContent className="p-6">
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end gap-2 mb-4">
+          {hasSelectedFilters && (
+            <Button 
+              onClick={handleClearFilters}
+              variant="outline"
+              className="gap-2"
+            >
+              <X className="h-4 w-4" />
+              Limpar Filtros
+            </Button>
+          )}
           <Button 
             onClick={handleGeneratePDF}
             variant="outline"
