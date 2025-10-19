@@ -2,11 +2,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FilterOptions, MilitaryData } from "@/types/military";
-import { X, FileText } from "lucide-react";
+import { X, FileText, Filter } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 
 const ESPECIALIDADES = [
@@ -80,6 +81,8 @@ export const DashboardFilters = ({
   metrics,
   chartRef
 }: DashboardFiltersProps) => {
+  const [open, setOpen] = useState(false);
+
   const handleCheckboxChange = (filterType: string, value: string, checked: boolean) => {
     if (checked) {
       onFilterChange(filterType, [...selectedFilters[filterType as keyof typeof selectedFilters], value]);
@@ -219,10 +222,33 @@ export const DashboardFilters = ({
   };
 
   return (
-    <Card className="shadow-card bg-gradient-card">
-      <CardContent className="p-6">
-        <div className="space-y-4">
-          <Tabs defaultValue="especialidade" className="w-full">
+    <div className="space-y-4">
+      {/* Barra de ações */}
+      <Card className="shadow-card bg-gradient-card">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between gap-4">
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filtros
+                  {hasSelectedFilters && (
+                    <Badge variant="secondary" className="ml-2">
+                      {selectedFilters.especialidade.length + selectedFilters.om.length + selectedFilters.pessoal.length}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[400px] sm:w-[540px]">
+                <SheetHeader>
+                  <SheetTitle>Filtros</SheetTitle>
+                  <SheetDescription>
+                    Selecione os filtros para visualizar os dados
+                  </SheetDescription>
+                </SheetHeader>
+                
+                <div className="mt-6">
+                  <Tabs defaultValue="especialidade" className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-4">
               <TabsTrigger value="especialidade">Especialidade</TabsTrigger>
               <TabsTrigger value="om">OM</TabsTrigger>
@@ -231,7 +257,7 @@ export const DashboardFilters = ({
 
             {/* Aba Especialidade */}
             <TabsContent value="especialidade">
-              <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+              <ScrollArea className="h-[400px] w-full rounded-md border p-4">
                 <div className="space-y-2">
                   {ESPECIALIDADES.map((esp) => (
                     <div key={esp} className="flex items-center space-x-2">
@@ -256,7 +282,7 @@ export const DashboardFilters = ({
 
             {/* Aba OM */}
             <TabsContent value="om">
-              <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+              <ScrollArea className="h-[400px] w-full rounded-md border p-4">
                 <div className="space-y-2">
                   {filterOptions.oms.map((om) => (
                     <div key={om} className="flex items-center space-x-2">
@@ -281,7 +307,7 @@ export const DashboardFilters = ({
 
             {/* Aba Pessoal */}
             <TabsContent value="pessoal">
-              <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+              <ScrollArea className="h-[400px] w-full rounded-md border p-4">
                 <div className="space-y-2">
                   {filterOptions.graduacoes.map((grad) => (
                     <div key={grad} className="flex items-center space-x-2">
@@ -304,33 +330,42 @@ export const DashboardFilters = ({
               </ScrollArea>
             </TabsContent>
           </Tabs>
+                </div>
+              </SheetContent>
+            </Sheet>
 
-          {/* Botões de ação */}
-          <div className="flex items-end gap-2">
-            {hasSelectedFilters && (
+            <div className="flex items-center gap-2">
+              {hasSelectedFilters && (
+                <Button 
+                  onClick={handleClearFilters}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Limpar
+                </Button>
+              )}
               <Button 
-                onClick={handleClearFilters}
+                onClick={handleGeneratePDF}
                 variant="outline"
+                size="sm"
                 className="gap-2"
               >
-                <X className="h-4 w-4" />
-                Limpar
+                <FileText className="h-4 w-4" />
+                PDF
               </Button>
-            )}
-            <Button 
-              onClick={handleGeneratePDF}
-              variant="outline"
-              className="gap-2"
-            >
-              <FileText className="h-4 w-4" />
-              PDF
-            </Button>
+            </div>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Filtros selecionados */}
-          {hasSelectedFilters && (
-            <div className="pt-4 border-t border-border">
-              <h3 className="text-sm font-medium text-foreground mb-2">Filtros Ativos:</h3>
+      {/* Filtros selecionados */}
+      {hasSelectedFilters && (
+        <Card className="shadow-card bg-gradient-card">
+          <CardContent className="p-4">
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-foreground">Filtros Ativos:</h3>
               <div className="flex flex-wrap gap-2">
                 {selectedFilters.especialidade.map((value) => (
                   <Badge key={`especialidade-${value}`} variant="secondary" className="gap-1">
@@ -367,9 +402,9 @@ export const DashboardFilters = ({
                 ))}
               </div>
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
