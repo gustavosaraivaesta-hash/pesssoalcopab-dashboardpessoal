@@ -3,13 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FilterOptions, MilitaryData } from "@/types/military";
 import { X, FileText } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 
 const ESPECIALIDADES = [
@@ -83,38 +80,14 @@ export const DashboardFilters = ({
   metrics,
   chartRef
 }: DashboardFiltersProps) => {
-  const [openSelect, setOpenSelect] = useState<string | null>(null);
-
-  const handleEspecialidadeSelect = (value: string) => {
-    if (value === "all") {
-      onFilterChange("especialidade", []);
+  const handleCheckboxChange = (filterType: string, value: string, checked: boolean) => {
+    if (checked) {
+      onFilterChange(filterType, [...selectedFilters[filterType as keyof typeof selectedFilters], value]);
     } else {
-      const newValues = selectedFilters.especialidade.includes(value)
-        ? selectedFilters.especialidade.filter(v => v !== value)
-        : [...selectedFilters.especialidade, value];
-      onFilterChange("especialidade", newValues);
-    }
-  };
-
-  const handleOmSelect = (value: string) => {
-    if (value === "all") {
-      onFilterChange("om", []);
-    } else {
-      const newValues = selectedFilters.om.includes(value)
-        ? selectedFilters.om.filter(v => v !== value)
-        : [...selectedFilters.om, value];
-      onFilterChange("om", newValues);
-    }
-  };
-
-  const handlePessoalSelect = (value: string) => {
-    if (value === "all") {
-      onFilterChange("pessoal", []);
-    } else {
-      const newValues = selectedFilters.pessoal.includes(value)
-        ? selectedFilters.pessoal.filter(v => v !== value)
-        : [...selectedFilters.pessoal, value];
-      onFilterChange("pessoal", newValues);
+      onFilterChange(
+        filterType, 
+        selectedFilters[filterType as keyof typeof selectedFilters].filter(v => v !== value)
+      );
     }
   };
 
@@ -249,85 +222,88 @@ export const DashboardFilters = ({
     <Card className="shadow-card bg-gradient-card">
       <CardContent className="p-6">
         <div className="space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Filtro de Especialidade */}
-            <div className="flex-1">
-              <label className="text-sm font-medium text-foreground mb-2 block">
-                Especialidade
-              </label>
-              <Select onValueChange={handleEspecialidadeSelect}>
-                <SelectTrigger className="w-full bg-background">
-                  <SelectValue placeholder="Selecione uma especialidade" />
-                </SelectTrigger>
-                <SelectContent className="bg-background z-50 max-h-[300px]">
-                  <SelectItem value="all" className="font-medium">
-                    Limpar seleção
-                  </SelectItem>
+          <Tabs defaultValue="especialidade" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="especialidade">Especialidade</TabsTrigger>
+              <TabsTrigger value="om">OM</TabsTrigger>
+              <TabsTrigger value="pessoal">Pessoal</TabsTrigger>
+            </TabsList>
+
+            {/* Aba Especialidade */}
+            <TabsContent value="especialidade">
+              <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+                <div className="space-y-2">
                   {ESPECIALIDADES.map((esp) => (
-                    <SelectItem 
-                      key={esp} 
-                      value={esp}
-                      className={selectedFilters.especialidade.includes(esp) ? "bg-muted" : ""}
-                    >
-                      {esp}
-                    </SelectItem>
+                    <div key={esp} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`esp-${esp}`}
+                        checked={selectedFilters.especialidade.includes(esp)}
+                        onCheckedChange={(checked) => 
+                          handleCheckboxChange("especialidade", esp, checked as boolean)
+                        }
+                      />
+                      <Label
+                        htmlFor={`esp-${esp}`}
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {esp}
+                      </Label>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
+                </div>
+              </ScrollArea>
+            </TabsContent>
 
-            {/* Filtro de OM */}
-            <div className="flex-1">
-              <label className="text-sm font-medium text-foreground mb-2 block">
-                OM
-              </label>
-              <Select onValueChange={handleOmSelect}>
-                <SelectTrigger className="w-full bg-background">
-                  <SelectValue placeholder="Selecione uma OM" />
-                </SelectTrigger>
-                <SelectContent className="bg-background z-50 max-h-[300px]">
-                  <SelectItem value="all" className="font-medium">
-                    Limpar seleção
-                  </SelectItem>
+            {/* Aba OM */}
+            <TabsContent value="om">
+              <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+                <div className="space-y-2">
                   {filterOptions.oms.map((om) => (
-                    <SelectItem 
-                      key={om} 
-                      value={om}
-                      className={selectedFilters.om.includes(om) ? "bg-muted" : ""}
-                    >
-                      {om}
-                    </SelectItem>
+                    <div key={om} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`om-${om}`}
+                        checked={selectedFilters.om.includes(om)}
+                        onCheckedChange={(checked) => 
+                          handleCheckboxChange("om", om, checked as boolean)
+                        }
+                      />
+                      <Label
+                        htmlFor={`om-${om}`}
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {om}
+                      </Label>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
+                </div>
+              </ScrollArea>
+            </TabsContent>
 
-            {/* Filtro de Pessoal */}
-            <div className="flex-1">
-              <label className="text-sm font-medium text-foreground mb-2 block">
-                Pessoal
-              </label>
-              <Select onValueChange={handlePessoalSelect}>
-                <SelectTrigger className="w-full bg-background">
-                  <SelectValue placeholder="Selecione uma graduação" />
-                </SelectTrigger>
-                <SelectContent className="bg-background z-50 max-h-[300px]">
-                  <SelectItem value="all" className="font-medium">
-                    Limpar seleção
-                  </SelectItem>
+            {/* Aba Pessoal */}
+            <TabsContent value="pessoal">
+              <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+                <div className="space-y-2">
                   {filterOptions.graduacoes.map((grad) => (
-                    <SelectItem 
-                      key={grad} 
-                      value={grad}
-                      className={selectedFilters.pessoal.includes(grad) ? "bg-muted" : ""}
-                    >
-                      {grad}
-                    </SelectItem>
+                    <div key={grad} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`grad-${grad}`}
+                        checked={selectedFilters.pessoal.includes(grad)}
+                        onCheckedChange={(checked) => 
+                          handleCheckboxChange("pessoal", grad, checked as boolean)
+                        }
+                      />
+                      <Label
+                        htmlFor={`grad-${grad}`}
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {grad}
+                      </Label>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                </div>
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
 
           {/* Botões de ação */}
           <div className="flex items-end gap-2">
