@@ -28,4 +28,6 @@ export interface FilterOptions {
   oms: string[];
   sdps: string[];
   meses: string[];
+  pracasTTC: string[];
+  servidoresCivis: string[];
 }

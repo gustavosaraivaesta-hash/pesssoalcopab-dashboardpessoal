@@ -226,6 +226,8 @@ export const getUniqueValues = (data: MilitaryData[]) => {
     oms: [...new Set(data.map(item => item.om))].sort(),
     sdps: [...new Set(data.map(item => item.sdp))].sort(),
     meses: [...new Set(data.map(item => item.previsaoEmbarque))].sort(),
+    pracasTTC: [...new Set(data.map(item => item.pracasTTC.toString()))].sort((a, b) => Number(a) - Number(b)),
+    servidoresCivis: [...new Set(data.map(item => item.servidoresCivis.toString()))].sort((a, b) => Number(a) - Number(b)),
   };
 };
 

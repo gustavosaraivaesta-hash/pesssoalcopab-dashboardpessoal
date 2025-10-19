@@ -18,6 +18,8 @@ const Index = () => {
     om: [] as string[],
     especialidade: [] as string[],
     pessoal: [] as string[],
+    pracasTTC: [] as string[],
+    servidoresCivis: [] as string[],
   });
   const [militaryData, setMilitaryData] = useState<MilitaryData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -107,6 +109,16 @@ const Index = () => {
     // Filtrar por pessoal (graduação)
     if (filters.pessoal.length > 0) {
       data = data.filter(item => filters.pessoal.includes(item.graduacao));
+    }
+
+    // Filtrar por pracasTTC
+    if (filters.pracasTTC.length > 0) {
+      data = data.filter(item => filters.pracasTTC.includes(item.pracasTTC.toString()));
+    }
+
+    // Filtrar por servidoresCivis
+    if (filters.servidoresCivis.length > 0) {
+      data = data.filter(item => filters.servidoresCivis.includes(item.servidoresCivis.toString()));
     }
     
     return data;
