@@ -64,8 +64,6 @@ interface DashboardFiltersProps {
     om: string[];
     especialidade: string[];
     pessoal: string[];
-    pracasTTC: string[];
-    servidoresCivis: string[];
   };
   onFilterChange: (filterType: string, values: string[]) => void;
   filteredData: MilitaryData[];
@@ -120,31 +118,9 @@ export const DashboardFilters = ({
     }
   };
 
-  const handlePracasTTCSelect = (value: string) => {
-    if (value === "all") {
-      onFilterChange("pracasTTC", []);
-    } else {
-      const newValues = selectedFilters.pracasTTC.includes(value)
-        ? selectedFilters.pracasTTC.filter(v => v !== value)
-        : [...selectedFilters.pracasTTC, value];
-      onFilterChange("pracasTTC", newValues);
-    }
-  };
+  const hasSelectedFilters = selectedFilters.om.length > 0 || selectedFilters.especialidade.length > 0 || selectedFilters.pessoal.length > 0;
 
-  const handleServidoresCivisSelect = (value: string) => {
-    if (value === "all") {
-      onFilterChange("servidoresCivis", []);
-    } else {
-      const newValues = selectedFilters.servidoresCivis.includes(value)
-        ? selectedFilters.servidoresCivis.filter(v => v !== value)
-        : [...selectedFilters.servidoresCivis, value];
-      onFilterChange("servidoresCivis", newValues);
-    }
-  };
-
-  const hasSelectedFilters = selectedFilters.om.length > 0 || selectedFilters.especialidade.length > 0 || selectedFilters.pessoal.length > 0 || selectedFilters.pracasTTC.length > 0 || selectedFilters.servidoresCivis.length > 0;
-
-  const handleRemoveFilter = (filterType: 'om' | 'especialidade' | 'pessoal' | 'pracasTTC' | 'servidoresCivis', value: string) => {
+  const handleRemoveFilter = (filterType: 'om' | 'especialidade' | 'pessoal', value: string) => {
     const newValues = selectedFilters[filterType].filter(v => v !== value);
     onFilterChange(filterType, newValues);
   };
@@ -194,28 +170,6 @@ export const DashboardFilters = ({
       pdf.text("Pessoal:", 14, yPos);
       yPos += 5;
       selectedFilters.pessoal.forEach(value => {
-        pdf.text(`  • ${value}`, 14, yPos);
-        yPos += 4;
-      });
-      yPos += 3;
-    }
-
-    if (selectedFilters.pracasTTC.length > 0) {
-      pdf.setFontSize(10);
-      pdf.text("Praças TTC:", 14, yPos);
-      yPos += 5;
-      selectedFilters.pracasTTC.forEach(value => {
-        pdf.text(`  • ${value}`, 14, yPos);
-        yPos += 4;
-      });
-      yPos += 3;
-    }
-
-    if (selectedFilters.servidoresCivis.length > 0) {
-      pdf.setFontSize(10);
-      pdf.text("Servidores Civis:", 14, yPos);
-      yPos += 5;
-      selectedFilters.servidoresCivis.forEach(value => {
         pdf.text(`  • ${value}`, 14, yPos);
         yPos += 4;
       });
@@ -289,15 +243,13 @@ export const DashboardFilters = ({
     onFilterChange("om", []);
     onFilterChange("especialidade", []);
     onFilterChange("pessoal", []);
-    onFilterChange("pracasTTC", []);
-    onFilterChange("servidoresCivis", []);
   };
 
   return (
     <Card className="shadow-card bg-gradient-card">
       <CardContent className="p-6">
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="flex flex-col md:flex-row gap-4">
             {/* Filtro de Especialidade */}
             <div className="flex-1">
               <label className="text-sm font-medium text-foreground mb-2 block">
@@ -375,58 +327,6 @@ export const DashboardFilters = ({
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Filtro de Praças TTC */}
-            <div className="flex-1">
-              <label className="text-sm font-medium text-foreground mb-2 block">
-                Praças TTC
-              </label>
-              <Select onValueChange={handlePracasTTCSelect}>
-                <SelectTrigger className="w-full bg-background">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent className="bg-background z-50 max-h-[300px]">
-                  <SelectItem value="all" className="font-medium">
-                    Limpar seleção
-                  </SelectItem>
-                  {filterOptions.pracasTTC.map((value) => (
-                    <SelectItem 
-                      key={value} 
-                      value={value}
-                      className={selectedFilters.pracasTTC.includes(value) ? "bg-muted" : ""}
-                    >
-                      {value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Filtro de Servidores Civis */}
-            <div className="flex-1">
-              <label className="text-sm font-medium text-foreground mb-2 block">
-                Servidores Civis
-              </label>
-              <Select onValueChange={handleServidoresCivisSelect}>
-                <SelectTrigger className="w-full bg-background">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent className="bg-background z-50 max-h-[300px]">
-                  <SelectItem value="all" className="font-medium">
-                    Limpar seleção
-                  </SelectItem>
-                  {filterOptions.servidoresCivis.map((value) => (
-                    <SelectItem 
-                      key={value} 
-                      value={value}
-                      className={selectedFilters.servidoresCivis.includes(value) ? "bg-muted" : ""}
-                    >
-                      {value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           {/* Botões de ação */}
@@ -483,28 +383,6 @@ export const DashboardFilters = ({
                     Pessoal: {value}
                     <button
                       onClick={() => handleRemoveFilter('pessoal', value)}
-                      className="ml-1 hover:bg-background/20 rounded-full"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-                {selectedFilters.pracasTTC.map((value) => (
-                  <Badge key={`pracasTTC-${value}`} variant="secondary" className="gap-1">
-                    Praças TTC: {value}
-                    <button
-                      onClick={() => handleRemoveFilter('pracasTTC', value)}
-                      className="ml-1 hover:bg-background/20 rounded-full"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-                {selectedFilters.servidoresCivis.map((value) => (
-                  <Badge key={`servidoresCivis-${value}`} variant="secondary" className="gap-1">
-                    Servidores Civis: {value}
-                    <button
-                      onClick={() => handleRemoveFilter('servidoresCivis', value)}
                       className="ml-1 hover:bg-background/20 rounded-full"
                     >
                       <X className="h-3 w-3" />
