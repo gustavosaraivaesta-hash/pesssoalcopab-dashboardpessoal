@@ -27,13 +27,18 @@ export const GraduationChart = ({ data }: GraduationChartProps) => {
       graduationCounts[grad] = 0;
     });
     
+    console.log('GraduationChart - Total de registros recebidos:', data.length);
+    
     // Contar quantos registros existem em cada graduação nos dados filtrados
     data.forEach(item => {
       const grad = item.graduacao;
+      console.log('Verificando graduação:', grad, 'Incluída?', GRADUATIONS.includes(grad));
       if (GRADUATIONS.includes(grad)) {
         graduationCounts[grad] += 1; // Conta 1 por cada registro
       }
     });
+    
+    console.log('Contagem por graduação:', graduationCounts);
     
     // Converter para formato do gráfico
     return GRADUATIONS.map(grad => ({
