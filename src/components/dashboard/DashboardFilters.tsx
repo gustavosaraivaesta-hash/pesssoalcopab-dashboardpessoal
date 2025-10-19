@@ -1,10 +1,16 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FilterOptions, MilitaryData } from "@/types/military";
 import { X, FileText } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState } from "react";
 
 const ESPECIALIDADES = [
   "MANOBRAS E REPAROS (MR)",
@@ -55,7 +61,6 @@ const ESPECIALIDADES = [
 interface DashboardFiltersProps {
   filterOptions: FilterOptions;
   selectedFilters: {
-    pessoal: string[];
     om: string[];
     especialidade: string[];
   };
@@ -77,52 +82,33 @@ export const DashboardFilters = ({
   metrics,
   chartRef
 }: DashboardFiltersProps) => {
-  const handlePessoalToggle = (value: string) => {
-    const newValues = selectedFilters.pessoal.includes(value)
-      ? selectedFilters.pessoal.filter(v => v !== value)
-      : [...selectedFilters.pessoal, value];
-    onFilterChange("pessoal", newValues);
-  };
+  const [openSelect, setOpenSelect] = useState<string | null>(null);
 
-  const handleOmToggle = (value: string) => {
-    const newValues = selectedFilters.om.includes(value)
-      ? selectedFilters.om.filter(v => v !== value)
-      : [...selectedFilters.om, value];
-    onFilterChange("om", newValues);
-  };
-
-  const handleEspecialidadeToggle = (value: string) => {
-    const newValues = selectedFilters.especialidade.includes(value)
-      ? selectedFilters.especialidade.filter(v => v !== value)
-      : [...selectedFilters.especialidade, value];
-    onFilterChange("especialidade", newValues);
-  };
-
-  const pessoalOptions = [
-    ...filterOptions.graduacoes,
-    "pracasTTC",
-    "servidoresCivis"
-  ];
-
-  const getPessoalLabel = (value: string) => {
-    if (value === "pracasTTC") return "PRAÇAS TTC";
-    if (value === "servidoresCivis") return "SERVIDORES CIVIS (NA + NI)";
-    return value;
-  };
-
-  const getSelectedLabel = (values: string[], allOptions: string[], type: string) => {
-    if (values.length === 0) {
-      return type === "pessoal" ? "Selecione pessoal" : "Selecione OMs";
+  const handleEspecialidadeSelect = (value: string) => {
+    if (value === "all") {
+      onFilterChange("especialidade", []);
+    } else {
+      const newValues = selectedFilters.especialidade.includes(value)
+        ? selectedFilters.especialidade.filter(v => v !== value)
+        : [...selectedFilters.especialidade, value];
+      onFilterChange("especialidade", newValues);
     }
-    if (values.length === allOptions.length) {
-      return type === "pessoal" ? "Todos selecionados" : "Todas selecionadas";
-    }
-    return `${values.length} ${type === "pessoal" ? "selecionado(s)" : "selecionada(s)"}`;
   };
 
-  const hasSelectedFilters = selectedFilters.pessoal.length > 0 || selectedFilters.om.length > 0 || selectedFilters.especialidade.length > 0;
+  const handleOmSelect = (value: string) => {
+    if (value === "all") {
+      onFilterChange("om", []);
+    } else {
+      const newValues = selectedFilters.om.includes(value)
+        ? selectedFilters.om.filter(v => v !== value)
+        : [...selectedFilters.om, value];
+      onFilterChange("om", newValues);
+    }
+  };
 
-  const handleRemoveFilter = (filterType: 'pessoal' | 'om' | 'especialidade', value: string) => {
+  const hasSelectedFilters = selectedFilters.om.length > 0 || selectedFilters.especialidade.length > 0;
+
+  const handleRemoveFilter = (filterType: 'om' | 'especialidade', value: string) => {
     const newValues = selectedFilters[filterType].filter(v => v !== value);
     onFilterChange(filterType, newValues);
   };
@@ -145,12 +131,12 @@ export const DashboardFilters = ({
     pdf.text("Filtros Aplicados:", 14, yPos);
     yPos += 7;
     
-    if (selectedFilters.pessoal.length > 0) {
+    if (selectedFilters.especialidade.length > 0) {
       pdf.setFontSize(10);
-      pdf.text("Pessoal:", 14, yPos);
+      pdf.text("Especialidade:", 14, yPos);
       yPos += 5;
-      selectedFilters.pessoal.forEach(value => {
-        pdf.text(`  • ${getPessoalLabel(value)}`, 14, yPos);
+      selectedFilters.especialidade.forEach(value => {
+        pdf.text(`  • ${value}`, 14, yPos);
         yPos += 4;
       });
       yPos += 3;
@@ -231,7 +217,6 @@ export const DashboardFilters = ({
   };
 
   const handleClearFilters = () => {
-    onFilterChange("pessoal", []);
     onFilterChange("om", []);
     onFilterChange("especialidade", []);
   };
@@ -239,180 +224,114 @@ export const DashboardFilters = ({
   return (
     <Card className="shadow-card bg-gradient-card">
       <CardContent className="p-6">
-        <div className="flex justify-end gap-2 mb-4">
-          {hasSelectedFilters && (
-            <Button 
-              onClick={handleClearFilters}
-              variant="outline"
-              className="gap-2"
-            >
-              <X className="h-4 w-4" />
-              Limpar Filtros
-            </Button>
-          )}
-          <Button 
-            onClick={handleGeneratePDF}
-            variant="outline"
-            className="gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            Gerar PDF
-          </Button>
-        </div>
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Filtro de Especialidade */}
+            <div className="flex-1">
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Especialidade
+              </label>
+              <Select onValueChange={handleEspecialidadeSelect}>
+                <SelectTrigger className="w-full bg-background">
+                  <SelectValue placeholder="Selecione uma especialidade" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50 max-h-[300px]">
+                  <SelectItem value="all" className="font-medium">
+                    Limpar seleção
+                  </SelectItem>
+                  {ESPECIALIDADES.map((esp) => (
+                    <SelectItem 
+                      key={esp} 
+                      value={esp}
+                      className={selectedFilters.especialidade.includes(esp) ? "bg-muted" : ""}
+                    >
+                      {esp}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        {hasSelectedFilters && (
-          <div className="mb-4 pb-4 border-b border-border">
-            <h3 className="text-sm font-medium text-foreground mb-2">Filtros Selecionados:</h3>
-            <div className="flex flex-wrap gap-2">
-              {selectedFilters.pessoal.map((value) => (
-                <Badge key={`pessoal-${value}`} variant="secondary" className="gap-1">
-                  {getPessoalLabel(value)}
-                  <button
-                    onClick={() => handleRemoveFilter('pessoal', value)}
-                    className="ml-1 hover:bg-background/20 rounded-full"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              {selectedFilters.om.map((value) => (
-                <Badge key={`om-${value}`} variant="secondary" className="gap-1">
-                  {value}
-                  <button
-                    onClick={() => handleRemoveFilter('om', value)}
-                    className="ml-1 hover:bg-background/20 rounded-full"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              {selectedFilters.especialidade.map((value) => (
-                <Badge key={`especialidade-${value}`} variant="secondary" className="gap-1">
-                  {value}
-                  <button
-                    onClick={() => handleRemoveFilter('especialidade', value)}
-                    className="ml-1 hover:bg-background/20 rounded-full"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
+            {/* Filtro de OM */}
+            <div className="flex-1">
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                OM (Organização Militar)
+              </label>
+              <Select onValueChange={handleOmSelect}>
+                <SelectTrigger className="w-full bg-background">
+                  <SelectValue placeholder="Selecione uma OM" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50 max-h-[300px]">
+                  <SelectItem value="all" className="font-medium">
+                    Limpar seleção
+                  </SelectItem>
+                  {filterOptions.oms.map((om) => (
+                    <SelectItem 
+                      key={om} 
+                      value={om}
+                      className={selectedFilters.om.includes(om) ? "bg-muted" : ""}
+                    >
+                      {om}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Botões de ação */}
+            <div className="flex items-end gap-2">
+              {hasSelectedFilters && (
+                <Button 
+                  onClick={handleClearFilters}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Limpar
+                </Button>
+              )}
+              <Button 
+                onClick={handleGeneratePDF}
+                variant="outline"
+                className="gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                PDF
+              </Button>
             </div>
           </div>
-        )}
 
-        <Tabs defaultValue="pessoal" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="pessoal">Pessoal</TabsTrigger>
-            <TabsTrigger value="especialidade">Especialidade</TabsTrigger>
-            <TabsTrigger value="om">OM</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="pessoal" className="space-y-3 mt-4">
-            <div className="flex items-center space-x-2 p-2 bg-muted/50 rounded-lg border">
-              <Checkbox
-                id="select-all-pessoal"
-                checked={selectedFilters.pessoal.length === pessoalOptions.length}
-                onCheckedChange={(checked) => {
-                  onFilterChange("pessoal", checked ? pessoalOptions : []);
-                }}
-              />
-              <label
-                htmlFor="select-all-pessoal"
-                className="text-sm font-medium cursor-pointer flex-1"
-              >
-                Selecionar todos
-              </label>
+          {/* Filtros selecionados */}
+          {hasSelectedFilters && (
+            <div className="pt-4 border-t border-border">
+              <h3 className="text-sm font-medium text-foreground mb-2">Filtros Ativos:</h3>
+              <div className="flex flex-wrap gap-2">
+                {selectedFilters.especialidade.map((value) => (
+                  <Badge key={`especialidade-${value}`} variant="secondary" className="gap-1">
+                    {value}
+                    <button
+                      onClick={() => handleRemoveFilter('especialidade', value)}
+                      className="ml-1 hover:bg-background/20 rounded-full"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+                {selectedFilters.om.map((value) => (
+                  <Badge key={`om-${value}`} variant="secondary" className="gap-1">
+                    OM: {value}
+                    <button
+                      onClick={() => handleRemoveFilter('om', value)}
+                      className="ml-1 hover:bg-background/20 rounded-full"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto p-2">
-              {pessoalOptions.map((option) => (
-                <div key={option} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded">
-                  <Checkbox
-                    id={`pessoal-${option}`}
-                    checked={selectedFilters.pessoal.includes(option)}
-                    onCheckedChange={() => handlePessoalToggle(option)}
-                  />
-                  <label
-                    htmlFor={`pessoal-${option}`}
-                    className="text-sm cursor-pointer flex-1"
-                  >
-                    {getPessoalLabel(option)}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="especialidade" className="space-y-3 mt-4">
-            <div className="flex items-center space-x-2 p-2 bg-muted/50 rounded-lg border">
-              <Checkbox
-                id="select-all-especialidade"
-                checked={selectedFilters.especialidade.length === ESPECIALIDADES.length}
-                onCheckedChange={(checked) => {
-                  onFilterChange("especialidade", checked ? ESPECIALIDADES : []);
-                }}
-              />
-              <label
-                htmlFor="select-all-especialidade"
-                className="text-sm font-medium cursor-pointer flex-1"
-              >
-                Selecionar todas
-              </label>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[400px] overflow-y-auto p-2">
-              {ESPECIALIDADES.map((especialidade) => (
-                <div key={especialidade} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded">
-                  <Checkbox
-                    id={`especialidade-${especialidade}`}
-                    checked={selectedFilters.especialidade.includes(especialidade)}
-                    onCheckedChange={() => handleEspecialidadeToggle(especialidade)}
-                  />
-                  <label
-                    htmlFor={`especialidade-${especialidade}`}
-                    className="text-sm cursor-pointer flex-1"
-                  >
-                    {especialidade}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="om" className="space-y-3 mt-4">
-            <div className="flex items-center space-x-2 p-2 bg-muted/50 rounded-lg border">
-              <Checkbox
-                id="select-all-om"
-                checked={selectedFilters.om.length === filterOptions.oms.length}
-                onCheckedChange={(checked) => {
-                  onFilterChange("om", checked ? filterOptions.oms : []);
-                }}
-              />
-              <label
-                htmlFor="select-all-om"
-                className="text-sm font-medium cursor-pointer flex-1"
-              >
-                Selecionar todas
-              </label>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto p-2">
-              {filterOptions.oms.map((om) => (
-                <div key={om} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded">
-                  <Checkbox
-                    id={`om-${om}`}
-                    checked={selectedFilters.om.includes(om)}
-                    onCheckedChange={() => handleOmToggle(om)}
-                  />
-                  <label
-                    htmlFor={`om-${om}`}
-                    className="text-sm cursor-pointer flex-1"
-                  >
-                    {om}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

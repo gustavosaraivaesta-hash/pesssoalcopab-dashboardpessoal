@@ -15,7 +15,6 @@ const Index = () => {
   const navigate = useNavigate();
   const chartRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState({
-    pessoal: [] as string[],
     om: [] as string[],
     especialidade: [] as string[],
   });
@@ -93,22 +92,6 @@ const Index = () => {
 
   const filteredData = useMemo(() => {
     let data = militaryData;
-    
-    // Filtrar por tipo de pessoal
-    if (filters.pessoal.length > 0) {
-      data = data.filter(item => {
-        // Verifica se algum dos filtros selecionados corresponde ao item
-        return filters.pessoal.some(filterValue => {
-          if (filterValue === "pracasTTC") {
-            return item.graduacao === "PRAÇAS TTC";
-          } else if (filterValue === "servidoresCivis") {
-            return item.graduacao === "SERVIDORES CIVIS (NA + NI)";
-          } else {
-            return item.graduacao === filterValue;
-          }
-        });
-      });
-    }
     
     // Filtrar por OM
     if (filters.om.length > 0) {
