@@ -213,16 +213,13 @@ export const mockMilitaryData: MilitaryData[] = [
 ];
 
 export const getUniqueValues = (data: MilitaryData[]) => {
+  const baseGraduations = ["SO", "1SG", "2SG", "3SG", "CB", "MN"];
   const specialGraduations = ["PRAÇAS TTC", "SERVIDORES CIVIS (NA + NI)"];
+  const allGraduations = [...baseGraduations, ...specialGraduations];
   
   return {
     especialidades: [...new Set(data.map(item => item.especialidade))].sort(),
-    graduacoes: [...new Set(data.map(item => item.graduacao))]
-      .filter(grad => !specialGraduations.includes(grad))
-      .sort((a, b) => {
-        const order = ["SO", "1SG", "2SG", "3SG", "CB", "MN"];
-        return order.indexOf(a) - order.indexOf(b);
-      }),
+    graduacoes: allGraduations,
     oms: [...new Set(data.map(item => item.om))].sort(),
     sdps: [...new Set(data.map(item => item.sdp))].sort(),
     meses: [...new Set(data.map(item => item.previsaoEmbarque))].sort(),
