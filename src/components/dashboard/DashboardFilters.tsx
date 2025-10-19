@@ -63,6 +63,7 @@ interface DashboardFiltersProps {
   selectedFilters: {
     om: string[];
     especialidade: string[];
+    pessoal: string[];
   };
   onFilterChange: (filterType: string, values: string[]) => void;
   filteredData: MilitaryData[];
@@ -106,9 +107,20 @@ export const DashboardFilters = ({
     }
   };
 
-  const hasSelectedFilters = selectedFilters.om.length > 0 || selectedFilters.especialidade.length > 0;
+  const handlePessoalSelect = (value: string) => {
+    if (value === "all") {
+      onFilterChange("pessoal", []);
+    } else {
+      const newValues = selectedFilters.pessoal.includes(value)
+        ? selectedFilters.pessoal.filter(v => v !== value)
+        : [...selectedFilters.pessoal, value];
+      onFilterChange("pessoal", newValues);
+    }
+  };
 
-  const handleRemoveFilter = (filterType: 'om' | 'especialidade', value: string) => {
+  const hasSelectedFilters = selectedFilters.om.length > 0 || selectedFilters.especialidade.length > 0 || selectedFilters.pessoal.length > 0;
+
+  const handleRemoveFilter = (filterType: 'om' | 'especialidade' | 'pessoal', value: string) => {
     const newValues = selectedFilters[filterType].filter(v => v !== value);
     onFilterChange(filterType, newValues);
   };
@@ -147,6 +159,17 @@ export const DashboardFilters = ({
       pdf.text("OM:", 14, yPos);
       yPos += 5;
       selectedFilters.om.forEach(value => {
+        pdf.text(`  • ${value}`, 14, yPos);
+        yPos += 4;
+      });
+      yPos += 3;
+    }
+
+    if (selectedFilters.pessoal.length > 0) {
+      pdf.setFontSize(10);
+      pdf.text("Pessoal:", 14, yPos);
+      yPos += 5;
+      selectedFilters.pessoal.forEach(value => {
         pdf.text(`  • ${value}`, 14, yPos);
         yPos += 4;
       });
@@ -219,6 +242,7 @@ export const DashboardFilters = ({
   const handleClearFilters = () => {
     onFilterChange("om", []);
     onFilterChange("especialidade", []);
+    onFilterChange("pessoal", []);
   };
 
   return (
@@ -278,6 +302,32 @@ export const DashboardFilters = ({
               </Select>
             </div>
 
+            {/* Filtro de Pessoal */}
+            <div className="flex-1">
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Pessoal (Graduação)
+              </label>
+              <Select onValueChange={handlePessoalSelect}>
+                <SelectTrigger className="w-full bg-background">
+                  <SelectValue placeholder="Selecione uma graduação" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50 max-h-[300px]">
+                  <SelectItem value="all" className="font-medium">
+                    Limpar seleção
+                  </SelectItem>
+                  {filterOptions.graduacoes.map((grad) => (
+                    <SelectItem 
+                      key={grad} 
+                      value={grad}
+                      className={selectedFilters.pessoal.includes(grad) ? "bg-muted" : ""}
+                    >
+                      {grad}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Botões de ação */}
             <div className="flex items-end gap-2">
               {hasSelectedFilters && (
@@ -322,6 +372,17 @@ export const DashboardFilters = ({
                     OM: {value}
                     <button
                       onClick={() => handleRemoveFilter('om', value)}
+                      className="ml-1 hover:bg-background/20 rounded-full"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+                {selectedFilters.pessoal.map((value) => (
+                  <Badge key={`pessoal-${value}`} variant="secondary" className="gap-1">
+                    Pessoal: {value}
+                    <button
+                      onClick={() => handleRemoveFilter('pessoal', value)}
                       className="ml-1 hover:bg-background/20 rounded-full"
                     >
                       <X className="h-3 w-3" />
