@@ -27,11 +27,11 @@ export const GraduationChart = ({ data }: GraduationChartProps) => {
       graduationCounts[grad] = 0;
     });
     
-    // Contar quantas pessoas existem em cada graduação
+    // Contar quantos registros existem em cada graduação nos dados filtrados
     data.forEach(item => {
       const grad = item.graduacao;
       if (GRADUATIONS.includes(grad)) {
-        graduationCounts[grad] += item.exi; // Usando EXI como quantidade
+        graduationCounts[grad] += 1; // Conta 1 por cada registro
       }
     });
     
