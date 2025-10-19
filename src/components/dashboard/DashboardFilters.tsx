@@ -2,9 +2,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FilterOptions, MilitaryData } from "@/types/military";
-import { X, FileText, ChevronDown } from "lucide-react";
+import { X, FileText } from "lucide-react";
 
 const ESPECIALIDADES = [
   "MANOBRAS E REPAROS (MR)",
@@ -301,172 +301,118 @@ export const DashboardFilters = ({
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Filtro Pessoal */}
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
-              Pessoal
-            </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  {selectedFilters.pessoal.length === 0
-                    ? "Selecione pessoal"
-                    : selectedFilters.pessoal.length === pessoalOptions.length
-                    ? "Todos selecionados"
-                    : `${selectedFilters.pessoal.length} selecionado(s)`}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-4" align="start">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2 p-2 bg-muted/50 rounded-lg border">
-                    <Checkbox
-                      id="select-all-pessoal"
-                      checked={selectedFilters.pessoal.length === pessoalOptions.length}
-                      onCheckedChange={(checked) => {
-                        onFilterChange("pessoal", checked ? pessoalOptions : []);
-                      }}
-                    />
-                    <label
-                      htmlFor="select-all-pessoal"
-                      className="text-sm font-medium cursor-pointer flex-1"
-                    >
-                      Selecionar todos
-                    </label>
-                  </div>
-                  <div className="max-h-[300px] overflow-y-auto space-y-2">
-                    {pessoalOptions.map((option) => (
-                      <div key={option} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded">
-                        <Checkbox
-                          id={`pessoal-${option}`}
-                          checked={selectedFilters.pessoal.includes(option)}
-                          onCheckedChange={() => handlePessoalToggle(option)}
-                        />
-                        <label
-                          htmlFor={`pessoal-${option}`}
-                          className="text-sm cursor-pointer flex-1"
-                        >
-                          {getPessoalLabel(option)}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
+        <Tabs defaultValue="pessoal" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="pessoal">Pessoal</TabsTrigger>
+            <TabsTrigger value="especialidade">Especialidade</TabsTrigger>
+            <TabsTrigger value="om">OM</TabsTrigger>
+          </TabsList>
 
-          {/* Filtro OM */}
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
-              OM
-            </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  {selectedFilters.om.length === 0
-                    ? "Selecione OMs"
-                    : selectedFilters.om.length === filterOptions.oms.length
-                    ? "Todas selecionadas"
-                    : `${selectedFilters.om.length} selecionada(s)`}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-4" align="start">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2 p-2 bg-muted/50 rounded-lg border">
-                    <Checkbox
-                      id="select-all-om"
-                      checked={selectedFilters.om.length === filterOptions.oms.length}
-                      onCheckedChange={(checked) => {
-                        onFilterChange("om", checked ? filterOptions.oms : []);
-                      }}
-                    />
-                    <label
-                      htmlFor="select-all-om"
-                      className="text-sm font-medium cursor-pointer flex-1"
-                    >
-                      Selecionar todas
-                    </label>
-                  </div>
-                  <div className="max-h-[300px] overflow-y-auto space-y-2">
-                    {filterOptions.oms.map((om) => (
-                      <div key={om} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded">
-                        <Checkbox
-                          id={`om-${om}`}
-                          checked={selectedFilters.om.includes(om)}
-                          onCheckedChange={() => handleOmToggle(om)}
-                        />
-                        <label
-                          htmlFor={`om-${om}`}
-                          className="text-sm cursor-pointer flex-1"
-                        >
-                          {om}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+          <TabsContent value="pessoal" className="space-y-3 mt-4">
+            <div className="flex items-center space-x-2 p-2 bg-muted/50 rounded-lg border">
+              <Checkbox
+                id="select-all-pessoal"
+                checked={selectedFilters.pessoal.length === pessoalOptions.length}
+                onCheckedChange={(checked) => {
+                  onFilterChange("pessoal", checked ? pessoalOptions : []);
+                }}
+              />
+              <label
+                htmlFor="select-all-pessoal"
+                className="text-sm font-medium cursor-pointer flex-1"
+              >
+                Selecionar todos
+              </label>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto p-2">
+              {pessoalOptions.map((option) => (
+                <div key={option} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded">
+                  <Checkbox
+                    id={`pessoal-${option}`}
+                    checked={selectedFilters.pessoal.includes(option)}
+                    onCheckedChange={() => handlePessoalToggle(option)}
+                  />
+                  <label
+                    htmlFor={`pessoal-${option}`}
+                    className="text-sm cursor-pointer flex-1"
+                  >
+                    {getPessoalLabel(option)}
+                  </label>
                 </div>
-              </PopoverContent>
-            </Popover>
-          </div>
+              ))}
+            </div>
+          </TabsContent>
 
-          {/* Filtro Especialidade */}
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
-              Especialidade
-            </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  {selectedFilters.especialidade.length === 0
-                    ? "Selecione especialidades"
-                    : selectedFilters.especialidade.length === ESPECIALIDADES.length
-                    ? "Todas selecionadas"
-                    : `${selectedFilters.especialidade.length} selecionada(s)`}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-4" align="start">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2 p-2 bg-muted/50 rounded-lg border">
-                    <Checkbox
-                      id="select-all-especialidade"
-                      checked={selectedFilters.especialidade.length === ESPECIALIDADES.length}
-                      onCheckedChange={(checked) => {
-                        onFilterChange("especialidade", checked ? ESPECIALIDADES : []);
-                      }}
-                    />
-                    <label
-                      htmlFor="select-all-especialidade"
-                      className="text-sm font-medium cursor-pointer flex-1"
-                    >
-                      Selecionar todas
-                    </label>
-                  </div>
-                  <div className="max-h-[300px] overflow-y-auto space-y-2">
-                    {ESPECIALIDADES.map((especialidade) => (
-                      <div key={especialidade} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded">
-                        <Checkbox
-                          id={`especialidade-${especialidade}`}
-                          checked={selectedFilters.especialidade.includes(especialidade)}
-                          onCheckedChange={() => handleEspecialidadeToggle(especialidade)}
-                        />
-                        <label
-                          htmlFor={`especialidade-${especialidade}`}
-                          className="text-sm cursor-pointer flex-1"
-                        >
-                          {especialidade}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+          <TabsContent value="especialidade" className="space-y-3 mt-4">
+            <div className="flex items-center space-x-2 p-2 bg-muted/50 rounded-lg border">
+              <Checkbox
+                id="select-all-especialidade"
+                checked={selectedFilters.especialidade.length === ESPECIALIDADES.length}
+                onCheckedChange={(checked) => {
+                  onFilterChange("especialidade", checked ? ESPECIALIDADES : []);
+                }}
+              />
+              <label
+                htmlFor="select-all-especialidade"
+                className="text-sm font-medium cursor-pointer flex-1"
+              >
+                Selecionar todas
+              </label>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[400px] overflow-y-auto p-2">
+              {ESPECIALIDADES.map((especialidade) => (
+                <div key={especialidade} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded">
+                  <Checkbox
+                    id={`especialidade-${especialidade}`}
+                    checked={selectedFilters.especialidade.includes(especialidade)}
+                    onCheckedChange={() => handleEspecialidadeToggle(especialidade)}
+                  />
+                  <label
+                    htmlFor={`especialidade-${especialidade}`}
+                    className="text-sm cursor-pointer flex-1"
+                  >
+                    {especialidade}
+                  </label>
                 </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="om" className="space-y-3 mt-4">
+            <div className="flex items-center space-x-2 p-2 bg-muted/50 rounded-lg border">
+              <Checkbox
+                id="select-all-om"
+                checked={selectedFilters.om.length === filterOptions.oms.length}
+                onCheckedChange={(checked) => {
+                  onFilterChange("om", checked ? filterOptions.oms : []);
+                }}
+              />
+              <label
+                htmlFor="select-all-om"
+                className="text-sm font-medium cursor-pointer flex-1"
+              >
+                Selecionar todas
+              </label>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto p-2">
+              {filterOptions.oms.map((om) => (
+                <div key={om} className="flex items-center space-x-2 p-2 hover:bg-muted/50 rounded">
+                  <Checkbox
+                    id={`om-${om}`}
+                    checked={selectedFilters.om.includes(om)}
+                    onCheckedChange={() => handleOmToggle(om)}
+                  />
+                  <label
+                    htmlFor={`om-${om}`}
+                    className="text-sm cursor-pointer flex-1"
+                  >
+                    {om}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
