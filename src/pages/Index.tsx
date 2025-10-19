@@ -6,6 +6,7 @@ import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { TotalsChart } from "@/components/dashboard/TotalsChart";
 import { SpecialtyByGraduationTable } from "@/components/dashboard/SpecialtyByGraduationTable";
+import { GraduationChart } from "@/components/dashboard/GraduationChart";
 import { MilitaryData } from "@/types/military";
 import { getUniqueValues, mockMilitaryData } from "@/data/mockData";
 import militaryBg from "@/assets/military-background.png";
@@ -223,6 +224,9 @@ const Index = () => {
             totalDIF={metrics.totalDIF}
           />
         </div>
+
+        {/* Gráfico de Distribuição por Graduação */}
+        <GraduationChart data={filteredData} />
 
         {/* Tabela de Quantitativo por Especialidade e Graduação */}
         <SpecialtyByGraduationTable data={filteredData} />
