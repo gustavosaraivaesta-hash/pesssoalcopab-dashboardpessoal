@@ -9,23 +9,31 @@ interface DistributionChartProps {
 
 export const DistributionChart = ({ data, selectedSpecialties }: DistributionChartProps) => {
   // Agrupar dados por OM e Especialidade
-  const chartData = data.reduce((acc, item) => {
-    const omIndex = acc.findIndex(d => d.om === item.om);
-    
-    if (omIndex === -1) {
-      const newEntry: any = { om: item.om };
-      selectedSpecialties.forEach(esp => {
-        newEntry[esp] = item.especialidade === esp ? 1 : 0;
-      });
-      acc.push(newEntry);
-    } else {
-      if (selectedSpecialties.includes(item.especialidade)) {
-        acc[omIndex][item.especialidade] = (acc[omIndex][item.especialidade] || 0) + 1;
-      }
+  const omGroups = new Map<string, Map<string, number>>();
+  
+  // Primeiro, agrupe todos os dados
+  data.forEach(item => {
+    if (!omGroups.has(item.om)) {
+      omGroups.set(item.om, new Map());
     }
     
-    return acc;
-  }, [] as any[]);
+    const especialidadeMap = omGroups.get(item.om)!;
+    if (selectedSpecialties.includes(item.especialidade)) {
+      especialidadeMap.set(
+        item.especialidade, 
+        (especialidadeMap.get(item.especialidade) || 0) + 1
+      );
+    }
+  });
+  
+  // Converter para array de objetos para o gráfico
+  const chartData = Array.from(omGroups.entries()).map(([om, especialidades]) => {
+    const entry: any = { om };
+    selectedSpecialties.forEach(esp => {
+      entry[esp] = especialidades.get(esp) || 0;
+    });
+    return entry;
+  });
 
   // Cores para cada especialidade
   const colors = [
