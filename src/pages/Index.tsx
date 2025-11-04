@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { TotalsChart } from "@/components/dashboard/TotalsChart";
+import { DistributionChart } from "@/components/dashboard/DistributionChart";
 import { MilitaryData } from "@/types/military";
 import { getUniqueValues, mockMilitaryData } from "@/data/mockData";
 import militaryBg from "@/assets/military-background.png";
@@ -211,6 +212,14 @@ const Index = () => {
             totalDIF={metrics.totalDIF}
           />
         </div>
+
+        {/* Gráfico de Distribuição por OM (quando há filtro de especialidade) */}
+        {filters.especialidade.length > 0 && (
+          <DistributionChart 
+            data={filteredData}
+            selectedSpecialties={filters.especialidade}
+          />
+        )}
       </main>
 
       {/* Botão Sair - Canto Inferior Esquerdo */}
