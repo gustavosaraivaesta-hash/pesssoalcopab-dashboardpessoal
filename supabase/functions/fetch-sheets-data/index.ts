@@ -99,7 +99,7 @@ serve(async (req) => {
     
     // Define OMs and their column positions (TMFT, EXI, DIF)
     const oms = [
-      { name: 'COpAb', startCol: 1 },
+      { name: 'COpAb', startCol: 7 },
       { name: 'COMRJ', startCol: 4 },
       { name: 'BAMRJ', startCol: 10 },
       { name: 'CMM', startCol: 13 },
