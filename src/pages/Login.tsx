@@ -38,7 +38,7 @@ const Login = () => {
           <div className="flex justify-center mb-4">
             <Shield size={48} className="text-white" />
           </div>
-          <CardTitle className="text-2xl text-white">Dashboard DAbM</CardTitle>
+          <CardTitle className="text-2xl text-white">Dashboard COpAb</CardTitle>
           <CardDescription className="text-white/90">Diretoria de Abastecimento - Análise de Militares</CardDescription>
         </CardHeader>
         <CardContent>

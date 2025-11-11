@@ -111,7 +111,7 @@ export const DashboardFilters = ({
     
     // Título
     pdf.setFontSize(18);
-    pdf.text("Relatório DAbM - Dashboard", 14, yPos);
+    pdf.text("Relatório COpAb - Dashboard", 14, yPos);
     yPos += 10;
     
     // Filtros aplicados
@@ -212,7 +212,7 @@ export const DashboardFilters = ({
     });
     
     // Salvar
-    pdf.save(`relatorio-dabm-${new Date().toISOString().split('T')[0]}.pdf`);
+    pdf.save(`relatorio-copab-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   const handleClearFilters = () => {
