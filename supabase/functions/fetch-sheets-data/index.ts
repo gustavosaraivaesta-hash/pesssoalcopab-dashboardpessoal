@@ -101,7 +101,6 @@ serve(async (req) => {
     const oms = [
       { name: 'COpAb', startCol: 1 },
       { name: 'COMRJ', startCol: 4 },
-      { name: 'COpAb', startCol: 7 },
       { name: 'BAMRJ', startCol: 10 },
       { name: 'CMM', startCol: 13 },
       { name: 'DepCMRJ', startCol: 16 },
