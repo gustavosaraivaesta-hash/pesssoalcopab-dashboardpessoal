@@ -114,6 +114,8 @@ serve(async (req) => {
       { name: 'CDU-1DN', startCol: 40 },
     ];
     
+    console.log(`Processing ${oms.length} OMs:`, oms.map(om => om.name).join(', '));
+    
     // Process each row (each row is a graduacao/pessoal)
     // Skip the summary row "FORÇA DE TRABALHO"
     // Start from index 0 to include SO row
