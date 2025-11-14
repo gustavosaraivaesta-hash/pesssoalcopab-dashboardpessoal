@@ -157,15 +157,24 @@ const Index = () => {
                 <p className="text-sm opacity-90">Diretoria de Abastecimento - Análise do Pessoal Militar e Civil</p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              onClick={handleManualRefresh}
-              disabled={isRefreshing}
-              className="border-white text-white hover:bg-white hover:text-blue-600"
-            >
-              <RefreshCw size={18} className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Atualizar
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/especialidades")}
+                className="border-white text-white hover:bg-white hover:text-blue-600"
+              >
+                Ver Especialidades
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleManualRefresh}
+                disabled={isRefreshing}
+                className="border-white text-white hover:bg-white hover:text-blue-600"
+              >
+                <RefreshCw size={18} className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Atualizar
+              </Button>
+            </div>
           </div>
         </div>
       </header>
