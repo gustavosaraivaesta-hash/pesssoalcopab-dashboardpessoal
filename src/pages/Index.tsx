@@ -141,8 +141,8 @@ const Index = () => {
     <div className="min-h-screen bg-blue-50 relative">
       {/* Background Image with Overlay */}
       <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20 pointer-events-none"
-        style={{ backgroundImage: `url(${militaryBg})` }}
+        className="fixed inset-0 bg-cover bg-no-repeat opacity-20 pointer-events-none"
+        style={{ backgroundImage: `url(${militaryBg})`, backgroundPosition: '45% center' }}
       />
       <div className="fixed inset-0 bg-blue-50/80 pointer-events-none" />
       
