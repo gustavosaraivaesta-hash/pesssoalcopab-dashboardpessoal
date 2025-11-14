@@ -154,7 +154,7 @@ const Index = () => {
               <Shield size={36} className="text-primary-foreground" />
               <div>
                 <h1 className="text-3xl font-bold">Dashboard COpAb</h1>
-                <p className="text-sm opacity-90">Diretoria de Abastecimento - Análise do Pessoal Militar e Civil</p>
+                <p className="text-sm opacity-90">CENTRO DE OPERAÇÕES DO ABASTECIMENTO</p>
               </div>
             </div>
             <div className="flex gap-2">
