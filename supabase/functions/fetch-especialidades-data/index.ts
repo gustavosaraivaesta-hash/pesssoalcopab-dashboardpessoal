@@ -11,12 +11,12 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Fetching especialidades data from Google Sheets Page 3...');
+    console.log('Fetching ONLY Page 3 data from Google Sheets...');
     
     const spreadsheetId = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
     const timestamp = new Date().getTime();
     
-    // Fetch Page 3 (especialidades detalhadas) - gid=1875983157
+    // Fetch ONLY Page 3 (Especialidades detalhadas) - gid=1875983157
     const sheet3Url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=1875983157&tqx=out:json&timestamp=${timestamp}`;
     
     console.log('Calling Google Sheets API for Page 3...');
@@ -42,7 +42,7 @@ serve(async (req) => {
     const transformedData: any[] = [];
     
     if (rows.length < 2) {
-      console.log('Not enough data in sheets');
+      console.log('Not enough data in Page 3');
       return new Response(
         JSON.stringify({ data: [] }),
         {
@@ -52,24 +52,33 @@ serve(async (req) => {
       );
     }
     
-    // Process rows - each row contains especialidade and graduacao data
+    // Skip header row (index 0), process data rows starting from index 1
     for (let i = 1; i < rows.length; i++) {
       const cells = rows[i].c || [];
       
+      // Page 3 structure:
+      // Col 0: Especialidade
+      // Col 1: Graduação
+      // Col 2: TMFT ∑
+      // Col 3: TMFT CA
+      // Col 4: TMFT RM2
+      // Col 5: EFE ∑
+      // Col 6: EFE CA
+      // Col 7: EFE RM2
+      // Col 8: OM
+      
       const especialidade = cells[0]?.v || '';
       const graduacao = cells[1]?.v || '';
-      const om = cells[8]?.v || '';
-      
-      if (!especialidade || !graduacao) continue;
-      
-      // TMFT columns: 2 (∑), 3 (CA), 4 (RM2)
-      // EFE columns: 5 (∑), 6 (CA), 7 (RM2)
       const tmft_sum = Number(cells[2]?.v || 0);
       const tmft_ca = Number(cells[3]?.v || 0);
       const tmft_rm2 = Number(cells[4]?.v || 0);
       const efe_sum = Number(cells[5]?.v || 0);
       const efe_ca = Number(cells[6]?.v || 0);
       const efe_rm2 = Number(cells[7]?.v || 0);
+      const om = cells[8]?.v || '';
+      
+      // Only include rows with valid data
+      if (!especialidade || !graduacao) continue;
       
       transformedData.push({
         especialidade,
@@ -84,7 +93,7 @@ serve(async (req) => {
       });
     }
     
-    console.log(`Transformed ${transformedData.length} records`);
+    console.log(`Transformed ${transformedData.length} records from Page 3`);
     
     return new Response(
       JSON.stringify({ data: transformedData }),
@@ -94,7 +103,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error fetching especialidades data:', error);
+    console.error('Error fetching Page 3 data:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
