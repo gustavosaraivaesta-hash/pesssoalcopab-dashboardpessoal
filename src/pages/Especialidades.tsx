@@ -102,28 +102,18 @@ const Especialidades = () => {
     ? data.filter(item => item.om === selectedOM)
     : data;
 
-  // OMs específicas para o dropdown
-  const uniqueOMs = [
-    'BAMRJ',
-    'CDAM',
-    'CDU-1DN',
-    'CDU-BAMRJ',
-    'CMM',
-    'COMRJ',
-    'COpAb',
-    'CSupAb',
-    'DepCMRJ',
-    'DepFMRJ',
-    'DepMSMRJ',
-    'DepSIMRJ',
-    'DepSMRJ'
-  ];
+  // Extrair OMs únicas dinamicamente dos dados
+  const uniqueOMs = Array.from(new Set(data.map(item => item.om).filter(Boolean))).sort();
 
   // Calcular contagem de registros por OM
   const omCounts = uniqueOMs.reduce((acc, om) => {
     acc[om] = data.filter(item => item.om === om).length;
     return acc;
   }, {} as Record<string, number>);
+
+  console.log("📊 OMs únicas encontradas:", uniqueOMs);
+  console.log("📊 Contagem por OM:", omCounts);
+  console.log("📊 Total de registros filtrados:", filteredData.length);
 
   // Group data by especialidade
   const groupedData = filteredData.reduce((acc, item) => {
@@ -216,19 +206,26 @@ const Especialidades = () => {
 
         {/* Filter */}
         <div className="bg-card rounded-lg p-4 shadow-md border border-border">
-          <label className="block text-sm font-medium mb-2">Filtrar por OM:</label>
-          <select
-            value={selectedOM}
-            onChange={(e) => setSelectedOM(e.target.value)}
-            className="w-full md:w-auto px-4 py-2 rounded-md border border-border bg-background text-foreground"
-          >
-            <option value="">Todas as OMs</option>
-            {uniqueOMs.map((om) => (
-              <option key={om} value={om}>
-                {om} ({omCounts[om] || 0})
-              </option>
-            ))}
-          </select>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Filtrar por OM:</label>
+            <select
+              value={selectedOM}
+              onChange={(e) => setSelectedOM(e.target.value)}
+              className="w-full md:w-auto px-4 py-2 rounded-md border border-border bg-background text-foreground"
+            >
+              <option value="">Todas as OMs ({data.length} registros)</option>
+              {uniqueOMs.map((om) => (
+                <option key={om} value={om}>
+                  {om} ({omCounts[om] || 0} registros)
+                </option>
+              ))}
+            </select>
+            {selectedOM && (
+              <p className="text-sm text-muted-foreground">
+                Mostrando {filteredData.length} registros de {selectedOM}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Spreadsheet View */}
