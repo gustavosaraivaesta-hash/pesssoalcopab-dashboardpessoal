@@ -43,16 +43,16 @@ const Especialidades = () => {
 
       console.log("Dados completos recebidos:", result);
       
-      // Os dados já vêm no formato correto da função fetch-sheets-data
-      const allData = result.data || [];
+      // Usar os dados de especialidades diretos da Página 3
+      const especialidadesData = result.especialidades || [];
       
-      console.log("Total de registros da dashboard:", allData.length);
-      if (allData.length > 0) {
-        console.log("Exemplo de registro:", allData[0]);
+      console.log("Total de registros de especialidades:", especialidadesData.length);
+      if (especialidadesData.length > 0) {
+        console.log("Exemplo de registro:", especialidadesData[0]);
       }
       
-      setData(allData);
-      toast.success(`Dados carregados: ${allData.length} registros`);
+      setData(especialidadesData);
+      toast.success(`Dados carregados: ${especialidadesData.length} registros`);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Erro ao carregar dados");
