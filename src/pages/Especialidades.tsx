@@ -241,28 +241,40 @@ const Especialidades = () => {
                 <TableHead className="sticky left-[200px] bg-card z-20 min-w-[80px] border-r-2 border-border text-center">
                   Graduação
                 </TableHead>
-                {omsInData.map((om) => (
-                  <TableHead key={om} colSpan={2} className="text-center border-r border-border bg-accent/20">
-                    {om}
-                  </TableHead>
-                ))}
-                <TableHead className="text-center bg-primary/10">TOTAL</TableHead>
-              </TableRow>
-              <TableRow>
-                <TableHead className="sticky left-0 bg-card z-20 border-r-2 border-border"></TableHead>
-                <TableHead className="sticky left-[200px] bg-card z-20 border-r-2 border-border"></TableHead>
-                {omsInData.map((om) => (
+                {selectedOM ? (
                   <>
-                    <TableHead key={`${om}-tmft`} className="text-center text-xs bg-accent/10">
-                      TMFT
-                    </TableHead>
-                    <TableHead key={`${om}-efe`} className="text-center text-xs border-r border-border bg-accent/10">
-                      EFE
-                    </TableHead>
+                    <TableHead className="text-center bg-accent/20">TMFT</TableHead>
+                    <TableHead className="text-center bg-accent/20">EFE</TableHead>
+                    <TableHead className="text-center bg-primary/10">TOTAL</TableHead>
                   </>
-                ))}
-                <TableHead className="text-center text-xs bg-primary/10"></TableHead>
+                ) : (
+                  <>
+                    {omsInData.map((om) => (
+                      <TableHead key={om} colSpan={2} className="text-center border-r border-border bg-accent/20">
+                        {om}
+                      </TableHead>
+                    ))}
+                    <TableHead className="text-center bg-primary/10">TOTAL</TableHead>
+                  </>
+                )}
               </TableRow>
+              {!selectedOM && (
+                <TableRow>
+                  <TableHead className="sticky left-0 bg-card z-20 border-r-2 border-border"></TableHead>
+                  <TableHead className="sticky left-[200px] bg-card z-20 border-r-2 border-border"></TableHead>
+                  {omsInData.map((om) => (
+                    <>
+                      <TableHead key={`${om}-tmft`} className="text-center text-xs bg-accent/10">
+                        TMFT
+                      </TableHead>
+                      <TableHead key={`${om}-efe`} className="text-center text-xs border-r border-border bg-accent/10">
+                        EFE
+                      </TableHead>
+                    </>
+                  ))}
+                  <TableHead className="text-center text-xs bg-primary/10"></TableHead>
+                </TableRow>
+              )}
             </TableHeader>
             <TableBody>
               {Object.entries(spreadsheetData).length === 0 ? (
@@ -316,19 +328,35 @@ const Especialidades = () => {
                         <TableCell className="sticky left-[200px] bg-card z-10 text-center border-r-2 border-border font-medium">
                           {grad}
                         </TableCell>
-                        {omsInData.map((om) => (
+                        {selectedOM ? (
                           <>
-                            <TableCell key={`${om}-tmft`} className="text-center">
-                              {omData[om]?.tmft || 0}
+                            <TableCell className="text-center">
+                              {omData[selectedOM]?.tmft || 0}
                             </TableCell>
-                            <TableCell key={`${om}-efe`} className="text-center border-r border-border">
-                              {omData[om]?.efe || 0}
+                            <TableCell className="text-center">
+                              {omData[selectedOM]?.efe || 0}
+                            </TableCell>
+                            <TableCell className="text-center font-semibold bg-primary/5">
+                              {omData[selectedOM]?.tmft || 0}
                             </TableCell>
                           </>
-                        ))}
-                        <TableCell className="text-center font-semibold bg-primary/5">
-                          {rowTotal}
-                        </TableCell>
+                        ) : (
+                          <>
+                            {omsInData.map((om) => (
+                              <>
+                                <TableCell key={`${om}-tmft`} className="text-center">
+                                  {omData[om]?.tmft || 0}
+                                </TableCell>
+                                <TableCell key={`${om}-efe`} className="text-center border-r border-border">
+                                  {omData[om]?.efe || 0}
+                                </TableCell>
+                              </>
+                            ))}
+                            <TableCell className="text-center font-semibold bg-primary/5">
+                              {rowTotal}
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     );
                   });
@@ -339,19 +367,35 @@ const Especialidades = () => {
                       <TableCell className="sticky left-[200px] bg-primary/10 z-10 text-center border-r-2 border-border">
                         TOTAL
                       </TableCell>
-                      {omsInData.map((om) => (
+                      {selectedOM ? (
                         <>
-                          <TableCell key={`${om}-tmft-total`} className="text-center">
-                            {especialidadeTotals[om]?.tmft || 0}
+                          <TableCell className="text-center">
+                            {especialidadeTotals[selectedOM]?.tmft || 0}
                           </TableCell>
-                          <TableCell key={`${om}-efe-total`} className="text-center border-r border-border">
-                            {especialidadeTotals[om]?.efe || 0}
+                          <TableCell className="text-center">
+                            {especialidadeTotals[selectedOM]?.efe || 0}
+                          </TableCell>
+                          <TableCell className="text-center bg-primary/20">
+                            {especialidadeTotals[selectedOM]?.tmft || 0}
                           </TableCell>
                         </>
-                      ))}
-                      <TableCell className="text-center bg-primary/20">
-                        {grandTotal}
-                      </TableCell>
+                      ) : (
+                        <>
+                          {omsInData.map((om) => (
+                            <>
+                              <TableCell key={`${om}-tmft-total`} className="text-center">
+                                {especialidadeTotals[om]?.tmft || 0}
+                              </TableCell>
+                              <TableCell key={`${om}-efe-total`} className="text-center border-r border-border">
+                                {especialidadeTotals[om]?.efe || 0}
+                              </TableCell>
+                            </>
+                          ))}
+                          <TableCell className="text-center bg-primary/20">
+                            {grandTotal}
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
                   );
                   
