@@ -58,6 +58,7 @@ serve(async (req) => {
       
       const especialidade = cells[0]?.v || '';
       const graduacao = cells[1]?.v || '';
+      const om = cells[8]?.v || '';
       
       if (!especialidade || !graduacao) continue;
       
@@ -73,6 +74,7 @@ serve(async (req) => {
       transformedData.push({
         especialidade,
         graduacao,
+        om,
         tmft_sum,
         tmft_ca,
         tmft_rm2,
