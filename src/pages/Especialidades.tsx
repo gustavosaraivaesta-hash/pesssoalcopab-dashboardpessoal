@@ -129,106 +129,164 @@ const Especialidades = () => {
     );
   };
 
+  // Group data by especialidade and graduacao for spreadsheet view
+  const spreadsheetData = filteredData.reduce((acc, item) => {
+    const key = item.especialidade;
+    if (!acc[key]) {
+      acc[key] = {
+        SO: {} as Record<string, { tmft: number; efe: number }>,
+        '1SG': {} as Record<string, { tmft: number; efe: number }>,
+        '2SG': {} as Record<string, { tmft: number; efe: number }>,
+        '3SG': {} as Record<string, { tmft: number; efe: number }>,
+        'CB': {} as Record<string, { tmft: number; efe: number }>,
+        'MN': {} as Record<string, { tmft: number; efe: number }>,
+      };
+    }
+    
+    const grad = item.graduacao;
+    if (!acc[key][grad][item.om]) {
+      acc[key][grad][item.om] = { tmft: 0, efe: 0 };
+    }
+    acc[key][grad][item.om].tmft += item.tmft_sum;
+    acc[key][grad][item.om].efe += item.efe_sum;
+    
+    return acc;
+  }, {} as Record<string, Record<string, Record<string, { tmft: number; efe: number }>>>);
+
+  // Get all unique OMs in the filtered data
+  const omsInData = Array.from(new Set(filteredData.map(item => item.om))).sort();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="max-w-full mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => navigate("/")}
+              variant="outline"
+              size="icon"
+              className="hover:scale-105 transition-transform"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Especialidades por OM
+            </h1>
+          </div>
           <Button
-            variant="ghost"
-            onClick={() => navigate("/")}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
-          </Button>
-          <h1 className="text-3xl font-bold text-foreground">
-            Especialidades por Graduação
-          </h1>
-          <Button
-            variant="outline"
             onClick={fetchEspecialidadesData}
-            className="gap-2"
+            variant="outline"
+            size="icon"
+            className="hover:scale-105 transition-transform"
           >
             <RefreshCw className="h-4 w-4" />
-            Atualizar
           </Button>
         </div>
 
-        <div className="bg-card rounded-lg shadow-lg p-6">
-          <div className="flex items-center gap-4">
-            <label className="text-sm font-medium text-foreground">
-              Filtrar por OM:
-            </label>
-            <select
-              value={selectedOM}
-              onChange={(e) => setSelectedOM(e.target.value)}
-              className="px-4 py-2 rounded-md border border-border bg-background text-foreground"
-            >
-              <option value="">Todas as OMs</option>
-              {uniqueOMs.map((om) => (
-                <option key={om} value={om}>
-                  {om} ({omCounts[om] || 0})
-                </option>
-              ))}
-            </select>
-            {selectedOM && (
-              <div className="text-sm text-muted-foreground">
-                Mostrando <span className="font-bold text-foreground">{filteredData.length}</span> registros da OM <span className="font-bold text-foreground">{selectedOM}</span>
-              </div>
-            )}
-          </div>
+        {/* Filter */}
+        <div className="bg-card rounded-lg p-4 shadow-md border border-border">
+          <label className="block text-sm font-medium mb-2">Filtrar por OM:</label>
+          <select
+            value={selectedOM}
+            onChange={(e) => setSelectedOM(e.target.value)}
+            className="w-full md:w-auto px-4 py-2 rounded-md border border-border bg-background text-foreground"
+          >
+            <option value="">Todas as OMs</option>
+            {uniqueOMs.map((om) => (
+              <option key={om} value={om}>
+                {om} ({omCounts[om] || 0})
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className="bg-card rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-foreground mb-4">
-            Quantidades por Especialidade e Graduação{selectedOM ? ` - ${selectedOM}` : ' - Todas as OMs'}
-          </h2>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-48">Especialidade</TableHead>
-                  <TableHead className="text-center">SO</TableHead>
-                  <TableHead className="text-center">1SG</TableHead>
-                  <TableHead className="text-center">2SG</TableHead>
-                  <TableHead className="text-center">3SG</TableHead>
-                  <TableHead className="text-center">CB</TableHead>
-                  <TableHead className="text-center">MN</TableHead>
-                  <TableHead className="text-center font-bold">TOTAL</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Object.entries(groupedData).map(([especialidade, items]) => {
-                  const graduacoes = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
-                  const valores = graduacoes.map(grad => {
-                    const itemsGrad = items.filter(i => i.graduacao === grad);
-                    return itemsGrad.reduce((sum, item) => sum + item.tmft_sum, 0);
+        {/* Spreadsheet View */}
+        <div className="bg-card rounded-lg shadow-md border border-border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="sticky left-0 bg-card z-20 min-w-[200px] border-r-2 border-border">
+                  Especialidade
+                </TableHead>
+                <TableHead className="sticky left-[200px] bg-card z-20 min-w-[80px] border-r-2 border-border text-center">
+                  Graduação
+                </TableHead>
+                {omsInData.map((om) => (
+                  <TableHead key={om} colSpan={2} className="text-center border-r border-border bg-accent/20">
+                    {om}
+                  </TableHead>
+                ))}
+                <TableHead className="text-center bg-primary/10">TOTAL</TableHead>
+              </TableRow>
+              <TableRow>
+                <TableHead className="sticky left-0 bg-card z-20 border-r-2 border-border"></TableHead>
+                <TableHead className="sticky left-[200px] bg-card z-20 border-r-2 border-border"></TableHead>
+                {omsInData.map((om) => (
+                  <>
+                    <TableHead key={`${om}-tmft`} className="text-center text-xs bg-accent/10">
+                      TMFT
+                    </TableHead>
+                    <TableHead key={`${om}-efe`} className="text-center text-xs border-r border-border bg-accent/10">
+                      EFE
+                    </TableHead>
+                  </>
+                ))}
+                <TableHead className="text-center text-xs bg-primary/10"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Object.entries(spreadsheetData).map(([especialidade, graduacoes]) => {
+                const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
+                
+                return graduacaoKeys.map((grad, idx) => {
+                  const omData = graduacoes[grad] || {};
+                  
+                  // Calculate total for this row
+                  let rowTotal = 0;
+                  omsInData.forEach(om => {
+                    rowTotal += (omData[om]?.tmft || 0);
                   });
-                  const total = valores.reduce((sum, val) => sum + val, 0);
                   
                   return (
-                    <TableRow key={especialidade}>
-                      <TableCell className="font-medium">{especialidade}</TableCell>
-                      {valores.map((val, idx) => (
-                        <TableCell key={idx} className="text-center">
-                          {val > 0 ? val : '-'}
+                    <TableRow key={`${especialidade}-${grad}`} className="hover:bg-accent/5">
+                      {idx === 0 && (
+                        <TableCell
+                          rowSpan={6}
+                          className="sticky left-0 bg-card z-10 font-medium border-r-2 border-border align-top"
+                        >
+                          {especialidade}
                         </TableCell>
+                      )}
+                      <TableCell className="sticky left-[200px] bg-card z-10 text-center border-r-2 border-border font-medium">
+                        {grad}
+                      </TableCell>
+                      {omsInData.map((om) => (
+                        <>
+                          <TableCell key={`${om}-tmft`} className="text-center">
+                            {omData[om]?.tmft || 0}
+                          </TableCell>
+                          <TableCell key={`${om}-efe`} className="text-center border-r border-border">
+                            {omData[om]?.efe || 0}
+                          </TableCell>
+                        </>
                       ))}
-                      <TableCell className="text-center font-bold bg-muted/50">
-                        {total}
+                      <TableCell className="text-center font-semibold bg-primary/5">
+                        {rowTotal}
                       </TableCell>
                     </TableRow>
                   );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+                });
+              })}
+            </TableBody>
+          </Table>
         </div>
 
+        {/* Logout Button */}
         <Button
           onClick={handleLogout}
           variant="destructive"
-          className="fixed bottom-6 left-6"
+          className="fixed bottom-6 right-6 shadow-lg hover:scale-105 transition-transform"
         >
           Sair
         </Button>
