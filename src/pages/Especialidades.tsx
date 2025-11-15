@@ -40,8 +40,14 @@ const Especialidades = () => {
 
       if (error) throw error;
 
+      console.log("Dados recebidos:", result.data);
+      console.log("Total de registros:", result.data?.length);
+      if (result.data && result.data.length > 0) {
+        console.log("Exemplo de registro:", result.data[0]);
+      }
+      
       setData(result.data || []);
-      toast.success("Dados carregados com sucesso!");
+      toast.success(`Dados carregados: ${result.data?.length || 0} registros`);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Erro ao carregar dados");
@@ -144,6 +150,13 @@ const Especialidades = () => {
     }
     
     const grad = item.graduacao;
+    
+    // Ensure graduacao exists in the structure
+    if (!acc[key][grad]) {
+      console.warn(`Graduação '${grad}' não esperada para especialidade '${key}'. Criando entrada...`);
+      acc[key][grad] = {} as Record<string, { tmft: number; efe: number }>;
+    }
+    
     if (!acc[key][grad][item.om]) {
       acc[key][grad][item.om] = { tmft: 0, efe: 0 };
     }
@@ -155,6 +168,9 @@ const Especialidades = () => {
 
   // Get all unique OMs in the filtered data
   const omsInData = Array.from(new Set(filteredData.map(item => item.om))).sort();
+  
+  console.log("Spreadsheet data agrupada:", spreadsheetData);
+  console.log("OMs nos dados:", omsInData);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 p-6">
