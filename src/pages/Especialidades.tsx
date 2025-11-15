@@ -114,6 +114,7 @@ const Especialidades = () => {
   console.log("📊 OMs únicas encontradas:", uniqueOMs);
   console.log("📊 Contagem por OM:", omCounts);
   console.log("📊 Total de registros filtrados:", filteredData.length);
+  console.log("📊 OM selecionada:", selectedOM);
 
   // Group data by especialidade
   const groupedData = filteredData.reduce((acc, item) => {
