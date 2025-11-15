@@ -208,25 +208,28 @@ const Especialidades = () => {
 
         {/* Filter */}
         <div className="bg-card rounded-lg p-4 shadow-md border border-border">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Filtrar por OM:</label>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="block text-sm font-medium">Filtrar por OM:</label>
+              <div className="text-sm font-semibold text-primary">
+                {selectedOM 
+                  ? `${filteredData.length} registros de ${selectedOM}`
+                  : `Total: ${data.length} registros`
+                }
+              </div>
+            </div>
             <select
               value={selectedOM}
               onChange={(e) => setSelectedOM(e.target.value)}
-              className="w-full md:w-auto px-4 py-2 rounded-md border border-border bg-background text-foreground"
+              className="w-full px-4 py-2 rounded-md border border-border bg-background text-foreground font-medium"
             >
-              <option value="">Todas as OMs ({data.length} registros)</option>
+              <option value="">📊 Todas as OMs - {data.length} registros</option>
               {uniqueOMs.map((om) => (
                 <option key={om} value={om}>
-                  {om} ({omCounts[om] || 0} registros)
+                  {om} - {omCounts[om] || 0} registros
                 </option>
               ))}
             </select>
-            {selectedOM && (
-              <p className="text-sm text-muted-foreground">
-                Mostrando {filteredData.length} registros de {selectedOM}
-              </p>
-            )}
           </div>
         </div>
 
