@@ -16,6 +16,7 @@ import {
 interface EspecialidadeData {
   especialidade: string;
   graduacao: string;
+  om: string;
   tmft_sum: number;
   tmft_ca: number;
   tmft_rm2: number;
@@ -28,6 +29,7 @@ const Especialidades = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<EspecialidadeData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOM, setSelectedOM] = useState<string>("");
 
   const fetchEspecialidadesData = async () => {
     setLoading(true);
@@ -75,8 +77,16 @@ const Especialidades = () => {
     );
   }
 
+  // Filter data by selected OM
+  const filteredData = selectedOM 
+    ? data.filter(item => item.om === selectedOM)
+    : data;
+
+  // Get unique OMs for dropdown
+  const uniqueOMs = Array.from(new Set(data.map(item => item.om))).filter(Boolean).sort();
+
   // Group data by especialidade
-  const groupedData = data.reduce((acc, item) => {
+  const groupedData = filteredData.reduce((acc, item) => {
     if (!acc[item.especialidade]) {
       acc[item.especialidade] = [];
     }
@@ -122,6 +132,31 @@ const Especialidades = () => {
             <RefreshCw className="h-4 w-4" />
             Atualizar
           </Button>
+        </div>
+
+        <div className="bg-card rounded-lg shadow-lg p-6">
+          <div className="flex items-center gap-4">
+            <label className="text-sm font-medium text-foreground">
+              Filtrar por OM:
+            </label>
+            <select
+              value={selectedOM}
+              onChange={(e) => setSelectedOM(e.target.value)}
+              className="px-4 py-2 rounded-md border border-border bg-background text-foreground"
+            >
+              <option value="">Todas as OMs</option>
+              {uniqueOMs.map((om) => (
+                <option key={om} value={om}>
+                  {om}
+                </option>
+              ))}
+            </select>
+            {selectedOM && (
+              <div className="text-sm text-muted-foreground">
+                Mostrando <span className="font-bold text-foreground">{filteredData.length}</span> registros da OM <span className="font-bold text-foreground">{selectedOM}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="space-y-8">
