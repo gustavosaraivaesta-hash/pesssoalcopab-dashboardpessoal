@@ -82,8 +82,22 @@ const Especialidades = () => {
     ? data.filter(item => item.om === selectedOM)
     : data;
 
-  // Get unique OMs for dropdown
-  const uniqueOMs = Array.from(new Set(data.map(item => item.om))).filter(Boolean).sort();
+  // OMs específicas para o dropdown
+  const uniqueOMs = [
+    'BAMRJ',
+    'CDAM',
+    'CDU-1DN',
+    'CDU-BAMRJ',
+    'CMM',
+    'COMRJ',
+    'COpAb',
+    'CSupAb',
+    'DepCMRJ',
+    'DepFMRJ',
+    'DepMSMRJ',
+    'DepSIMRJ',
+    'DepSMRJ'
+  ];
 
   // Group data by especialidade
   const groupedData = filteredData.reduce((acc, item) => {
