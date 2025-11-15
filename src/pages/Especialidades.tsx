@@ -34,26 +34,36 @@ const Especialidades = () => {
   const fetchEspecialidadesData = async () => {
     setLoading(true);
     try {
-      // Buscar dados APENAS da Página 3
+      console.log("🔄 Iniciando busca dos dados da Página 3...");
+      
       const { data: result, error } = await supabase.functions.invoke(
         "fetch-especialidades-data"
       );
 
-      if (error) throw error;
+      console.log("📦 Resposta completa da API:", result);
+      console.log("❌ Erro da API:", error);
 
-      console.log("Dados da Página 3 recebidos:", result);
+      if (error) {
+        console.error("❌ Erro ao chamar função:", error);
+        throw error;
+      }
+
+      const especialidadesData = result?.data || [];
       
-      const especialidadesData = result.data || [];
+      console.log("✅ Total de registros extraídos:", especialidadesData.length);
+      console.log("📊 Todos os dados:", especialidadesData);
       
-      console.log("Total de registros da Página 3:", especialidadesData.length);
       if (especialidadesData.length > 0) {
-        console.log("Exemplo de registro:", especialidadesData[0]);
+        console.log("📝 Primeiro registro:", especialidadesData[0]);
+        console.log("📝 Último registro:", especialidadesData[especialidadesData.length - 1]);
+      } else {
+        console.warn("⚠️ Nenhum dado encontrado no array!");
       }
       
       setData(especialidadesData);
-      toast.success(`Dados da Página 3 carregados: ${especialidadesData.length} registros`);
+      toast.success(`✅ ${especialidadesData.length} registros carregados da Página 3`);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("💥 Erro fatal:", error);
       toast.error("Erro ao carregar dados da Página 3");
       setData([]);
     } finally {
