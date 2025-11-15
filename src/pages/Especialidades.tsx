@@ -35,19 +35,24 @@ const Especialidades = () => {
     setLoading(true);
     try {
       const { data: result, error } = await supabase.functions.invoke(
-        "fetch-especialidades-data"
+        "fetch-sheets-data"
       );
 
       if (error) throw error;
 
-      console.log("Dados recebidos:", result.data);
-      console.log("Total de registros:", result.data?.length);
-      if (result.data && result.data.length > 0) {
-        console.log("Exemplo de registro:", result.data[0]);
+      console.log("Dados recebidos:", result);
+      
+      // Usar os dados de especialidades da Página 3 que já vêm processados
+      const especialidadesData = result.especialidades || [];
+      
+      console.log("Dados de especialidades:", especialidadesData);
+      console.log("Total de registros:", especialidadesData.length);
+      if (especialidadesData.length > 0) {
+        console.log("Exemplo de registro:", especialidadesData[0]);
       }
       
-      setData(result.data || []);
-      toast.success(`Dados carregados: ${result.data?.length || 0} registros`);
+      setData(especialidadesData);
+      toast.success(`Dados carregados: ${especialidadesData.length} registros`);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Erro ao carregar dados");
