@@ -157,7 +157,6 @@ const Especialidades = () => {
     
     // Ensure graduacao exists in the structure
     if (!acc[key][grad]) {
-      console.warn(`Graduação '${grad}' não esperada para especialidade '${key}'. Criando entrada...`);
       acc[key][grad] = {} as Record<string, { tmft: number; efe: number }>;
     }
     
@@ -170,11 +169,14 @@ const Especialidades = () => {
     return acc;
   }, {} as Record<string, Record<string, Record<string, { tmft: number; efe: number }>>>);
 
-  // Get all unique OMs in the filtered data
-  const omsInData = Array.from(new Set(filteredData.map(item => item.om))).sort();
+  // Get all unique OMs in the filtered data (or all if no filter)
+  const omsInData = selectedOM 
+    ? [selectedOM]
+    : Array.from(new Set(filteredData.map(item => item.om).filter(Boolean))).sort();
   
   console.log("Spreadsheet data agrupada:", spreadsheetData);
   console.log("OMs nos dados:", omsInData);
+  console.log("Dados filtrados:", filteredData);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 p-6">
@@ -263,91 +265,99 @@ const Especialidades = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Object.entries(spreadsheetData).map(([especialidade, graduacoes]) => {
-                const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
-                
-                // Calculate totals for each OM in this especialidade
-                const especialidadeTotals: Record<string, { tmft: number; efe: number }> = {};
-                omsInData.forEach(om => {
-                  especialidadeTotals[om] = { tmft: 0, efe: 0 };
-                  graduacaoKeys.forEach(grad => {
-                    const omData = graduacoes[grad]?.[om];
-                    if (omData) {
-                      especialidadeTotals[om].tmft += omData.tmft;
-                      especialidadeTotals[om].efe += omData.efe;
-                    }
-                  });
-                });
-                
-                // Calculate grand total for this especialidade
-                let grandTotal = 0;
-                Object.values(especialidadeTotals).forEach(totals => {
-                  grandTotal += totals.tmft;
-                });
-                
-                const rows = graduacaoKeys.map((grad, idx) => {
-                  const omData = graduacoes[grad] || {};
+              {Object.entries(spreadsheetData).length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={100} className="text-center py-8 text-muted-foreground">
+                    Nenhum dado encontrado para os filtros selecionados
+                  </TableCell>
+                </TableRow>
+              ) : (
+                Object.entries(spreadsheetData).map(([especialidade, graduacoes]) => {
+                  const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
                   
-                  // Calculate total for this row
-                  let rowTotal = 0;
+                  // Calculate totals for each OM in this especialidade
+                  const especialidadeTotals: Record<string, { tmft: number; efe: number }> = {};
                   omsInData.forEach(om => {
-                    rowTotal += (omData[om]?.tmft || 0);
+                    especialidadeTotals[om] = { tmft: 0, efe: 0 };
+                    graduacaoKeys.forEach(grad => {
+                      const omData = graduacoes[grad]?.[om];
+                      if (omData) {
+                        especialidadeTotals[om].tmft += omData.tmft;
+                        especialidadeTotals[om].efe += omData.efe;
+                      }
+                    });
                   });
                   
-                  return (
-                    <TableRow key={`${especialidade}-${grad}`} className="hover:bg-accent/5">
-                      {idx === 0 && (
-                        <TableCell
-                          rowSpan={7}
-                          className="sticky left-0 bg-card z-10 font-medium border-r-2 border-border align-top"
-                        >
-                          {especialidade}
+                  // Calculate grand total for this especialidade
+                  let grandTotal = 0;
+                  Object.values(especialidadeTotals).forEach(totals => {
+                    grandTotal += totals.tmft;
+                  });
+                  
+                  const rows = graduacaoKeys.map((grad, idx) => {
+                    const omData = graduacoes[grad] || {};
+                    
+                    // Calculate total for this row
+                    let rowTotal = 0;
+                    omsInData.forEach(om => {
+                      rowTotal += (omData[om]?.tmft || 0);
+                    });
+                    
+                    return (
+                      <TableRow key={`${especialidade}-${grad}`} className="hover:bg-accent/5">
+                        {idx === 0 && (
+                          <TableCell
+                            rowSpan={7}
+                            className="sticky left-0 bg-card z-10 font-medium border-r-2 border-border align-top"
+                          >
+                            {especialidade}
+                          </TableCell>
+                        )}
+                        <TableCell className="sticky left-[200px] bg-card z-10 text-center border-r-2 border-border font-medium">
+                          {grad}
                         </TableCell>
-                      )}
-                      <TableCell className="sticky left-[200px] bg-card z-10 text-center border-r-2 border-border font-medium">
-                        {grad}
+                        {omsInData.map((om) => (
+                          <>
+                            <TableCell key={`${om}-tmft`} className="text-center">
+                              {omData[om]?.tmft || 0}
+                            </TableCell>
+                            <TableCell key={`${om}-efe`} className="text-center border-r border-border">
+                              {omData[om]?.efe || 0}
+                            </TableCell>
+                          </>
+                        ))}
+                        <TableCell className="text-center font-semibold bg-primary/5">
+                          {rowTotal}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  });
+                  
+                  // Add total row
+                  rows.push(
+                    <TableRow key={`${especialidade}-total`} className="bg-primary/10 font-bold border-t-2 border-primary">
+                      <TableCell className="sticky left-[200px] bg-primary/10 z-10 text-center border-r-2 border-border">
+                        TOTAL
                       </TableCell>
                       {omsInData.map((om) => (
                         <>
-                          <TableCell key={`${om}-tmft`} className="text-center">
-                            {omData[om]?.tmft || 0}
+                          <TableCell key={`${om}-tmft-total`} className="text-center">
+                            {especialidadeTotals[om]?.tmft || 0}
                           </TableCell>
-                          <TableCell key={`${om}-efe`} className="text-center border-r border-border">
-                            {omData[om]?.efe || 0}
+                          <TableCell key={`${om}-efe-total`} className="text-center border-r border-border">
+                            {especialidadeTotals[om]?.efe || 0}
                           </TableCell>
                         </>
                       ))}
-                      <TableCell className="text-center font-semibold bg-primary/5">
-                        {rowTotal}
+                      <TableCell className="text-center bg-primary/20">
+                        {grandTotal}
                       </TableCell>
                     </TableRow>
                   );
-                });
-                
-                // Add total row
-                rows.push(
-                  <TableRow key={`${especialidade}-total`} className="bg-primary/10 font-bold border-t-2 border-primary">
-                    <TableCell className="sticky left-[200px] bg-primary/10 z-10 text-center border-r-2 border-border">
-                      TOTAL
-                    </TableCell>
-                    {omsInData.map((om) => (
-                      <>
-                        <TableCell key={`${om}-tmft-total`} className="text-center">
-                          {especialidadeTotals[om]?.tmft || 0}
-                        </TableCell>
-                        <TableCell key={`${om}-efe-total`} className="text-center border-r border-border">
-                          {especialidadeTotals[om]?.efe || 0}
-                        </TableCell>
-                      </>
-                    ))}
-                    <TableCell className="text-center bg-primary/20">
-                      {grandTotal}
-                    </TableCell>
-                  </TableRow>
-                );
-                
-                return rows;
-              })}
+                  
+                  return rows;
+                })
+              )}
             </TableBody>
           </Table>
         </div>
