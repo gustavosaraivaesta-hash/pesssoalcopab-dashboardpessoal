@@ -2,3 +2,6 @@ project_id = "dwtqshfkewaagjvnbaeo"
 
 [functions.fetch-sheets-data]
 verify_jwt = false
+
+[functions.fetch-especialidades-data]
+verify_jwt = false
