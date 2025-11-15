@@ -61,20 +61,51 @@ serve(async (req) => {
     const jsonString3 = text3.substring(47).slice(0, -2);
     const sheet3Data = JSON.parse(jsonString3);
     
-    // Build especialidade mapping from Page 3
+    // Build especialidade mapping from Page 3 AND extract direct especialidades data
     const especialidadeMap: { [key: string]: string } = {};
-    if (sheet3Data.table.rows && sheet3Data.table.rows.length > 0) {
+    const especialidadesData: any[] = [];
+    
+    if (sheet3Data.table.rows && sheet3Data.table.rows.length > 1) {
       console.log('Processing especialidades from Page 3...');
-      for (const row of sheet3Data.table.rows) {
-        const cells = row.c || [];
-        const graduacao = cells[0]?.v || '';
-        const especialidade = cells[1]?.v || '';
-        if (graduacao && especialidade) {
+      
+      // Skip header row (index 0), process data rows
+      for (let i = 1; i < sheet3Data.table.rows.length; i++) {
+        const cells = sheet3Data.table.rows[i].c || [];
+        
+        const especialidade = cells[0]?.v || '';
+        const graduacao = cells[1]?.v || '';
+        const om = cells[8]?.v || '';
+        
+        if (!especialidade || !graduacao) continue;
+        
+        // Build mapping for Page 1 data
+        if (!especialidadeMap[graduacao]) {
           especialidadeMap[graduacao] = especialidade;
         }
+        
+        // Extract Page 3 direct data
+        const tmft_sum = Number(cells[2]?.v || 0);
+        const tmft_ca = Number(cells[3]?.v || 0);
+        const tmft_rm2 = Number(cells[4]?.v || 0);
+        const efe_sum = Number(cells[5]?.v || 0);
+        const efe_ca = Number(cells[6]?.v || 0);
+        const efe_rm2 = Number(cells[7]?.v || 0);
+        
+        especialidadesData.push({
+          especialidade,
+          graduacao,
+          om,
+          tmft_sum,
+          tmft_ca,
+          tmft_rm2,
+          efe_sum,
+          efe_ca,
+          efe_rm2,
+        });
       }
     }
     console.log('Especialidade mapping created:', Object.keys(especialidadeMap).length, 'entries');
+    console.log('Especialidades data extracted:', especialidadesData.length, 'records');
     
     console.log('Raw sheets data received');
     
@@ -156,7 +187,10 @@ serve(async (req) => {
     console.log(`Transformed ${transformedData.length} records`);
     
     return new Response(
-      JSON.stringify({ data: transformedData }),
+      JSON.stringify({ 
+        data: transformedData,
+        especialidades: especialidadesData 
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
