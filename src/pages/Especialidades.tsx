@@ -99,6 +99,12 @@ const Especialidades = () => {
     'DepSMRJ'
   ];
 
+  // Calcular contagem de registros por OM
+  const omCounts = uniqueOMs.reduce((acc, om) => {
+    acc[om] = data.filter(item => item.om === om).length;
+    return acc;
+  }, {} as Record<string, number>);
+
   // Group data by especialidade
   const groupedData = filteredData.reduce((acc, item) => {
     if (!acc[item.especialidade]) {
@@ -161,7 +167,7 @@ const Especialidades = () => {
               <option value="">Todas as OMs</option>
               {uniqueOMs.map((om) => (
                 <option key={om} value={om}>
-                  {om}
+                  {om} ({omCounts[om] || 0})
                 </option>
               ))}
             </select>
