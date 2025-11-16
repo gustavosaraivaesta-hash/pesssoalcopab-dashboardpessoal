@@ -39,7 +39,7 @@ const Login = () => {
             <Shield size={48} className="text-white" />
           </div>
           <CardTitle className="text-2xl text-white">Dashboard COpAb</CardTitle>
-          <CardDescription className="text-white/90">Diretoria de Abastecimento - Análise de Militares</CardDescription>
+          <CardDescription className="text-white/90">Centro de Operações do Abastecimento - Análise de Militares</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
