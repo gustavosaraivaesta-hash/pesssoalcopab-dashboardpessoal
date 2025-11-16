@@ -369,6 +369,21 @@ const Especialidades = () => {
     }
 
     const fileName = `especialidades_${selectedOMs.length > 0 ? selectedOMs.join('_') : 'todas-oms'}_${selectedEspecialidades.length > 0 ? selectedEspecialidades.join('_').substring(0, 30) : 'todas-esp'}_${new Date().toISOString().split('T')[0]}.pdf`;
+    
+    // Adicionar numeração de páginas em todas as páginas
+    const totalPages = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text(
+        `${i} - ${totalPages}`,
+        doc.internal.pageSize.width / 2,
+        doc.internal.pageSize.height - 10,
+        { align: 'center' }
+      );
+    }
+    
     doc.save(fileName);
     toast.success("PDF exportado com sucesso!");
   };
