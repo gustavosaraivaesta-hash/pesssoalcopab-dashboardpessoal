@@ -97,13 +97,19 @@ const Especialidades = () => {
     );
   }
 
-  // Filter data by selected OM
+  // Filter data by selected OM and valid OMs only
   const filteredData = selectedOM 
-    ? data.filter(item => item.om === selectedOM)
-    : data;
+    ? data.filter(item => item.om === selectedOM && validOMs.includes(item.om))
+    : data.filter(item => validOMs.includes(item.om));
 
-  // Extrair OMs únicas dinamicamente dos dados
-  const uniqueOMs = Array.from(new Set(data.map(item => item.om).filter(Boolean))).sort();
+  // Lista específica de OMs válidas
+  const validOMs = ['BAMRJ', 'CDAM', 'CDU-1DN', 'CDU-BAMRJ', 'CMM', 'COpAb', 'CSupAb', 
+                    'DepCMRJ', 'DepFMRJ', 'DepMSMRJ', 'DepSIMRJ', 'DepSMRJ'];
+  
+  // Extrair OMs únicas dinamicamente dos dados, mas filtrar apenas as válidas
+  const uniqueOMs = Array.from(new Set(
+    data.map(item => item.om).filter(om => validOMs.includes(om))
+  )).sort();
 
   // Calcular contagem de registros por OM
   const omCounts = uniqueOMs.reduce((acc, om) => {
