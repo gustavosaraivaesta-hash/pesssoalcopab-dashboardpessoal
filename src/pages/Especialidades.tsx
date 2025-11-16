@@ -259,10 +259,9 @@ const Especialidades = () => {
   const allOMs = [
     'BAMRJ',
     'CDAM',
-    'CDU-1DN',
+    'CDU-1ºDN',
     'CDU-BAMRJ',
     'CMM',
-    'COMRJ',
     'COpAb',
     'CSupAb',
     'DepCMRJ',
