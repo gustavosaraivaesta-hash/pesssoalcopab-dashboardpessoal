@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw } from "lucide-react";
+import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
@@ -163,7 +163,8 @@ const Index = () => {
                 onClick={() => navigate("/especialidades")}
                 className="border-white text-white hover:bg-white hover:text-blue-600"
               >
-                Ver Especialidades
+                <FileText size={18} className="mr-2" />
+                Ver Especialidades por OM
               </Button>
               <Button
                 variant="outline"
