@@ -64,7 +64,7 @@ serve(async (req) => {
       18: 'DepFMRJ',   // Cols 18-19
       20: 'CDU-BAMRJ', // Cols 20-21
       22: 'CDU-1DN',   // Cols 22-23
-      24: 'COMRJ',     // Cols 24-25
+      24: 'CDU-1ºDN',  // Cols 24-25
       26: 'COpAb',     // Cols 26-27
     };
     
