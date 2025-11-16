@@ -300,7 +300,7 @@ const Especialidades = () => {
             }
 
             if (!isFirstSection) {
-              currentY += 2;
+              currentY += 4;
             }
             isFirstSection = false;
 
@@ -322,7 +322,7 @@ const Especialidades = () => {
               }
             });
 
-            currentY = (doc as any).lastAutoTable.finalY + 1;
+            currentY = (doc as any).lastAutoTable.finalY + 2;
           }
         });
       });
@@ -378,7 +378,7 @@ const Especialidades = () => {
           }
 
           if (!isFirstSection) {
-            currentY += 2;
+            currentY += 4;
           }
           isFirstSection = false;
 
@@ -400,7 +400,7 @@ const Especialidades = () => {
             }
           });
 
-          currentY = (doc as any).lastAutoTable.finalY + 1;
+          currentY = (doc as any).lastAutoTable.finalY + 2;
         }
       });
     }
