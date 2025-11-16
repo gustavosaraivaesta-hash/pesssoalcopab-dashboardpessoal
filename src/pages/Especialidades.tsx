@@ -177,7 +177,6 @@ const Especialidades = () => {
     const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
     const pageHeight = doc.internal.pageSize.height;
     const marginBottom = 20;
-    let isFirstSection = true;
 
     // Adicionar brasão da República no topo centralizado
     const brasaoWidth = 32;
@@ -194,76 +193,178 @@ const Especialidades = () => {
     let currentY = 60; // Começar após o cabeçalho
 
     // Título do documento
-    doc.setFontSize(16);
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
     doc.text(pageTitle, 14, currentY);
-    currentY += 10;
+    currentY += 8;
 
-    Object.entries(spreadsheetData).forEach(([especialidade, graduacoes]) => {
-      // Preparar dados para esta especialidade
-      const tableData: any[] = [];
-      
-      graduacaoKeys.forEach(grad => {
-        const omData = graduacoes[grad] || {};
-        let rowTmft = 0;
-        let rowEfe = 0;
+    // Se múltiplas OMs selecionadas, separar por OM
+    if (selectedOMs.length > 1) {
+      selectedOMs.forEach((om, omIndex) => {
+        // Filtrar dados apenas para esta OM
+        const omData = filteredData.filter(item => item.om === om);
         
-        omsInData.forEach(om => {
-          rowTmft += (omData[om]?.tmft || 0);
-          rowEfe += (omData[om]?.efe || 0);
-        });
+        if (omData.length === 0) return;
 
-        if (rowTmft > 0 || rowEfe > 0) {
-          const diff = rowTmft - rowEfe;
-          tableData.push([
-            grad,
-            rowTmft,
-            rowEfe,
-            { content: diff.toString(), styles: { textColor: diff < 0 ? [220, 38, 38] : [0, 0, 0] } }
-          ]);
-        }
-      });
-
-      // Se houver dados para esta especialidade
-      if (tableData.length > 0) {
-        // Calcular espaço necessário: cabeçalho (15) + tabela (~7 por linha + 10 header)
-        const neededSpace = 20 + (tableData.length * 7) + 10;
-        
-        // Verificar se cabe na página atual
-        if (currentY + neededSpace > pageHeight - marginBottom) {
+        // Adicionar nova página se não for a primeira OM
+        if (omIndex > 0) {
           doc.addPage();
           currentY = 15;
         }
 
-        // Adicionar espaçamento entre seções (exceto a primeira)
-        if (!isFirstSection) {
-          currentY += 8;
-        }
-        isFirstSection = false;
-
-        // Cabeçalho da seção
-        doc.setFontSize(12);
+        // Título da OM
+        doc.setFontSize(13);
         doc.setTextColor(59, 130, 246);
-        doc.text(`${especialidade}`, 14, currentY);
+        doc.text(`${om}`, 14, currentY);
         doc.setTextColor(0, 0, 0);
-        currentY += 2;
+        currentY += 8;
 
-        // Tabela de dados
-        autoTable(doc, {
-          head: [['Grad', 'TMFT', 'EFE', 'DIF']],
-          body: tableData,
-          startY: currentY,
-          styles: { fontSize: 8, cellPadding: 2 },
-          headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
-          margin: { left: 14 },
-          didDrawPage: function(data) {
-            currentY = data.cursor?.y || currentY;
+        // Agrupar dados por especialidade para esta OM
+        const omSpreadsheetData = omData.reduce((acc, item) => {
+          const key = item.especialidade;
+          if (!acc[key]) {
+            acc[key] = {
+              SO: {} as Record<string, { tmft: number; efe: number }>,
+              '1SG': {} as Record<string, { tmft: number; efe: number }>,
+              '2SG': {} as Record<string, { tmft: number; efe: number }>,
+              '3SG': {} as Record<string, { tmft: number; efe: number }>,
+              'CB': {} as Record<string, { tmft: number; efe: number }>,
+              'MN': {} as Record<string, { tmft: number; efe: number }>,
+            };
+          }
+          
+          const grad = item.graduacao;
+          if (!acc[key][grad][item.om]) {
+            acc[key][grad][item.om] = { tmft: 0, efe: 0 };
+          }
+          acc[key][grad][item.om].tmft += item.tmft_sum;
+          acc[key][grad][item.om].efe += item.efe_sum;
+          
+          return acc;
+        }, {} as Record<string, Record<string, Record<string, { tmft: number; efe: number }>>>);
+
+        let isFirstSection = true;
+
+        Object.entries(omSpreadsheetData).forEach(([especialidade, graduacoes]) => {
+          const tableData: any[] = [];
+          
+          graduacaoKeys.forEach(grad => {
+            const omGradData = graduacoes[grad] || {};
+            let rowTmft = 0;
+            let rowEfe = 0;
+            
+            rowTmft += (omGradData[om]?.tmft || 0);
+            rowEfe += (omGradData[om]?.efe || 0);
+
+            if (rowTmft > 0 || rowEfe > 0) {
+              const diff = rowTmft - rowEfe;
+              tableData.push([
+                grad,
+                rowTmft,
+                rowEfe,
+                { content: diff.toString(), styles: { textColor: diff < 0 ? [220, 38, 38] : [0, 0, 0] } }
+              ]);
+            }
+          });
+
+          if (tableData.length > 0) {
+            const neededSpace = 20 + (tableData.length * 7) + 10;
+            
+            if (currentY + neededSpace > pageHeight - marginBottom) {
+              doc.addPage();
+              currentY = 15;
+            }
+
+            if (!isFirstSection) {
+              currentY += 8;
+            }
+            isFirstSection = false;
+
+            doc.setFontSize(11);
+            doc.setTextColor(59, 130, 246);
+            doc.text(`${especialidade}`, 14, currentY);
+            doc.setTextColor(0, 0, 0);
+            currentY += 2;
+
+            autoTable(doc, {
+              head: [['Grad', 'TMFT', 'EFE', 'DIF']],
+              body: tableData,
+              startY: currentY,
+              styles: { fontSize: 8, cellPadding: 2 },
+              headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
+              margin: { left: 14 },
+              didDrawPage: function(data) {
+                currentY = data.cursor?.y || currentY;
+              }
+            });
+
+            currentY = (doc as any).lastAutoTable.finalY + 2;
+          }
+        });
+      });
+    } else {
+      // Lógica original quando apenas uma OM ou todas
+      let isFirstSection = true;
+
+      Object.entries(spreadsheetData).forEach(([especialidade, graduacoes]) => {
+        const tableData: any[] = [];
+        
+        graduacaoKeys.forEach(grad => {
+          const omData = graduacoes[grad] || {};
+          let rowTmft = 0;
+          let rowEfe = 0;
+          
+          omsInData.forEach(om => {
+            rowTmft += (omData[om]?.tmft || 0);
+            rowEfe += (omData[om]?.efe || 0);
+          });
+
+          if (rowTmft > 0 || rowEfe > 0) {
+            const diff = rowTmft - rowEfe;
+            tableData.push([
+              grad,
+              rowTmft,
+              rowEfe,
+              { content: diff.toString(), styles: { textColor: diff < 0 ? [220, 38, 38] : [0, 0, 0] } }
+            ]);
           }
         });
 
-        // Atualizar posição Y após a tabela
-        currentY = (doc as any).lastAutoTable.finalY + 2;
-      }
-    });
+        if (tableData.length > 0) {
+          const neededSpace = 20 + (tableData.length * 7) + 10;
+          
+          if (currentY + neededSpace > pageHeight - marginBottom) {
+            doc.addPage();
+            currentY = 15;
+          }
+
+          if (!isFirstSection) {
+            currentY += 8;
+          }
+          isFirstSection = false;
+
+          doc.setFontSize(11);
+          doc.setTextColor(59, 130, 246);
+          doc.text(`${especialidade}`, 14, currentY);
+          doc.setTextColor(0, 0, 0);
+          currentY += 2;
+
+          autoTable(doc, {
+            head: [['Grad', 'TMFT', 'EFE', 'DIF']],
+            body: tableData,
+            startY: currentY,
+            styles: { fontSize: 8, cellPadding: 2 },
+            headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
+            margin: { left: 14 },
+            didDrawPage: function(data) {
+              currentY = data.cursor?.y || currentY;
+            }
+          });
+
+          currentY = (doc as any).lastAutoTable.finalY + 2;
+        }
+      });
+    }
 
     const fileName = `especialidades_${selectedOMs.length > 0 ? selectedOMs.join('_') : 'todas-oms'}_${selectedGraduacoes.length > 0 ? selectedGraduacoes.join('_') : 'todas-grads'}_${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(fileName);
