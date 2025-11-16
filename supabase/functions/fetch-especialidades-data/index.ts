@@ -55,11 +55,21 @@ serve(async (req) => {
     const omName = rows[0]?.c?.[0]?.v || 'COpAb';
     console.log(`OM detectada: ${omName}`);
     
-    // Log first 10 rows to debug structure
-    console.log('=== Primeiras 10 linhas ===');
+    // Log first 10 rows to debug structure with column details
+    console.log('=== Primeiras 10 linhas (com detalhes das colunas) ===');
     for (let i = 0; i < Math.min(10, rows.length); i++) {
       const cells = rows[i].c || [];
-      console.log(`Linha ${i}:`, cells.map((c: any) => c?.v).join(' | '));
+      console.log(`Linha ${i}:`);
+      console.log(`  Col 0 (Especialidade): ${cells[0]?.v}`);
+      console.log(`  Col 1 (Graduação): ${cells[1]?.v}`);
+      console.log(`  Col 2 (TMFT sum?): ${cells[2]?.v}`);
+      console.log(`  Col 3 (TMFT ca?): ${cells[3]?.v}`);
+      console.log(`  Col 4 (TMFT rm2?): ${cells[4]?.v}`);
+      console.log(`  Col 5 (EFE sum?): ${cells[5]?.v}`);
+      console.log(`  Col 6 (EFE ca?): ${cells[6]?.v}`);
+      console.log(`  Col 7 (EFE rm2?): ${cells[7]?.v}`);
+      console.log(`  Col 8 (OM?): ${cells[8]?.v}`);
+      console.log(`  Total colunas: ${cells.length}`);
     }
     
     let currentEspecialidade = '';
