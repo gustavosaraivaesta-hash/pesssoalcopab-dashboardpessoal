@@ -169,7 +169,15 @@ const Especialidades = () => {
       : "Especialidades - Todas as OMs";
     
     const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
-    let isFirstPage = true;
+    let currentY = 15;
+    const pageHeight = doc.internal.pageSize.height;
+    const marginBottom = 20;
+    let isFirstSection = true;
+
+    // Título do documento apenas na primeira página
+    doc.setFontSize(16);
+    doc.text(pageTitle, 14, currentY);
+    currentY += 10;
 
     Object.entries(spreadsheetData).forEach(([especialidade, graduacoes]) => {
       // Preparar dados para esta especialidade
@@ -195,32 +203,45 @@ const Especialidades = () => {
         }
       });
 
-      // Se houver dados para esta especialidade, adicionar ao PDF
+      // Se houver dados para esta especialidade
       if (tableData.length > 0) {
-        // Adicionar nova página se não for a primeira especialidade
-        if (!isFirstPage) {
+        // Calcular espaço necessário: cabeçalho (15) + tabela (~7 por linha + 10 header)
+        const neededSpace = 20 + (tableData.length * 7) + 10;
+        
+        // Verificar se cabe na página atual
+        if (currentY + neededSpace > pageHeight - marginBottom) {
           doc.addPage();
+          currentY = 15;
         }
-        isFirstPage = false;
 
-        // Cabeçalho da página
-        doc.setFontSize(16);
-        doc.text(pageTitle, 14, 15);
-        doc.setFontSize(14);
+        // Adicionar espaçamento entre seções (exceto a primeira)
+        if (!isFirstSection) {
+          currentY += 8;
+        }
+        isFirstSection = false;
+
+        // Cabeçalho da seção
+        doc.setFontSize(12);
         doc.setTextColor(59, 130, 246);
-        doc.text(`Especialidade: ${especialidade}`, 14, 25);
+        doc.text(`${especialidade}`, 14, currentY);
         doc.setTextColor(0, 0, 0);
-        doc.setFontSize(10);
-        doc.text(`Total de registros: ${tableData.length}`, 14, 32);
+        currentY += 2;
 
         // Tabela de dados
         autoTable(doc, {
-          head: [['Graduação', 'TMFT', 'EFE', 'TOTAL']],
+          head: [['Grad', 'TMFT', 'EFE', 'TOTAL']],
           body: tableData,
-          startY: 38,
-          styles: { fontSize: 8 },
-          headStyles: { fillColor: [59, 130, 246] }
+          startY: currentY,
+          styles: { fontSize: 8, cellPadding: 2 },
+          headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
+          margin: { left: 14 },
+          didDrawPage: function(data) {
+            currentY = data.cursor?.y || currentY;
+          }
         });
+
+        // Atualizar posição Y após a tabela
+        currentY = (doc as any).lastAutoTable.finalY + 2;
       }
     });
 
