@@ -309,10 +309,6 @@ const Especialidades = () => {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Especialidades por OM
             </h1>
-            <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full">
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium text-primary">Auto-refresh 5s</span>
-            </div>
           </div>
           <div className="flex items-center gap-2">
             <DropdownMenu>
