@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import marinhaHeader from "@/assets/marinha-header.png";
+import brasaoRepublica from "@/assets/brasao-republica.png";
 
 // Função para detectar mudanças nos dados
 const detectEspecialidadesChanges = (
@@ -168,13 +168,20 @@ const Especialidades = () => {
     const marginBottom = 20;
     let isFirstSection = true;
 
-    // Adicionar imagem do cabeçalho no topo (menor e centralizada)
-    const imgWidth = 120;
-    const imgHeight = 24;
-    const imgX = (doc.internal.pageSize.width - imgWidth) / 2;
-    doc.addImage(marinhaHeader, 'PNG', imgX, 10, imgWidth, imgHeight);
+    // Adicionar brasão da República no topo centralizado
+    const brasaoWidth = 25;
+    const brasaoHeight = 25;
+    const brasaoX = (doc.internal.pageSize.width - brasaoWidth) / 2;
+    doc.addImage(brasaoRepublica, 'PNG', brasaoX, 10, brasaoWidth, brasaoHeight);
     
-    let currentY = 40; // Começar após a imagem
+    // Adicionar textos centralizados abaixo do brasão
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('MARINHA DO BRASIL', doc.internal.pageSize.width / 2, 40, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', doc.internal.pageSize.width / 2, 46, { align: 'center' });
+    
+    let currentY = 55; // Começar após o cabeçalho
 
     // Título do documento
     doc.setFontSize(16);
