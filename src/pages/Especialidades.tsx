@@ -187,27 +187,35 @@ const Especialidades = () => {
     );
   }
 
-  // Lista específica de OMs válidas - DEVE VIR ANTES de filteredData
-  const validOMs = ['BAMRJ', 'CDAM', 'CDU-1DN', 'CDU-BAMRJ', 'CMM', 'COpAb', 'CSupAb', 
-                    'DepCMRJ', 'DepFMRJ', 'DepMSMRJ', 'DepSIMRJ', 'DepSMRJ'];
+  // Lista fixa de todas as OMs esperadas
+  const allOMs = [
+    'BAMRJ',
+    'CDAM',
+    'CDU-1DN',
+    'CDU-BAMRJ',
+    'CMM',
+    'COMRJ',
+    'COpAb',
+    'CSupAb',
+    'DepCMRJ',
+    'DepFMRJ',
+    'DepMSMRJ',
+    'DepSIMRJ',
+    'DepSMRJ'
+  ].sort();
 
   // Filter data by selected OM
   const filteredData = selectedOM 
     ? data.filter(item => item.om === selectedOM)
     : data;
-  
-  // Extrair OMs únicas dinamicamente dos dados
-  const uniqueOMs = Array.from(new Set(
-    data.map(item => item.om)
-  )).sort();
 
   // Calcular contagem de registros por OM
-  const omCounts = uniqueOMs.reduce((acc, om) => {
+  const omCounts = allOMs.reduce((acc, om) => {
     acc[om] = data.filter(item => item.om === om).length;
     return acc;
   }, {} as Record<string, number>);
 
-  console.log("📊 OMs únicas encontradas:", uniqueOMs);
+  console.log("📊 OMs definidas:", allOMs);
   console.log("📊 Contagem por OM:", omCounts);
   console.log("📊 Total de registros filtrados:", filteredData.length);
   console.log("📊 OM selecionada:", selectedOM);
@@ -342,7 +350,7 @@ const Especialidades = () => {
               className="w-full px-4 py-2 rounded-md border border-border bg-background text-foreground font-medium"
             >
               <option value="">📊 Todas as OMs - {data.length} registros</option>
-              {uniqueOMs.map((om) => (
+              {allOMs.map((om) => (
                 <option key={om} value={om}>
                   {om} - {omCounts[om] || 0} registros
                 </option>
