@@ -41,15 +41,15 @@ serve(async (req) => {
     const rows = sheetsData.table.rows;
     console.log('Total rows:', rows.length);
     
-    // Log da primeira linha para debug do cabeçalho
+    // Log COMPLETO da primeira linha para debug
     if (rows.length > 0) {
       const firstRow = rows[0].c || [];
-      console.log('🔍 DEBUG - Primeira linha (cabeçalho):');
-      for (let i = 0; i < Math.min(30, firstRow.length); i++) {
+      console.log('🔍 DEBUG - Primeira linha COMPLETA (todas as colunas):');
+      console.log(`Total de colunas: ${firstRow.length}`);
+      for (let i = 0; i < firstRow.length; i++) {
         const cell = firstRow[i];
-        if (cell && cell.v) {
-          console.log(`  Col ${i}: "${cell.v}"`);
-        }
+        const value = cell ? String(cell.v || '').substring(0, 30) : 'NULL';
+        console.log(`  Col ${i}: "${value}"`);
       }
     }
     
