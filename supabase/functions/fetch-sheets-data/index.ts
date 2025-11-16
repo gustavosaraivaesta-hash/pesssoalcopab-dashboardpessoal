@@ -129,9 +129,9 @@ serve(async (req) => {
     console.log('Processing matrix data with', rows.length - 1, 'rows');
     
     // Define OMs and their column positions (TMFT, EXI, DIF)
+    // IMPORTANTE: Não existe COMRJ na planilha
     const oms = [
       { name: 'COpAb', startCol: 7 },
-      { name: 'CDU-1ºDN', startCol: 4 },
       { name: 'BAMRJ', startCol: 10 },
       { name: 'CMM', startCol: 13 },
       { name: 'DepCMRJ', startCol: 16 },
@@ -142,7 +142,7 @@ serve(async (req) => {
       { name: 'DepMSMRJ', startCol: 31 },
       { name: 'DepFMRJ', startCol: 34 },
       { name: 'CDU-BAMRJ', startCol: 37 },
-      { name: 'CDU-1DN', startCol: 40 },
+      { name: 'CDU-1ºDN', startCol: 40 },
     ];
     
     console.log(`Processing ${oms.length} OMs:`, oms.map(om => om.name).join(', '));
