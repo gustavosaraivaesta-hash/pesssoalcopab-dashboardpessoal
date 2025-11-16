@@ -75,11 +75,11 @@ const Index = () => {
     // Initial fetch
     fetchData();
 
-    // Set up auto-refresh every 30 seconds
+    // Auto-refresh a cada 5 segundos
     const interval = setInterval(() => {
       console.log('Auto-refreshing data...');
       fetchData();
-    }, 30000);
+    }, 5000); // 5 segundos
 
     return () => clearInterval(interval);
   }, [navigate]);
@@ -155,6 +155,10 @@ const Index = () => {
               <div>
                 <h1 className="text-3xl font-bold">Dashboard COpAb</h1>
                 <p className="text-sm opacity-90">CENTRO DE OPERAÇÕES DO ABASTECIMENTO</p>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1 bg-white/10 border border-white/20 rounded-full">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                <span className="text-xs font-medium">Auto-refresh 5s</span>
               </div>
             </div>
             <div className="flex gap-2">

@@ -94,6 +94,11 @@ serve(async (req) => {
           const tmft = Number(cells[col]?.v || 0);
           const efe = Number(cells[col + 1]?.v || 0);
           
+          // Log para debug quando há valores EFE
+          if (efe > 0) {
+            console.log(`✅ EFE encontrado: ${currentEspecialidade} | ${col1} | ${omName} | TMFT=${tmft} | EFE=${efe}`);
+          }
+          
           // Apenas adicionar registros com valores (não incluir zeros)
           if (tmft > 0 || efe > 0) {
             transformedData.push({
