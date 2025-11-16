@@ -119,14 +119,16 @@ serve(async (req) => {
             console.log(`✅ EFE > 0: ${currentEspecialidade} | ${col1} | ${omName} | TMFT=${tmft} | EFE=${efe}`);
           }
           
-          // Adicionar TODOS os registros (incluindo zeros) para análise completa
-          transformedData.push({
-            especialidade: currentEspecialidade,
-            graduacao: col1,
-            om: omName,
-            tmft_sum: tmft,
-            efe_sum: efe,
-          });
+          // Adicionar apenas registros com valores (não incluir zeros)
+          if (tmft > 0 || efe > 0) {
+            transformedData.push({
+              especialidade: currentEspecialidade,
+              graduacao: col1,
+              om: omName,
+              tmft_sum: tmft,
+              efe_sum: efe,
+            });
+          }
         }
       }
     }
