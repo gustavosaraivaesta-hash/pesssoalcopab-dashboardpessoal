@@ -41,9 +41,7 @@ serve(async (req) => {
     const rows = sheetsData.table.rows;
     console.log('Total rows:', rows.length);
     
-    const transformedData: any[] = [];
-    
-    if (rows.length < 3) {
+    if (rows.length < 4) {
       console.log('Not enough data in Page 3');
       return new Response(
         JSON.stringify({ data: [] }),
@@ -51,70 +49,64 @@ serve(async (req) => {
       );
     }
     
-    // Extract OM name from first row
-    const omName = rows[0]?.c?.[0]?.v || 'COpAb';
-    console.log(`OM detectada: ${omName}`);
+    // Row 0: OM names (starting from col 2, every 2 columns)
+    // Row 1: TMFT, EFE, TMFT, EFE, etc.
+    // Row 2: ∑, ∑, ∑, ∑, etc.
+    // Row 3+: Data rows
     
-    // Log first 10 rows to debug structure with column details
-    console.log('=== Primeiras 10 linhas (com detalhes das colunas) ===');
-    for (let i = 0; i < Math.min(10, rows.length); i++) {
-      const cells = rows[i].c || [];
-      console.log(`Linha ${i}:`);
-      console.log(`  Col 0 (Especialidade): ${cells[0]?.v}`);
-      console.log(`  Col 1 (Graduação): ${cells[1]?.v}`);
-      console.log(`  Col 2 (TMFT sum?): ${cells[2]?.v}`);
-      console.log(`  Col 3 (TMFT ca?): ${cells[3]?.v}`);
-      console.log(`  Col 4 (TMFT rm2?): ${cells[4]?.v}`);
-      console.log(`  Col 5 (EFE sum?): ${cells[5]?.v}`);
-      console.log(`  Col 6 (EFE ca?): ${cells[6]?.v}`);
-      console.log(`  Col 7 (EFE rm2?): ${cells[7]?.v}`);
-      console.log(`  Col 8 (OM?): ${cells[8]?.v}`);
-      console.log(`  Total colunas: ${cells.length}`);
+    const headerRow = rows[0].c || [];
+    const omMap: { [key: number]: string } = {};
+    
+    // Extract OM names from header row starting at column 2
+    for (let col = 2; col < headerRow.length; col += 2) {
+      const omName = String(headerRow[col]?.v || '').trim();
+      if (omName) {
+        omMap[col] = omName;
+        console.log(`Coluna ${col}: OM = ${omName}`);
+      }
     }
     
-    let currentEspecialidade = '';
-    const graduacoes = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
+    console.log('OMs detectadas:', Object.values(omMap).join(', '));
     
-    // Start from row 0 - each row can have especialidade OR be continuation
-    for (let i = 0; i < rows.length; i++) {
+    const transformedData: any[] = [];
+    const graduacoes = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
+    let currentEspecialidade = '';
+    
+    // Process data rows (start from row 3 to skip headers)
+    for (let i = 3; i < rows.length; i++) {
       const cells = rows[i].c || [];
-      const col0 = String(cells[0]?.v || '').trim(); // Especialidade or empty
-      const col1 = String(cells[1]?.v || '').trim(); // Graduação
+      const col0 = String(cells[0]?.v || '').trim();
+      const col1 = String(cells[1]?.v || '').trim();
       
-      // If col0 has text (not empty and not a graduação), it's a new especialidade
+      // If col0 has text, it's a new especialidade
       if (col0 && col0.length > 2 && !graduacoes.includes(col0)) {
         currentEspecialidade = col0;
-        console.log(`Nova especialidade: ${currentEspecialidade}`);
       }
       
       // If col1 is a valid graduação, process the row
       if (col1 && graduacoes.includes(col1)) {
-        // Extract specific columns instead of summing all
-        const tmft_sum = Number(cells[2]?.v || 0);
-        const tmft_ca = Number(cells[3]?.v || 0);
-        const tmft_rm2 = Number(cells[4]?.v || 0);
-        const efe_sum = Number(cells[5]?.v || 0);
-        const efe_ca = Number(cells[6]?.v || 0);
-        const efe_rm2 = Number(cells[7]?.v || 0);
-        const om = String(cells[8]?.v || omName).trim();
-        
-        console.log(`Processando ${col1} de ${currentEspecialidade}: TMFT=${tmft_sum}, EFE=${efe_sum}, OM=${om}`);
-        
-        transformedData.push({
-          especialidade: currentEspecialidade,
-          graduacao: col1,
-          om: om,
-          tmft_sum: tmft_sum,
-          tmft_ca: tmft_ca,
-          tmft_rm2: tmft_rm2,
-          efe_sum: efe_sum,
-          efe_ca: efe_ca,
-          efe_rm2: efe_rm2,
-        });
+        // For each OM, create a record
+        for (const [colIndex, omName] of Object.entries(omMap)) {
+          const col = Number(colIndex);
+          const tmft = Number(cells[col]?.v || 0);
+          const efe = Number(cells[col + 1]?.v || 0);
+          
+          // Only add if there's data
+          if (tmft > 0 || efe > 0) {
+            transformedData.push({
+              especialidade: currentEspecialidade,
+              graduacao: col1,
+              om: omName,
+              tmft_sum: tmft,
+              efe_sum: efe,
+            });
+          }
+        }
       }
     }
     
     console.log(`Transformed ${transformedData.length} records from Page 3`);
+    console.log('Sample records:', transformedData.slice(0, 5));
     
     return new Response(
       JSON.stringify({ data: transformedData }),
