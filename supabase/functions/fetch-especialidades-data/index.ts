@@ -130,6 +130,11 @@ serve(async (req) => {
             console.log(`✅ EFE > 0: ${currentEspecialidade} | ${col1} | ${omName} | TMFT=${tmft} | EFE=${efe}`);
           }
           
+          // Log específico para CDU-1ºDN
+          if (omName === 'CDU-1ºDN' || omName.includes('CDU') || omName.includes('1º')) {
+            console.log(`🎯 CDU-1ºDN DEBUG: ${currentEspecialidade} | ${col1} | Col ${col}=${tmft}, Col ${col+1}=${efe} | omName="${omName}"`);
+          }
+          
           // Adicionar apenas registros com valores (não incluir zeros)
           if (tmft > 0 || efe > 0) {
             transformedData.push({
@@ -139,6 +144,11 @@ serve(async (req) => {
               tmft_sum: tmft,
               efe_sum: efe,
             });
+            
+            // Log quando adiciona CDU-1ºDN
+            if (omName === 'CDU-1ºDN' || omName.includes('CDU-1')) {
+              console.log(`✅ ADICIONADO CDU-1ºDN: ${currentEspecialidade} | ${col1} | TMFT=${tmft} | EFE=${efe}`);
+            }
           }
         }
       }
@@ -172,6 +182,11 @@ serve(async (req) => {
     console.log('📈 Registros por OM:', omCounts);
     console.log('💾 Dados com valores por OM:', omWithData);
     console.log('🏢 OMs únicas:', Object.keys(omCounts).sort());
+    
+    // Log ESPECÍFICO de CDU-1ºDN
+    const cduRecords = transformedData.filter(r => r.om.includes('CDU-1') || r.om === 'CDU-1ºDN');
+    console.log(`🎯 REGISTROS CDU-1ºDN ENCONTRADOS: ${cduRecords.length}`);
+    console.log('🎯 Detalhes CDU-1ºDN:', JSON.stringify(cduRecords, null, 2));
     
     // Mostrar amostra de dados
     const recordsWithEfe = transformedData.filter(r => r.efe_sum > 0);
