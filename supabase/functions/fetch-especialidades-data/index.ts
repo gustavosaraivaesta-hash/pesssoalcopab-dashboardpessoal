@@ -41,83 +41,60 @@ serve(async (req) => {
     const rows = sheetsData.table.rows;
     console.log('Total rows:', rows.length);
     
-    if (rows.length < 4) {
-      console.log('Not enough data in Page 3');
+    if (rows.length < 1) {
+      console.log('No data in Page 3');
       return new Response(
         JSON.stringify({ data: [] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
     
-    // Row 0: OM names (starting from col 2, every 2 columns)
-    // Row 1: TMFT, EFE, TMFT, EFE, etc.
-    // Row 2: ∑, ∑, ∑, ∑, etc.
-    // Row 3+: Data rows
+    // Mapeamento fixo das colunas para OMs (baseado na estrutura da planilha)
+    // Col 0: Especialidade, Col 1: Graduação
+    // A partir da Col 2: pares (TMFT, EFE) para cada OM
+    const omMap: { [key: number]: string } = {
+      2: 'BAMRJ',      // Cols 2-3
+      4: 'CMM',        // Cols 4-5
+      6: 'DepCMRJ',    // Cols 6-7
+      8: 'CDAM',       // Cols 8-9
+      10: 'DepSMRJ',   // Cols 10-11
+      12: 'CSupAb',    // Cols 12-13
+      14: 'DepSIMRJ',  // Cols 14-15
+      16: 'DepMSMRJ',  // Cols 16-17
+      18: 'DepFMRJ',   // Cols 18-19
+      20: 'CDU-BAMRJ', // Cols 20-21
+      22: 'CDU-1DN',   // Cols 22-23
+      24: 'COMRJ',     // Cols 24-25
+      26: 'COpAb',     // Cols 26-27
+    };
     
-    const headerRow = rows[0].c || [];
-    console.log('Total de colunas no header:', headerRow.length);
-    
-    // Log first 30 columns of header to see structure
-    console.log('=== Primeiras 30 colunas do header ===');
-    for (let i = 0; i < Math.min(30, headerRow.length); i++) {
-      const value = headerRow[i]?.v;
-      if (value !== null && value !== undefined) {
-        console.log(`Col ${i}: "${value}"`);
-      }
-    }
-    
-    const omMap: { [key: number]: string } = {};
-    let lastOM = '';
-    
-    // Extract OM names from header row
-    // OMs appear at col 2, 4, 6, 8, etc. (every 2 columns starting from 2)
-    for (let col = 2; col < headerRow.length; col++) {
-      const cellValue = String(headerRow[col]?.v || '').trim();
-      
-      // If we find a non-empty value, it's an OM name
-      if (cellValue && cellValue.length > 0) {
-        // Check if it's not a TMFT/EFE indicator
-        if (cellValue !== 'TMFT' && cellValue !== 'EFE' && cellValue !== '∑') {
-          lastOM = cellValue;
-          omMap[col] = cellValue;
-          console.log(`Coluna ${col}: OM = "${cellValue}"`);
-        }
-      } else if (lastOM && col % 2 === 0) {
-        // If cell is empty but we're at an even column and have a lastOM, 
-        // it's likely a merged cell continuing the previous OM
-        omMap[col] = lastOM;
-        console.log(`Coluna ${col}: OM (continuação) = "${lastOM}"`);
-      }
-    }
-    
-    console.log('Total de OMs detectadas:', Object.keys(omMap).length);
-    console.log('OMs únicas:', Array.from(new Set(Object.values(omMap))));
+    console.log('Mapeamento fixo de OMs:', omMap);
     
     const transformedData: any[] = [];
     const graduacoes = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
     let currentEspecialidade = '';
     
-    // Process data rows (start from row 3 to skip headers)
-    for (let i = 3; i < rows.length; i++) {
+    // Process all data rows (start from row 0)
+    for (let i = 0; i < rows.length; i++) {
       const cells = rows[i].c || [];
       const col0 = String(cells[0]?.v || '').trim();
       const col1 = String(cells[1]?.v || '').trim();
       
-      // If col0 has text, it's a new especialidade
+      // If col0 has text and is not a graduação, it's a new especialidade
       if (col0 && col0.length > 2 && !graduacoes.includes(col0)) {
         currentEspecialidade = col0;
-        console.log(`Nova especialidade detectada: ${currentEspecialidade}`);
+        console.log(`Nova especialidade: ${currentEspecialidade}`);
       }
       
       // If col1 is a valid graduação, process the row
       if (col1 && graduacoes.includes(col1)) {
-        // For each OM column, create a record
+        // For each OM, create a record
         for (const [colIndex, omName] of Object.entries(omMap)) {
           const col = Number(colIndex);
           const tmft = Number(cells[col]?.v || 0);
           const efe = Number(cells[col + 1]?.v || 0);
           
-          // Add record regardless of whether there's data or not
+          // Add all records (even with zero values) for complete OM coverage
           transformedData.push({
             especialidade: currentEspecialidade,
             graduacao: col1,
@@ -138,7 +115,9 @@ serve(async (req) => {
     });
     
     console.log('Registros por OM:', omCounts);
-    console.log('Primeiros 10 registros:', transformedData.slice(0, 10));
+    console.log('OMs únicas:', Object.keys(omCounts).sort());
+    console.log('Primeiros 5 registros:', transformedData.slice(0, 5));
+    console.log('Últimos 5 registros:', transformedData.slice(-5));
     
     return new Response(
       JSON.stringify({ data: transformedData }),
