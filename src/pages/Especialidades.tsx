@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import marinhaHeader from "@/assets/marinha-header.png";
 
 // Função para detectar mudanças nos dados
 const detectEspecialidadesChanges = (
@@ -163,12 +164,19 @@ const Especialidades = () => {
       : "Especialidades - Todas as OMs";
     
     const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
-    let currentY = 15;
     const pageHeight = doc.internal.pageSize.height;
     const marginBottom = 20;
     let isFirstSection = true;
 
-    // Título do documento apenas na primeira página
+    // Adicionar imagem do cabeçalho no topo
+    const imgWidth = 180;
+    const imgHeight = 35;
+    const imgX = (doc.internal.pageSize.width - imgWidth) / 2;
+    doc.addImage(marinhaHeader, 'PNG', imgX, 10, imgWidth, imgHeight);
+    
+    let currentY = 50; // Começar após a imagem
+
+    // Título do documento
     doc.setFontSize(16);
     doc.text(pageTitle, 14, currentY);
     currentY += 10;
