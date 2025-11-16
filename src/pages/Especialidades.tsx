@@ -208,10 +208,9 @@ const Especialidades = () => {
         
         if (omData.length === 0) return;
 
-        // Adicionar nova página se não for a primeira OM
+        // Pular 4 linhas entre OMs (exceto a primeira)
         if (omIndex > 0) {
-          doc.addPage();
-          currentY = 15; // Começar mais no topo nas páginas subsequentes
+          currentY += 12; // ~4 linhas de espaçamento
         }
 
         // Título da OM
@@ -272,9 +271,17 @@ const Especialidades = () => {
           if (tableData.length > 0) {
             const neededSpace = 15 + (tableData.length * 7) + 8;
             
+            // Verificar se precisa adicionar nova página
             if (currentY + neededSpace > pageHeight - marginBottom) {
               doc.addPage();
               currentY = 10;
+              
+              // Repetir título da OM na nova página
+              doc.setFontSize(11);
+              doc.setTextColor(59, 130, 246);
+              doc.text(`${om} (continuação)`, 14, currentY);
+              doc.setTextColor(0, 0, 0);
+              currentY += 5;
             }
 
             if (!isFirstSection) {
