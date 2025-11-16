@@ -39,6 +39,8 @@ serve(async (req) => {
     console.log('Processing Page 3 data...');
     
     const rows = sheetsData.table.rows;
+    console.log('Total rows:', rows.length);
+    
     const transformedData: any[] = [];
     
     if (rows.length < 3) {
@@ -53,33 +55,52 @@ serve(async (req) => {
     const omName = rows[0]?.c?.[0]?.v || 'COpAb';
     console.log(`OM detectada: ${omName}`);
     
-    let currentEspecialidade = '';
-    
-    // Skip rows 0-1 (headers), process from row 2
-    for (let i = 2; i < rows.length; i++) {
+    // Log first 10 rows to debug structure
+    console.log('=== Primeiras 10 linhas ===');
+    for (let i = 0; i < Math.min(10, rows.length); i++) {
       const cells = rows[i].c || [];
-      const col0 = String(cells[0]?.v || '').trim();
-      const col1 = cells[1]?.v;
-      const col2 = cells[2]?.v;
+      console.log(`Linha ${i}:`, cells.map((c: any) => c?.v).join(' | '));
+    }
+    
+    let currentEspecialidade = '';
+    const graduacoes = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
+    
+    // Start from row 0 - each row can have especialidade OR be continuation
+    for (let i = 0; i < rows.length; i++) {
+      const cells = rows[i].c || [];
+      const col0 = String(cells[0]?.v || '').trim(); // Especialidade or empty
+      const col1 = String(cells[1]?.v || '').trim(); // Graduação
       
-      // Check if this is a graduação line
-      const graduacoes = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
+      // If col0 has text (not empty and not a graduação), it's a new especialidade
+      if (col0 && col0.length > 2 && !graduacoes.includes(col0)) {
+        currentEspecialidade = col0;
+        console.log(`Nova especialidade: ${currentEspecialidade}`);
+      }
       
-      if (graduacoes.includes(col0)) {
+      // If col1 is a valid graduação, process the row
+      if (col1 && graduacoes.includes(col1)) {
+        // Sum all numeric values from col2 onwards for TMFT
+        let tmftSum = 0;
+        for (let j = 2; j < cells.length; j++) {
+          const val = Number(cells[j]?.v || 0);
+          if (!isNaN(val)) {
+            tmftSum += val;
+          }
+        }
+        
+        console.log(`Processando ${col1} de ${currentEspecialidade}: TMFT soma = ${tmftSum}`);
+        
         transformedData.push({
           especialidade: currentEspecialidade,
-          graduacao: col0,
+          graduacao: col1,
           om: omName,
-          tmft_sum: Number(col1 || 0),
+          tmft_sum: tmftSum,
           tmft_ca: 0,
           tmft_rm2: 0,
-          efe_sum: Number(col2 || 0),
+          efe_sum: tmftSum, // Using same value for now
           efe_ca: 0,
           efe_rm2: 0,
         });
-      } else if (col0 && col0.length > 2) {
-        // This is likely an especialidade name
-        currentEspecialidade = col0;
       }
     }
     
