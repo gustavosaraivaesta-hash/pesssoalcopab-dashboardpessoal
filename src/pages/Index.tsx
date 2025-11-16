@@ -43,8 +43,18 @@ const Index = () => {
         ? data.especialidades 
         : data?.data;
       
+      console.log('Data received:', { 
+        hasEspecialidades: !!data?.especialidades, 
+        especialidadesLength: data?.especialidades?.length || 0,
+        dataLength: data?.data?.length || 0,
+        firstEspecialidade: data?.especialidades?.[0],
+        firstData: data?.data?.[0]
+      });
+      
       if (dataToUse && dataToUse.length > 0) {
         console.log(`Loaded ${dataToUse.length} records from sheets (Page 3)`);
+        console.log('First 3 raw records:', dataToUse.slice(0, 3));
+        
         // Transformar dados da Página 3 para formato compatível
         const transformedData = dataToUse.map((item: any, index: number) => ({
           id: `${item.especialidade}-${item.graduacao}-${item.om}-${index}`,
@@ -62,6 +72,9 @@ const Index = () => {
           percentualPracasAtiva: 0,
           percentualForcaTrabalho: 0,
         }));
+        
+        console.log('First 3 transformed records:', transformedData.slice(0, 3));
+        
         setMilitaryData(transformedData);
         if (showToast) {
           toast.success(`Dados atualizados! ${transformedData.length} registros da Página 3.`);
