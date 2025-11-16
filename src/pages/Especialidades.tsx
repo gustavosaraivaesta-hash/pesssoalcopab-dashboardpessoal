@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { ArrowLeft, RefreshCw, Download } from "lucide-react";
 import { toast } from "sonner";
 import {
   Table,
@@ -12,6 +12,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface EspecialidadeData {
   especialidade: string;
@@ -84,6 +92,88 @@ const Especialidades = () => {
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
     navigate("/login");
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const pageTitle = selectedOM 
+      ? `Especialidades - ${selectedOM}`
+      : "Especialidades - Todas as OMs";
+    
+    doc.setFontSize(16);
+    doc.text(pageTitle, 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Total de registros: ${filteredData.length}`, 14, 22);
+
+    const tableData: any[] = [];
+    const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
+
+    Object.entries(spreadsheetData).forEach(([especialidade, graduacoes]) => {
+      graduacaoKeys.forEach(grad => {
+        const omData = graduacoes[grad] || {};
+        let rowTmft = 0;
+        let rowEfe = 0;
+        
+        omsInData.forEach(om => {
+          rowTmft += (omData[om]?.tmft || 0);
+          rowEfe += (omData[om]?.efe || 0);
+        });
+
+        if (rowTmft > 0 || rowEfe > 0) {
+          tableData.push([
+            especialidade,
+            grad,
+            rowTmft,
+            rowEfe,
+            rowTmft
+          ]);
+        }
+      });
+    });
+
+    autoTable(doc, {
+      head: [['Especialidade', 'Graduação', 'TMFT', 'EFE', 'TOTAL']],
+      body: tableData,
+      startY: 28,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [59, 130, 246] }
+    });
+
+    doc.save(`especialidades_${selectedOM || 'todas'}_${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success("PDF exportado com sucesso!");
+  };
+
+  const exportToExcel = () => {
+    const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
+    let csvContent = "Especialidade,Graduação,TMFT,EFE,TOTAL\n";
+
+    Object.entries(spreadsheetData).forEach(([especialidade, graduacoes]) => {
+      graduacaoKeys.forEach(grad => {
+        const omData = graduacoes[grad] || {};
+        let rowTmft = 0;
+        let rowEfe = 0;
+        
+        omsInData.forEach(om => {
+          rowTmft += (omData[om]?.tmft || 0);
+          rowEfe += (omData[om]?.efe || 0);
+        });
+
+        if (rowTmft > 0 || rowEfe > 0) {
+          csvContent += `"${especialidade}","${grad}",${rowTmft},${rowEfe},${rowTmft}\n`;
+        }
+      });
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `especialidades_${selectedOM || 'todas'}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Excel exportado com sucesso!");
   };
 
   if (loading) {
@@ -203,14 +293,35 @@ const Especialidades = () => {
               Especialidades por OM
             </h1>
           </div>
-          <Button
-            onClick={fetchEspecialidadesData}
-            variant="outline"
-            size="icon"
-            className="hover:scale-105 transition-transform"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="hover:scale-105 transition-transform gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Exportar
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={exportToPDF}>
+                  Exportar para PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToExcel}>
+                  Exportar para Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              onClick={fetchEspecialidadesData}
+              variant="outline"
+              size="icon"
+              className="hover:scale-105 transition-transform"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Filter */}
