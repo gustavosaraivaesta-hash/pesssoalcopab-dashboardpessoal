@@ -211,23 +211,15 @@ const Especialidades = () => {
         // Adicionar nova página se não for a primeira OM
         if (omIndex > 0) {
           doc.addPage();
-          
-          // Adicionar brasão e textos no topo de cada nova página
-          doc.addImage(brasaoRepublica, 'PNG', brasaoX, 10, brasaoWidth, brasaoHeight);
-          doc.setFontSize(11);
-          doc.setFont('helvetica', 'bold');
-          doc.text('MARINHA DO BRASIL', doc.internal.pageSize.width / 2, 46, { align: 'center' });
-          doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', doc.internal.pageSize.width / 2, 52, { align: 'center' });
-          
-          currentY = 60;
+          currentY = 15; // Começar mais no topo nas páginas subsequentes
         }
 
         // Título da OM
-        doc.setFontSize(13);
+        doc.setFontSize(12);
         doc.setTextColor(59, 130, 246);
         doc.text(`${om}`, 14, currentY);
         doc.setTextColor(0, 0, 0);
-        currentY += 8;
+        currentY += 6;
 
         // Agrupar dados por especialidade para esta OM
         const omSpreadsheetData = omData.reduce((acc, item) => {
@@ -278,7 +270,7 @@ const Especialidades = () => {
           });
 
           if (tableData.length > 0) {
-            const neededSpace = 20 + (tableData.length * 7) + 10;
+            const neededSpace = 15 + (tableData.length * 6) + 8;
             
             if (currentY + neededSpace > pageHeight - marginBottom) {
               doc.addPage();
@@ -286,29 +278,29 @@ const Especialidades = () => {
             }
 
             if (!isFirstSection) {
-              currentY += 8;
+              currentY += 5;
             }
             isFirstSection = false;
 
-            doc.setFontSize(11);
+            doc.setFontSize(10);
             doc.setTextColor(59, 130, 246);
             doc.text(`${especialidade}`, 14, currentY);
             doc.setTextColor(0, 0, 0);
-            currentY += 2;
+            currentY += 1;
 
             autoTable(doc, {
               head: [['Grad', 'TMFT', 'EFE', 'DIF']],
               body: tableData,
               startY: currentY,
-              styles: { fontSize: 8, cellPadding: 2 },
-              headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
+              styles: { fontSize: 7, cellPadding: 1.5 },
+              headStyles: { fillColor: [59, 130, 246], fontSize: 7 },
               margin: { left: 14 },
               didDrawPage: function(data) {
                 currentY = data.cursor?.y || currentY;
               }
             });
 
-            currentY = (doc as any).lastAutoTable.finalY + 2;
+            currentY = (doc as any).lastAutoTable.finalY + 1;
           }
         });
       });
@@ -341,7 +333,7 @@ const Especialidades = () => {
         });
 
         if (tableData.length > 0) {
-          const neededSpace = 20 + (tableData.length * 7) + 10;
+          const neededSpace = 15 + (tableData.length * 6) + 8;
           
           if (currentY + neededSpace > pageHeight - marginBottom) {
             doc.addPage();
@@ -349,29 +341,29 @@ const Especialidades = () => {
           }
 
           if (!isFirstSection) {
-            currentY += 8;
+            currentY += 5;
           }
           isFirstSection = false;
 
-          doc.setFontSize(11);
+          doc.setFontSize(10);
           doc.setTextColor(59, 130, 246);
           doc.text(`${especialidade}`, 14, currentY);
           doc.setTextColor(0, 0, 0);
-          currentY += 2;
+          currentY += 1;
 
           autoTable(doc, {
             head: [['Grad', 'TMFT', 'EFE', 'DIF']],
             body: tableData,
             startY: currentY,
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
+            styles: { fontSize: 7, cellPadding: 1.5 },
+            headStyles: { fillColor: [59, 130, 246], fontSize: 7 },
             margin: { left: 14 },
             didDrawPage: function(data) {
               currentY = data.cursor?.y || currentY;
             }
           });
 
-          currentY = (doc as any).lastAutoTable.finalY + 2;
+          currentY = (doc as any).lastAutoTable.finalY + 1;
         }
       });
     }
