@@ -41,6 +41,18 @@ serve(async (req) => {
     const rows = sheetsData.table.rows;
     console.log('Total rows:', rows.length);
     
+    // Log da primeira linha para debug do cabeçalho
+    if (rows.length > 0) {
+      const firstRow = rows[0].c || [];
+      console.log('🔍 DEBUG - Primeira linha (cabeçalho):');
+      for (let i = 0; i < Math.min(30, firstRow.length); i++) {
+        const cell = firstRow[i];
+        if (cell && cell.v) {
+          console.log(`  Col ${i}: "${cell.v}"`);
+        }
+      }
+    }
+    
     if (rows.length < 1) {
       console.log('No data in Page 3');
       return new Response(
@@ -52,6 +64,7 @@ serve(async (req) => {
     // Mapeamento fixo das colunas para OMs (baseado na estrutura da planilha)
     // Col 0: Especialidade, Col 1: Graduação
     // A partir da Col 2: pares (TMFT, EFE) para cada OM
+    // IMPORTANTE: Não existe COMRJ na planilha
     const omMap: { [key: number]: string } = {
       2: 'BAMRJ',      // Cols 2-3
       4: 'CMM',        // Cols 4-5
@@ -63,9 +76,8 @@ serve(async (req) => {
       16: 'DepMSMRJ',  // Cols 16-17
       18: 'DepFMRJ',   // Cols 18-19
       20: 'CDU-BAMRJ', // Cols 20-21
-      22: 'CDU-1DN',   // Cols 22-23
-      24: 'CDU-1ºDN',  // Cols 24-25
-      26: 'COpAb',     // Cols 26-27
+      22: 'CDU-1ºDN',  // Cols 22-23
+      24: 'COpAb',     // Cols 24-25
     };
     
     console.log('Mapeamento fixo de OMs:', omMap);
