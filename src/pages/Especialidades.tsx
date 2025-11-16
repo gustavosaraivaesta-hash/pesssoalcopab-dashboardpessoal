@@ -359,6 +359,50 @@ const Especialidades = () => {
           </div>
         </div>
 
+        {/* Resumo de Registros por OM */}
+        <div className="bg-card rounded-lg p-6 shadow-md border border-border">
+          <h2 className="text-xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Contabilização por OM
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {allOMs.map((om) => {
+              const count = omCounts[om] || 0;
+              const isSelected = selectedOM === om;
+              return (
+                <div
+                  key={om}
+                  onClick={() => setSelectedOM(om === selectedOM ? "" : om)}
+                  className={`p-4 rounded-lg border-2 transition-all cursor-pointer hover:scale-105 ${
+                    isSelected
+                      ? 'border-primary bg-primary/10 shadow-lg'
+                      : count > 0
+                      ? 'border-border bg-background hover:border-primary/50'
+                      : 'border-border/50 bg-muted/30 opacity-60'
+                  }`}
+                >
+                  <div className="text-sm font-semibold text-foreground mb-1">
+                    {om}
+                  </div>
+                  <div className={`text-2xl font-bold ${
+                    count > 0 ? 'text-primary' : 'text-muted-foreground'
+                  }`}>
+                    {count}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {count === 1 ? 'registro' : 'registros'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Total Geral:</span>
+              <span className="text-xl font-bold text-primary">{data.length} registros</span>
+            </div>
+          </div>
+        </div>
+
         {/* Spreadsheet View */}
         <div className="bg-card rounded-lg shadow-md border border-border overflow-x-auto">
           <Table>
