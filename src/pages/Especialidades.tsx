@@ -79,6 +79,7 @@ const Especialidades = () => {
   const [previousData, setPreviousData] = useState<EspecialidadeData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
+  const [selectedGraduacoes, setSelectedGraduacoes] = useState<string[]>([]);
 
   const fetchEspecialidadesData = async () => {
     setLoading(true);
@@ -159,9 +160,19 @@ const Especialidades = () => {
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-    const pageTitle = selectedOMs.length > 0
-      ? `Especialidades - ${selectedOMs.join(', ')}`
-      : "Especialidades - Todas as OMs";
+    let pageTitle = "Especialidades";
+    if (selectedOMs.length > 0 || selectedGraduacoes.length > 0) {
+      pageTitle += " - ";
+      if (selectedOMs.length > 0) {
+        pageTitle += selectedOMs.join(', ');
+      }
+      if (selectedGraduacoes.length > 0) {
+        if (selectedOMs.length > 0) pageTitle += " - ";
+        pageTitle += selectedGraduacoes.join(', ');
+      }
+    } else {
+      pageTitle += " - Todas as OMs";
+    }
     
     const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
     const pageHeight = doc.internal.pageSize.height;
@@ -254,7 +265,8 @@ const Especialidades = () => {
       }
     });
 
-    doc.save(`especialidades_${selectedOMs.length > 0 ? selectedOMs.join('_') : 'todas'}_${new Date().toISOString().split('T')[0]}.pdf`);
+    const fileName = `especialidades_${selectedOMs.length > 0 ? selectedOMs.join('_') : 'todas-oms'}_${selectedGraduacoes.length > 0 ? selectedGraduacoes.join('_') : 'todas-grads'}_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
     toast.success("PDF exportado com sucesso!");
   };
 
@@ -286,21 +298,39 @@ const Especialidades = () => {
     'DepSMRJ'
   ].sort();
 
-  // Filter data by selected OMs
-  const filteredData = selectedOMs.length > 0
-    ? data.filter(item => selectedOMs.includes(item.om))
-    : data;
+  // Lista de todas as graduações
+  const allGraduacoes = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
 
-  // Calcular contagem de registros por OM
+  // Filter data by selected OMs and Graduacoes
+  const filteredData = data.filter(item => {
+    const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
+    const gradMatch = selectedGraduacoes.length === 0 || selectedGraduacoes.includes(item.graduacao);
+    return omMatch && gradMatch;
+  });
+
+  // Calcular contagem de registros por OM e por Graduação
   const omCounts = allOMs.reduce((acc, om) => {
-    acc[om] = data.filter(item => item.om === om).length;
+    acc[om] = data.filter(item => {
+      const gradMatch = selectedGraduacoes.length === 0 || selectedGraduacoes.includes(item.graduacao);
+      return item.om === om && gradMatch;
+    }).length;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const graduacaoCounts = allGraduacoes.reduce((acc, grad) => {
+    acc[grad] = data.filter(item => {
+      const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
+      return item.graduacao === grad && omMatch;
+    }).length;
     return acc;
   }, {} as Record<string, number>);
 
   console.log("📊 OMs definidas:", allOMs);
   console.log("📊 Contagem por OM:", omCounts);
+  console.log("📊 Contagem por Graduação:", graduacaoCounts);
   console.log("📊 Total de registros filtrados:", filteredData.length);
   console.log("📊 OMs selecionadas:", selectedOMs);
+  console.log("📊 Graduações selecionadas:", selectedGraduacoes);
 
   // Group data by especialidade
   const groupedData = filteredData.reduce((acc, item) => {
@@ -410,8 +440,8 @@ const Especialidades = () => {
               <label className="block text-sm font-medium">Filtrar por OM (selecione uma ou mais):</label>
               <div className="text-sm font-semibold text-primary">
                 {selectedOMs.length > 0
-                  ? `${filteredData.length} registros de ${selectedOMs.length} OM(s)`
-                  : `Total: ${data.length} registros`
+                  ? `${selectedOMs.length} OM(s) selecionada(s)`
+                  : `Todas as OMs`
                 }
               </div>
             </div>
@@ -456,6 +486,86 @@ const Especialidades = () => {
                   </span>
                 </label>
               ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Filtro de Graduação */}
+        <div className="bg-card rounded-lg p-4 shadow-md border border-border">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="block text-sm font-medium">Filtrar por Graduação (selecione uma ou mais):</label>
+              <div className="text-sm font-semibold text-primary">
+                {selectedGraduacoes.length > 0
+                  ? `${selectedGraduacoes.length} Graduação(ões) selecionada(s)`
+                  : `Todas as Graduações`
+                }
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <Button
+                onClick={() => setSelectedGraduacoes(allGraduacoes)}
+                variant="outline"
+                size="sm"
+              >
+                Selecionar Todas
+              </Button>
+              <Button
+                onClick={() => setSelectedGraduacoes([])}
+                variant="outline"
+                size="sm"
+              >
+                Limpar Seleção
+              </Button>
+            </div>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-3 p-2 border border-border rounded-md">
+              {allGraduacoes.map((grad) => (
+                <label
+                  key={grad}
+                  className={`flex items-center gap-2 p-3 rounded cursor-pointer hover:bg-accent/50 transition-colors ${
+                    selectedGraduacoes.includes(grad) ? 'bg-primary/10 border border-primary' : 'border border-transparent'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedGraduacoes.includes(grad)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedGraduacoes([...selectedGraduacoes, grad]);
+                      } else {
+                        setSelectedGraduacoes(selectedGraduacoes.filter(g => g !== grad));
+                      }
+                    }}
+                    className="w-4 h-4 accent-primary"
+                  />
+                  <span className="text-sm font-bold">
+                    {grad} ({graduacaoCounts[grad] || 0})
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Resumo dos Filtros */}
+        <div className="bg-card rounded-lg p-4 shadow-md border border-border">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className="text-sm">
+                <span className="font-medium text-muted-foreground">OMs: </span>
+                <span className="font-bold text-primary">
+                  {selectedOMs.length > 0 ? selectedOMs.join(', ') : 'Todas'}
+                </span>
+              </div>
+              <div className="text-sm">
+                <span className="font-medium text-muted-foreground">Graduações: </span>
+                <span className="font-bold text-primary">
+                  {selectedGraduacoes.length > 0 ? selectedGraduacoes.join(', ') : 'Todas'}
+                </span>
+              </div>
+            </div>
+            <div className="text-lg font-bold text-primary">
+              Total: {filteredData.length} registros
             </div>
           </div>
         </div>
