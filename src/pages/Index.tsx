@@ -38,46 +38,11 @@ const Index = () => {
         return;
       }
       
-      // Priorizar dados da Página 3 (especialidades) que contém EFE
-      const dataToUse = data?.especialidades && data.especialidades.length > 0 
-        ? data.especialidades 
-        : data?.data;
-      
-      console.log('Data received:', { 
-        hasEspecialidades: !!data?.especialidades, 
-        especialidadesLength: data?.especialidades?.length || 0,
-        dataLength: data?.data?.length || 0,
-        firstEspecialidade: data?.especialidades?.[0],
-        firstData: data?.data?.[0]
-      });
-      
-      if (dataToUse && dataToUse.length > 0) {
-        console.log(`Loaded ${dataToUse.length} records from sheets (Page 3)`);
-        console.log('First 3 raw records:', dataToUse.slice(0, 3));
-        
-        // Transformar dados da Página 3 para formato compatível
-        const transformedData = dataToUse.map((item: any, index: number) => ({
-          id: `${item.especialidade}-${item.graduacao}-${item.om}-${index}`,
-          nome: `${item.graduacao} - ${item.especialidade}`,
-          especialidade: item.especialidade,
-          graduacao: item.graduacao,
-          om: item.om,
-          sdp: '',
-          tmft: item.tmft_sum || 0,
-          exi: item.efe_sum || 0, // EFE da Página 3
-          dif: (item.tmft_sum || 0) - (item.efe_sum || 0),
-          previsaoEmbarque: '',
-          pracasTTC: 0,
-          servidoresCivis: 0,
-          percentualPracasAtiva: 0,
-          percentualForcaTrabalho: 0,
-        }));
-        
-        console.log('First 3 transformed records:', transformedData.slice(0, 3));
-        
-        setMilitaryData(transformedData);
+      if (data?.data && data.data.length > 0) {
+        console.log(`Loaded ${data.data.length} records from sheets`);
+        setMilitaryData(data.data);
         if (showToast) {
-          toast.success(`Dados atualizados! ${transformedData.length} registros da Página 3.`);
+          toast.success(`Dados atualizados! ${data.data.length} registros da planilha.`);
         }
       } else {
         console.log('No data from sheets, using mock data');
