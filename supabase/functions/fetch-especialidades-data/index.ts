@@ -41,56 +41,46 @@ serve(async (req) => {
     const rows = sheetsData.table.rows;
     const transformedData: any[] = [];
     
-    if (rows.length < 2) {
+    if (rows.length < 3) {
       console.log('Not enough data in Page 3');
       return new Response(
         JSON.stringify({ data: [] }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
     
-    // Skip header row (index 0), process data rows starting from index 1
-    for (let i = 1; i < rows.length; i++) {
+    // Extract OM name from first row
+    const omName = rows[0]?.c?.[0]?.v || 'COpAb';
+    console.log(`OM detectada: ${omName}`);
+    
+    let currentEspecialidade = '';
+    
+    // Skip rows 0-1 (headers), process from row 2
+    for (let i = 2; i < rows.length; i++) {
       const cells = rows[i].c || [];
+      const col0 = String(cells[0]?.v || '').trim();
+      const col1 = cells[1]?.v;
+      const col2 = cells[2]?.v;
       
-      // Page 3 structure:
-      // Col 0: Especialidade
-      // Col 1: Graduação
-      // Col 2: TMFT ∑
-      // Col 3: TMFT CA
-      // Col 4: TMFT RM2
-      // Col 5: EFE ∑
-      // Col 6: EFE CA
-      // Col 7: EFE RM2
-      // Col 8: OM
+      // Check if this is a graduação line
+      const graduacoes = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
       
-      const especialidade = cells[0]?.v || '';
-      const graduacao = cells[1]?.v || '';
-      const tmft_sum = Number(cells[2]?.v || 0);
-      const tmft_ca = Number(cells[3]?.v || 0);
-      const tmft_rm2 = Number(cells[4]?.v || 0);
-      const efe_sum = Number(cells[5]?.v || 0);
-      const efe_ca = Number(cells[6]?.v || 0);
-      const efe_rm2 = Number(cells[7]?.v || 0);
-      const om = cells[8]?.v || '';
-      
-      // Only include rows with valid data
-      if (!especialidade || !graduacao) continue;
-      
-      transformedData.push({
-        especialidade,
-        graduacao,
-        om,
-        tmft_sum,
-        tmft_ca,
-        tmft_rm2,
-        efe_sum,
-        efe_ca,
-        efe_rm2,
-      });
+      if (graduacoes.includes(col0)) {
+        transformedData.push({
+          especialidade: currentEspecialidade,
+          graduacao: col0,
+          om: omName,
+          tmft_sum: Number(col1 || 0),
+          tmft_ca: 0,
+          tmft_rm2: 0,
+          efe_sum: Number(col2 || 0),
+          efe_ca: 0,
+          efe_rm2: 0,
+        });
+      } else if (col0 && col0.length > 2) {
+        // This is likely an especialidade name
+        currentEspecialidade = col0;
+      }
     }
     
     console.log(`Transformed ${transformedData.length} records from Page 3`);
