@@ -55,18 +55,43 @@ serve(async (req) => {
     // Row 3+: Data rows
     
     const headerRow = rows[0].c || [];
-    const omMap: { [key: number]: string } = {};
+    console.log('Total de colunas no header:', headerRow.length);
     
-    // Extract OM names from header row starting at column 2
-    for (let col = 2; col < headerRow.length; col += 2) {
-      const omName = String(headerRow[col]?.v || '').trim();
-      if (omName) {
-        omMap[col] = omName;
-        console.log(`Coluna ${col}: OM = ${omName}`);
+    // Log first 30 columns of header to see structure
+    console.log('=== Primeiras 30 colunas do header ===');
+    for (let i = 0; i < Math.min(30, headerRow.length); i++) {
+      const value = headerRow[i]?.v;
+      if (value !== null && value !== undefined) {
+        console.log(`Col ${i}: "${value}"`);
       }
     }
     
-    console.log('OMs detectadas:', Object.values(omMap).join(', '));
+    const omMap: { [key: number]: string } = {};
+    let lastOM = '';
+    
+    // Extract OM names from header row
+    // OMs appear at col 2, 4, 6, 8, etc. (every 2 columns starting from 2)
+    for (let col = 2; col < headerRow.length; col++) {
+      const cellValue = String(headerRow[col]?.v || '').trim();
+      
+      // If we find a non-empty value, it's an OM name
+      if (cellValue && cellValue.length > 0) {
+        // Check if it's not a TMFT/EFE indicator
+        if (cellValue !== 'TMFT' && cellValue !== 'EFE' && cellValue !== '∑') {
+          lastOM = cellValue;
+          omMap[col] = cellValue;
+          console.log(`Coluna ${col}: OM = "${cellValue}"`);
+        }
+      } else if (lastOM && col % 2 === 0) {
+        // If cell is empty but we're at an even column and have a lastOM, 
+        // it's likely a merged cell continuing the previous OM
+        omMap[col] = lastOM;
+        console.log(`Coluna ${col}: OM (continuação) = "${lastOM}"`);
+      }
+    }
+    
+    console.log('Total de OMs detectadas:', Object.keys(omMap).length);
+    console.log('OMs únicas:', Array.from(new Set(Object.values(omMap))));
     
     const transformedData: any[] = [];
     const graduacoes = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
@@ -81,32 +106,39 @@ serve(async (req) => {
       // If col0 has text, it's a new especialidade
       if (col0 && col0.length > 2 && !graduacoes.includes(col0)) {
         currentEspecialidade = col0;
+        console.log(`Nova especialidade detectada: ${currentEspecialidade}`);
       }
       
       // If col1 is a valid graduação, process the row
       if (col1 && graduacoes.includes(col1)) {
-        // For each OM, create a record
+        // For each OM column, create a record
         for (const [colIndex, omName] of Object.entries(omMap)) {
           const col = Number(colIndex);
           const tmft = Number(cells[col]?.v || 0);
           const efe = Number(cells[col + 1]?.v || 0);
           
-          // Only add if there's data
-          if (tmft > 0 || efe > 0) {
-            transformedData.push({
-              especialidade: currentEspecialidade,
-              graduacao: col1,
-              om: omName,
-              tmft_sum: tmft,
-              efe_sum: efe,
-            });
-          }
+          // Add record regardless of whether there's data or not
+          transformedData.push({
+            especialidade: currentEspecialidade,
+            graduacao: col1,
+            om: omName,
+            tmft_sum: tmft,
+            efe_sum: efe,
+          });
         }
       }
     }
     
-    console.log(`Transformed ${transformedData.length} records from Page 3`);
-    console.log('Sample records:', transformedData.slice(0, 5));
+    console.log(`Total de registros transformados: ${transformedData.length}`);
+    
+    // Count records per OM
+    const omCounts: { [key: string]: number } = {};
+    transformedData.forEach(record => {
+      omCounts[record.om] = (omCounts[record.om] || 0) + 1;
+    });
+    
+    console.log('Registros por OM:', omCounts);
+    console.log('Primeiros 10 registros:', transformedData.slice(0, 10));
     
     return new Response(
       JSON.stringify({ data: transformedData }),
