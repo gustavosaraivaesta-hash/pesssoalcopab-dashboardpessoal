@@ -225,18 +225,16 @@ const Index = () => {
             </div>
             <div className="flex gap-2">
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() => navigate("/especialidades")}
-                className="border-white text-white hover:bg-white hover:text-blue-600"
               >
                 <FileText size={18} className="mr-2" />
                 Ver Especialidades por OM
               </Button>
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={handleManualRefresh}
                 disabled={isRefreshing}
-                className="border-white text-white hover:bg-white hover:text-blue-600"
               >
                 <RefreshCw size={18} className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                 Atualizar
