@@ -21,6 +21,51 @@ import {
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+// Função para detectar mudanças nos dados
+const detectEspecialidadesChanges = (
+  oldData: EspecialidadeData[], 
+  newData: EspecialidadeData[]
+): string[] => {
+  const changes: string[] = [];
+  
+  // Criar mapa dos dados antigos
+  const oldDataMap = new Map(
+    oldData.map(item => [
+      `${item.om}-${item.especialidade}-${item.graduacao}`,
+      item
+    ])
+  );
+  
+  // Comparar com novos dados
+  newData.forEach(newItem => {
+    const key = `${newItem.om}-${newItem.especialidade}-${newItem.graduacao}`;
+    const oldItem = oldDataMap.get(key);
+    
+    if (oldItem) {
+      // Detectar mudanças em TMFT
+      if (oldItem.tmft_sum !== newItem.tmft_sum) {
+        changes.push(
+          `🔄 TMFT alterado: ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao}): ${oldItem.tmft_sum} → ${newItem.tmft_sum}`
+        );
+      }
+      
+      // Detectar mudanças em EFE
+      if (oldItem.efe_sum !== newItem.efe_sum) {
+        changes.push(
+          `✅ EFE alterado: ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao}): ${oldItem.efe_sum} → ${newItem.efe_sum}`
+        );
+      }
+    } else if (newItem.tmft_sum > 0 || newItem.efe_sum > 0) {
+      // Novo registro detectado
+      changes.push(
+        `🆕 Novo registro: ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao}) - TMFT: ${newItem.tmft_sum}, EFE: ${newItem.efe_sum}`
+      );
+    }
+  });
+  
+  return changes.slice(0, 5); // Limitar a 5 notificações
+};
+
 interface EspecialidadeData {
   especialidade: string;
   graduacao: string;
@@ -36,6 +81,7 @@ interface EspecialidadeData {
 const Especialidades = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<EspecialidadeData[]>([]);
+  const [previousData, setPreviousData] = useState<EspecialidadeData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOM, setSelectedOM] = useState<string>("");
 
@@ -68,6 +114,19 @@ const Especialidades = () => {
         console.warn("⚠️ Nenhum dado encontrado no array!");
       }
       
+      // Detectar alterações se já existem dados anteriores
+      if (previousData.length > 0) {
+        const changes = detectEspecialidadesChanges(previousData, especialidadesData);
+        if (changes.length > 0) {
+          changes.forEach(change => {
+            toast.success(change, {
+              duration: 6000,
+            });
+          });
+        }
+      }
+      
+      setPreviousData(data);
       setData(especialidadesData);
       toast.success(`✅ ${especialidadesData.length} registros carregados da Página 3`);
     } catch (error) {

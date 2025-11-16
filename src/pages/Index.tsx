@@ -12,6 +12,56 @@ import militaryBg from "@/assets/military-background.png";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
+// Função para detectar mudanças nos dados
+const detectChanges = (oldData: MilitaryData[], newData: MilitaryData[]): string[] => {
+  const changes: string[] = [];
+  
+  // Criar mapa dos dados antigos para comparação rápida
+  const oldDataMap = new Map(
+    oldData.map(item => [
+      `${item.om}-${item.especialidade}-${item.graduacao}`,
+      item
+    ])
+  );
+  
+  // Comparar com novos dados
+  newData.forEach(newItem => {
+    const key = `${newItem.om}-${newItem.especialidade}-${newItem.graduacao}`;
+    const oldItem = oldDataMap.get(key);
+    
+    if (oldItem) {
+      // Detectar mudanças em TMFT
+      if (oldItem.tmft !== newItem.tmft) {
+        changes.push(
+          `🔄 TMFT alterado em ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao}): ${oldItem.tmft} → ${newItem.tmft}`
+        );
+      }
+      
+      // Detectar mudanças em EXI
+      if (oldItem.exi !== newItem.exi) {
+        changes.push(
+          `✅ EXI alterado em ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao}): ${oldItem.exi} → ${newItem.exi}`
+        );
+      }
+      
+      // Detectar mudanças em DIF
+      if (oldItem.dif !== newItem.dif) {
+        const icon = newItem.dif >= 0 ? '📈' : '📉';
+        changes.push(
+          `${icon} DIF alterado em ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao}): ${oldItem.dif} → ${newItem.dif}`
+        );
+      }
+    } else if (newItem.tmft > 0 || newItem.exi > 0) {
+      // Novo registro detectado
+      changes.push(
+        `🆕 Novo registro: ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao})`
+      );
+    }
+  });
+  
+  return changes.slice(0, 5); // Limitar a 5 notificações por vez
+};
+
 const Index = () => {
   const navigate = useNavigate();
   const chartRef = useRef<HTMLDivElement>(null);
@@ -21,6 +71,7 @@ const Index = () => {
     pessoal: [] as string[],
   });
   const [militaryData, setMilitaryData] = useState<MilitaryData[]>([]);
+  const [previousData, setPreviousData] = useState<MilitaryData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -40,7 +91,22 @@ const Index = () => {
       
       if (data?.data && data.data.length > 0) {
         console.log(`Loaded ${data.data.length} records from sheets`);
+        
+        // Detectar alterações nos valores
+        if (previousData.length > 0 && showToast) {
+          const changes = detectChanges(previousData, data.data);
+          if (changes.length > 0) {
+            changes.forEach(change => {
+              toast.success(change, {
+                duration: 5000,
+              });
+            });
+          }
+        }
+        
+        setPreviousData(militaryData);
         setMilitaryData(data.data);
+        
         if (showToast) {
           toast.success(`Dados atualizados! ${data.data.length} registros da planilha.`);
         }
