@@ -61,23 +61,22 @@ serve(async (req) => {
       );
     }
     
-    // Mapeamento fixo das colunas para OMs (baseado na estrutura da planilha)
+    // Mapeamento fixo das colunas para OMs (baseado na estrutura EXATA da planilha)
     // Col 0: Especialidade, Col 1: Graduação
     // A partir da Col 2: pares (TMFT, EFE) para cada OM
-    // IMPORTANTE: Não existe COMRJ na planilha
     const omMap: { [key: number]: string } = {
-      2: 'BAMRJ',      // Cols 2-3
-      4: 'CMM',        // Cols 4-5
-      6: 'DepCMRJ',    // Cols 6-7
-      8: 'CDAM',       // Cols 8-9
-      10: 'DepSMRJ',   // Cols 10-11
-      12: 'CSupAb',    // Cols 12-13
-      14: 'DepSIMRJ',  // Cols 14-15
-      16: 'DepMSMRJ',  // Cols 16-17
-      18: 'DepFMRJ',   // Cols 18-19
-      20: 'CDU-BAMRJ', // Cols 20-21
-      22: 'CDU-1ºDN',  // Cols 22-23
-      24: 'COpAb',     // Cols 24-25
+      2: 'COpAb',      // Cols 2-3
+      4: 'BAMRJ',      // Cols 4-5
+      6: 'CMM',        // Cols 6-7
+      8: 'DepCMRJ',    // Cols 8-9
+      10: 'CDAM',      // Cols 10-11
+      12: 'DepSMRJ',   // Cols 12-13
+      14: 'CSupAb',    // Cols 14-15
+      16: 'DepSIMRJ',  // Cols 16-17
+      18: 'DepMSMRJ',  // Cols 18-19
+      20: 'DepFMRJ',   // Cols 20-21
+      22: 'CDU-BAMRJ', // Cols 22-23
+      24: 'CDU-1ºDN',  // Cols 24-25
     };
     
     console.log('Mapeamento fixo de OMs:', omMap);
