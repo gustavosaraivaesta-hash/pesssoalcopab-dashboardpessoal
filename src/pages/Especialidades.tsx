@@ -175,10 +175,9 @@ const Especialidades = () => {
     doc.addImage(brasaoRepublica, 'PNG', brasaoX, 10, brasaoWidth, brasaoHeight);
     
     // Adicionar textos centralizados abaixo do brasão
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.text('MARINHA DO BRASIL', doc.internal.pageSize.width / 2, 46, { align: 'center' });
-    doc.setFontSize(10);
     doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', doc.internal.pageSize.width / 2, 52, { align: 'center' });
     
     let currentY = 60; // Começar após o cabeçalho
