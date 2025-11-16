@@ -78,7 +78,7 @@ const Especialidades = () => {
   const [data, setData] = useState<EspecialidadeData[]>([]);
   const [previousData, setPreviousData] = useState<EspecialidadeData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOM, setSelectedOM] = useState<string>("");
+  const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
 
   const fetchEspecialidadesData = async () => {
     setLoading(true);
@@ -159,8 +159,8 @@ const Especialidades = () => {
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-    const pageTitle = selectedOM 
-      ? `Especialidades - ${selectedOM}`
+    const pageTitle = selectedOMs.length > 0
+      ? `Especialidades - ${selectedOMs.join(', ')}`
       : "Especialidades - Todas as OMs";
     
     const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
@@ -254,7 +254,7 @@ const Especialidades = () => {
       }
     });
 
-    doc.save(`especialidades_${selectedOM || 'todas'}_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`especialidades_${selectedOMs.length > 0 ? selectedOMs.join('_') : 'todas'}_${new Date().toISOString().split('T')[0]}.pdf`);
     toast.success("PDF exportado com sucesso!");
   };
 
@@ -286,9 +286,9 @@ const Especialidades = () => {
     'DepSMRJ'
   ].sort();
 
-  // Filter data by selected OM
-  const filteredData = selectedOM 
-    ? data.filter(item => item.om === selectedOM)
+  // Filter data by selected OMs
+  const filteredData = selectedOMs.length > 0
+    ? data.filter(item => selectedOMs.includes(item.om))
     : data;
 
   // Calcular contagem de registros por OM
@@ -300,7 +300,7 @@ const Especialidades = () => {
   console.log("📊 OMs definidas:", allOMs);
   console.log("📊 Contagem por OM:", omCounts);
   console.log("📊 Total de registros filtrados:", filteredData.length);
-  console.log("📊 OM selecionada:", selectedOM);
+  console.log("📊 OMs selecionadas:", selectedOMs);
 
   // Group data by especialidade
   const groupedData = filteredData.reduce((acc, item) => {
@@ -357,8 +357,8 @@ const Especialidades = () => {
   }, {} as Record<string, Record<string, Record<string, { tmft: number; efe: number }>>>);
 
   // Get all unique OMs in the filtered data (or all if no filter)
-  const omsInData = selectedOM 
-    ? [selectedOM]
+  const omsInData = selectedOMs.length > 0
+    ? selectedOMs
     : Array.from(new Set(filteredData.map(item => item.om).filter(Boolean))).sort();
   
   console.log("Spreadsheet data agrupada:", spreadsheetData);
@@ -407,26 +407,56 @@ const Especialidades = () => {
         <div className="bg-card rounded-lg p-4 shadow-md border border-border">
           <div className="space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <label className="block text-sm font-medium">Filtrar por OM:</label>
+              <label className="block text-sm font-medium">Filtrar por OM (selecione uma ou mais):</label>
               <div className="text-sm font-semibold text-primary">
-                {selectedOM 
-                  ? `${filteredData.length} registros de ${selectedOM}`
+                {selectedOMs.length > 0
+                  ? `${filteredData.length} registros de ${selectedOMs.length} OM(s)`
                   : `Total: ${data.length} registros`
                 }
               </div>
             </div>
-            <select
-              value={selectedOM}
-              onChange={(e) => setSelectedOM(e.target.value)}
-              className="w-full px-4 py-2 rounded-md border border-border bg-background text-foreground font-medium"
-            >
-              <option value="">📊 Todas as OMs - {data.length} registros</option>
+            <div className="flex items-center gap-2 mb-2">
+              <Button
+                onClick={() => setSelectedOMs(allOMs)}
+                variant="outline"
+                size="sm"
+              >
+                Selecionar Todas
+              </Button>
+              <Button
+                onClick={() => setSelectedOMs([])}
+                variant="outline"
+                size="sm"
+              >
+                Limpar Seleção
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-64 overflow-y-auto p-2 border border-border rounded-md">
               {allOMs.map((om) => (
-                <option key={om} value={om}>
-                  {om} - {omCounts[om] || 0} registros
-                </option>
+                <label
+                  key={om}
+                  className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-accent/50 transition-colors ${
+                    selectedOMs.includes(om) ? 'bg-primary/10 border border-primary' : 'border border-transparent'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedOMs.includes(om)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedOMs([...selectedOMs, om]);
+                      } else {
+                        setSelectedOMs(selectedOMs.filter(o => o !== om));
+                      }
+                    }}
+                    className="w-4 h-4 accent-primary"
+                  />
+                  <span className="text-sm font-medium">
+                    {om} ({omCounts[om] || 0})
+                  </span>
+                </label>
               ))}
-            </select>
+            </div>
           </div>
         </div>
 
@@ -438,11 +468,17 @@ const Especialidades = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {allOMs.map((om) => {
               const count = omCounts[om] || 0;
-              const isSelected = selectedOM === om;
+              const isSelected = selectedOMs.includes(om);
               return (
                 <div
                   key={om}
-                  onClick={() => setSelectedOM(om === selectedOM ? "" : om)}
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedOMs(selectedOMs.filter(o => o !== om));
+                    } else {
+                      setSelectedOMs([...selectedOMs, om]);
+                    }
+                  }}
                   className={`p-4 rounded-lg border-2 transition-all cursor-pointer hover:scale-105 ${
                     isSelected
                       ? 'border-primary bg-primary/10 shadow-lg'
