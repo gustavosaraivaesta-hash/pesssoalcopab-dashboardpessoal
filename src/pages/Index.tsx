@@ -38,11 +38,33 @@ const Index = () => {
         return;
       }
       
-      if (data?.data && data.data.length > 0) {
-        console.log(`Loaded ${data.data.length} records from sheets`);
-        setMilitaryData(data.data);
+      // Priorizar dados da Página 3 (especialidades) que contém EFE
+      const dataToUse = data?.especialidades && data.especialidades.length > 0 
+        ? data.especialidades 
+        : data?.data;
+      
+      if (dataToUse && dataToUse.length > 0) {
+        console.log(`Loaded ${dataToUse.length} records from sheets (Page 3)`);
+        // Transformar dados da Página 3 para formato compatível
+        const transformedData = dataToUse.map((item: any, index: number) => ({
+          id: `${item.especialidade}-${item.graduacao}-${item.om}-${index}`,
+          nome: `${item.graduacao} - ${item.especialidade}`,
+          especialidade: item.especialidade,
+          graduacao: item.graduacao,
+          om: item.om,
+          sdp: '',
+          tmft: item.tmft_sum || 0,
+          exi: item.efe_sum || 0, // EFE da Página 3
+          dif: (item.tmft_sum || 0) - (item.efe_sum || 0),
+          previsaoEmbarque: '',
+          pracasTTC: 0,
+          servidoresCivis: 0,
+          percentualPracasAtiva: 0,
+          percentualForcaTrabalho: 0,
+        }));
+        setMilitaryData(transformedData);
         if (showToast) {
-          toast.success(`Dados atualizados! ${data.data.length} registros da planilha.`);
+          toast.success(`Dados atualizados! ${transformedData.length} registros da Página 3.`);
         }
       } else {
         console.log('No data from sheets, using mock data');
