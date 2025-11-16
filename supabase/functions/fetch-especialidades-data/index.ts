@@ -94,14 +94,16 @@ serve(async (req) => {
           const tmft = Number(cells[col]?.v || 0);
           const efe = Number(cells[col + 1]?.v || 0);
           
-          // Add all records (even with zero values) for complete OM coverage
-          transformedData.push({
-            especialidade: currentEspecialidade,
-            graduacao: col1,
-            om: omName,
-            tmft_sum: tmft,
-            efe_sum: efe,
-          });
+          // Apenas adicionar registros com valores (não incluir zeros)
+          if (tmft > 0 || efe > 0) {
+            transformedData.push({
+              especialidade: currentEspecialidade,
+              graduacao: col1,
+              om: omName,
+              tmft_sum: tmft,
+              efe_sum: efe,
+            });
+          }
         }
       }
     }
