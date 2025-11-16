@@ -79,27 +79,27 @@ serve(async (req) => {
       
       // If col1 is a valid graduação, process the row
       if (col1 && graduacoes.includes(col1)) {
-        // Sum all numeric values from col2 onwards for TMFT
-        let tmftSum = 0;
-        for (let j = 2; j < cells.length; j++) {
-          const val = Number(cells[j]?.v || 0);
-          if (!isNaN(val)) {
-            tmftSum += val;
-          }
-        }
+        // Extract specific columns instead of summing all
+        const tmft_sum = Number(cells[2]?.v || 0);
+        const tmft_ca = Number(cells[3]?.v || 0);
+        const tmft_rm2 = Number(cells[4]?.v || 0);
+        const efe_sum = Number(cells[5]?.v || 0);
+        const efe_ca = Number(cells[6]?.v || 0);
+        const efe_rm2 = Number(cells[7]?.v || 0);
+        const om = String(cells[8]?.v || omName).trim();
         
-        console.log(`Processando ${col1} de ${currentEspecialidade}: TMFT soma = ${tmftSum}`);
+        console.log(`Processando ${col1} de ${currentEspecialidade}: TMFT=${tmft_sum}, EFE=${efe_sum}, OM=${om}`);
         
         transformedData.push({
           especialidade: currentEspecialidade,
           graduacao: col1,
-          om: omName,
-          tmft_sum: tmftSum,
-          tmft_ca: 0,
-          tmft_rm2: 0,
-          efe_sum: tmftSum, // Using same value for now
-          efe_ca: 0,
-          efe_rm2: 0,
+          om: om,
+          tmft_sum: tmft_sum,
+          tmft_ca: tmft_ca,
+          tmft_rm2: tmft_rm2,
+          efe_sum: efe_sum,
+          efe_ca: efe_ca,
+          efe_rm2: efe_rm2,
         });
       }
     }
