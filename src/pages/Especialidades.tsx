@@ -191,14 +191,14 @@ const Especialidades = () => {
   const validOMs = ['BAMRJ', 'CDAM', 'CDU-1DN', 'CDU-BAMRJ', 'CMM', 'COpAb', 'CSupAb', 
                     'DepCMRJ', 'DepFMRJ', 'DepMSMRJ', 'DepSIMRJ', 'DepSMRJ'];
 
-  // Filter data by selected OM and valid OMs only
+  // Filter data by selected OM
   const filteredData = selectedOM 
-    ? data.filter(item => item.om === selectedOM && validOMs.includes(item.om))
-    : data.filter(item => validOMs.includes(item.om));
+    ? data.filter(item => item.om === selectedOM)
+    : data;
   
-  // Extrair OMs únicas dinamicamente dos dados, mas filtrar apenas as válidas
+  // Extrair OMs únicas dinamicamente dos dados
   const uniqueOMs = Array.from(new Set(
-    data.map(item => item.om).filter(om => validOMs.includes(om))
+    data.map(item => item.om)
   )).sort();
 
   // Calcular contagem de registros por OM
