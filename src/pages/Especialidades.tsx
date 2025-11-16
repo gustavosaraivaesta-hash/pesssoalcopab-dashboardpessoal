@@ -89,11 +89,11 @@ const Especialidades = () => {
     // Busca inicial
     fetchEspecialidadesData();
 
-    // Auto-refresh a cada 5 segundos
+    // Auto-refresh a cada 2 minutos
     const interval = setInterval(() => {
       console.log('🔄 Auto-refresh dos dados da Página 3...');
       fetchEspecialidadesData();
-    }, 5000); // 5 segundos
+    }, 120000); // 2 minutos
 
     return () => clearInterval(interval);
   }, [navigate]);

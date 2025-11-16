@@ -75,11 +75,11 @@ const Index = () => {
     // Initial fetch
     fetchData();
 
-    // Auto-refresh a cada 5 segundos
+    // Auto-refresh a cada 2 minutos
     const interval = setInterval(() => {
       console.log('Auto-refreshing data...');
       fetchData();
-    }, 5000); // 5 segundos
+    }, 120000); // 2 minutos
 
     return () => clearInterval(interval);
   }, [navigate]);
