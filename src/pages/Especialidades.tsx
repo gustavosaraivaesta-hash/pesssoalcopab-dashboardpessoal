@@ -198,9 +198,11 @@ const Especialidades = () => {
     doc.text(pageTitle, 14, currentY);
     currentY += 8;
 
-    // Se múltiplas OMs selecionadas, separar por OM
-    if (selectedOMs.length > 1) {
-      selectedOMs.forEach((om, omIndex) => {
+    // Se múltiplas OMs selecionadas OU especialidades filtradas, separar por OM
+    if (selectedOMs.length > 1 || selectedEspecialidades.length > 0) {
+      const omsToShow = selectedOMs.length > 0 ? selectedOMs : allOMs.filter(om => filteredData.some(item => item.om === om));
+      
+      omsToShow.forEach((om, omIndex) => {
         // Filtrar dados apenas para esta OM
         const omData = filteredData.filter(item => item.om === om);
         
@@ -209,7 +211,15 @@ const Especialidades = () => {
         // Adicionar nova página se não for a primeira OM
         if (omIndex > 0) {
           doc.addPage();
-          currentY = 15;
+          
+          // Adicionar brasão e textos no topo de cada nova página
+          doc.addImage(brasaoRepublica, 'PNG', brasaoX, 10, brasaoWidth, brasaoHeight);
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
+          doc.text('MARINHA DO BRASIL', doc.internal.pageSize.width / 2, 46, { align: 'center' });
+          doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', doc.internal.pageSize.width / 2, 52, { align: 'center' });
+          
+          currentY = 60;
         }
 
         // Título da OM
