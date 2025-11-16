@@ -168,13 +168,13 @@ const Especialidades = () => {
     const marginBottom = 20;
     let isFirstSection = true;
 
-    // Adicionar imagem do cabeçalho no topo
-    const imgWidth = 180;
-    const imgHeight = 35;
+    // Adicionar imagem do cabeçalho no topo (menor e centralizada)
+    const imgWidth = 120;
+    const imgHeight = 24;
     const imgX = (doc.internal.pageSize.width - imgWidth) / 2;
     doc.addImage(marinhaHeader, 'PNG', imgX, 10, imgWidth, imgHeight);
     
-    let currentY = 50; // Começar após a imagem
+    let currentY = 40; // Começar após a imagem
 
     // Título do documento
     doc.setFontSize(16);
