@@ -4,7 +4,6 @@ export const GRADUACOES = ["SO", "1SG", "2SG", "3SG", "CB", "MN"];
 
 export const OMS = [
   "COpAb",
-  "COMRJ",
   "COpAb",
   "BAMRJ",
   "CMM",
@@ -73,14 +72,6 @@ export const mockMilitaryData: MilitaryData[] = [
   { id: "4", nome: "3SG-COpAb", especialidade: "EL", graduacao: "3SG", om: "COpAb", sdp: "SDP-1", tmft: 35, exi: 29, dif: -6, previsaoEmbarque: "2025-01", pracasTTC: 22, servidoresCivis: 0, percentualPracasAtiva: 96, percentualForcaTrabalho: 101 },
   { id: "5", nome: "CB-COpAb", especialidade: "CN", graduacao: "CB", om: "COpAb", sdp: "SDP-1", tmft: 34, exi: 12, dif: -22, previsaoEmbarque: "2025-01", pracasTTC: 22, servidoresCivis: 0, percentualPracasAtiva: 96, percentualForcaTrabalho: 101 },
   { id: "6", nome: "MN-COpAb", especialidade: "SI", graduacao: "MN", om: "COpAb", sdp: "SDP-1", tmft: 22, exi: 23, dif: 1, previsaoEmbarque: "2025-01", pracasTTC: 22, servidoresCivis: 0, percentualPracasAtiva: 96, percentualForcaTrabalho: 101 },
-
-  // COMRJ - Coluna 2 da planilha
-  { id: "7", nome: "SO-COMRJ", especialidade: "MR", graduacao: "SO", om: "COMRJ", sdp: "SDP-2", tmft: 1, exi: 11, dif: 10, previsaoEmbarque: "2025-01", pracasTTC: 16, servidoresCivis: 11, percentualPracasAtiva: 75, percentualForcaTrabalho: 75 },
-  { id: "8", nome: "1SG-COMRJ", especialidade: "AD", graduacao: "1SG", om: "COMRJ", sdp: "SDP-2", tmft: 13, exi: 6, dif: -7, previsaoEmbarque: "2025-01", pracasTTC: 14, servidoresCivis: 6, percentualPracasAtiva: 75, percentualForcaTrabalho: 75 },
-  { id: "9", nome: "2SG-COMRJ", especialidade: "MA", graduacao: "2SG", om: "COMRJ", sdp: "SDP-2", tmft: 7, exi: 21, dif: 14, previsaoEmbarque: "2025-01", pracasTTC: 6, servidoresCivis: 2, percentualPracasAtiva: 75, percentualForcaTrabalho: 75 },
-  { id: "10", nome: "3SG-COMRJ", especialidade: "EL", graduacao: "3SG", om: "COMRJ", sdp: "SDP-2", tmft: 32, exi: 11, dif: -21, previsaoEmbarque: "2025-01", pracasTTC: 14, servidoresCivis: 6, percentualPracasAtiva: 75, percentualForcaTrabalho: 75 },
-  { id: "11", nome: "CB-COMRJ", especialidade: "CN", graduacao: "CB", om: "COMRJ", sdp: "SDP-2", tmft: 21, exi: 3, dif: -18, previsaoEmbarque: "2025-01", pracasTTC: 23, servidoresCivis: 30, percentualPracasAtiva: 75, percentualForcaTrabalho: 75 },
-  { id: "12", nome: "MN-COMRJ", especialidade: "SI", graduacao: "MN", om: "COMRJ", sdp: "SDP-2", tmft: 5, exi: 7, dif: 2, previsaoEmbarque: "2025-01", pracasTTC: 4, servidoresCivis: 6, percentualPracasAtiva: 75, percentualForcaTrabalho: 75 },
 
   // COpAb - Coluna 3 da planilha
   { id: "13", nome: "SO-COpAb", especialidade: "MR", graduacao: "SO", om: "COpAb", sdp: "SDP-3", tmft: 7, exi: 9, dif: 2, previsaoEmbarque: "2025-01", pracasTTC: 6, servidoresCivis: 2, percentualPracasAtiva: 90, percentualForcaTrabalho: 93 },
@@ -180,7 +171,6 @@ export const mockMilitaryData: MilitaryData[] = [
 
   // PRAÇAS TTC - Linha especial da planilha
   { id: "85", nome: "PRACAS-TTC-COpAb", especialidade: "TTC", graduacao: "PRAÇAS TTC", om: "COpAb", sdp: "SDP-TTC", tmft: 22, exi: 17, dif: -5, previsaoEmbarque: "2025-01", pracasTTC: 17, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
-  { id: "86", nome: "PRACAS-TTC-COMRJ", especialidade: "TTC", graduacao: "PRAÇAS TTC", om: "COMRJ", sdp: "SDP-TTC", tmft: 16, exi: 14, dif: -2, previsaoEmbarque: "2025-01", pracasTTC: 14, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
   { id: "87", nome: "PRACAS-TTC-COpAb", especialidade: "TTC", graduacao: "PRAÇAS TTC", om: "COpAb", sdp: "SDP-TTC", tmft: 7, exi: 6, dif: -1, previsaoEmbarque: "2025-01", pracasTTC: 6, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
   { id: "88", nome: "PRACAS-TTC-BAMRJ", especialidade: "TTC", graduacao: "PRAÇAS TTC", om: "BAMRJ", sdp: "SDP-TTC", tmft: 24, exi: 23, dif: -1, previsaoEmbarque: "2025-01", pracasTTC: 23, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
   { id: "89", nome: "PRACAS-TTC-CMM", especialidade: "TTC", graduacao: "PRAÇAS TTC", om: "CMM", sdp: "SDP-TTC", tmft: 5, exi: 5, dif: 0, previsaoEmbarque: "2025-01", pracasTTC: 5, servidoresCivis: 0, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
@@ -196,7 +186,6 @@ export const mockMilitaryData: MilitaryData[] = [
 
   // SERVIDORES CIVIS - Linha especial da planilha
   { id: "99", nome: "CIVIS-COpAb", especialidade: "CIV", graduacao: "SERVIDORES CIVIS", om: "COpAb", sdp: "SDP-CIV", tmft: 0, exi: 13, dif: 13, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 13, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
-  { id: "100", nome: "CIVIS-COMRJ", especialidade: "CIV", graduacao: "SERVIDORES CIVIS", om: "COMRJ", sdp: "SDP-CIV", tmft: 11, exi: 6, dif: -5, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 6, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
   { id: "101", nome: "CIVIS-COpAb", especialidade: "CIV", graduacao: "SERVIDORES CIVIS", om: "COpAb", sdp: "SDP-CIV", tmft: 0, exi: 2, dif: 2, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 2, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
   { id: "102", nome: "CIVIS-BAMRJ", especialidade: "CIV", graduacao: "SERVIDORES CIVIS", om: "BAMRJ", sdp: "SDP-CIV", tmft: 10, exi: 30, dif: 20, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 30, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
   { id: "103", nome: "CIVIS-CMM", especialidade: "CIV", graduacao: "SERVIDORES CIVIS", om: "CMM", sdp: "SDP-CIV", tmft: 2, exi: 24, dif: 22, previsaoEmbarque: "2025-01", pracasTTC: 0, servidoresCivis: 24, percentualPracasAtiva: 0, percentualForcaTrabalho: 0 },
