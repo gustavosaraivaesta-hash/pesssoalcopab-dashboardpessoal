@@ -169,19 +169,19 @@ const Especialidades = () => {
     let isFirstSection = true;
 
     // Adicionar brasão da República no topo centralizado
-    const brasaoWidth = 25;
-    const brasaoHeight = 25;
+    const brasaoWidth = 32;
+    const brasaoHeight = 32;
     const brasaoX = (doc.internal.pageSize.width - brasaoWidth) / 2;
     doc.addImage(brasaoRepublica, 'PNG', brasaoX, 10, brasaoWidth, brasaoHeight);
     
     // Adicionar textos centralizados abaixo do brasão
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('MARINHA DO BRASIL', doc.internal.pageSize.width / 2, 40, { align: 'center' });
+    doc.text('MARINHA DO BRASIL', doc.internal.pageSize.width / 2, 46, { align: 'center' });
     doc.setFontSize(10);
-    doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', doc.internal.pageSize.width / 2, 46, { align: 'center' });
+    doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', doc.internal.pageSize.width / 2, 52, { align: 'center' });
     
-    let currentY = 55; // Começar após o cabeçalho
+    let currentY = 60; // Começar após o cabeçalho
 
     // Título do documento
     doc.setFontSize(16);
