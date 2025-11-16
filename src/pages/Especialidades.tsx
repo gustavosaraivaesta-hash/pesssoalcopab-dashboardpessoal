@@ -190,7 +190,7 @@ const Especialidades = () => {
     doc.text('MARINHA DO BRASIL', doc.internal.pageSize.width / 2, 45, { align: 'center' });
     doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', doc.internal.pageSize.width / 2, 50, { align: 'center' });
     
-    let currentY = 56; // Começar após o cabeçalho
+    let currentY = 66; // Começar 4 linhas abaixo do cabeçalho
 
     // Título do documento
     doc.setFontSize(12);
