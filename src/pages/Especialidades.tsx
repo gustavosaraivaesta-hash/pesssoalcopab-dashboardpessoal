@@ -12,12 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -194,11 +188,12 @@ const Especialidades = () => {
         });
 
         if (rowTmft > 0 || rowEfe > 0) {
+          const diff = rowTmft - rowEfe;
           tableData.push([
             grad,
             rowTmft,
             rowEfe,
-            rowTmft - rowEfe
+            { content: diff.toString(), styles: { textColor: diff < 0 ? [220, 38, 38] : [0, 0, 0] } }
           ]);
         }
       });
@@ -249,38 +244,6 @@ const Especialidades = () => {
     toast.success("PDF exportado com sucesso!");
   };
 
-  const exportToExcel = () => {
-    const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
-    let csvContent = "Especialidade,Graduação,TMFT,EFE,DIF\n";
-
-    Object.entries(spreadsheetData).forEach(([especialidade, graduacoes]) => {
-      graduacaoKeys.forEach(grad => {
-        const omData = graduacoes[grad] || {};
-        let rowTmft = 0;
-        let rowEfe = 0;
-        
-        omsInData.forEach(om => {
-          rowTmft += (omData[om]?.tmft || 0);
-          rowEfe += (omData[om]?.efe || 0);
-        });
-
-        if (rowTmft > 0 || rowEfe > 0) {
-          csvContent += `"${especialidade}","${grad}",${rowTmft},${rowEfe},${rowTmft - rowEfe}\n`;
-        }
-      });
-    });
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `especialidades_${selectedOM || 'todas'}_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success("Excel exportado com sucesso!");
-  };
 
   if (loading) {
     return (
@@ -407,25 +370,14 @@ const Especialidades = () => {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="hover:scale-105 transition-transform gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Exportar
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={exportToPDF}>
-                  Exportar para PDF
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={exportToExcel}>
-                  Exportar para Excel
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              onClick={exportToPDF}
+              variant="outline"
+              className="hover:scale-105 transition-transform gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Exportar PDF
+            </Button>
             <Button
               onClick={fetchEspecialidadesData}
               variant="outline"
@@ -572,7 +524,9 @@ const Especialidades = () => {
                         <TableCell className="text-center">
                           {rowEfe}
                         </TableCell>
-                        <TableCell className="text-center font-semibold bg-primary/5">
+                        <TableCell className={`text-center font-semibold bg-primary/5 ${
+                          rowTmft - rowEfe < 0 ? 'text-red-600 dark:text-red-400' : ''
+                        }`}>
                           {rowTmft - rowEfe}
                         </TableCell>
                       </TableRow>
@@ -591,7 +545,9 @@ const Especialidades = () => {
                       <TableCell className="text-center">
                         {especialidadeTotal.efe}
                       </TableCell>
-                      <TableCell className="text-center bg-primary/20">
+                      <TableCell className={`text-center bg-primary/20 ${
+                        especialidadeTotal.tmft - especialidadeTotal.efe < 0 ? 'text-red-600 dark:text-red-400 font-bold' : ''
+                      }`}>
                         {especialidadeTotal.tmft - especialidadeTotal.efe}
                       </TableCell>
                     </TableRow>
