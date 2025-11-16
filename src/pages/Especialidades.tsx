@@ -176,7 +176,7 @@ const Especialidades = () => {
     
     const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
     const pageHeight = doc.internal.pageSize.height;
-    const marginBottom = 20;
+    const marginBottom = 15;
 
     // Adicionar brasão da República no topo centralizado
     const brasaoWidth = 32;
@@ -185,18 +185,18 @@ const Especialidades = () => {
     doc.addImage(brasaoRepublica, 'PNG', brasaoX, 10, brasaoWidth, brasaoHeight);
     
     // Adicionar textos centralizados abaixo do brasão
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('MARINHA DO BRASIL', doc.internal.pageSize.width / 2, 46, { align: 'center' });
-    doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', doc.internal.pageSize.width / 2, 52, { align: 'center' });
+    doc.text('MARINHA DO BRASIL', doc.internal.pageSize.width / 2, 45, { align: 'center' });
+    doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', doc.internal.pageSize.width / 2, 50, { align: 'center' });
     
-    let currentY = 60; // Começar após o cabeçalho
+    let currentY = 56; // Começar após o cabeçalho
 
     // Título do documento
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.text(pageTitle, 14, currentY);
-    currentY += 8;
+    currentY += 6;
 
     // Se múltiplas OMs selecionadas OU especialidades filtradas, separar por OM
     if (selectedOMs.length > 1 || selectedEspecialidades.length > 0) {
@@ -215,11 +215,11 @@ const Especialidades = () => {
         }
 
         // Título da OM
-        doc.setFontSize(12);
+        doc.setFontSize(11);
         doc.setTextColor(59, 130, 246);
         doc.text(`${om}`, 14, currentY);
         doc.setTextColor(0, 0, 0);
-        currentY += 6;
+        currentY += 5;
 
         // Agrupar dados por especialidade para esta OM
         const omSpreadsheetData = omData.reduce((acc, item) => {
@@ -270,37 +270,37 @@ const Especialidades = () => {
           });
 
           if (tableData.length > 0) {
-            const neededSpace = 15 + (tableData.length * 6) + 8;
+            const neededSpace = 12 + (tableData.length * 5) + 6;
             
             if (currentY + neededSpace > pageHeight - marginBottom) {
               doc.addPage();
-              currentY = 15;
+              currentY = 10;
             }
 
             if (!isFirstSection) {
-              currentY += 5;
+              currentY += 3;
             }
             isFirstSection = false;
 
-            doc.setFontSize(10);
+            doc.setFontSize(9);
             doc.setTextColor(59, 130, 246);
             doc.text(`${especialidade}`, 14, currentY);
             doc.setTextColor(0, 0, 0);
-            currentY += 1;
+            currentY += 0.5;
 
             autoTable(doc, {
               head: [['Grad', 'TMFT', 'EFE', 'DIF']],
               body: tableData,
               startY: currentY,
-              styles: { fontSize: 7, cellPadding: 1.5 },
-              headStyles: { fillColor: [59, 130, 246], fontSize: 7 },
+              styles: { fontSize: 6.5, cellPadding: 1 },
+              headStyles: { fillColor: [59, 130, 246], fontSize: 6.5 },
               margin: { left: 14 },
               didDrawPage: function(data) {
                 currentY = data.cursor?.y || currentY;
               }
             });
 
-            currentY = (doc as any).lastAutoTable.finalY + 1;
+            currentY = (doc as any).lastAutoTable.finalY + 0.5;
           }
         });
       });
@@ -333,37 +333,37 @@ const Especialidades = () => {
         });
 
         if (tableData.length > 0) {
-          const neededSpace = 15 + (tableData.length * 6) + 8;
+          const neededSpace = 12 + (tableData.length * 5) + 6;
           
           if (currentY + neededSpace > pageHeight - marginBottom) {
             doc.addPage();
-            currentY = 15;
+            currentY = 10;
           }
 
           if (!isFirstSection) {
-            currentY += 5;
+            currentY += 3;
           }
           isFirstSection = false;
 
-          doc.setFontSize(10);
+          doc.setFontSize(9);
           doc.setTextColor(59, 130, 246);
           doc.text(`${especialidade}`, 14, currentY);
           doc.setTextColor(0, 0, 0);
-          currentY += 1;
+          currentY += 0.5;
 
           autoTable(doc, {
             head: [['Grad', 'TMFT', 'EFE', 'DIF']],
             body: tableData,
             startY: currentY,
-            styles: { fontSize: 7, cellPadding: 1.5 },
-            headStyles: { fillColor: [59, 130, 246], fontSize: 7 },
+            styles: { fontSize: 6.5, cellPadding: 1 },
+            headStyles: { fillColor: [59, 130, 246], fontSize: 6.5 },
             margin: { left: 14 },
             didDrawPage: function(data) {
               currentY = data.cursor?.y || currentY;
             }
           });
 
-          currentY = (doc as any).lastAutoTable.finalY + 1;
+          currentY = (doc as any).lastAutoTable.finalY + 0.5;
         }
       });
     }
