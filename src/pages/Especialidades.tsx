@@ -248,6 +248,7 @@ const Especialidades = () => {
 
         Object.entries(omSpreadsheetData).forEach(([especialidade, graduacoes]) => {
           const tableData: any[] = [];
+          let especialidadeTotal = { tmft: 0, efe: 0 };
           
           graduacaoKeys.forEach(grad => {
             const omGradData = graduacoes[grad] || {};
@@ -256,6 +257,9 @@ const Especialidades = () => {
             
             rowTmft += (omGradData[om]?.tmft || 0);
             rowEfe += (omGradData[om]?.efe || 0);
+
+            especialidadeTotal.tmft += rowTmft;
+            especialidadeTotal.efe += rowEfe;
 
             if (rowTmft > 0 || rowEfe > 0) {
               const diff = rowTmft - rowEfe;
@@ -267,6 +271,17 @@ const Especialidades = () => {
               ]);
             }
           });
+
+          // Adicionar linha de total
+          if (tableData.length > 0) {
+            const totalDiff = especialidadeTotal.tmft - especialidadeTotal.efe;
+            tableData.push([
+              { content: 'TOTAL', styles: { fontStyle: 'bold' } },
+              { content: especialidadeTotal.tmft.toString(), styles: { fontStyle: 'bold' } },
+              { content: especialidadeTotal.efe.toString(), styles: { fontStyle: 'bold' } },
+              { content: totalDiff.toString(), styles: { fontStyle: 'bold', textColor: totalDiff < 0 ? [220, 38, 38] : [0, 0, 0] } }
+            ]);
+          }
 
           if (tableData.length > 0) {
             const neededSpace = 15 + (tableData.length * 7) + 8;
@@ -317,6 +332,7 @@ const Especialidades = () => {
 
       Object.entries(spreadsheetData).forEach(([especialidade, graduacoes]) => {
         const tableData: any[] = [];
+        let especialidadeTotal = { tmft: 0, efe: 0 };
         
         graduacaoKeys.forEach(grad => {
           const omData = graduacoes[grad] || {};
@@ -328,6 +344,9 @@ const Especialidades = () => {
             rowEfe += (omData[om]?.efe || 0);
           });
 
+          especialidadeTotal.tmft += rowTmft;
+          especialidadeTotal.efe += rowEfe;
+
           if (rowTmft > 0 || rowEfe > 0) {
             const diff = rowTmft - rowEfe;
             tableData.push([
@@ -338,6 +357,17 @@ const Especialidades = () => {
             ]);
           }
         });
+
+        // Adicionar linha de total
+        if (tableData.length > 0) {
+          const totalDiff = especialidadeTotal.tmft - especialidadeTotal.efe;
+          tableData.push([
+            { content: 'TOTAL', styles: { fontStyle: 'bold' } },
+            { content: especialidadeTotal.tmft.toString(), styles: { fontStyle: 'bold' } },
+            { content: especialidadeTotal.efe.toString(), styles: { fontStyle: 'bold' } },
+            { content: totalDiff.toString(), styles: { fontStyle: 'bold', textColor: totalDiff < 0 ? [220, 38, 38] : [0, 0, 0] } }
+          ]);
+        }
 
         if (tableData.length > 0) {
           const neededSpace = 15 + (tableData.length * 7) + 8;
