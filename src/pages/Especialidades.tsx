@@ -198,7 +198,7 @@ const Especialidades = () => {
             grad,
             rowTmft,
             rowEfe,
-            rowTmft
+            rowTmft - rowEfe
           ]);
         }
       });
@@ -229,7 +229,7 @@ const Especialidades = () => {
 
         // Tabela de dados
         autoTable(doc, {
-          head: [['Grad', 'TMFT', 'EFE', 'TOTAL']],
+          head: [['Grad', 'TMFT', 'EFE', 'DIF']],
           body: tableData,
           startY: currentY,
           styles: { fontSize: 8, cellPadding: 2 },
@@ -251,7 +251,7 @@ const Especialidades = () => {
 
   const exportToExcel = () => {
     const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
-    let csvContent = "Especialidade,Graduação,TMFT,EFE,TOTAL\n";
+    let csvContent = "Especialidade,Graduação,TMFT,EFE,DIF\n";
 
     Object.entries(spreadsheetData).forEach(([especialidade, graduacoes]) => {
       graduacaoKeys.forEach(grad => {
@@ -265,7 +265,7 @@ const Especialidades = () => {
         });
 
         if (rowTmft > 0 || rowEfe > 0) {
-          csvContent += `"${especialidade}","${grad}",${rowTmft},${rowEfe},${rowTmft}\n`;
+          csvContent += `"${especialidade}","${grad}",${rowTmft},${rowEfe},${rowTmft - rowEfe}\n`;
         }
       });
     });
@@ -521,7 +521,7 @@ const Especialidades = () => {
                 </TableHead>
                 <TableHead className="text-center bg-accent/20">TMFT</TableHead>
                 <TableHead className="text-center bg-accent/20">EFE</TableHead>
-                <TableHead className="text-center bg-primary/10">TOTAL</TableHead>
+                <TableHead className="text-center bg-primary/10">DIF</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -573,7 +573,7 @@ const Especialidades = () => {
                           {rowEfe}
                         </TableCell>
                         <TableCell className="text-center font-semibold bg-primary/5">
-                          {rowTmft}
+                          {rowTmft - rowEfe}
                         </TableCell>
                       </TableRow>
                     );
@@ -592,7 +592,7 @@ const Especialidades = () => {
                         {especialidadeTotal.efe}
                       </TableCell>
                       <TableCell className="text-center bg-primary/20">
-                        {especialidadeTotal.tmft}
+                        {especialidadeTotal.tmft - especialidadeTotal.efe}
                       </TableCell>
                     </TableRow>
                   );
