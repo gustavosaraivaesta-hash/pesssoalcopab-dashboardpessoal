@@ -73,6 +73,8 @@ serve(async (req) => {
     const transformedData: any[] = [];
     const graduacoes = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
     let currentEspecialidade = '';
+    let totalEfeCount = 0;
+    let totalTmftCount = 0;
     
     // Process all data rows (start from row 0)
     for (let i = 0; i < rows.length; i++) {
@@ -83,7 +85,7 @@ serve(async (req) => {
       // If col0 has text and is not a graduação, it's a new especialidade
       if (col0 && col0.length > 2 && !graduacoes.includes(col0)) {
         currentEspecialidade = col0;
-        console.log(`Nova especialidade: ${currentEspecialidade}`);
+        console.log(`📋 Nova especialidade: ${currentEspecialidade}`);
       }
       
       // If col1 is a valid graduação, process the row
@@ -91,40 +93,78 @@ serve(async (req) => {
         // For each OM, create a record
         for (const [colIndex, omName] of Object.entries(omMap)) {
           const col = Number(colIndex);
-          const tmft = Number(cells[col]?.v || 0);
-          const efe = Number(cells[col + 1]?.v || 0);
           
-          // Log para debug quando há valores EFE
+          // Garantir conversão correta para número
+          let tmft = 0;
+          let efe = 0;
+          
+          // Ler TMFT (coluna par)
+          const tmftCell = cells[col];
+          if (tmftCell && tmftCell.v !== null && tmftCell.v !== undefined) {
+            const tmftValue = String(tmftCell.v).trim();
+            tmft = tmftValue ? parseFloat(tmftValue) || 0 : 0;
+          }
+          
+          // Ler EFE (coluna ímpar - col+1)
+          const efeCell = cells[col + 1];
+          if (efeCell && efeCell.v !== null && efeCell.v !== undefined) {
+            const efeValue = String(efeCell.v).trim();
+            efe = efeValue ? parseFloat(efeValue) || 0 : 0;
+          }
+          
+          // Contar totais para logging
+          if (tmft > 0) totalTmftCount++;
           if (efe > 0) {
-            console.log(`✅ EFE encontrado: ${currentEspecialidade} | ${col1} | ${omName} | TMFT=${tmft} | EFE=${efe}`);
+            totalEfeCount++;
+            console.log(`✅ EFE > 0: ${currentEspecialidade} | ${col1} | ${omName} | TMFT=${tmft} | EFE=${efe}`);
           }
           
-          // Apenas adicionar registros com valores (não incluir zeros)
-          if (tmft > 0 || efe > 0) {
-            transformedData.push({
-              especialidade: currentEspecialidade,
-              graduacao: col1,
-              om: omName,
-              tmft_sum: tmft,
-              efe_sum: efe,
-            });
-          }
+          // Adicionar TODOS os registros (incluindo zeros) para análise completa
+          transformedData.push({
+            especialidade: currentEspecialidade,
+            graduacao: col1,
+            om: omName,
+            tmft_sum: tmft,
+            efe_sum: efe,
+          });
         }
       }
     }
     
-    console.log(`Total de registros transformados: ${transformedData.length}`);
+    console.log(`📊 Estatísticas de leitura:`);
+    console.log(`   - Total de registros: ${transformedData.length}`);
+    console.log(`   - Registros com TMFT > 0: ${totalTmftCount}`);
+    console.log(`   - Registros com EFE > 0: ${totalEfeCount}`);
+    
+    
+    console.log(`📊 Estatísticas de leitura:`);
+    console.log(`   - Total de registros: ${transformedData.length}`);
+    console.log(`   - Registros com TMFT > 0: ${totalTmftCount}`);
+    console.log(`   - Registros com EFE > 0: ${totalEfeCount}`);
     
     // Count records per OM
     const omCounts: { [key: string]: number } = {};
+    const omWithData: { [key: string]: { tmft: number, efe: number } } = {};
+    
     transformedData.forEach(record => {
       omCounts[record.om] = (omCounts[record.om] || 0) + 1;
+      
+      if (!omWithData[record.om]) {
+        omWithData[record.om] = { tmft: 0, efe: 0 };
+      }
+      if (record.tmft_sum > 0) omWithData[record.om].tmft++;
+      if (record.efe_sum > 0) omWithData[record.om].efe++;
     });
     
-    console.log('Registros por OM:', omCounts);
-    console.log('OMs únicas:', Object.keys(omCounts).sort());
-    console.log('Primeiros 5 registros:', transformedData.slice(0, 5));
-    console.log('Últimos 5 registros:', transformedData.slice(-5));
+    console.log('📈 Registros por OM:', omCounts);
+    console.log('💾 Dados com valores por OM:', omWithData);
+    console.log('🏢 OMs únicas:', Object.keys(omCounts).sort());
+    
+    // Mostrar amostra de dados
+    const recordsWithEfe = transformedData.filter(r => r.efe_sum > 0);
+    console.log('✅ Registros com EFE > 0 (primeiros 10):', recordsWithEfe.slice(0, 10));
+    console.log('📝 Primeiros 5 registros gerais:', transformedData.slice(0, 5));
+    console.log('📝 Últimos 5 registros gerais:', transformedData.slice(-5));
     
     return new Response(
       JSON.stringify({ data: transformedData }),
