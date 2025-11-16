@@ -94,7 +94,7 @@ export const DashboardFilters = ({
     }
   };
 
-  const hasSelectedFilters = selectedFilters.om.length > 0 || selectedFilters.especialidade.length > 0 || selectedFilters.pessoal.length > 0;
+  const hasSelectedFilters = selectedFilters.om.length > 0 || selectedFilters.pessoal.length > 0;
 
   const handleRemoveFilter = (filterType: 'om' | 'especialidade' | 'pessoal', value: string) => {
     const newValues = selectedFilters[filterType].filter(v => v !== value);
@@ -118,17 +118,6 @@ export const DashboardFilters = ({
     pdf.setFontSize(12);
     pdf.text("Filtros Aplicados:", 14, yPos);
     yPos += 7;
-    
-    if (selectedFilters.especialidade.length > 0) {
-      pdf.setFontSize(10);
-      pdf.text("Especialidade:", 14, yPos);
-      yPos += 5;
-      selectedFilters.especialidade.forEach(value => {
-        pdf.text(`  • ${value}`, 14, yPos);
-        yPos += 4;
-      });
-      yPos += 3;
-    }
     
     if (selectedFilters.om.length > 0) {
       pdf.setFontSize(10);
@@ -217,7 +206,6 @@ export const DashboardFilters = ({
 
   const handleClearFilters = () => {
     onFilterChange("om", []);
-    onFilterChange("especialidade", []);
     onFilterChange("pessoal", []);
   };
 
@@ -233,9 +221,9 @@ export const DashboardFilters = ({
                   <Filter className="h-4 w-4" />
                   Filtros
                   {hasSelectedFilters && (
-                    <Badge variant="secondary" className="ml-2">
-                      {selectedFilters.especialidade.length + selectedFilters.om.length + selectedFilters.pessoal.length}
-                    </Badge>
+                  <Badge variant="secondary" className="ml-2">
+                    {selectedFilters.om.length + selectedFilters.pessoal.length}
+                  </Badge>
                   )}
                 </Button>
               </SheetTrigger>
@@ -248,37 +236,11 @@ export const DashboardFilters = ({
                 </SheetHeader>
                 
                 <div className="mt-6">
-                  <Tabs defaultValue="especialidade" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="especialidade">Especialidade</TabsTrigger>
+                  <Tabs defaultValue="om" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="om">OM</TabsTrigger>
               <TabsTrigger value="pessoal">Pessoal</TabsTrigger>
             </TabsList>
-
-            {/* Aba Especialidade */}
-            <TabsContent value="especialidade">
-              <ScrollArea className="h-[400px] w-full rounded-md border p-4">
-                <div className="space-y-2">
-                  {ESPECIALIDADES.map((esp) => (
-                    <div key={esp} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`esp-${esp}`}
-                        checked={selectedFilters.especialidade.includes(esp)}
-                        onCheckedChange={(checked) => 
-                          handleCheckboxChange("especialidade", esp, checked as boolean)
-                        }
-                      />
-                      <Label
-                        htmlFor={`esp-${esp}`}
-                        className="text-sm font-normal cursor-pointer"
-                      >
-                        {esp}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
 
             {/* Aba OM */}
             <TabsContent value="om">
@@ -367,17 +329,6 @@ export const DashboardFilters = ({
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-foreground">Filtros Ativos:</h3>
               <div className="flex flex-wrap gap-2">
-                {selectedFilters.especialidade.map((value) => (
-                  <Badge key={`especialidade-${value}`} variant="secondary" className="gap-1">
-                    {value}
-                    <button
-                      onClick={() => handleRemoveFilter('especialidade', value)}
-                      className="ml-1 hover:bg-background/20 rounded-full"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
                 {selectedFilters.om.map((value) => (
                   <Badge key={`om-${value}`} variant="secondary" className="gap-1">
                     OM: {value}

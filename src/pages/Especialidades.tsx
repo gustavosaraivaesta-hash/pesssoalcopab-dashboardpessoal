@@ -168,15 +168,13 @@ const Especialidades = () => {
       ? `Especialidades - ${selectedOM}`
       : "Especialidades - Todas as OMs";
     
-    doc.setFontSize(16);
-    doc.text(pageTitle, 14, 15);
-    doc.setFontSize(10);
-    doc.text(`Total de registros: ${filteredData.length}`, 14, 22);
-
-    const tableData: any[] = [];
     const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
+    let isFirstPage = true;
 
     Object.entries(spreadsheetData).forEach(([especialidade, graduacoes]) => {
+      // Preparar dados para esta especialidade
+      const tableData: any[] = [];
+      
       graduacaoKeys.forEach(grad => {
         const omData = graduacoes[grad] || {};
         let rowTmft = 0;
@@ -189,7 +187,6 @@ const Especialidades = () => {
 
         if (rowTmft > 0 || rowEfe > 0) {
           tableData.push([
-            especialidade,
             grad,
             rowTmft,
             rowEfe,
@@ -197,14 +194,34 @@ const Especialidades = () => {
           ]);
         }
       });
-    });
 
-    autoTable(doc, {
-      head: [['Especialidade', 'Graduação', 'TMFT', 'EFE', 'TOTAL']],
-      body: tableData,
-      startY: 28,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [59, 130, 246] }
+      // Se houver dados para esta especialidade, adicionar ao PDF
+      if (tableData.length > 0) {
+        // Adicionar nova página se não for a primeira especialidade
+        if (!isFirstPage) {
+          doc.addPage();
+        }
+        isFirstPage = false;
+
+        // Cabeçalho da página
+        doc.setFontSize(16);
+        doc.text(pageTitle, 14, 15);
+        doc.setFontSize(14);
+        doc.setTextColor(59, 130, 246);
+        doc.text(`Especialidade: ${especialidade}`, 14, 25);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(`Total de registros: ${tableData.length}`, 14, 32);
+
+        // Tabela de dados
+        autoTable(doc, {
+          head: [['Graduação', 'TMFT', 'EFE', 'TOTAL']],
+          body: tableData,
+          startY: 38,
+          styles: { fontSize: 8 },
+          headStyles: { fillColor: [59, 130, 246] }
+        });
+      }
     });
 
     doc.save(`especialidades_${selectedOM || 'todas'}_${new Date().toISOString().split('T')[0]}.pdf`);
