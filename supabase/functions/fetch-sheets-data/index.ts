@@ -78,9 +78,12 @@ serve(async (req) => {
         
         if (!especialidade || !graduacao) continue;
         
+        // Remove sufixos numéricos como " (1)", " (2)", etc.
+        const cleanEspecialidade = String(especialidade).replace(/\s*\(\d+\)\s*$/, '').trim();
+        
         // Build mapping for Page 1 data
         if (!especialidadeMap[graduacao]) {
-          especialidadeMap[graduacao] = especialidade;
+          especialidadeMap[graduacao] = cleanEspecialidade;
         }
         
         // Extract Page 3 direct data
@@ -92,7 +95,7 @@ serve(async (req) => {
         const efe_rm2 = Number(cells[7]?.v || 0);
         
         especialidadesData.push({
-          especialidade,
+          especialidade: cleanEspecialidade,
           graduacao,
           om,
           tmft_sum,
