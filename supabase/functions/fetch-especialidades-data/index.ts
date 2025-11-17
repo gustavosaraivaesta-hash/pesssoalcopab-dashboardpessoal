@@ -95,7 +95,8 @@ serve(async (req) => {
       
       // If col0 has text and is not a graduação, it's a new especialidade
       if (col0 && col0.length > 2 && !graduacoes.includes(col0)) {
-        currentEspecialidade = col0;
+        // Remove sufixos numéricos como " (1)", " (2)", etc.
+        currentEspecialidade = col0.replace(/\s*\(\d+\)\s*$/, '').trim();
         console.log(`📋 Nova especialidade: ${currentEspecialidade}`);
       }
       
