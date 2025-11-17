@@ -20,10 +20,10 @@ serve(async (req) => {
     // Using Google Sheets API v4 - public access with cache busting
     const timestamp = new Date().getTime();
     
-    // Fetch Page 1 (main data)
-    const sheetsUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&timestamp=${timestamp}`;
+    // Fetch Page 2 (main data) - using gid for second sheet
+    const sheetsUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=289886831&tqx=out:json&timestamp=${timestamp}`;
     
-    console.log('Calling Google Sheets API for Page 1...');
+    console.log('Calling Google Sheets API for Page 2...');
     const response = await fetch(sheetsUrl, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -129,20 +129,20 @@ serve(async (req) => {
     console.log('Processing matrix data with', rows.length - 1, 'rows');
     
     // Define OMs and their column positions (TMFT, EXI, DIF)
-    // IMPORTANTE: Não existe COMRJ na planilha
+    // Page 2 data structure
     const oms = [
-      { name: 'COpAb', startCol: 7 },
-      { name: 'BAMRJ', startCol: 10 },
-      { name: 'CMM', startCol: 13 },
-      { name: 'DepCMRJ', startCol: 16 },
-      { name: 'CDAM', startCol: 19 },
-      { name: 'DepSMRJ', startCol: 22 },
-      { name: 'CSupAb', startCol: 25 },
-      { name: 'DepSIMRJ', startCol: 28 },
-      { name: 'DepMSMRJ', startCol: 31 },
-      { name: 'DepFMRJ', startCol: 34 },
-      { name: 'CDU-BAMRJ', startCol: 37 },
-      { name: 'CDU-1ºDN', startCol: 40 },
+      { name: 'COpAb', startCol: 1 },
+      { name: 'BAMRJ', startCol: 4 },
+      { name: 'CMM', startCol: 7 },
+      { name: 'DepCMRJ', startCol: 10 },
+      { name: 'CDAM', startCol: 13 },
+      { name: 'DepSMRJ', startCol: 16 },
+      { name: 'CSupAb', startCol: 19 },
+      { name: 'DepSIMRJ', startCol: 22 },
+      { name: 'DepMSMRJ', startCol: 25 },
+      { name: 'DepFMRJ', startCol: 28 },
+      { name: 'CDU-BAMRJ', startCol: 31 },
+      { name: 'CDU-1DN', startCol: 34 },
     ];
     
     console.log(`Processing ${oms.length} OMs:`, oms.map(om => om.name).join(', '));
