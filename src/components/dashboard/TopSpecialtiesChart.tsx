@@ -7,12 +7,12 @@ interface TopSpecialtiesChartProps {
 }
 
 export const TopSpecialtiesChart = ({ data }: TopSpecialtiesChartProps) => {
-  // Agrupar dados por especialidade e contar o número de militares
+  // Agrupar dados por especialidade e somar o EXI
   const specialtyCount = new Map<string, number>();
   
   data.forEach(item => {
     const currentCount = specialtyCount.get(item.especialidade) || 0;
-    specialtyCount.set(item.especialidade, currentCount + 1);
+    specialtyCount.set(item.especialidade, currentCount + item.exi);
   });
   
   // Converter para array e ordenar por quantidade (decrescente)
