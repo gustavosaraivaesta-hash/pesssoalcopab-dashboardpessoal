@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from "recharts";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -117,6 +117,11 @@ export const TopSpecialtiesChart = () => {
               {sortedData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={colors[index]} />
               ))}
+              <LabelList 
+                dataKey="quantidade" 
+                position="right" 
+                style={{ fill: 'hsl(var(--foreground))', fontSize: '14px', fontWeight: 'bold' }}
+              />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
