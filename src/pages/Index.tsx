@@ -289,7 +289,7 @@ const Index = () => {
         </div>
 
         {/* Gráfico Top 5 Especialidades */}
-        <TopSpecialtiesChart data={filteredData} />
+        <TopSpecialtiesChart />
 
         {/* Gráfico de Distribuição por OM (quando há filtro de especialidade) */}
         {filters.especialidade.length > 0 && (

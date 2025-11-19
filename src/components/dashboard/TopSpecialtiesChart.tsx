@@ -1,28 +1,54 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
-import { MilitaryData } from "@/types/military";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-interface TopSpecialtiesChartProps {
-  data: MilitaryData[];
+interface EspecialidadeData {
+  especialidade: string;
+  graduacao: string;
+  om: string;
+  tmft_sum: number;
+  efe_sum: number;
 }
 
-export const TopSpecialtiesChart = ({ data }: TopSpecialtiesChartProps) => {
-  // Agrupar dados por especialidade e somar o EXI
-  const specialtyCount = new Map<string, number>();
-  
-  data.forEach(item => {
-    const currentCount = specialtyCount.get(item.especialidade) || 0;
-    specialtyCount.set(item.especialidade, currentCount + item.exi);
-  });
-  
-  // Converter para array e ordenar por quantidade (decrescente)
-  const sortedData = Array.from(specialtyCount.entries())
-    .map(([especialidade, quantidade]) => ({
-      especialidade,
-      quantidade
-    }))
-    .sort((a, b) => b.quantidade - a.quantidade)
-    .slice(0, 5); // Top 5
+export const TopSpecialtiesChart = () => {
+  const [sortedData, setSortedData] = useState<{ especialidade: string; quantidade: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('fetch-especialidades-data');
+        
+        if (error) throw error;
+        
+        // Agrupar por especialidade e somar o efe_sum
+        const specialtyCount = new Map<string, number>();
+        
+        data.forEach((item: EspecialidadeData) => {
+          const currentCount = specialtyCount.get(item.especialidade) || 0;
+          specialtyCount.set(item.especialidade, currentCount + item.efe_sum);
+        });
+        
+        // Converter para array e ordenar por quantidade (decrescente)
+        const sorted = Array.from(specialtyCount.entries())
+          .map(([especialidade, quantidade]) => ({
+            especialidade,
+            quantidade
+          }))
+          .sort((a, b) => b.quantidade - a.quantidade)
+          .slice(0, 5); // Top 5
+        
+        setSortedData(sorted);
+      } catch (error) {
+        console.error('Erro ao buscar dados da Página 3:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Cores gradientes para as barras
   const colors = [
@@ -32,6 +58,23 @@ export const TopSpecialtiesChart = ({ data }: TopSpecialtiesChartProps) => {
     "#93c5fd", // azul mais claro - 4º lugar
     "#bfdbfe", // azul muito claro - 5º lugar
   ];
+
+  if (loading) {
+    return (
+      <Card className="shadow-card bg-gradient-card">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold">
+            Top 5 Especialidades com Maior Número de Militares
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-[400px]">
+            <p className="text-muted-foreground">Carregando...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="shadow-card bg-gradient-card">
