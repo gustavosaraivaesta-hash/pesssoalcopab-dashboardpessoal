@@ -11,7 +11,11 @@ interface EspecialidadeData {
   efe_sum: number;
 }
 
-export const TopSpecialtiesChart = () => {
+interface TopSpecialtiesChartProps {
+  selectedOMs?: string[];
+}
+
+export const TopSpecialtiesChart = ({ selectedOMs = [] }: TopSpecialtiesChartProps) => {
   const [sortedData, setSortedData] = useState<{ especialidade: string; quantidade: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,10 +29,15 @@ export const TopSpecialtiesChart = () => {
         // Extrair o array de dados da resposta
         const especialidadesData = response?.data || [];
         
+        // Filtrar por OMs selecionadas (se houver)
+        const filteredData = selectedOMs.length > 0
+          ? especialidadesData.filter((item: EspecialidadeData) => selectedOMs.includes(item.om))
+          : especialidadesData;
+        
         // Agrupar por especialidade e somar o efe_sum
         const specialtyCount = new Map<string, number>();
         
-        especialidadesData.forEach((item: EspecialidadeData) => {
+        filteredData.forEach((item: EspecialidadeData) => {
           const currentCount = specialtyCount.get(item.especialidade) || 0;
           specialtyCount.set(item.especialidade, currentCount + item.efe_sum);
         });
@@ -51,7 +60,7 @@ export const TopSpecialtiesChart = () => {
     };
 
     fetchData();
-  }, []);
+  }, [selectedOMs]);
 
   // Cores gradientes para as barras
   const colors = [
@@ -65,11 +74,16 @@ export const TopSpecialtiesChart = () => {
   if (loading) {
     return (
       <Card className="shadow-card bg-gradient-card">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold">
-            Top 5 Especialidades com Maior Número de Militares
-          </CardTitle>
-        </CardHeader>
+      <CardHeader>
+        <CardTitle className="text-xl font-semibold">
+          Top 5 Especialidades com Maior Número de Militares
+          {selectedOMs.length > 0 && (
+            <span className="text-sm font-normal text-muted-foreground ml-2">
+              ({selectedOMs.join(', ')})
+            </span>
+          )}
+        </CardTitle>
+      </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[400px]">
             <p className="text-muted-foreground">Carregando...</p>
