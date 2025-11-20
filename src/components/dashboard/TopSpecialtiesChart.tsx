@@ -18,14 +18,17 @@ export const TopSpecialtiesChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('fetch-especialidades-data');
+        const { data: response, error } = await supabase.functions.invoke('fetch-especialidades-data');
         
         if (error) throw error;
+        
+        // Extrair o array de dados da resposta
+        const especialidadesData = response?.data || [];
         
         // Agrupar por especialidade e somar o efe_sum
         const specialtyCount = new Map<string, number>();
         
-        data.forEach((item: EspecialidadeData) => {
+        especialidadesData.forEach((item: EspecialidadeData) => {
           const currentCount = specialtyCount.get(item.especialidade) || 0;
           specialtyCount.set(item.especialidade, currentCount + item.efe_sum);
         });
