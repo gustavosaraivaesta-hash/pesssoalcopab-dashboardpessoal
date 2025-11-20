@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw, Download } from "lucide-react";
 import { toast } from "sonner";
+import { TopSpecialtiesChart } from "@/components/dashboard/TopSpecialtiesChart";
 import {
   Table,
   TableBody,
@@ -777,6 +778,9 @@ const Especialidades = () => {
             </div>
           </div>
         </div>
+
+        {/* Top 5 Especialidades Chart */}
+        <TopSpecialtiesChart />
 
         {/* Spreadsheet View */}
         <div className="bg-card rounded-lg shadow-md border border-border overflow-x-auto">
