@@ -780,7 +780,7 @@ const Especialidades = () => {
         </div>
 
         {/* Top 5 Especialidades Chart */}
-        <TopSpecialtiesChart selectedOMs={selectedOMs} />
+        <TopSpecialtiesChart selectedOMs={selectedOMs} selectedEspecialidades={selectedEspecialidades} />
 
         {/* Spreadsheet View */}
         <div className="bg-card rounded-lg shadow-md border border-border overflow-x-auto">

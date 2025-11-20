@@ -13,9 +13,10 @@ interface EspecialidadeData {
 
 interface TopSpecialtiesChartProps {
   selectedOMs?: string[];
+  selectedEspecialidades?: string[];
 }
 
-export const TopSpecialtiesChart = ({ selectedOMs = [] }: TopSpecialtiesChartProps) => {
+export const TopSpecialtiesChart = ({ selectedOMs = [], selectedEspecialidades = [] }: TopSpecialtiesChartProps) => {
   const [sortedData, setSortedData] = useState<{ especialidade: string; quantidade: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,10 +30,12 @@ export const TopSpecialtiesChart = ({ selectedOMs = [] }: TopSpecialtiesChartPro
         // Extrair o array de dados da resposta
         const especialidadesData = response?.data || [];
         
-        // Filtrar por OMs selecionadas (se houver)
-        const filteredData = selectedOMs.length > 0
-          ? especialidadesData.filter((item: EspecialidadeData) => selectedOMs.includes(item.om))
-          : especialidadesData;
+        // Filtrar por OMs e Especialidades selecionadas
+        const filteredData = especialidadesData.filter((item: EspecialidadeData) => {
+          const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
+          const espMatch = selectedEspecialidades.length === 0 || selectedEspecialidades.includes(item.especialidade);
+          return omMatch && espMatch;
+        });
         
         // Agrupar por especialidade e somar o efe_sum
         const specialtyCount = new Map<string, number>();
@@ -60,7 +63,7 @@ export const TopSpecialtiesChart = ({ selectedOMs = [] }: TopSpecialtiesChartPro
     };
 
     fetchData();
-  }, [selectedOMs]);
+  }, [selectedOMs, selectedEspecialidades]);
 
   // Cores gradientes para as barras
   const colors = [
@@ -77,9 +80,13 @@ export const TopSpecialtiesChart = ({ selectedOMs = [] }: TopSpecialtiesChartPro
       <CardHeader>
         <CardTitle className="text-xl font-semibold">
           Top 5 Especialidades com Maior Número de Militares
-          {selectedOMs.length > 0 && (
+          {(selectedOMs.length > 0 || selectedEspecialidades.length > 0) && (
             <span className="text-sm font-normal text-muted-foreground ml-2">
-              ({selectedOMs.join(', ')})
+              (
+              {selectedOMs.length > 0 && `OMs: ${selectedOMs.join(', ')}`}
+              {selectedOMs.length > 0 && selectedEspecialidades.length > 0 && ' | '}
+              {selectedEspecialidades.length > 0 && `Esp: ${selectedEspecialidades.slice(0, 3).join(', ')}${selectedEspecialidades.length > 3 ? '...' : ''}`}
+              )
             </span>
           )}
         </CardTitle>
