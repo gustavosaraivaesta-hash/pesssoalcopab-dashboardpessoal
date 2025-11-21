@@ -81,6 +81,7 @@ const Especialidades = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedEspecialidades, setSelectedEspecialidades] = useState<string[]>([]);
+  const [selectedGraduacoes, setSelectedGraduacoes] = useState<string[]>([]);
 
   const fetchEspecialidadesData = async () => {
     setLoading(true);
@@ -460,11 +461,12 @@ const Especialidades = () => {
   // Get all unique especialidades from data
   const allEspecialidades = Array.from(new Set(data.map(item => item.especialidade))).sort();
 
-  // Filter data by selected OMs and Especialidades
+  // Filter data by selected OMs, Especialidades, and Graduações
   const filteredData = data.filter(item => {
     const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
     const espMatch = selectedEspecialidades.length === 0 || selectedEspecialidades.includes(item.especialidade);
-    return omMatch && espMatch;
+    const gradMatch = selectedGraduacoes.length === 0 || selectedGraduacoes.includes(item.graduacao);
+    return omMatch && espMatch && gradMatch;
   });
 
   // Calcular contagem de registros por OM e por Especialidade
@@ -780,7 +782,11 @@ const Especialidades = () => {
         </div>
 
         {/* Top 5 Especialidades Chart */}
-        <TopSpecialtiesChart selectedOMs={selectedOMs} selectedEspecialidades={selectedEspecialidades} />
+        <TopSpecialtiesChart 
+          selectedOMs={selectedOMs} 
+          selectedEspecialidades={selectedEspecialidades}
+          selectedGraduacoes={selectedGraduacoes}
+        />
 
         {/* Spreadsheet View */}
         <div className="bg-card rounded-lg shadow-md border border-border overflow-x-auto">
