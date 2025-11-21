@@ -708,6 +708,63 @@ const Especialidades = () => {
           </div>
         </div>
 
+        {/* Filtro de Pessoal (Graduações) */}
+        <div className="bg-card rounded-lg p-4 shadow-md border border-border">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="block text-sm font-medium">Filtrar por Pessoal (selecione uma ou mais graduações):</label>
+              <div className="text-sm font-semibold text-primary">
+                {selectedGraduacoes.length > 0
+                  ? `${selectedGraduacoes.length} Graduação(ões) selecionada(s)`
+                  : `Todas as Graduações`
+                }
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <Button
+                onClick={() => setSelectedGraduacoes(allGraduacoes)}
+                variant="outline"
+                size="sm"
+              >
+                Selecionar Todas
+              </Button>
+              <Button
+                onClick={() => setSelectedGraduacoes([])}
+                variant="outline"
+                size="sm"
+              >
+                Limpar Seleção
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 p-2 border border-border rounded-md">
+              {allGraduacoes.map((grad) => (
+                <label
+                  key={grad}
+                  className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-accent/50 transition-colors ${
+                    selectedGraduacoes.includes(grad) ? 'bg-primary/10 border border-primary' : 'border border-transparent'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedGraduacoes.includes(grad)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedGraduacoes([...selectedGraduacoes, grad]);
+                      } else {
+                        setSelectedGraduacoes(selectedGraduacoes.filter(g => g !== grad));
+                      }
+                    }}
+                    className="w-4 h-4 accent-primary"
+                  />
+                  <span className="text-sm font-medium">
+                    {grad}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Resumo dos Filtros */}
         <div className="bg-card rounded-lg p-4 shadow-md border border-border">
           <div className="flex items-center justify-between flex-wrap gap-4">
@@ -722,6 +779,12 @@ const Especialidades = () => {
                 <span className="font-medium text-muted-foreground">Especialidades: </span>
                 <span className="font-bold text-primary">
                   {selectedEspecialidades.length > 0 ? `${selectedEspecialidades.length} selecionada(s)` : 'Todas'}
+                </span>
+              </div>
+              <div className="text-sm">
+                <span className="font-medium text-muted-foreground">Pessoal: </span>
+                <span className="font-bold text-primary">
+                  {selectedGraduacoes.length > 0 ? `${selectedGraduacoes.length} selecionada(s)` : 'Todas'}
                 </span>
               </div>
             </div>
