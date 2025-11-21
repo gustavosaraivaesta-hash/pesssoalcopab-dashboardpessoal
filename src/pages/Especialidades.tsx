@@ -856,6 +856,7 @@ const Especialidades = () => {
         <GraduationDistributionChart 
           selectedOMs={selectedOMs} 
           selectedEspecialidades={selectedEspecialidades}
+          selectedGraduacoes={selectedGraduacoes}
         />
 
         {/* Spreadsheet View */}

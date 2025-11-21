@@ -14,11 +14,13 @@ interface EspecialidadeData {
 interface GraduationDistributionChartProps {
   selectedOMs?: string[];
   selectedEspecialidades?: string[];
+  selectedGraduacoes?: string[];
 }
 
 export const GraduationDistributionChart = ({ 
   selectedOMs = [], 
-  selectedEspecialidades = [] 
+  selectedEspecialidades = [],
+  selectedGraduacoes = []
 }: GraduationDistributionChartProps) => {
   const [chartData, setChartData] = useState<{ graduacao: string; quantidade: number; percentual: number }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,11 +34,12 @@ export const GraduationDistributionChart = ({
         
         const especialidadesData = response?.data || [];
         
-        // Filtrar por OMs e Especialidades selecionadas
+        // Filtrar por OMs, Especialidades e Graduações selecionadas
         const filteredData = especialidadesData.filter((item: EspecialidadeData) => {
           const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
           const espMatch = selectedEspecialidades.length === 0 || selectedEspecialidades.includes(item.especialidade);
-          return omMatch && espMatch;
+          const gradMatch = selectedGraduacoes.length === 0 || selectedGraduacoes.includes(item.graduacao);
+          return omMatch && espMatch && gradMatch;
         });
         
         // Agrupar por graduação e somar o efe_sum
@@ -70,7 +73,7 @@ export const GraduationDistributionChart = ({
     };
 
     fetchData();
-  }, [selectedOMs, selectedEspecialidades]);
+  }, [selectedOMs, selectedEspecialidades, selectedGraduacoes]);
 
   // Cores para cada graduação
   const colors = [
@@ -121,12 +124,14 @@ export const GraduationDistributionChart = ({
       <CardHeader>
         <CardTitle className="text-xl font-semibold">
           Distribuição por Graduação (Pessoal)
-          {(selectedOMs.length > 0 || selectedEspecialidades.length > 0) && (
+          {(selectedOMs.length > 0 || selectedEspecialidades.length > 0 || selectedGraduacoes.length > 0) && (
             <span className="text-sm font-normal text-muted-foreground ml-2">
               (
               {selectedOMs.length > 0 && `OMs: ${selectedOMs.join(', ')}`}
-              {selectedOMs.length > 0 && selectedEspecialidades.length > 0 && ' | '}
+              {selectedOMs.length > 0 && (selectedEspecialidades.length > 0 || selectedGraduacoes.length > 0) && ' | '}
               {selectedEspecialidades.length > 0 && `Esp: ${selectedEspecialidades.slice(0, 3).join(', ')}${selectedEspecialidades.length > 3 ? '...' : ''}`}
+              {selectedEspecialidades.length > 0 && selectedGraduacoes.length > 0 && ' | '}
+              {selectedGraduacoes.length > 0 && `Pessoal: ${selectedGraduacoes.join(', ')}`}
               )
             </span>
           )}
