@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw, Download } from "lucide-react";
 import { toast } from "sonner";
 import { TopSpecialtiesChart } from "@/components/dashboard/TopSpecialtiesChart";
+import { GraduationDistributionChart } from "@/components/dashboard/GraduationDistributionChart";
 import {
   Table,
   TableBody,
@@ -849,6 +850,12 @@ const Especialidades = () => {
           selectedOMs={selectedOMs} 
           selectedEspecialidades={selectedEspecialidades}
           selectedGraduacoes={selectedGraduacoes}
+        />
+
+        {/* Graduation Distribution Chart */}
+        <GraduationDistributionChart 
+          selectedOMs={selectedOMs} 
+          selectedEspecialidades={selectedEspecialidades}
         />
 
         {/* Spreadsheet View */}
