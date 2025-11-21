@@ -14,9 +14,10 @@ interface EspecialidadeData {
 interface TopSpecialtiesChartProps {
   selectedOMs?: string[];
   selectedEspecialidades?: string[];
+  selectedGraduacoes?: string[];
 }
 
-export const TopSpecialtiesChart = ({ selectedOMs = [], selectedEspecialidades = [] }: TopSpecialtiesChartProps) => {
+export const TopSpecialtiesChart = ({ selectedOMs = [], selectedEspecialidades = [], selectedGraduacoes = [] }: TopSpecialtiesChartProps) => {
   const [sortedData, setSortedData] = useState<{ especialidade: string; quantidade: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,11 +31,12 @@ export const TopSpecialtiesChart = ({ selectedOMs = [], selectedEspecialidades =
         // Extrair o array de dados da resposta
         const especialidadesData = response?.data || [];
         
-        // Filtrar por OMs e Especialidades selecionadas
+        // Filtrar por OMs, Especialidades e Graduações selecionadas
         const filteredData = especialidadesData.filter((item: EspecialidadeData) => {
           const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
           const espMatch = selectedEspecialidades.length === 0 || selectedEspecialidades.includes(item.especialidade);
-          return omMatch && espMatch;
+          const gradMatch = selectedGraduacoes.length === 0 || selectedGraduacoes.includes(item.graduacao);
+          return omMatch && espMatch && gradMatch;
         });
         
         // Agrupar por especialidade e somar o efe_sum
@@ -63,7 +65,7 @@ export const TopSpecialtiesChart = ({ selectedOMs = [], selectedEspecialidades =
     };
 
     fetchData();
-  }, [selectedOMs, selectedEspecialidades]);
+  }, [selectedOMs, selectedEspecialidades, selectedGraduacoes]);
 
   // Cores gradientes para as barras
   const colors = [
@@ -80,12 +82,14 @@ export const TopSpecialtiesChart = ({ selectedOMs = [], selectedEspecialidades =
       <CardHeader>
         <CardTitle className="text-xl font-semibold">
           Top 5 Especialidades com Maior Número de Militares
-          {(selectedOMs.length > 0 || selectedEspecialidades.length > 0) && (
+          {(selectedOMs.length > 0 || selectedEspecialidades.length > 0 || selectedGraduacoes.length > 0) && (
             <span className="text-sm font-normal text-muted-foreground ml-2">
               (
               {selectedOMs.length > 0 && `OMs: ${selectedOMs.join(', ')}`}
-              {selectedOMs.length > 0 && selectedEspecialidades.length > 0 && ' | '}
+              {selectedOMs.length > 0 && (selectedEspecialidades.length > 0 || selectedGraduacoes.length > 0) && ' | '}
               {selectedEspecialidades.length > 0 && `Esp: ${selectedEspecialidades.slice(0, 3).join(', ')}${selectedEspecialidades.length > 3 ? '...' : ''}`}
+              {selectedEspecialidades.length > 0 && selectedGraduacoes.length > 0 && ' | '}
+              {selectedGraduacoes.length > 0 && `Pessoal: ${selectedGraduacoes.join(', ')}`}
               )
             </span>
           )}
