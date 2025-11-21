@@ -158,7 +158,7 @@ export const GraduationDistributionChart = ({
               }}
             />
             <Legend 
-              formatter={() => 'Quantidade de Militares'}
+              formatter={() => 'Graduação'}
             />
             <Bar 
               dataKey="quantidade" 
