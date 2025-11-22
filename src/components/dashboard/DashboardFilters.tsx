@@ -59,11 +59,12 @@ const ESPECIALIDADES = [
 interface DashboardFiltersProps {
   filterOptions: FilterOptions;
   selectedFilters: {
+    categoria: "PRAÇAS" | "OFICIAIS";
     om: string[];
     especialidade: string[];
     pessoal: string[];
   };
-  onFilterChange: (filterType: string, values: string[]) => void;
+  onFilterChange: (filterType: string, values: string[] | "PRAÇAS" | "OFICIAIS") => void;
   filteredData: MilitaryData[];
   metrics: {
     totalTMFT: number;
@@ -84,13 +85,15 @@ export const DashboardFilters = ({
   const [open, setOpen] = useState(false);
 
   const handleCheckboxChange = (filterType: string, value: string, checked: boolean) => {
+    const currentFilter = selectedFilters[filterType as keyof typeof selectedFilters];
+    
+    // Skip categoria as it's handled separately
+    if (filterType === 'categoria' || !Array.isArray(currentFilter)) return;
+    
     if (checked) {
-      onFilterChange(filterType, [...selectedFilters[filterType as keyof typeof selectedFilters], value]);
+      onFilterChange(filterType, [...currentFilter, value]);
     } else {
-      onFilterChange(
-        filterType, 
-        selectedFilters[filterType as keyof typeof selectedFilters].filter(v => v !== value)
-      );
+      onFilterChange(filterType, currentFilter.filter(v => v !== value));
     }
   };
 
@@ -211,6 +214,31 @@ export const DashboardFilters = ({
 
   return (
     <div className="space-y-4">
+      {/* Filtro de Categoria Principal */}
+      <Card className="shadow-card bg-gradient-card">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-foreground">Visualizar:</span>
+            <div className="flex gap-2">
+              <Button
+                variant={selectedFilters.categoria === "PRAÇAS" ? "default" : "outline"}
+                onClick={() => onFilterChange("categoria", "PRAÇAS")}
+                className="font-semibold"
+              >
+                PRAÇAS
+              </Button>
+              <Button
+                variant={selectedFilters.categoria === "OFICIAIS" ? "default" : "outline"}
+                onClick={() => onFilterChange("categoria", "OFICIAIS")}
+                className="font-semibold"
+              >
+                OFICIAIS
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Barra de ações */}
       <Card className="shadow-card bg-gradient-card">
         <CardContent className="p-4">

@@ -13,6 +13,7 @@ export interface MilitaryData {
   servidoresCivis: number;
   percentualPracasAtiva: number;
   percentualForcaTrabalho: number;
+  categoria: "PRAÇAS" | "OFICIAIS";
 }
 
 export interface DashboardMetrics {
