@@ -66,6 +66,7 @@ const Index = () => {
   const navigate = useNavigate();
   const chartRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState({
+    categoria: "PRAÇAS" as "PRAÇAS" | "OFICIAIS",
     om: [] as string[],
     especialidade: [] as string[],
     pessoal: [] as string[],
@@ -161,6 +162,9 @@ const Index = () => {
   const filteredData = useMemo(() => {
     let data = militaryData;
     
+    // Filtrar por categoria (PRAÇAS/OFICIAIS)
+    data = data.filter(item => item.categoria === filters.categoria);
+    
     // Filtrar por OM
     if (filters.om.length > 0) {
       data = data.filter(item => filters.om.includes(item.om));
@@ -191,7 +195,7 @@ const Index = () => {
     };
   }, [filteredData]);
 
-  const handleFilterChange = (filterType: string, values: string[]) => {
+  const handleFilterChange = (filterType: string, values: string[] | "PRAÇAS" | "OFICIAIS") => {
     setFilters(prev => ({ ...prev, [filterType]: values }));
   };
 
