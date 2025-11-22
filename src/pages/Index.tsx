@@ -6,7 +6,6 @@ import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { TotalsChart } from "@/components/dashboard/TotalsChart";
 import { DistributionChart } from "@/components/dashboard/DistributionChart";
-import { TopSpecialtiesChart } from "@/components/dashboard/TopSpecialtiesChart";
 import { MilitaryData } from "@/types/military";
 import { getUniqueValues, mockMilitaryData } from "@/data/mockData";
 import militaryBg from "@/assets/military-background.png";
@@ -287,9 +286,6 @@ const Index = () => {
             totalDIF={metrics.totalDIF}
           />
         </div>
-
-        {/* Gráfico Top 5 Especialidades */}
-        <TopSpecialtiesChart />
 
         {/* Gráfico de Distribuição por OM (quando há filtro de especialidade) */}
         {filters.especialidade.length > 0 && (
