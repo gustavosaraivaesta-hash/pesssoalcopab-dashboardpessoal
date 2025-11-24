@@ -56,6 +56,17 @@ const ESPECIALIDADES = [
   "ESTATÍSTICA (AE)"
 ];
 
+const GRADUACOES_PRACAS = [
+  "SO",
+  "1SG",
+  "2SG",
+  "3SG",
+  "CB",
+  "MN",
+  "PRAÇAS TTC",
+  "SERVIDORES CIVIS (NA + NI)"
+];
+
 const GRADUACOES_OFICIAIS = [
   "CONTRA-ALMIRANTE",
   "CMG",
@@ -113,7 +124,7 @@ export const DashboardFilters = ({
   // Filtrar graduações baseado na categoria selecionada
   const graduacoesDisponiveis = selectedFilters.categoria === "OFICIAIS" 
     ? filterOptions.graduacoes.filter(grad => GRADUACOES_OFICIAIS.includes(grad))
-    : filterOptions.graduacoes.filter(grad => !GRADUACOES_OFICIAIS.includes(grad));
+    : filterOptions.graduacoes.filter(grad => GRADUACOES_PRACAS.includes(grad));
 
   const hasSelectedFilters = selectedFilters.om.length > 0 || selectedFilters.pessoal.length > 0;
 
