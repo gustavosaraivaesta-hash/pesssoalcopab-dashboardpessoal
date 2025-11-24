@@ -196,7 +196,16 @@ const Index = () => {
   }, [filteredData]);
 
   const handleFilterChange = (filterType: string, values: string[] | "PRAÇAS" | "OFICIAIS") => {
-    setFilters(prev => ({ ...prev, [filterType]: values }));
+    if (filterType === "categoria") {
+      // Limpar filtros de pessoal ao trocar de categoria
+      setFilters(prev => ({ 
+        ...prev, 
+        categoria: values as "PRAÇAS" | "OFICIAIS",
+        pessoal: []
+      }));
+    } else {
+      setFilters(prev => ({ ...prev, [filterType]: values }));
+    }
   };
 
   if (isLoading) {
