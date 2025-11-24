@@ -56,30 +56,6 @@ const ESPECIALIDADES = [
   "ESTATÍSTICA (AE)"
 ];
 
-const GRADUACOES_PRACAS = [
-  "SO",
-  "1SG",
-  "2SG",
-  "3SG",
-  "CB",
-  "MN",
-  "PRAÇAS TTC",
-  "SERVIDORES CIVIS (NA + NI)"
-];
-
-const GRADUACOES_OFICIAIS = [
-  "CONTRA-ALMIRANTE",
-  "CMG",
-  "CF",
-  "CC",
-  "CT",
-  "1TEN",
-  "2TEN",
-  "GM",
-  "OFICIAIS TTC",
-  "SERVIDORES CIVIS (NA + NI)"
-];
-
 interface DashboardFiltersProps {
   filterOptions: FilterOptions;
   selectedFilters: {
@@ -120,11 +96,6 @@ export const DashboardFilters = ({
       onFilterChange(filterType, currentFilter.filter(v => v !== value));
     }
   };
-
-  // Filtrar graduações baseado na categoria selecionada
-  const graduacoesDisponiveis = selectedFilters.categoria === "OFICIAIS" 
-    ? filterOptions.graduacoes.filter(grad => GRADUACOES_OFICIAIS.includes(grad))
-    : filterOptions.graduacoes.filter(grad => GRADUACOES_PRACAS.includes(grad));
 
   const hasSelectedFilters = selectedFilters.om.length > 0 || selectedFilters.pessoal.length > 0;
 
@@ -333,7 +304,7 @@ export const DashboardFilters = ({
                       {selectedFilters.categoria === "OFICIAIS" ? "Pessoal OFI" : "Pessoal Praças"}
                     </p>
                   </div>
-                  {graduacoesDisponiveis.map((grad) => (
+                  {filterOptions.graduacoes.map((grad) => (
                     <div key={grad} className="flex items-center space-x-2">
                       <Checkbox
                         id={`grad-${grad}`}

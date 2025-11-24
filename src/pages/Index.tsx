@@ -157,7 +157,23 @@ const Index = () => {
     navigate("/login");
   };
 
-  const filterOptions = useMemo(() => getUniqueValues(militaryData), [militaryData]);
+  const filterOptions = useMemo(() => {
+    const allOptions = getUniqueValues(militaryData);
+    
+    // Filtrar graduações baseado na categoria selecionada
+    const filteredGraduacoes = Array.from(
+      new Set(
+        militaryData
+          .filter(item => item.categoria === filters.categoria)
+          .map(item => item.graduacao)
+      )
+    ).sort();
+    
+    return {
+      ...allOptions,
+      graduacoes: filteredGraduacoes
+    };
+  }, [militaryData, filters.categoria]);
 
   const filteredData = useMemo(() => {
     let data = militaryData;
