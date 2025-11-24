@@ -20,11 +20,31 @@ serve(async (req) => {
     // Using Google Sheets API v4 - public access with cache busting
     const timestamp = new Date().getTime();
     
+    // Fetch Page 1 (OFICIAIS data)
+    const sheet1Url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=0&tqx=out:json&timestamp=${timestamp}`;
+    
+    console.log('Calling Google Sheets API for Page 1 (OFICIAIS)...');
+    const response1 = await fetch(sheet1Url, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+    
+    if (!response1.ok) {
+      throw new Error(`Google Sheets API Page 1 returned ${response1.status}`);
+    }
+    
+    const text1 = await response1.text();
+    const jsonString1 = text1.substring(47).slice(0, -2);
+    const sheetsDataOficiais = JSON.parse(jsonString1);
+    
     // Fetch Page 2 (PRAÇAS data)
-    const sheetsUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=289886831&tqx=out:json&timestamp=${timestamp}`;
+    const sheet2Url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=289886831&tqx=out:json&timestamp=${timestamp}`;
     
     console.log('Calling Google Sheets API for Page 2 (PRAÇAS)...');
-    const response = await fetch(sheetsUrl, {
+    const response2 = await fetch(sheet2Url, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
@@ -32,33 +52,13 @@ serve(async (req) => {
       }
     });
     
-    if (!response.ok) {
-      throw new Error(`Google Sheets API Page 2 returned ${response.status}`);
+    if (!response2.ok) {
+      throw new Error(`Google Sheets API Page 2 returned ${response2.status}`);
     }
     
-    const text = await response.text();
-    const jsonString = text.substring(47).slice(0, -2);
-    const sheetsDataPracas = JSON.parse(jsonString);
-    
-    // Fetch Page 4 (OFICIAIS data)
-    const sheet4Url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=1234567890&tqx=out:json&timestamp=${timestamp}`;
-    
-    console.log('Calling Google Sheets API for Page 4 (OFICIAIS)...');
-    const response4 = await fetch(sheet4Url, {
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    });
-    
-    if (!response4.ok) {
-      throw new Error(`Google Sheets API Page 4 returned ${response4.status}`);
-    }
-    
-    const text4 = await response4.text();
-    const jsonString4 = text4.substring(47).slice(0, -2);
-    const sheetsDataOficiais = JSON.parse(jsonString4);
+    const text2 = await response2.text();
+    const jsonString2 = text2.substring(47).slice(0, -2);
+    const sheetsDataPracas = JSON.parse(jsonString2);
     
     // Fetch Page 3 (especialidades) - using correct gid
     const sheet3Url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=1875983157&tqx=out:json&timestamp=${timestamp}`;
@@ -199,11 +199,11 @@ serve(async (req) => {
       }
     };
     
+    // Process OFICIAIS data (Page 1)
+    processSheetData(sheetsDataOficiais, "OFICIAIS");
+    
     // Process PRAÇAS data (Page 2)
     processSheetData(sheetsDataPracas, "PRAÇAS");
-    
-    // Process OFICIAIS data (Page 4)
-    processSheetData(sheetsDataOficiais, "OFICIAIS");
     
     console.log(`Transformed ${transformedData.length} records`);
     
