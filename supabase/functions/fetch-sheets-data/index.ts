@@ -167,6 +167,8 @@ serve(async (req) => {
         const cells = rows[i].c || [];
         const graduacao = cells[0]?.v || '';
         
+        console.log(`${categoria} - Row ${i}: graduacao = "${graduacao}"`);
+        
         if (!graduacao || graduacao === 'FORÇA DE TRABALHO') continue;
         
         // Create one record for each OM
