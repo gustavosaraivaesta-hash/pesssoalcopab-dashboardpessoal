@@ -20,8 +20,8 @@ serve(async (req) => {
     // Using Google Sheets API v4 - public access with cache busting
     const timestamp = new Date().getTime();
     
-    // Fetch Page 1 (OFICIAIS data)
-    const sheet1Url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=0&tqx=out:json&timestamp=${timestamp}`;
+    // Fetch Page 1 (OFICIAIS data) - using correct gid
+    const sheet1Url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=1141691969&tqx=out:json&timestamp=${timestamp}`;
     
     console.log('Calling Google Sheets API for Page 1 (OFICIAIS)...');
     const response1 = await fetch(sheet1Url, {
