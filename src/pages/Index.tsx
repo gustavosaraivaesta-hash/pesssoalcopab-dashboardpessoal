@@ -158,20 +158,36 @@ const Index = () => {
   };
 
   const filterOptions = useMemo(() => {
-    const allOptions = getUniqueValues(militaryData);
+    // Filtrar dados baseado na categoria selecionada
+    const dataByCategory = militaryData.filter(item => item.categoria === filters.categoria);
     
-    // Filtrar graduações baseado na categoria selecionada
+    // Obter valores únicos apenas da categoria selecionada
+    const filteredOMs = Array.from(
+      new Set(dataByCategory.map(item => item.om))
+    ).sort();
+    
+    const filteredEspecialidades = Array.from(
+      new Set(dataByCategory.map(item => item.especialidade))
+    ).sort();
+    
     const filteredGraduacoes = Array.from(
-      new Set(
-        militaryData
-          .filter(item => item.categoria === filters.categoria)
-          .map(item => item.graduacao)
-      )
+      new Set(dataByCategory.map(item => item.graduacao))
+    ).sort();
+    
+    const filteredSDPs = Array.from(
+      new Set(dataByCategory.map(item => item.sdp).filter(Boolean))
+    ).sort();
+    
+    const filteredMeses = Array.from(
+      new Set(dataByCategory.map(item => item.previsaoEmbarque).filter(Boolean))
     ).sort();
     
     return {
-      ...allOptions,
-      graduacoes: filteredGraduacoes
+      oms: filteredOMs,
+      especialidades: filteredEspecialidades,
+      graduacoes: filteredGraduacoes,
+      sdps: filteredSDPs,
+      meses: filteredMeses
     };
   }, [militaryData, filters.categoria]);
 
