@@ -28,11 +28,11 @@ import {
 } from "recharts";
 
 interface FormacaoData {
+  formacao: string;
   pessoal: string;
   om: string;
   tmft: number;
-  exi: number;
-  dif: number;
+  efe: number;
 }
 
 const FormacaoAcademia = () => {
@@ -124,51 +124,39 @@ const FormacaoAcademia = () => {
     doc.text(pageTitle, 14, currentY);
     currentY += 6;
 
-    const omsToShow = selectedOMs.length > 0 ? selectedOMs : allOMs;
+    const visibleOMs = selectedOMs.length > 0 ? selectedOMs : allOMs;
     
-    omsToShow.forEach((om, omIndex) => {
-      const omData = filteredData.filter(item => item.om === om);
+    allFormacoes.forEach((formacao, formacaoIndex) => {
+      const formacaoRows = groupedByFormacao[formacao] || [];
       
-      if (omData.length === 0) return;
+      if (formacaoRows.length === 0) return;
 
-      if (omIndex > 0) {
+      if (formacaoIndex > 0) {
         currentY += 12;
       }
 
       doc.setFontSize(11);
       doc.setTextColor(59, 130, 246);
-      doc.text(`${om}`, 14, currentY);
+      doc.text(`${formacao}`, 14, currentY);
       doc.setTextColor(0, 0, 0);
       currentY += 5;
 
-      const tableData: any[] = [];
-      let totalTmft = 0;
-      let totalExi = 0;
-      let totalDif = 0;
-
-      omData.forEach(item => {
-        totalTmft += item.tmft;
-        totalExi += item.exi;
-        totalDif += item.dif;
-
-        if (item.tmft > 0 || item.exi > 0) {
-          tableData.push([
-            item.pessoal,
-            item.tmft,
-            item.exi,
-            { content: item.dif.toString(), styles: { textColor: item.dif < 0 ? [220, 38, 38] : [0, 0, 0] } }
-          ]);
-        }
+      const tableHeaders = ['Pessoal'];
+      visibleOMs.forEach(om => {
+        tableHeaders.push(`${om} TMFT`);
+        tableHeaders.push(`${om} EFE`);
       });
 
-      if (tableData.length > 0) {
-        tableData.push([
-          { content: 'TOTAL', styles: { fontStyle: 'bold' } },
-          { content: totalTmft.toString(), styles: { fontStyle: 'bold' } },
-          { content: totalExi.toString(), styles: { fontStyle: 'bold' } },
-          { content: totalDif.toString(), styles: { fontStyle: 'bold', textColor: totalDif < 0 ? [220, 38, 38] : [0, 0, 0] } }
-        ]);
-      }
+      const tableData: any[] = [];
+
+      formacaoRows.forEach(row => {
+        const rowData = [row.pessoal];
+        visibleOMs.forEach(om => {
+          rowData.push(row[`${om}_tmft`]);
+          rowData.push(row[`${om}_efe`]);
+        });
+        tableData.push(rowData);
+      });
 
       if (tableData.length > 0) {
         const neededSpace = 15 + (tableData.length * 7) + 8;
@@ -179,17 +167,17 @@ const FormacaoAcademia = () => {
           
           doc.setFontSize(11);
           doc.setTextColor(59, 130, 246);
-          doc.text(`${om} (continuação)`, 14, currentY);
+          doc.text(`${formacao} (continuação)`, 14, currentY);
           doc.setTextColor(0, 0, 0);
           currentY += 5;
         }
 
         autoTable(doc, {
-          head: [['Pessoal', 'TMFT', 'EXI', 'DIF']],
+          head: [tableHeaders],
           body: tableData,
           startY: currentY,
-          styles: { fontSize: 10, cellPadding: 2 },
-          headStyles: { fillColor: [59, 130, 246], fontSize: 10 },
+          styles: { fontSize: 8, cellPadding: 1.5 },
+          headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
           margin: { left: 14 },
           didDrawPage: function(data) {
             currentY = data.cursor?.y || currentY;
@@ -258,7 +246,7 @@ const FormacaoAcademia = () => {
     'SERVIDORES CIVIS (NA + NI)'
   ];
 
-  const allFormacoes = ['CONTABILIDADE', 'ENGENHARIA', 'ESTATISTICA'];
+  const allFormacoes = ['ADMINISTRAÇÃO', 'CONTABILIDADE', 'ENGENHARIA', 'ESTATISTICA'];
 
   const filteredData = data.filter(item => {
     const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
@@ -266,10 +254,23 @@ const FormacaoAcademia = () => {
     return omMatch && pessoalMatch;
   });
 
-  const groupedByOM = allOMs.reduce((acc, om) => {
-    acc[om] = filteredData.filter(item => item.om === om);
+  // Group data by formation and pessoal for the new table structure
+  const groupedByFormacao = allFormacoes.reduce((acc, formacao) => {
+    const formacaoData = filteredData.filter(item => item.formacao === formacao);
+    const pessoalList = [...new Set(formacaoData.map(item => item.pessoal))];
+    
+    acc[formacao] = pessoalList.map(pessoal => {
+      const row: any = { pessoal };
+      allOMs.forEach(om => {
+        const record = formacaoData.find(item => item.pessoal === pessoal && item.om === om);
+        row[`${om}_tmft`] = record?.tmft || 0;
+        row[`${om}_efe`] = record?.efe || 0;
+      });
+      return row;
+    });
+    
     return acc;
-  }, {} as Record<string, FormacaoData[]>);
+  }, {} as Record<string, any[]>);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
@@ -379,11 +380,11 @@ const FormacaoAcademia = () => {
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={allFormacoes.map(formacao => {
-                const formacaoData = filteredData.filter(item => item.pessoal === formacao);
-                const totalExi = formacaoData.reduce((sum, item) => sum + item.exi, 0);
+                const formacaoData = filteredData.filter(item => item.formacao === formacao);
+                const totalEfe = formacaoData.reduce((sum, item) => sum + item.efe, 0);
                 return {
                   name: formacao,
-                  value: totalExi
+                  value: totalEfe
                 };
               })}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -404,60 +405,52 @@ const FormacaoAcademia = () => {
           </div>
         </div>
 
-        {/* Tabelas por OM */}
-        <div className="space-y-6">
-          {allOMs.map(om => {
-            const omData = groupedByOM[om] || [];
-            if (omData.length === 0) return null;
+        {/* Tabela Horizontal por Formação */}
+        <div className="space-y-8">
+          {allFormacoes.map(formacao => {
+            const formacaoRows = groupedByFormacao[formacao] || [];
+            if (formacaoRows.length === 0) return null;
 
-            let totalTmft = 0;
-            let totalExi = 0;
-            let totalDif = 0;
-
-            omData.forEach(item => {
-              totalTmft += item.tmft;
-              totalExi += item.exi;
-              totalDif += item.dif;
-            });
+            const visibleOMs = selectedOMs.length > 0 ? selectedOMs : allOMs;
 
             return (
-              <div key={om} className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+              <div key={formacao} className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
                 <div className="bg-primary/10 px-4 py-3 border-b border-border">
-                  <h3 className="font-semibold text-lg text-primary">{om}</h3>
+                  <h3 className="font-semibold text-lg text-primary">{formacao}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="font-semibold">Pessoal</TableHead>
-                        <TableHead className="font-semibold text-center">TMFT</TableHead>
-                        <TableHead className="font-semibold text-center">EXI</TableHead>
-                        <TableHead className="font-semibold text-center">DIF</TableHead>
+                        <TableHead className="font-semibold sticky left-0 bg-card z-10">Pessoal</TableHead>
+                        {visibleOMs.map(om => (
+                          <TableHead key={om} colSpan={2} className="font-semibold text-center border-l border-border">
+                            {om}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                      <TableRow>
+                        <TableHead className="sticky left-0 bg-card z-10"></TableHead>
+                        {visibleOMs.map(om => (
+                          <>
+                            <TableHead key={`${om}-tmft`} className="text-center text-xs border-l border-border">TMFT</TableHead>
+                            <TableHead key={`${om}-efe`} className="text-center text-xs">EFE</TableHead>
+                          </>
+                        ))}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {omData.map((item, idx) => (
+                      {formacaoRows.map((row, idx) => (
                         <TableRow key={idx}>
-                          <TableCell className="font-medium">{item.pessoal}</TableCell>
-                          <TableCell className="text-center">{item.tmft}</TableCell>
-                          <TableCell className="text-center">{item.exi}</TableCell>
-                          <TableCell className={`text-center font-semibold ${
-                            item.dif < 0 ? 'text-destructive' : 'text-foreground'
-                          }`}>
-                            {item.dif}
-                          </TableCell>
+                          <TableCell className="font-medium sticky left-0 bg-card z-10">{row.pessoal}</TableCell>
+                          {visibleOMs.map(om => (
+                            <>
+                              <TableCell key={`${om}-tmft`} className="text-center border-l border-border">{row[`${om}_tmft`]}</TableCell>
+                              <TableCell key={`${om}-efe`} className="text-center">{row[`${om}_efe`]}</TableCell>
+                            </>
+                          ))}
                         </TableRow>
                       ))}
-                      <TableRow className="bg-muted/50 font-bold">
-                        <TableCell>TOTAL</TableCell>
-                        <TableCell className="text-center">{totalTmft}</TableCell>
-                        <TableCell className="text-center">{totalExi}</TableCell>
-                        <TableCell className={`text-center ${
-                          totalDif < 0 ? 'text-destructive' : 'text-foreground'
-                        }`}>
-                          {totalDif}
-                        </TableCell>
-                      </TableRow>
                     </TableBody>
                   </Table>
                 </div>

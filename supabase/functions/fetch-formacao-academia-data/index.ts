@@ -41,7 +41,7 @@ serve(async (req) => {
     const formacaoData: any[] = [];
     
     if (sheetsData.table.rows && sheetsData.table.rows.length > 1) {
-      // Define OMs and their column positions (TMFT, EXI, DIF)
+      // Define OMs and their column positions (TMFT, EFE/EXI, DIF)
       const oms = [
         { name: 'COpAb', startCol: 1 },
         { name: 'BAMRJ', startCol: 4 },
@@ -57,27 +57,39 @@ serve(async (req) => {
         { name: 'CDU-1DN', startCol: 34 },
       ];
       
+      let currentFormacao = '';
+      
       // Skip header row (index 0), process data rows
       for (let i = 1; i < sheetsData.table.rows.length; i++) {
         const cells = sheetsData.table.rows[i].c || [];
-        const pessoal = cells[0]?.v || '';
+        const firstCol = cells[0]?.v || '';
         
-        console.log(`Row ${i}: pessoal = "${pessoal}"`);
+        console.log(`Row ${i}: firstCol = "${firstCol}"`);
         
-        if (!pessoal || pessoal === 'FORÇA DE TRABALHO') continue;
+        if (!firstCol || firstCol === 'FORÇA DE TRABALHO') continue;
         
-        // Create one record for each OM
+        // Check if this is a formation category row (has data only in first column or is a known formation)
+        const formacoes = ['ADMINISTRAÇÃO', 'CONTABILIDADE', 'ENGENHARIA', 'ESTATISTICA'];
+        if (formacoes.includes(firstCol.trim().toUpperCase())) {
+          currentFormacao = firstCol.trim().toUpperCase();
+          console.log(`Found formation: ${currentFormacao}`);
+          continue;
+        }
+        
+        // This is a pessoal (rank) row
+        const pessoal = firstCol;
+        
+        // Create one record for each OM with the current formation
         oms.forEach(om => {
           const tmft = Number(cells[om.startCol]?.v || 0);
-          const exi = Number(cells[om.startCol + 1]?.v || 0);
-          const dif = Number(cells[om.startCol + 2]?.v || 0);
+          const efe = Number(cells[om.startCol + 1]?.v || 0);
           
           formacaoData.push({
+            formacao: currentFormacao,
             pessoal: pessoal,
             om: om.name,
             tmft: tmft,
-            exi: exi,
-            dif: dif,
+            efe: efe,
           });
         });
       }
