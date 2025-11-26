@@ -16,6 +16,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import brasaoRepublica from "@/assets/brasao-republica.png";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LabelList,
+} from "recharts";
 
 interface FormacaoData {
   pessoal: string;
@@ -30,6 +40,7 @@ const FormacaoAcademia = () => {
   const [data, setData] = useState<FormacaoData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
+  const [selectedPessoal, setSelectedPessoal] = useState<string[]>([]);
 
   const fetchFormacaoData = async () => {
     setLoading(true);
@@ -234,9 +245,25 @@ const FormacaoAcademia = () => {
     'DepSMRJ'
   ].sort();
 
+  const allPessoal = [
+    '1TEN',
+    '2TEN',
+    'CC',
+    'CF',
+    'CMG',
+    'CONTRA-ALMIRANTE',
+    'CT',
+    'GM',
+    'OFICIAIS TTC',
+    'SERVIDORES CIVIS (NA + NI)'
+  ];
+
+  const allFormacoes = ['CONTABILIDADE', 'ENGENHARIA', 'ESTATISTICA'];
+
   const filteredData = data.filter(item => {
     const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
-    return omMatch;
+    const pessoalMatch = selectedPessoal.length === 0 || selectedPessoal.includes(item.pessoal);
+    return omMatch && pessoalMatch;
   });
 
   const groupedByOM = allOMs.reduce((acc, om) => {
@@ -287,31 +314,93 @@ const FormacaoAcademia = () => {
           </div>
         </div>
 
-        {/* Filtro de OMs */}
-        <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
-          <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por OM</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {allOMs.map((om) => (
-              <div key={om} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`om-${om}`}
-                  checked={selectedOMs.includes(om)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedOMs([...selectedOMs, om]);
-                    } else {
-                      setSelectedOMs(selectedOMs.filter(o => o !== om));
-                    }
+        {/* Filtros */}
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Filtro de OMs */}
+          <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
+            <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por OM</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {allOMs.map((om) => (
+                <div key={om} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`om-${om}`}
+                    checked={selectedOMs.includes(om)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedOMs([...selectedOMs, om]);
+                      } else {
+                        setSelectedOMs(selectedOMs.filter(o => o !== om));
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor={`om-${om}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    {om}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Filtro de Pessoal OFI */}
+          <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
+            <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por Pessoal OFI</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {allPessoal.map((pessoal) => (
+                <div key={pessoal} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`pessoal-${pessoal}`}
+                    checked={selectedPessoal.includes(pessoal)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedPessoal([...selectedPessoal, pessoal]);
+                      } else {
+                        setSelectedPessoal(selectedPessoal.filter(p => p !== pessoal));
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor={`pessoal-${pessoal}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    {pessoal}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Gráfico de Distribuição por Formação Acadêmica */}
+        <div className="bg-card rounded-lg border border-border p-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4 text-foreground">Distribuição por Formação Acadêmica</h3>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={allFormacoes.map(formacao => {
+                const formacaoData = filteredData.filter(item => item.pessoal === formacao);
+                const totalExi = formacaoData.reduce((sum, item) => sum + item.exi, 0);
+                return {
+                  name: formacao,
+                  value: totalExi
+                };
+              })}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="name" className="text-xs" />
+                <YAxis className="text-xs" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '6px'
                   }}
                 />
-                <label
-                  htmlFor={`om-${om}`}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                >
-                  {om}
-                </label>
-              </div>
-            ))}
+                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]}>
+                  <LabelList dataKey="value" position="top" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
