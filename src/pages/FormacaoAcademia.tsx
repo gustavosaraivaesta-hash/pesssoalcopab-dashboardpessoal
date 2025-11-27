@@ -273,23 +273,41 @@ const FormacaoAcademia = () => {
     const formacaoData = filteredData.filter(item => item.formacao === formacao);
     const pessoalList = [...new Set(formacaoData.map(item => item.pessoal))];
     
-    formacaoRowSpans[formacao] = pessoalList.length;
+    const validRows: any[] = [];
     
-    pessoalList.forEach((pessoal, index) => {
+    pessoalList.forEach((pessoal) => {
       const row: any = { 
         formacao: formacao,
         pessoal,
-        isFirstInFormacao: index === 0
+        isFirstInFormacao: false
       };
+      
+      let hasValue = false;
       
       allOMs.forEach(om => {
         const record = formacaoData.find(item => item.pessoal === pessoal && item.om === om);
-        row[`${om}_tmft`] = record?.tmft || 0;
-        row[`${om}_efe`] = record?.efe || 0;
+        const tmft = record?.tmft || 0;
+        const efe = record?.efe || 0;
+        row[`${om}_tmft`] = tmft;
+        row[`${om}_efe`] = efe;
+        
+        if (tmft > 0 || efe > 0) {
+          hasValue = true;
+        }
       });
       
-      tableData.push(row);
+      // Only add row if it has at least one non-zero value
+      if (hasValue) {
+        validRows.push(row);
+      }
     });
+    
+    // Mark first row of each formation
+    if (validRows.length > 0) {
+      validRows[0].isFirstInFormacao = true;
+      formacaoRowSpans[formacao] = validRows.length;
+      tableData.push(...validRows);
+    }
   });
   
   // Calculate totals for each OM
