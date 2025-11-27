@@ -41,57 +41,60 @@ serve(async (req) => {
     const formacaoData: any[] = [];
     
     if (sheetsData.table.rows && sheetsData.table.rows.length > 1) {
-      // Define OMs and their column positions (TMFT, EFE/EXI, DIF)
+      // Define OMs and their column positions (TMFT, EFE)
       const oms = [
-        { name: 'COpAb', startCol: 1 },
+        { name: 'COpAb', startCol: 2 },
         { name: 'BAMRJ', startCol: 4 },
-        { name: 'CMM', startCol: 7 },
-        { name: 'DepCMRJ', startCol: 10 },
-        { name: 'CDAM', startCol: 13 },
-        { name: 'DepSMRJ', startCol: 16 },
-        { name: 'CSupAb', startCol: 19 },
-        { name: 'DepSIMRJ', startCol: 22 },
-        { name: 'DepMSMRJ', startCol: 25 },
-        { name: 'DepFMRJ', startCol: 28 },
-        { name: 'CDU-BAMRJ', startCol: 31 },
-        { name: 'CDU-1DN', startCol: 34 },
+        { name: 'CMM', startCol: 6 },
+        { name: 'DepCMRJ', startCol: 8 },
+        { name: 'CDAM', startCol: 10 },
+        { name: 'DepSMRJ', startCol: 12 },
+        { name: 'CSupAb', startCol: 14 },
+        { name: 'DepSIMRJ', startCol: 16 },
+        { name: 'DepMSMRJ', startCol: 18 },
+        { name: 'DepFMRJ', startCol: 20 },
+        { name: 'CDU-BAMRJ', startCol: 22 },
+        { name: 'CDU-1DN', startCol: 24 },
       ];
       
       let currentFormacao = '';
       
-      // Skip header row (index 0), process data rows
-      for (let i = 1; i < sheetsData.table.rows.length; i++) {
+      // Skip header rows, process data rows
+      for (let i = 0; i < sheetsData.table.rows.length; i++) {
         const cells = sheetsData.table.rows[i].c || [];
-        const firstCol = cells[0]?.v || '';
+        const colA = cells[0]?.v ? String(cells[0].v).trim() : '';
+        const colB = cells[1]?.v ? String(cells[1].v).trim() : '';
         
-        console.log(`Row ${i}: firstCol = "${firstCol}"`);
+        console.log(`Row ${i}: colA = "${colA}", colB = "${colB}"`);
         
-        if (!firstCol || firstCol === 'FORÇA DE TRABALHO') continue;
-        
-        // Check if this is a formation category row (has data only in first column or is a known formation)
+        // Check if this is a formation header row (colA has formation name)
         const formacoes = ['ADMINISTRAÇÃO', 'CONTABILIDADE', 'ENGENHARIA', 'ESTATISTICA'];
-        if (formacoes.includes(firstCol.trim().toUpperCase())) {
-          currentFormacao = firstCol.trim().toUpperCase();
+        const normalizedColA = colA.toUpperCase().replace(/\s+/g, ' ');
+        
+        if (formacoes.some(f => normalizedColA.includes(f))) {
+          currentFormacao = formacoes.find(f => normalizedColA.includes(f)) || '';
           console.log(`Found formation: ${currentFormacao}`);
           continue;
         }
         
-        // This is a pessoal (rank) row
-        const pessoal = firstCol;
-        
-        // Create one record for each OM with the current formation
-        oms.forEach(om => {
-          const tmft = Number(cells[om.startCol]?.v || 0);
-          const efe = Number(cells[om.startCol + 1]?.v || 0);
+        // Check if this is a data row (colB has pessoal rank)
+        if (colB && currentFormacao) {
+          const pessoal = colB;
           
-          formacaoData.push({
-            formacao: currentFormacao,
-            pessoal: pessoal,
-            om: om.name,
-            tmft: tmft,
-            efe: efe,
+          // Create one record for each OM with the current formation
+          oms.forEach(om => {
+            const tmft = cells[om.startCol]?.v ? Number(cells[om.startCol].v) : 0;
+            const efe = cells[om.startCol + 1]?.v ? Number(cells[om.startCol + 1].v) : 0;
+            
+            formacaoData.push({
+              formacao: currentFormacao,
+              pessoal: pessoal,
+              om: om.name,
+              tmft: tmft,
+              efe: efe,
+            });
           });
-        });
+        }
       }
     }
     
