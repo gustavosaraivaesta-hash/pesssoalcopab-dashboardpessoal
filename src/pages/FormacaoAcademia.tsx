@@ -127,7 +127,18 @@ const FormacaoAcademia = () => {
     const visibleOMs = selectedOMs.length > 0 ? selectedOMs : allOMs;
     
     allFormacoes.forEach((formacao, formacaoIndex) => {
-      const formacaoRows = groupedByFormacao[formacao] || [];
+      const formacaoRows = tableData.filter(row => {
+        // Find the formation for this row
+        if (row.formacao) return row.formacao === formacao;
+        // For rows without formacao, find the previous row with formacao
+        const rowIndex = tableData.indexOf(row);
+        for (let i = rowIndex - 1; i >= 0; i--) {
+          if (tableData[i].formacao) {
+            return tableData[i].formacao === formacao;
+          }
+        }
+        return false;
+      });
       
       if (formacaoRows.length === 0) return;
 
@@ -141,25 +152,25 @@ const FormacaoAcademia = () => {
       doc.setTextColor(0, 0, 0);
       currentY += 5;
 
-      const tableHeaders = ['Pessoal'];
+      const tableHeaders = ['Formação Acad', 'Pessoal'];
       visibleOMs.forEach(om => {
         tableHeaders.push(`${om} TMFT`);
         tableHeaders.push(`${om} EFE`);
       });
 
-      const tableData: any[] = [];
+      const tableDataPDF: any[] = [];
 
       formacaoRows.forEach(row => {
-        const rowData = [row.pessoal];
+        const rowData = [row.formacao || '', row.pessoal];
         visibleOMs.forEach(om => {
           rowData.push(row[`${om}_tmft`]);
           rowData.push(row[`${om}_efe`]);
         });
-        tableData.push(rowData);
+        tableDataPDF.push(rowData);
       });
 
-      if (tableData.length > 0) {
-        const neededSpace = 15 + (tableData.length * 7) + 8;
+      if (tableDataPDF.length > 0) {
+        const neededSpace = 15 + (tableDataPDF.length * 7) + 8;
         
         if (currentY + neededSpace > pageHeight - marginBottom) {
           doc.addPage();
@@ -174,7 +185,7 @@ const FormacaoAcademia = () => {
 
         autoTable(doc, {
           head: [tableHeaders],
-          body: tableData,
+          body: tableDataPDF,
           startY: currentY,
           styles: { fontSize: 8, cellPadding: 1.5 },
           headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
@@ -219,19 +230,19 @@ const FormacaoAcademia = () => {
   }
 
   const allOMs = [
-    'BAMRJ',
-    'CDAM',
-    'CDU-1DN',
-    'CDU-BAMRJ',
-    'CMM',
     'COpAb',
-    'CSupAb',
+    'BAMRJ',
+    'CMM',
     'DepCMRJ',
-    'DepFMRJ',
-    'DepMSMRJ',
+    'CDAM',
+    'DepSMRJ',
+    'CSupAb',
     'DepSIMRJ',
-    'DepSMRJ'
-  ].sort();
+    'DepMSMRJ',
+    'DepFMRJ',
+    'CDU-BAMRJ',
+    'CDU-1DN'
+  ];
 
   const allPessoal = [
     '1TEN',
@@ -254,23 +265,41 @@ const FormacaoAcademia = () => {
     return omMatch && pessoalMatch;
   });
 
-  // Group data by formation and pessoal for the new table structure
-  const groupedByFormacao = allFormacoes.reduce((acc, formacao) => {
+  // Build table data structure with formation in first column
+  const tableData: any[] = [];
+  const formacaoRowSpans: Record<string, number> = {};
+  
+  allFormacoes.forEach(formacao => {
     const formacaoData = filteredData.filter(item => item.formacao === formacao);
     const pessoalList = [...new Set(formacaoData.map(item => item.pessoal))];
     
-    acc[formacao] = pessoalList.map(pessoal => {
-      const row: any = { pessoal };
+    formacaoRowSpans[formacao] = pessoalList.length;
+    
+    pessoalList.forEach((pessoal, index) => {
+      const row: any = { 
+        formacao: formacao,
+        pessoal,
+        isFirstInFormacao: index === 0
+      };
+      
       allOMs.forEach(om => {
         const record = formacaoData.find(item => item.pessoal === pessoal && item.om === om);
         row[`${om}_tmft`] = record?.tmft || 0;
         row[`${om}_efe`] = record?.efe || 0;
       });
-      return row;
+      
+      tableData.push(row);
     });
-    
-    return acc;
-  }, {} as Record<string, any[]>);
+  });
+  
+  // Calculate totals for each OM
+  const totals: any = { formacao: '', pessoal: '' };
+  const visibleOMs = selectedOMs.length > 0 ? selectedOMs : allOMs;
+  visibleOMs.forEach(om => {
+    const omData = filteredData.filter(item => item.om === om);
+    totals[`${om}_tmft`] = omData.reduce((sum, item) => sum + item.tmft, 0);
+    totals[`${om}_efe`] = omData.reduce((sum, item) => sum + item.efe, 0);
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
@@ -405,58 +434,64 @@ const FormacaoAcademia = () => {
           </div>
         </div>
 
-        {/* Tabela Horizontal por Formação */}
-        <div className="space-y-8">
-          {allFormacoes.map(formacao => {
-            const formacaoRows = groupedByFormacao[formacao] || [];
-            if (formacaoRows.length === 0) return null;
-
-            const visibleOMs = selectedOMs.length > 0 ? selectedOMs : allOMs;
-
-            return (
-              <div key={formacao} className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
-                <div className="bg-primary/10 px-4 py-3 border-b border-border">
-                  <h3 className="font-semibold text-lg text-primary">{formacao}</h3>
-                </div>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="font-semibold sticky left-0 bg-card z-10">Pessoal</TableHead>
-                        {visibleOMs.map(om => (
-                          <TableHead key={om} colSpan={2} className="font-semibold text-center border-l border-border">
-                            {om}
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                      <TableRow>
-                        <TableHead className="sticky left-0 bg-card z-10"></TableHead>
-                        {visibleOMs.map(om => (
-                          <>
-                            <TableHead key={`${om}-tmft`} className="text-center text-xs border-l border-border">TMFT</TableHead>
-                            <TableHead key={`${om}-efe`} className="text-center text-xs">EFE</TableHead>
-                          </>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {formacaoRows.map((row, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell className="font-medium sticky left-0 bg-card z-10">{row.pessoal}</TableCell>
-                          {visibleOMs.map(om => (
-                            <>
-                              <TableCell key={`${om}-tmft`} className="text-center border-l border-border">{row[`${om}_tmft`]}</TableCell>
-                              <TableCell key={`${om}-efe`} className="text-center">{row[`${om}_efe`]}</TableCell>
-                            </>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            );
-          })}
+        {/* Tabela com Formação na primeira coluna */}
+        <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead rowSpan={3} className="font-semibold text-center align-middle border-r-2 border-border bg-muted/50">
+                    Formação Acad
+                  </TableHead>
+                  <TableHead rowSpan={3} className="font-semibold text-center align-middle border-r-2 border-border bg-muted/50">
+                    Pessoal
+                  </TableHead>
+                  {(selectedOMs.length > 0 ? selectedOMs : allOMs).map(om => (
+                    <TableHead key={om} colSpan={2} className="font-semibold text-center border-l border-border bg-primary/10">
+                      {om}
+                    </TableHead>
+                  ))}
+                </TableRow>
+                <TableRow>
+                  {(selectedOMs.length > 0 ? selectedOMs : allOMs).map(om => (
+                    <>
+                      <TableHead key={`${om}-tmft`} className="text-center text-xs border-l border-border">TMFT</TableHead>
+                      <TableHead key={`${om}-efe`} className="text-center text-xs">EFE</TableHead>
+                    </>
+                  ))}
+                </TableRow>
+                <TableRow>
+                  {(selectedOMs.length > 0 ? selectedOMs : allOMs).map(om => (
+                    <>
+                      <TableHead key={`${om}-tmft-sum`} className="text-center text-xs border-l border-border bg-muted/30">∑</TableHead>
+                      <TableHead key={`${om}-efe-sum`} className="text-center text-xs bg-muted/30">∑</TableHead>
+                    </>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tableData.map((row, idx) => (
+                  <TableRow key={idx}>
+                    {row.isFirstInFormacao && (
+                      <TableCell 
+                        rowSpan={formacaoRowSpans[row.formacao]}
+                        className="font-bold text-center align-middle border-r-2 border-border bg-primary/5"
+                      >
+                        {row.formacao}
+                      </TableCell>
+                    )}
+                    <TableCell className="font-medium border-r-2 border-border">{row.pessoal}</TableCell>
+                    {(selectedOMs.length > 0 ? selectedOMs : allOMs).map(om => (
+                      <>
+                        <TableCell key={`${om}-tmft`} className="text-center border-l border-border">{row[`${om}_tmft`]}</TableCell>
+                        <TableCell key={`${om}-efe`} className="text-center">{row[`${om}_efe`]}</TableCell>
+                      </>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
     </div>
