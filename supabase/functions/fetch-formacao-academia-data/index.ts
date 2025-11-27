@@ -74,6 +74,24 @@ serve(async (req) => {
         if (formacoes.some(f => normalizedColA.includes(f))) {
           currentFormacao = formacoes.find(f => normalizedColA.includes(f)) || '';
           console.log(`Found formation: ${currentFormacao}`);
+          
+          // Process CONTRA-ALMIRANTE on the same row as formation
+          if (colB && currentFormacao) {
+            const pessoal = colB;
+            
+            oms.forEach(om => {
+              const tmft = cells[om.startCol]?.v ? Number(cells[om.startCol].v) : 0;
+              const efe = cells[om.startCol + 1]?.v ? Number(cells[om.startCol + 1].v) : 0;
+              
+              formacaoData.push({
+                formacao: currentFormacao,
+                pessoal: pessoal,
+                om: om.name,
+                tmft: tmft,
+                efe: efe,
+              });
+            });
+          }
           continue;
         }
         
