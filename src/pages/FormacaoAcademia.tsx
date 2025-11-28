@@ -42,7 +42,7 @@ const FormacaoAcademia = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedPessoal, setSelectedPessoal] = useState<string[]>([]);
-  const [selectedEspecialidades, setSelectedEspecialidades] = useState<string[]>([]);
+  const [selectedFormacoes, setSelectedFormacoes] = useState<string[]>([]);
 
   const fetchFormacaoData = async () => {
     setLoading(true);
@@ -260,14 +260,12 @@ const FormacaoAcademia = () => {
   ];
 
   const allFormacoes = ['ADMINISTRAÇÃO', 'CONTABILIDADE', 'ENGENHARIA', 'ESTATISTICA'];
-  
-  const allEspecialidades = [...new Set(data.map(item => item.especialidade).filter(Boolean))].sort();
 
   const filteredData = data.filter(item => {
     const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
     const pessoalMatch = selectedPessoal.length === 0 || selectedPessoal.includes(item.pessoal);
-    const especialidadeMatch = selectedEspecialidades.length === 0 || (item.especialidade && selectedEspecialidades.includes(item.especialidade));
-    return omMatch && pessoalMatch && especialidadeMatch;
+    const formacaoMatch = selectedFormacoes.length === 0 || selectedFormacoes.includes(item.formacao);
+    return omMatch && pessoalMatch && formacaoMatch;
   });
 
   // Build table data structure with formation in first column
@@ -425,28 +423,28 @@ const FormacaoAcademia = () => {
             </div>
           </div>
 
-          {/* Filtro de Especialidades */}
+          {/* Filtro de Formação Acadêmica */}
           <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
-            <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por Especialidade</h3>
-            <div className="grid grid-cols-1 gap-3 max-h-[200px] overflow-y-auto">
-              {allEspecialidades.map((especialidade) => (
-                <div key={especialidade} className="flex items-center space-x-2">
+            <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por Formação Acad</h3>
+            <div className="grid grid-cols-1 gap-3">
+              {allFormacoes.map((formacao) => (
+                <div key={formacao} className="flex items-center space-x-2">
                   <Checkbox
-                    id={`especialidade-${especialidade}`}
-                    checked={selectedEspecialidades.includes(especialidade)}
+                    id={`formacao-${formacao}`}
+                    checked={selectedFormacoes.includes(formacao)}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setSelectedEspecialidades([...selectedEspecialidades, especialidade]);
+                        setSelectedFormacoes([...selectedFormacoes, formacao]);
                       } else {
-                        setSelectedEspecialidades(selectedEspecialidades.filter(e => e !== especialidade));
+                        setSelectedFormacoes(selectedFormacoes.filter(f => f !== formacao));
                       }
                     }}
                   />
                   <label
-                    htmlFor={`especialidade-${especialidade}`}
+                    htmlFor={`formacao-${formacao}`}
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                   >
-                    {especialidade}
+                    {formacao}
                   </label>
                 </div>
               ))}
