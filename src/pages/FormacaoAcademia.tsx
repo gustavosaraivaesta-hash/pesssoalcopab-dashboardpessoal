@@ -463,7 +463,7 @@ const FormacaoAcademia = () => {
         {/* Gráfico de Distribuição por Formação Acadêmica */}
         <div className="bg-card rounded-lg border border-border p-6 shadow-sm">
           <h3 className="text-lg font-semibold mb-4 text-foreground">Distribuição por Formação Acadêmica</h3>
-          <div className="h-[300px]">
+          <div className="h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={allFormacoes.map(formacao => {
                 const formacaoData = filteredData.filter(item => item.formacao === formacao);
@@ -484,7 +484,11 @@ const FormacaoAcademia = () => {
                   }}
                 />
                 <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]}>
-                  <LabelList dataKey="value" position="top" />
+                  <LabelList 
+                    dataKey="value" 
+                    position="top" 
+                    style={{ fontWeight: 'bold', fontSize: '14px' }}
+                  />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
