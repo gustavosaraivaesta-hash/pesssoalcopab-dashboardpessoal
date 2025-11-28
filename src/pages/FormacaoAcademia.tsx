@@ -158,6 +158,7 @@ const FormacaoAcademia = () => {
       visibleOMs.forEach(om => {
         tableHeaders.push(`${om} TMFT`);
         tableHeaders.push(`${om} EFE`);
+        tableHeaders.push(`${om} DIF`);
       });
 
       const tableDataPDF: any[] = [];
@@ -165,8 +166,11 @@ const FormacaoAcademia = () => {
       formacaoRows.forEach(row => {
         const rowData = [row.formacao || '', row.pessoal];
         visibleOMs.forEach(om => {
-          rowData.push(row[`${om}_tmft`]);
-          rowData.push(row[`${om}_efe`]);
+          const tmft = row[`${om}_tmft`] || 0;
+          const efe = row[`${om}_efe`] || 0;
+          rowData.push(tmft);
+          rowData.push(efe);
+          rowData.push(tmft - efe);
         });
         tableDataPDF.push(rowData);
       });
@@ -293,6 +297,7 @@ const FormacaoAcademia = () => {
         const efe = record?.efe || 0;
         row[`${om}_tmft`] = tmft;
         row[`${om}_efe`] = efe;
+        row[`${om}_dif`] = tmft - efe;
         
         if (tmft > 0 || efe > 0) {
           hasValue = true;
@@ -318,8 +323,11 @@ const FormacaoAcademia = () => {
   const visibleOMs = selectedOMs.length > 0 ? selectedOMs : allOMs;
   visibleOMs.forEach(om => {
     const omData = filteredData.filter(item => item.om === om);
-    totals[`${om}_tmft`] = omData.reduce((sum, item) => sum + item.tmft, 0);
-    totals[`${om}_efe`] = omData.reduce((sum, item) => sum + item.efe, 0);
+    const totalTmft = omData.reduce((sum, item) => sum + item.tmft, 0);
+    const totalEfe = omData.reduce((sum, item) => sum + item.efe, 0);
+    totals[`${om}_tmft`] = totalTmft;
+    totals[`${om}_efe`] = totalEfe;
+    totals[`${om}_dif`] = totalTmft - totalEfe;
   });
 
   return (
@@ -496,7 +504,7 @@ const FormacaoAcademia = () => {
                     Pessoal
                   </TableHead>
                   {(selectedOMs.length > 0 ? selectedOMs : allOMs).map(om => (
-                    <TableHead key={om} colSpan={2} className="font-semibold text-center border-l border-border bg-primary/10">
+                    <TableHead key={om} colSpan={3} className="font-semibold text-center border-l border-border bg-primary/10">
                       {om}
                     </TableHead>
                   ))}
@@ -506,6 +514,7 @@ const FormacaoAcademia = () => {
                     <>
                       <TableHead key={`${om}-tmft`} className="text-center text-xs border-l border-border">TMFT</TableHead>
                       <TableHead key={`${om}-efe`} className="text-center text-xs">EFE</TableHead>
+                      <TableHead key={`${om}-dif`} className="text-center text-xs">DIF</TableHead>
                     </>
                   ))}
                 </TableRow>
@@ -514,6 +523,7 @@ const FormacaoAcademia = () => {
                     <>
                       <TableHead key={`${om}-tmft-sum`} className="text-center text-xs border-l border-border bg-muted/30">∑</TableHead>
                       <TableHead key={`${om}-efe-sum`} className="text-center text-xs bg-muted/30">∑</TableHead>
+                      <TableHead key={`${om}-dif-sum`} className="text-center text-xs bg-muted/30">∑</TableHead>
                     </>
                   ))}
                 </TableRow>
@@ -534,6 +544,7 @@ const FormacaoAcademia = () => {
                       <>
                         <TableCell key={`${om}-tmft`} className="text-center border-l border-border">{row[`${om}_tmft`]}</TableCell>
                         <TableCell key={`${om}-efe`} className="text-center">{row[`${om}_efe`]}</TableCell>
+                        <TableCell key={`${om}-dif`} className="text-center">{row[`${om}_dif`]}</TableCell>
                       </>
                     ))}
                   </TableRow>
