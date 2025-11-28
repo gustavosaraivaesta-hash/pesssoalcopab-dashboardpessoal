@@ -31,6 +31,7 @@ interface FormacaoData {
   formacao: string;
   pessoal: string;
   om: string;
+  especialidade?: string;
   tmft: number;
   efe: number;
 }
@@ -41,6 +42,7 @@ const FormacaoAcademia = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedPessoal, setSelectedPessoal] = useState<string[]>([]);
+  const [selectedEspecialidades, setSelectedEspecialidades] = useState<string[]>([]);
 
   const fetchFormacaoData = async () => {
     setLoading(true);
@@ -97,7 +99,7 @@ const FormacaoAcademia = () => {
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-    let pageTitle = "Formação Academia - OFI";
+    let pageTitle = "Formação Acadêmica - OFI";
     if (selectedOMs.length > 0) {
       pageTitle += " - " + selectedOMs.join(', ');
     } else {
@@ -258,11 +260,14 @@ const FormacaoAcademia = () => {
   ];
 
   const allFormacoes = ['ADMINISTRAÇÃO', 'CONTABILIDADE', 'ENGENHARIA', 'ESTATISTICA'];
+  
+  const allEspecialidades = [...new Set(data.map(item => item.especialidade).filter(Boolean))].sort();
 
   const filteredData = data.filter(item => {
     const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
     const pessoalMatch = selectedPessoal.length === 0 || selectedPessoal.includes(item.pessoal);
-    return omMatch && pessoalMatch;
+    const especialidadeMatch = selectedEspecialidades.length === 0 || (item.especialidade && selectedEspecialidades.includes(item.especialidade));
+    return omMatch && pessoalMatch && especialidadeMatch;
   });
 
   // Build table data structure with formation in first column
@@ -334,7 +339,7 @@ const FormacaoAcademia = () => {
               Voltar
             </Button>
             <h1 className="text-2xl font-bold text-foreground">
-              Formação Academia - OFI
+              Formação Acadêmica - OFI
             </h1>
           </div>
           <div className="flex gap-2">
@@ -363,7 +368,7 @@ const FormacaoAcademia = () => {
         </div>
 
         {/* Filtros */}
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           {/* Filtro de OMs */}
           <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
             <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por OM</h3>
@@ -414,6 +419,34 @@ const FormacaoAcademia = () => {
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                   >
                     {pessoal}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Filtro de Especialidades */}
+          <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
+            <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por Especialidade</h3>
+            <div className="grid grid-cols-1 gap-3 max-h-[200px] overflow-y-auto">
+              {allEspecialidades.map((especialidade) => (
+                <div key={especialidade} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`especialidade-${especialidade}`}
+                    checked={selectedEspecialidades.includes(especialidade)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedEspecialidades([...selectedEspecialidades, especialidade]);
+                      } else {
+                        setSelectedEspecialidades(selectedEspecialidades.filter(e => e !== especialidade));
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor={`especialidade-${especialidade}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    {especialidade}
                   </label>
                 </div>
               ))}
