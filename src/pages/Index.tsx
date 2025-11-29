@@ -6,6 +6,8 @@ import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { TotalsChart } from "@/components/dashboard/TotalsChart";
 import { DistributionChart } from "@/components/dashboard/DistributionChart";
+import { PersonnelTable } from "@/components/dashboard/PersonnelTable";
+import { DifferenceByGraduationChart } from "@/components/dashboard/DifferenceByGraduationChart";
 import { MilitaryData } from "@/types/military";
 import { getUniqueValues, mockMilitaryData } from "@/data/mockData";
 import militaryBg from "@/assets/military-background.png";
@@ -346,6 +348,12 @@ const Index = () => {
             selectedSpecialties={filters.especialidade}
           />
         )}
+
+        {/* Tabela de Pessoal por OM */}
+        <PersonnelTable data={filteredData} />
+
+        {/* Gráfico de Diferença por Graduação */}
+        <DifferenceByGraduationChart data={filteredData} />
       </main>
 
       {/* Botão Sair - Canto Inferior Esquerdo */}

@@ -170,7 +170,7 @@ const FormacaoAcademia = () => {
           const efe = row[`${om}_efe`] || 0;
           rowData.push(tmft);
           rowData.push(efe);
-          rowData.push(tmft - efe);
+          rowData.push(efe - tmft); // DIF = EFE - TMFT
         });
         tableDataPDF.push(rowData);
       });
@@ -297,7 +297,7 @@ const FormacaoAcademia = () => {
         const efe = record?.efe || 0;
         row[`${om}_tmft`] = tmft;
         row[`${om}_efe`] = efe;
-        row[`${om}_dif`] = tmft - efe;
+        row[`${om}_dif`] = efe - tmft; // DIF = EFE - TMFT
         
         if (tmft > 0 || efe > 0) {
           hasValue = true;
@@ -327,7 +327,7 @@ const FormacaoAcademia = () => {
     const totalEfe = omData.reduce((sum, item) => sum + item.efe, 0);
     totals[`${om}_tmft`] = totalTmft;
     totals[`${om}_efe`] = totalEfe;
-    totals[`${om}_dif`] = totalTmft - totalEfe;
+    totals[`${om}_dif`] = totalEfe - totalTmft; // DIF = EFE - TMFT
   });
 
   return (
