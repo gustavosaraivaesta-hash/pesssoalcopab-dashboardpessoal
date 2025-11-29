@@ -25,6 +25,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   LabelList,
+  Cell,
 } from "recharts";
 
 interface FormacaoData {
@@ -467,10 +468,12 @@ const FormacaoAcademia = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={allFormacoes.map(formacao => {
                 const formacaoData = filteredData.filter(item => item.formacao === formacao);
+                const totalTmft = formacaoData.reduce((sum, item) => sum + item.tmft, 0);
                 const totalEfe = formacaoData.reduce((sum, item) => sum + item.efe, 0);
+                const totalDif = totalEfe - totalTmft; // DIF = EFE - TMFT
                 return {
                   name: formacao,
-                  value: totalEfe
+                  value: totalDif
                 };
               })}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -482,12 +485,26 @@ const FormacaoAcademia = () => {
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '6px'
                   }}
+                  formatter={(value: number) => [value > 0 ? `+${value}` : value, 'DIF']}
                 />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]}>
+                <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                  {allFormacoes.map((formacao, index) => {
+                    const formacaoData = filteredData.filter(item => item.formacao === formacao);
+                    const totalTmft = formacaoData.reduce((sum, item) => sum + item.tmft, 0);
+                    const totalEfe = formacaoData.reduce((sum, item) => sum + item.efe, 0);
+                    const totalDif = totalEfe - totalTmft;
+                    return (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={totalDif >= 0 ? '#10b981' : '#ef4444'} 
+                      />
+                    );
+                  })}
                   <LabelList 
                     dataKey="value" 
                     position="top" 
-                    style={{ fontWeight: 'bold', fontSize: '14px' }}
+                    style={{ fontWeight: 'bold', fontSize: '14px', fill: '#000' }}
+                    formatter={(value: number) => value > 0 ? `+${value}` : value}
                   />
                 </Bar>
               </BarChart>
