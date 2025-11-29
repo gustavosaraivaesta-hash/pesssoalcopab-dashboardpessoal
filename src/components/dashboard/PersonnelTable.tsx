@@ -16,8 +16,22 @@ export const PersonnelTable = ({ data }: PersonnelTableProps) => {
   // Get unique OMs
   const allOMs = Array.from(new Set(data.map(item => item.om))).sort();
   
-  // Get unique graduations
-  const allGraduations = Array.from(new Set(data.map(item => item.graduacao))).sort();
+  // Define graduation order
+  const graduationOrder = [
+    'SO',
+    '1SG',
+    '2SG',
+    '3SG',
+    'CB',
+    'MN',
+    'PRAÇAS TTC',
+    'SERVIDORES CIVIS (NA + NI)'
+  ];
+  
+  // Get unique graduations in specified order
+  const allGraduations = graduationOrder.filter(grad => 
+    data.some(item => item.graduacao === grad)
+  );
   
   // Build table data structure
   const tableData = allGraduations.map(graduacao => {
