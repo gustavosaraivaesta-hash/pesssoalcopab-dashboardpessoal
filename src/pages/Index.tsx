@@ -350,10 +350,10 @@ const Index = () => {
         )}
 
         {/* Tabela de Pessoal por OM */}
-        <PersonnelTable data={filteredData} />
+        <PersonnelTable data={filteredData} categoria={filters.categoria} />
 
         {/* Gráfico de Diferença por Graduação */}
-        <DifferenceByGraduationChart data={filteredData} />
+        <DifferenceByGraduationChart data={filteredData} categoria={filters.categoria} />
       </main>
 
       {/* Botão Sair - Canto Inferior Esquerdo */}

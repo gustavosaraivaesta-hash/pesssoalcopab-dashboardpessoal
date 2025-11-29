@@ -10,14 +10,15 @@ import { MilitaryData } from "@/types/military";
 
 interface PersonnelTableProps {
   data: MilitaryData[];
+  categoria: "PRAÇAS" | "OFICIAIS";
 }
 
-export const PersonnelTable = ({ data }: PersonnelTableProps) => {
+export const PersonnelTable = ({ data, categoria }: PersonnelTableProps) => {
   // Get unique OMs
   const allOMs = Array.from(new Set(data.map(item => item.om))).sort();
   
-  // Define graduation order
-  const graduationOrder = [
+  // Define graduation order based on categoria
+  const graduationOrderPracas = [
     'SO',
     '1SG',
     '2SG',
@@ -27,6 +28,21 @@ export const PersonnelTable = ({ data }: PersonnelTableProps) => {
     'PRAÇAS TTC',
     'SERVIDORES CIVIS (NA + NI)'
   ];
+  
+  const graduationOrderOficiais = [
+    'CONTRA-ALMIRANTE',
+    'CMG',
+    'CF',
+    'CC',
+    'CT',
+    '1TEN',
+    '2TEN',
+    'GM',
+    'OFICIAIS TTC',
+    'SERVIDORES CIVIS (NA + NI)'
+  ];
+  
+  const graduationOrder = categoria === "PRAÇAS" ? graduationOrderPracas : graduationOrderOficiais;
   
   // Get unique graduations in specified order
   const allGraduations = graduationOrder.filter(grad => 

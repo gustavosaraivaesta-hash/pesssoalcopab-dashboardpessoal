@@ -13,11 +13,12 @@ import { MilitaryData } from "@/types/military";
 
 interface DifferenceByGraduationChartProps {
   data: MilitaryData[];
+  categoria: "PRAÇAS" | "OFICIAIS";
 }
 
-export const DifferenceByGraduationChart = ({ data }: DifferenceByGraduationChartProps) => {
-  // Define graduation order
-  const graduationOrder = [
+export const DifferenceByGraduationChart = ({ data, categoria }: DifferenceByGraduationChartProps) => {
+  // Define graduation order based on categoria
+  const graduationOrderPracas = [
     'SO',
     '1SG',
     '2SG',
@@ -27,6 +28,21 @@ export const DifferenceByGraduationChart = ({ data }: DifferenceByGraduationChar
     'PRAÇAS TTC',
     'SERVIDORES CIVIS (NA + NI)'
   ];
+  
+  const graduationOrderOficiais = [
+    'CONTRA-ALMIRANTE',
+    'CMG',
+    'CF',
+    'CC',
+    'CT',
+    '1TEN',
+    '2TEN',
+    'GM',
+    'OFICIAIS TTC',
+    'SERVIDORES CIVIS (NA + NI)'
+  ];
+  
+  const graduationOrder = categoria === "PRAÇAS" ? graduationOrderPracas : graduationOrderOficiais;
   
   // Get unique graduations in specified order
   const allGraduations = graduationOrder.filter(grad => 
@@ -49,7 +65,7 @@ export const DifferenceByGraduationChart = ({ data }: DifferenceByGraduationChar
   return (
     <div className="bg-card rounded-lg border border-border shadow-sm p-6">
       <h3 className="text-lg font-semibold mb-4 text-foreground">
-        Diferença por Graduação/Categoria
+        Diferença por POSTO/Categoria
       </h3>
       <div className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
