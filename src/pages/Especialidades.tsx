@@ -6,6 +6,7 @@ import { ArrowLeft, RefreshCw, Download } from "lucide-react";
 import { toast } from "sonner";
 import { TopSpecialtiesChart } from "@/components/dashboard/TopSpecialtiesChart";
 import { GraduationDistributionChart } from "@/components/dashboard/GraduationDistributionChart";
+import TopDeficitChart from "@/components/dashboard/TopDeficitChart";
 import {
   Table,
   TableBody,
@@ -850,6 +851,25 @@ const Especialidades = () => {
           selectedOMs={selectedOMs} 
           selectedEspecialidades={selectedEspecialidades}
           selectedGraduacoes={selectedGraduacoes}
+        />
+
+        {/* Top 5 Deficit Chart */}
+        <TopDeficitChart 
+          data={(() => {
+            const deficitByEspecialidade = new Map<string, number>();
+            
+            filteredData.forEach(item => {
+              const current = deficitByEspecialidade.get(item.especialidade) || 0;
+              const dif = (item.tmft_sum || 0) - (item.efe_sum || 0);
+              deficitByEspecialidade.set(item.especialidade, current + dif);
+            });
+
+            return Array.from(deficitByEspecialidade.entries()).map(([name, deficit]) => ({
+              name,
+              deficit
+            }));
+          })()}
+          title="Top 5 Especialidades com Maior Deficit"
         />
 
         {/* Graduation Distribution Chart */}
