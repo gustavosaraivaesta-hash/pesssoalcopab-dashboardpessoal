@@ -264,7 +264,8 @@ const FormacaoAcademia = () => {
     'SERVIDORES CIVIS (NA + NI)'
   ];
 
-  const allFormacoes = ['ADMINISTRAÇÃO', 'CONTABILIDADE', 'ENGENHARIA', 'ESTATISTICA'];
+  // Dynamically get all unique formacoes from data
+  const allFormacoes = [...new Set(data.map(item => item.formacao))].sort();
 
   const filteredData = data.filter(item => {
     const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
@@ -461,21 +462,21 @@ const FormacaoAcademia = () => {
           </div>
         </div>
 
-        {/* Gráfico de Distribuição por Formação Acadêmica */}
+        {/* Gráfico de Top 5 Formações Acadêmicas */}
         <div className="bg-card rounded-lg border border-border p-6 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 text-foreground">Distribuição por Formação Acadêmica</h3>
+          <h3 className="text-lg font-semibold mb-4 text-foreground">Top 5 Formações Acadêmicas</h3>
           <div className="h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={allFormacoes.map(formacao => {
                 const formacaoData = filteredData.filter(item => item.formacao === formacao);
                 const totalTmft = formacaoData.reduce((sum, item) => sum + item.tmft, 0);
                 const totalEfe = formacaoData.reduce((sum, item) => sum + item.efe, 0);
-                const totalDif = totalEfe - totalTmft; // DIF = EFE - TMFT
+                const totalDif = totalEfe - totalTmft;
                 return {
                   name: formacao,
                   value: totalDif
                 };
-              })}>
+              }).sort((a, b) => b.value - a.value).slice(0, 5)}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis dataKey="name" className="text-xs" />
                 <YAxis className="text-xs" />
@@ -488,18 +489,18 @@ const FormacaoAcademia = () => {
                   formatter={(value: number) => [value > 0 ? `+${value}` : value, 'DIF']}
                 />
                 <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                  {allFormacoes.map((formacao, index) => {
+                  {allFormacoes.map(formacao => {
                     const formacaoData = filteredData.filter(item => item.formacao === formacao);
                     const totalTmft = formacaoData.reduce((sum, item) => sum + item.tmft, 0);
                     const totalEfe = formacaoData.reduce((sum, item) => sum + item.efe, 0);
                     const totalDif = totalEfe - totalTmft;
-                    return (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={totalDif >= 0 ? '#10b981' : '#ef4444'} 
-                      />
-                    );
-                  })}
+                    return totalDif;
+                  }).sort((a, b) => b - a).slice(0, 5).map((dif, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={dif >= 0 ? '#10b981' : '#ef4444'} 
+                    />
+                  ))}
                   <LabelList 
                     dataKey="value" 
                     position="top" 
@@ -565,11 +566,38 @@ const FormacaoAcademia = () => {
                       <>
                         <TableCell key={`${om}-tmft`} className="text-center border-l border-border">{row[`${om}_tmft`]}</TableCell>
                         <TableCell key={`${om}-efe`} className="text-center">{row[`${om}_efe`]}</TableCell>
-                        <TableCell key={`${om}-dif`} className="text-center">{row[`${om}_dif`]}</TableCell>
+                        <TableCell 
+                          key={`${om}-dif`} 
+                          className={`text-center font-semibold ${row[`${om}_dif`] < 0 ? 'text-red-600 bg-red-50' : ''}`}
+                        >
+                          {row[`${om}_dif`] > 0 ? `+${row[`${om}_dif`]}` : row[`${om}_dif`]}
+                        </TableCell>
                       </>
                     ))}
                   </TableRow>
                 ))}
+                {/* Total Row */}
+                <TableRow className="bg-primary font-bold text-primary-foreground">
+                  <TableCell colSpan={2} className="text-center border-r-2 border-primary-foreground/20">TOTAL</TableCell>
+                  {(selectedOMs.length > 0 ? selectedOMs : allOMs).map(om => {
+                    const omData = filteredData.filter(item => item.om === om);
+                    const totalTmft = omData.reduce((sum, item) => sum + item.tmft, 0);
+                    const totalEfe = omData.reduce((sum, item) => sum + item.efe, 0);
+                    const totalDif = totalEfe - totalTmft;
+                    return (
+                      <>
+                        <TableCell key={`${om}-tmft-total`} className="text-center border-l border-primary-foreground/20">{totalTmft}</TableCell>
+                        <TableCell key={`${om}-efe-total`} className="text-center">{totalEfe}</TableCell>
+                        <TableCell 
+                          key={`${om}-dif-total`} 
+                          className={`text-center font-bold ${totalDif < 0 ? 'bg-red-600' : totalDif > 0 ? 'bg-green-600' : ''}`}
+                        >
+                          {totalDif > 0 ? `+${totalDif}` : totalDif}
+                        </TableCell>
+                      </>
+                    );
+                  })}
+                </TableRow>
               </TableBody>
             </Table>
           </div>
