@@ -288,7 +288,8 @@ const FormacaoAcademia = () => {
       const row: any = { 
         formacao: formacao,
         pessoal,
-        isFirstInFormacao: false
+        isFirstInFormacao: false,
+        isFormacaoTotal: false
       };
       
       let hasValue = false;
@@ -312,11 +313,30 @@ const FormacaoAcademia = () => {
       }
     });
     
-    // Mark first row of each formation
+    // Mark first row of each formation and add total row
     if (validRows.length > 0) {
       validRows[0].isFirstInFormacao = true;
-      formacaoRowSpans[formacao] = validRows.length;
+      formacaoRowSpans[formacao] = validRows.length + 1; // +1 for total row
       tableData.push(...validRows);
+      
+      // Add total row for this formation
+      const totalRow: any = {
+        formacao: formacao,
+        pessoal: 'TOTAL',
+        isFirstInFormacao: false,
+        isFormacaoTotal: true
+      };
+      
+      allOMs.forEach(om => {
+        const omFormacaoData = formacaoData.filter(item => item.om === om);
+        const tmftTotal = omFormacaoData.reduce((sum, item) => sum + item.tmft, 0);
+        const efeTotal = omFormacaoData.reduce((sum, item) => sum + item.efe, 0);
+        totalRow[`${om}_tmft`] = tmftTotal;
+        totalRow[`${om}_efe`] = efeTotal;
+        totalRow[`${om}_dif`] = efeTotal - tmftTotal;
+      });
+      
+      tableData.push(totalRow);
     }
   });
   
@@ -464,17 +484,15 @@ const FormacaoAcademia = () => {
 
         {/* Gráfico de Top 5 Formações Acadêmicas */}
         <div className="bg-card rounded-lg border border-border p-6 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 text-foreground">Top 5 Formações Acadêmicas</h3>
+          <h3 className="text-lg font-semibold mb-4 text-foreground">Top 5 Formações Acadêmicas por EFE</h3>
           <div className="h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={allFormacoes.map(formacao => {
                 const formacaoData = filteredData.filter(item => item.formacao === formacao);
-                const totalTmft = formacaoData.reduce((sum, item) => sum + item.tmft, 0);
                 const totalEfe = formacaoData.reduce((sum, item) => sum + item.efe, 0);
-                const totalDif = totalEfe - totalTmft;
                 return {
                   name: formacao,
-                  value: totalDif
+                  value: totalEfe
                 };
               }).sort((a, b) => b.value - a.value).slice(0, 5)}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -486,26 +504,13 @@ const FormacaoAcademia = () => {
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '6px'
                   }}
-                  formatter={(value: number) => [value > 0 ? `+${value}` : value, 'DIF']}
+                  formatter={(value: number) => [value, 'EFE']}
                 />
-                <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                  {allFormacoes.map(formacao => {
-                    const formacaoData = filteredData.filter(item => item.formacao === formacao);
-                    const totalTmft = formacaoData.reduce((sum, item) => sum + item.tmft, 0);
-                    const totalEfe = formacaoData.reduce((sum, item) => sum + item.efe, 0);
-                    const totalDif = totalEfe - totalTmft;
-                    return totalDif;
-                  }).sort((a, b) => b - a).slice(0, 5).map((dif, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={dif >= 0 ? '#10b981' : '#ef4444'} 
-                    />
-                  ))}
+                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]}>
                   <LabelList 
                     dataKey="value" 
                     position="top" 
                     style={{ fontWeight: 'bold', fontSize: '14px', fill: '#000' }}
-                    formatter={(value: number) => value > 0 ? `+${value}` : value}
                   />
                 </Bar>
               </BarChart>
@@ -552,7 +557,7 @@ const FormacaoAcademia = () => {
               </TableHeader>
               <TableBody>
                 {tableData.map((row, idx) => (
-                  <TableRow key={idx}>
+                  <TableRow key={idx} className={row.isFormacaoTotal ? 'bg-blue-100 font-bold' : ''}>
                     {row.isFirstInFormacao && (
                       <TableCell 
                         rowSpan={formacaoRowSpans[row.formacao]}
@@ -561,7 +566,9 @@ const FormacaoAcademia = () => {
                         {row.formacao}
                       </TableCell>
                     )}
-                    <TableCell className="font-medium border-r-2 border-border">{row.pessoal}</TableCell>
+                    <TableCell className={`border-r-2 border-border ${row.isFormacaoTotal ? 'font-bold' : 'font-medium'}`}>
+                      {row.pessoal}
+                    </TableCell>
                     {(selectedOMs.length > 0 ? selectedOMs : allOMs).map(om => (
                       <>
                         <TableCell key={`${om}-tmft`} className="text-center border-l border-border">{row[`${om}_tmft`]}</TableCell>
