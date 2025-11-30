@@ -68,11 +68,13 @@ serve(async (req) => {
         console.log(`Row ${i}: colA = "${colA}", colB = "${colB}"`);
         
         // Check if this is a formation header row (colA has formation name)
-        const formacoes = ['ADMINISTRAÇÃO', 'CONTABILIDADE', 'ENGENHARIA', 'ESTATISTICA'];
-        const normalizedColA = colA.toUpperCase().replace(/\s+/g, ' ');
+        // Detect formations dynamically - if colA has content and colB has a rank, it's a formation row
+        const normalizedColA = colA.toUpperCase().replace(/\s+/g, ' ').trim();
+        const officerRanks = ['CONTRA-ALMIRANTE', 'CMG', 'CF', 'CC', 'CT', '1TEN', '2TEN', 'GM', 'OFICIAIS TTC', 'SERVIDORES CIVIS'];
         
-        if (formacoes.some(f => normalizedColA.includes(f))) {
-          currentFormacao = formacoes.find(f => normalizedColA.includes(f)) || '';
+        // If colA has content and colB matches an officer rank, colA is a formation name
+        if (normalizedColA && colB && officerRanks.some(rank => colB.toUpperCase().includes(rank))) {
+          currentFormacao = normalizedColA;
           console.log(`Found formation: ${currentFormacao}`);
           
           // Process CONTRA-ALMIRANTE on the same row as formation
