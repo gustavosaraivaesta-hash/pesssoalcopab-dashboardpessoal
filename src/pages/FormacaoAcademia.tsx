@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import brasaoRepublica from "@/assets/brasao-republica.png";
+import marinhaHeader from "@/assets/marinha-header.png";
 import {
   BarChart,
   Bar,
@@ -27,6 +28,8 @@ import {
   LabelList,
   Cell,
 } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import TopDeficitChart from "@/components/dashboard/TopDeficitChart";
 
 interface FormacaoData {
   formacao: string;
@@ -98,131 +101,111 @@ const FormacaoAcademia = () => {
     navigate("/login");
   };
 
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     const doc = new jsPDF();
-    let pageTitle = "Formação Acadêmica - OFI";
-    if (selectedOMs.length > 0) {
-      pageTitle += " - " + selectedOMs.join(', ');
-    } else {
-      pageTitle += " - Todas as OMs";
-    }
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     
-    const pageHeight = doc.internal.pageSize.height;
-    const marginBottom = 15;
+    const selectedOMsDisplay = selectedOMs.length > 0 ? selectedOMs : allOMs;
 
-    const brasaoWidth = 32;
-    const brasaoHeight = 32;
-    const brasaoX = (doc.internal.pageSize.width - brasaoWidth) / 2;
-    doc.addImage(brasaoRepublica, 'PNG', brasaoX, 10, brasaoWidth, brasaoHeight);
-    
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('MARINHA DO BRASIL', doc.internal.pageSize.width / 2, 45, { align: 'center' });
-    doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', doc.internal.pageSize.width / 2, 50, { align: 'center' });
-    
-    let currentY = 66;
+    selectedOMsDisplay.forEach((om, omIndex) => {
+      if (omIndex > 0) {
+        doc.addPage();
+      }
 
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text(pageTitle, 14, currentY);
-    currentY += 6;
+      let yPosition = 10;
 
-    const visibleOMs = selectedOMs.length > 0 ? selectedOMs : allOMs;
-    
-    allFormacoes.forEach((formacao, formacaoIndex) => {
-      const formacaoRows = tableData.filter(row => {
-        // Find the formation for this row
-        if (row.formacao) return row.formacao === formacao;
-        // For rows without formacao, find the previous row with formacao
-        const rowIndex = tableData.indexOf(row);
-        for (let i = rowIndex - 1; i >= 0; i--) {
-          if (tableData[i].formacao) {
-            return tableData[i].formacao === formacao;
-          }
-        }
-        return false;
-      });
+      // Header
+      const brasaoImg = new Image();
+      brasaoImg.src = brasaoRepublica;
+      doc.addImage(brasaoImg, 'PNG', pageWidth / 2 - 10, yPosition, 20, 20);
+      yPosition += 25;
+
+      const marinhaImg = new Image();
+      marinhaImg.src = marinhaHeader;
+      doc.addImage(marinhaImg, 'PNG', pageWidth / 2 - 30, yPosition, 60, 15);
+      yPosition += 20;
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 12;
+
+      // OM Title
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(om, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 10;
+
+      // Filters
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
       
-      if (formacaoRows.length === 0) return;
-
-      if (formacaoIndex > 0) {
-        currentY += 12;
+      const filterText = [];
+      if (selectedPessoal.length > 0 && selectedPessoal.length < allPessoal.length) {
+        filterText.push(`Pessoal: ${selectedPessoal.join(', ')}`);
+      }
+      if (selectedFormacoes.length > 0 && selectedFormacoes.length < allFormacoes.length) {
+        filterText.push(`Formações: ${selectedFormacoes.join(', ')}`);
       }
 
-      doc.setFontSize(11);
-      doc.setTextColor(59, 130, 246);
-      doc.text(`${formacao}`, 14, currentY);
-      doc.setTextColor(0, 0, 0);
-      currentY += 5;
+      if (filterText.length > 0) {
+        doc.text(`Filtros: ${filterText.join(' | ')}`, pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 8;
+      }
 
-      const tableHeaders = ['Formação Acad', 'Pessoal'];
-      visibleOMs.forEach(om => {
-        tableHeaders.push(`${om} TMFT`);
-        tableHeaders.push(`${om} EFE`);
-        tableHeaders.push(`${om} DIF`);
-      });
+      doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 12;
 
-      const tableDataPDF: any[] = [];
-
-      formacaoRows.forEach(row => {
-        const rowData = [row.formacao || '', row.pessoal];
-        visibleOMs.forEach(om => {
-          const tmft = row[`${om}_tmft`] || 0;
-          const efe = row[`${om}_efe`] || 0;
-          rowData.push(tmft);
-          rowData.push(efe);
-          rowData.push(efe - tmft); // DIF = EFE - TMFT
-        });
-        tableDataPDF.push(rowData);
-      });
-
-      if (tableDataPDF.length > 0) {
-        const neededSpace = 15 + (tableDataPDF.length * 7) + 8;
+      // Create table data for this OM
+      const headers = ['Formação', 'Pessoal', 'TMFT', 'EFE', 'DIF'];
+      const rows: any[] = [];
+      
+      tableData.forEach(row => {
+        const tmft = row[`${om}_tmft`] || 0;
+        const efe = row[`${om}_efe`] || 0;
+        const dif = row[`${om}_dif`] || 0;
         
-        if (currentY + neededSpace > pageHeight - marginBottom) {
-          doc.addPage();
-          currentY = 10;
-          
-          doc.setFontSize(11);
-          doc.setTextColor(59, 130, 246);
-          doc.text(`${formacao} (continuação)`, 14, currentY);
-          doc.setTextColor(0, 0, 0);
-          currentY += 5;
+        if (tmft === 0 && efe === 0) return;
+
+        if (row.isFormacaoTotal) {
+          rows.push([
+            { content: row.formacao, styles: { fontStyle: 'bold', fillColor: [59, 130, 246], textColor: [255, 255, 255] } },
+            { content: 'TOTAL', styles: { fontStyle: 'bold', fillColor: [59, 130, 246], textColor: [255, 255, 255] } },
+            { content: tmft.toString(), styles: { fontStyle: 'bold', fillColor: [59, 130, 246], textColor: [255, 255, 255] } },
+            { content: efe.toString(), styles: { fontStyle: 'bold', fillColor: [59, 130, 246], textColor: [255, 255, 255] } },
+            { content: dif.toString(), styles: { fontStyle: 'bold', fillColor: [59, 130, 246], textColor: [255, 255, 255] } }
+          ]);
+        } else {
+          rows.push([
+            row.isFirstInFormacao ? row.formacao : '',
+            row.pessoal,
+            tmft.toString(),
+            efe.toString(),
+            { content: dif.toString(), styles: { textColor: dif < 0 ? [220, 38, 38] : [0, 0, 0] } }
+          ]);
         }
+      });
 
-        autoTable(doc, {
-          head: [tableHeaders],
-          body: tableDataPDF,
-          startY: currentY,
-          styles: { fontSize: 8, cellPadding: 1.5 },
-          headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
-          margin: { left: 14 },
-          didDrawPage: function(data) {
-            currentY = data.cursor?.y || currentY;
-          }
-        });
-
-        currentY = (doc as any).lastAutoTable.finalY + 2;
-      }
+      // Generate table
+      autoTable(doc, {
+        head: [headers],
+        body: rows,
+        startY: yPosition,
+        styles: { fontSize: 10, cellPadding: 3 },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
+        didDrawPage: (data: any) => {
+          const pageCount = (doc as any).internal.getNumberOfPages();
+          const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
+          doc.setFontSize(10);
+          doc.text(`${currentPage} - ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+        }
+      });
     });
 
-    const fileName = `formacao_academia_${selectedOMs.length > 0 ? selectedOMs.join('_') : 'todas-oms'}_${new Date().toISOString().split('T')[0]}.pdf`;
-    
-    const totalPages = (doc as any).internal.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      doc.setFontSize(9);
-      doc.setTextColor(100, 100, 100);
-      doc.text(
-        `${i} - ${totalPages}`,
-        doc.internal.pageSize.width / 2,
-        doc.internal.pageSize.height - 10,
-        { align: 'center' }
-      );
-    }
-    
-    doc.save(fileName);
-    toast.success("PDF exportado com sucesso!");
+    doc.save('formacao_academia_por_om.pdf');
+    toast.success('PDF exportado com sucesso!');
   };
 
   if (loading) {
@@ -483,40 +466,63 @@ const FormacaoAcademia = () => {
         </div>
 
         {/* Gráfico de Top 5 Formações Acadêmicas */}
-        <div className="bg-card rounded-lg border border-border p-6 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 text-foreground">Top 5 Formações Acadêmicas por EFE</h3>
-          <div className="h-[500px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={allFormacoes.map(formacao => {
-                const formacaoData = filteredData.filter(item => item.formacao === formacao);
-                const totalEfe = formacaoData.reduce((sum, item) => sum + item.efe, 0);
-                return {
-                  name: formacao,
-                  value: totalEfe
-                };
-              }).sort((a, b) => b.value - a.value).slice(0, 5)}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="name" className="text-xs" />
-                <YAxis className="text-xs" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '6px'
-                  }}
-                  formatter={(value: number) => [value, 'EFE']}
-                />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]}>
-                  <LabelList 
-                    dataKey="value" 
-                    position="top" 
-                    style={{ fontWeight: 'bold', fontSize: '14px', fill: '#000' }}
+        <Card>
+          <CardHeader>
+            <CardTitle>Top 5 Formações Acadêmicas por EFE</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={allFormacoes.map(formacao => {
+                  const formacaoData = filteredData.filter(item => item.formacao === formacao);
+                  const totalEfe = formacaoData.reduce((sum, item) => sum + item.efe, 0);
+                  return {
+                    name: formacao,
+                    value: totalEfe
+                  };
+                }).sort((a, b) => b.value - a.value).slice(0, 5)}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="name" className="text-xs" />
+                  <YAxis className="text-xs" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px'
+                    }}
+                    formatter={(value: number) => [value, 'EFE']}
                   />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]}>
+                    <LabelList 
+                      dataKey="value" 
+                      position="top" 
+                      style={{ fontWeight: 'bold', fontSize: '14px', fill: '#000' }}
+                    />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Top 5 Deficit Chart */}
+        <TopDeficitChart 
+          data={(() => {
+            const formacaoDeficit = new Map<string, number>();
+            
+            filteredData.forEach(item => {
+              const current = formacaoDeficit.get(item.formacao) || 0;
+              const dif = (item.tmft || 0) - (item.efe || 0);
+              formacaoDeficit.set(item.formacao, current + dif);
+            });
+
+            return Array.from(formacaoDeficit.entries()).map(([name, deficit]) => ({
+              name,
+              deficit
+            }));
+          })()}
+          title="Top 5 Formações com Maior Deficit"
+        />
 
         {/* Tabela com Formação na primeira coluna */}
         <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
