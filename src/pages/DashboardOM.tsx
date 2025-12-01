@@ -18,13 +18,9 @@ import brasaoRepublica from "@/assets/brasao-republica.png";
 const DashboardOM = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<OMData[]>([]);
-  const [availableOMs, setAvailableOMs] = useState<string[]>([]);
-  const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
-  const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
+  const [availableSetores, setAvailableSetores] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOM, setSelectedOM] = useState<string>("Todos");
-  const [selectedQuadro, setSelectedQuadro] = useState<string>("Todos");
-  const [selectedOpcao, setSelectedOpcao] = useState<string>("Todos");
+  const [selectedSetor, setSelectedSetor] = useState<string>("Todos");
   const [activeTab, setActiveTab] = useState<string>("efetivo");
   
   const chartRef = useRef<HTMLDivElement>(null);
@@ -45,9 +41,7 @@ const DashboardOM = () => {
       if (result?.data) {
         console.log('Received OM data:', result.data.length, 'records');
         setData(result.data);
-        setAvailableOMs(result.oms || []);
-        setAvailableQuadros(result.quadros || []);
-        setAvailableOpcoes(result.opcoes || []);
+        setAvailableSetores(result.setores || []);
       }
     } catch (error) {
       console.error('Error in fetchData:', error);
@@ -70,20 +64,12 @@ const DashboardOM = () => {
   const filteredData = useMemo(() => {
     let filtered = data;
 
-    if (selectedOM !== "Todos") {
-      filtered = filtered.filter(item => item.om === selectedOM);
-    }
-
-    if (selectedQuadro !== "Todos") {
-      filtered = filtered.filter(item => item.quadro === selectedQuadro);
-    }
-
-    if (selectedOpcao !== "Todos") {
-      filtered = filtered.filter(item => item.opcao === selectedOpcao);
+    if (selectedSetor !== "Todos") {
+      filtered = filtered.filter(item => item.setor === selectedSetor);
     }
 
     return filtered;
-  }, [data, selectedOM, selectedQuadro, selectedOpcao]);
+  }, [data, selectedSetor]);
 
   const metrics = useMemo<OMMetrics>(() => {
     const totalTMFT = filteredData.reduce((sum, item) => sum + item.tmft, 0);
@@ -99,41 +85,43 @@ const DashboardOM = () => {
     };
   }, [filteredData]);
 
-  const chartDataByOM = useMemo(() => {
+  const chartDataBySetor = useMemo(() => {
     const grouped = filteredData.reduce((acc, item) => {
-      if (!acc[item.om]) {
-        acc[item.om] = { om: item.om, tmft: 0, exi: 0, dif: 0 };
+      if (!acc[item.setor]) {
+        acc[item.setor] = { setor: item.setor, tmft: 0, exi: 0, dif: 0 };
       }
-      acc[item.om].tmft += item.tmft;
-      acc[item.om].exi += item.exi;
-      acc[item.om].dif += item.dif;
+      acc[item.setor].tmft += item.tmft;
+      acc[item.setor].exi += item.exi;
+      acc[item.setor].dif += item.dif;
       return acc;
-    }, {} as Record<string, { om: string; tmft: number; exi: number; dif: number }>);
+    }, {} as Record<string, { setor: string; tmft: number; exi: number; dif: number }>);
 
     return Object.values(grouped);
   }, [filteredData]);
 
-  const chartDataByPessoal = useMemo(() => {
+  const chartDataByPosto = useMemo(() => {
     const grouped = filteredData.reduce((acc, item) => {
-      if (!acc[item.pessoal]) {
-        acc[item.pessoal] = { name: item.pessoal, value: 0 };
+      if (item.posto && !acc[item.posto]) {
+        acc[item.posto] = { name: item.posto, value: 0 };
       }
-      acc[item.pessoal].value += item.exi;
+      if (item.posto) {
+        acc[item.posto].value += item.exi;
+      }
       return acc;
     }, {} as Record<string, { name: string; value: number }>);
 
     return Object.values(grouped).filter(item => item.value > 0);
   }, [filteredData]);
 
-  const chartDataByOMHorizontal = useMemo(() => {
+  const chartDataBySetorHorizontal = useMemo(() => {
     const grouped = filteredData.reduce((acc, item) => {
-      if (!acc[item.om]) {
-        acc[item.om] = { om: item.om, ocupados: 0, vagos: 0 };
+      if (!acc[item.setor]) {
+        acc[item.setor] = { setor: item.setor, ocupados: 0, vagos: 0 };
       }
-      acc[item.om].ocupados += item.exi;
-      acc[item.om].vagos += Math.max(0, item.tmft - item.exi);
+      acc[item.setor].ocupados += item.exi;
+      acc[item.setor].vagos += Math.max(0, item.tmft - item.exi);
       return acc;
-    }, {} as Record<string, { om: string; ocupados: number; vagos: number }>);
+    }, {} as Record<string, { setor: string; ocupados: number; vagos: number }>);
 
     return Object.values(grouped);
   }, [filteredData]);
@@ -162,26 +150,12 @@ const DashboardOM = () => {
       yPosition += 15;
 
       // Filters
-      if (selectedOM !== "Todos" || selectedQuadro !== "Todos" || selectedOpcao !== "Todos") {
+      if (selectedSetor !== "Todos") {
         pdf.setFontSize(10);
         pdf.text('Filtros Aplicados:', 14, yPosition);
         yPosition += 6;
-
-        if (selectedOM !== "Todos") {
-          pdf.text(`OM: ${selectedOM}`, 20, yPosition);
-          yPosition += 6;
-        }
-
-        if (selectedQuadro !== "Todos") {
-          pdf.text(`Quadro: ${selectedQuadro}`, 20, yPosition);
-          yPosition += 6;
-        }
-
-        if (selectedOpcao !== "Todos") {
-          pdf.text(`Opção: ${selectedOpcao}`, 20, yPosition);
-          yPosition += 6;
-        }
-        yPosition += 4;
+        pdf.text(`Setor: ${selectedSetor}`, 20, yPosition);
+        yPosition += 10;
       }
 
       // Metrics
@@ -209,8 +183,8 @@ const DashboardOM = () => {
       }
 
       // Table
-      const tableData = chartDataByOM.map(item => [
-        item.om,
+      const tableData = chartDataBySetor.map(item => [
+        item.setor,
         item.tmft.toString(),
         item.exi.toString(),
         item.dif.toString(),
@@ -218,7 +192,7 @@ const DashboardOM = () => {
 
       autoTable(pdf, {
         startY: yPosition,
-        head: [['OM', 'TMFT', 'EXI', 'DIF']],
+        head: [['SETOR', 'TMFT', 'EXI', 'DIF']],
         body: tableData,
         theme: 'grid',
         styles: { fontSize: 10 },
@@ -296,30 +270,15 @@ const DashboardOM = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Quadro:</span>
-              <Select value={selectedQuadro} onValueChange={setSelectedQuadro}>
+              <span className="text-sm text-muted-foreground">Setor:</span>
+              <Select value={selectedSetor} onValueChange={setSelectedSetor}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todos">Todos</SelectItem>
-                  {availableQuadros.map(quadro => (
-                    <SelectItem key={quadro} value={quadro}>{quadro}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Opção:</span>
-              <Select value={selectedOpcao} onValueChange={setSelectedOpcao}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Todos">Todos</SelectItem>
-                  {availableOpcoes.map(opcao => (
-                    <SelectItem key={opcao} value={opcao}>{opcao}</SelectItem>
+                  {availableSetores.map(setor => (
+                    <SelectItem key={setor} value={setor}>{setor}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -447,16 +406,16 @@ const DashboardOM = () => {
 
             <div className="mt-6">
               <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={chartDataByOM}>
+                <BarChart data={chartDataBySetor}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="om" className="text-xs" />
+                  <XAxis dataKey="setor" className="text-xs" />
                   <YAxis className="text-xs" />
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="tmft" name="TMFT" fill="hsl(var(--chart-1))" />
                   <Bar dataKey="exi" name="EXI" fill="hsl(var(--chart-2))" />
                   <Bar dataKey="dif" name="DIF">
-                    {chartDataByOM.map((entry, index) => (
+                    {chartDataBySetor.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.dif >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-5))'} />
                     ))}
                   </Bar>
@@ -477,7 +436,7 @@ const DashboardOM = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={chartDataByPessoal}
+                    data={chartDataByPosto}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -486,7 +445,7 @@ const DashboardOM = () => {
                     dataKey="value"
                     label={(entry) => `${entry.name} (${entry.value})`}
                   >
-                    {chartDataByPessoal.map((entry, index) => (
+                    {chartDataByPosto.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -496,17 +455,17 @@ const DashboardOM = () => {
             </CardContent>
           </Card>
 
-          {/* Ocupação por OM */}
+          {/* Ocupação por Setor */}
           <Card>
             <CardHeader>
-              <CardTitle>Ocupação por Organização Militar</CardTitle>
+              <CardTitle>Ocupação por Setor</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartDataByOMHorizontal} layout="vertical">
+                <BarChart data={chartDataBySetorHorizontal} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis type="number" className="text-xs" />
-                  <YAxis dataKey="om" type="category" className="text-xs" width={100} />
+                  <YAxis dataKey="setor" type="category" className="text-xs" width={100} />
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="ocupados" name="Ocupados" fill="#10b981" stackId="a" />
@@ -536,21 +495,21 @@ const DashboardOM = () => {
             
             {activeTab === "efetivo" && (
               <div className="space-y-6">
-                {chartDataByOM.map((omData) => {
-                  const omRecords = filteredData.filter(item => item.om === omData.om);
+                {chartDataBySetor.map((setorData) => {
+                  const setorRecords = filteredData.filter(item => item.setor === setorData.setor);
                   
                   return (
-                    <div key={omData.om}>
+                    <div key={setorData.setor}>
                       <div className="flex items-center gap-2 mb-4">
                         <Users2 className="h-5 w-5 text-muted-foreground" />
-                        <h3 className="text-lg font-semibold">{omData.om}</h3>
+                        <h3 className="text-lg font-semibold">{setorData.setor}</h3>
                         <Badge variant="secondary" className="ml-2">
-                          {omRecords.length}
+                          {setorRecords.length}
                         </Badge>
                       </div>
                       
                       <div className="space-y-3">
-                        {omRecords.map((item, index) => (
+                        {setorRecords.map((item, index) => (
                           <div 
                             key={index} 
                             className="border-l-4 border-l-blue-500 bg-card rounded-lg p-4 hover:shadow-md transition-shadow"
@@ -559,7 +518,7 @@ const DashboardOM = () => {
                               <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
                                   <h4 className="text-base font-semibold text-blue-600">
-                                    {item.pessoal}
+                                    {item.cargo}
                                   </h4>
                                   <Badge 
                                     variant={item.exi >= item.tmft ? "default" : "destructive"}
@@ -568,21 +527,16 @@ const DashboardOM = () => {
                                     {item.exi >= item.tmft ? 'Ocupado' : 'Vago'}
                                   </Badge>
                                 </div>
-                                <div className="space-y-1">
-                                  <p className="text-sm font-medium text-foreground">
-                                    {item.quadro}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {item.opcao}
-                                  </p>
-                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {item.cargo}
+                                </p>
                               </div>
                               <div className="flex gap-2">
                                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                  TMFT: {item.tmft}
+                                  {item.posto}
                                 </Badge>
-                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                  EXI: {item.exi}
+                                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                                  {item.corpo}
                                 </Badge>
                               </div>
                             </div>

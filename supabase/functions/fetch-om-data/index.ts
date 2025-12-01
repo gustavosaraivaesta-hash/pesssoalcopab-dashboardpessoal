@@ -48,34 +48,42 @@ serve(async (req) => {
       throw new Error('Not enough data in sheet');
     }
     
-    // First row contains headers with OM names and metric types
+    // First row contains headers
     const headerRow = rows[0].c || [];
     
-    // Check if we have QUADRO and OPÇÃO columns by checking header names
-    const firstHeader = String(headerRow[0]?.v || '').toUpperCase();
-    const secondHeader = String(headerRow[1]?.v || '').toUpperCase();
-    const hasQuadroOpcao = firstHeader.includes('QUADRO') || secondHeader.includes('OPÇÃO') || secondHeader.includes('OPCAO');
-    const dataStartCol = hasQuadroOpcao ? 3 : 1; // If QUADRO and OPÇÃO exist, OMs start at column 3
-    
-    console.log('First header:', firstHeader, 'Second header:', secondHeader, 'Has QUADRO/OPÇÃO:', hasQuadroOpcao);
-    
-    // Extract OMs from header (every 3 columns after initial columns)
-    const oms: string[] = [];
-    for (let i = dataStartCol; i < headerRow.length; i += 3) {
-      const cellValue = headerRow[i]?.v || '';
-      if (cellValue) {
-        const omName = String(cellValue).replace(' TMFT', '').trim();
-        if (omName && omName !== 'TOTAL') {
-          oms.push(omName);
+    // Find column indices by header name
+    const findColumnIndex = (headerName: string): number => {
+      for (let i = 0; i < headerRow.length; i++) {
+        const cellValue = String(headerRow[i]?.v || '').toUpperCase().trim();
+        if (cellValue === headerName.toUpperCase()) {
+          return i;
         }
       }
-    }
+      return -1;
+    };
     
-    console.log('Found OMs:', oms);
+    const tipoSetorCol = findColumnIndex('TIPO SETOR');
+    const setorCol = findColumnIndex('SETOR');
+    const cargoCol = findColumnIndex('CARGO/INCUMBÊNCIA');
+    const postoCol = findColumnIndex('POSTO');
+    const corpoCol = findColumnIndex('CORPO');
+    const tmftCol = findColumnIndex('TMFT');
+    const exiCol = findColumnIndex('EXI');
+    const difCol = findColumnIndex('DIF');
     
-    // Extract unique QUADRO and OPÇÃO values
-    const quadros = new Set<string>();
-    const opcoes = new Set<string>();
+    console.log('Column indices:', {
+      tipoSetor: tipoSetorCol,
+      setor: setorCol,
+      cargo: cargoCol,
+      posto: postoCol,
+      corpo: corpoCol,
+      tmft: tmftCol,
+      exi: exiCol,
+      dif: difCol
+    });
+    
+    // Extract unique setores for filtering
+    const setores = new Set<string>();
 
     // Process data rows
     const processedData: any[] = [];
@@ -83,33 +91,31 @@ serve(async (req) => {
     for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
       const cells = rows[rowIndex].c || [];
       
-      const quadro = hasQuadroOpcao ? (cells[0]?.v || '') : '';
-      const opcao = hasQuadroOpcao ? (cells[1]?.v || '') : '';
-      const pessoal = hasQuadroOpcao ? (cells[2]?.v || '') : (cells[0]?.v || '');
+      const tipoSetor = tipoSetorCol >= 0 ? String(cells[tipoSetorCol]?.v || '') : '';
+      const setor = setorCol >= 0 ? String(cells[setorCol]?.v || '') : '';
+      const cargo = cargoCol >= 0 ? String(cells[cargoCol]?.v || '') : '';
+      const posto = postoCol >= 0 ? String(cells[postoCol]?.v || '') : '';
+      const corpo = corpoCol >= 0 ? String(cells[corpoCol]?.v || '') : '';
+      const tmft = tmftCol >= 0 ? Number(cells[tmftCol]?.v || 0) : 0;
+      const exi = exiCol >= 0 ? Number(cells[exiCol]?.v || 0) : 0;
+      const dif = difCol >= 0 ? Number(cells[difCol]?.v || 0) : 0;
       
-      if (!pessoal) continue;
+      // Skip rows without essential data
+      if (!setor && !cargo) continue;
       
-      if (quadro) quadros.add(String(quadro));
-      if (opcao) opcoes.add(String(opcao));
+      if (setor) setores.add(setor);
       
-      // For each OM, extract TMFT, EXI, DIF
-      for (let omIndex = 0; omIndex < oms.length; omIndex++) {
-        const colStart = dataStartCol + (omIndex * 3);
-        const tmft = Number(cells[colStart]?.v || 0);
-        const exi = Number(cells[colStart + 1]?.v || 0);
-        const dif = Number(cells[colStart + 2]?.v || 0);
-        
-        processedData.push({
-          id: `${oms[omIndex]}-${pessoal}-${rowIndex}`,
-          om: oms[omIndex],
-          pessoal: pessoal,
-          quadro: quadro,
-          opcao: opcao,
-          tmft: tmft,
-          exi: exi,
-          dif: dif,
-        });
-      }
+      processedData.push({
+        id: `${setor}-${cargo}-${rowIndex}`,
+        tipoSetor: tipoSetor,
+        setor: setor,
+        cargo: cargo,
+        posto: posto,
+        corpo: corpo,
+        tmft: tmft,
+        exi: exi,
+        dif: dif,
+      });
     }
 
     console.log(`Processed ${processedData.length} records`);
@@ -117,9 +123,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         data: processedData,
-        oms: oms,
-        quadros: Array.from(quadros).sort(),
-        opcoes: Array.from(opcoes).sort()
+        setores: Array.from(setores).sort()
       }),
       { 
         headers: { 
@@ -136,7 +140,7 @@ serve(async (req) => {
       JSON.stringify({ 
         error: errorMessage,
         data: [],
-        oms: []
+        setores: []
       }),
       { 
         status: 500,
