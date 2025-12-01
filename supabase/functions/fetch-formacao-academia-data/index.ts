@@ -58,10 +58,10 @@ serve(async (req) => {
         { name: 'CDU-1DN', startCol: 24 },
       ];
       
-      // As 3 colunas de opções são C, D, E (índices 2, 3, 4)
+      // CARREIRA está na coluna C (índice 2), RM2 na coluna AB (índice 27), TTC na coluna AC (índice 28)
       const carreiraCol = 2;
-      const rm2Col = 3;
-      const ttcCol = 4;
+      const rm2Col = 27;
+      const ttcCol = 28;
       
       console.log(`Total columns in header row: ${sheetsData.table.cols?.length || 'unknown'}`);
       
