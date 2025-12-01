@@ -49,9 +49,10 @@ const FormacaoAcademia = () => {
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedPessoal, setSelectedPessoal] = useState<string[]>([]);
   const [selectedFormacoes, setSelectedFormacoes] = useState<string[]>([]);
-  const [selectedCarreira, setSelectedCarreira] = useState(false);
-  const [selectedRM2, setSelectedRM2] = useState(false);
-  const [selectedTTC, setSelectedTTC] = useState(false);
+  // CARREIRA, RM2 e TTC iniciam todos selecionados por padrão
+  const [selectedCarreira, setSelectedCarreira] = useState(true);
+  const [selectedRM2, setSelectedRM2] = useState(true);
+  const [selectedTTC, setSelectedTTC] = useState(true);
   
   // Refs para capturar os gráficos
   const topFormacoesChartRef = useRef<HTMLDivElement>(null);
@@ -323,8 +324,13 @@ const FormacaoAcademia = () => {
     const formacaoMatch = selectedFormacoes.length === 0 || selectedFormacoes.includes(item.formacao);
     
     // Filtrar por Carreira, RM2 e TTC
+    // Se todos estiverem selecionados OU nenhum, mostra todos os registros
     let opcaoMatch = true;
-    if (selectedCarreira || selectedRM2 || selectedTTC) {
+    const allSelected = selectedCarreira && selectedRM2 && selectedTTC;
+    const noneSelected = !selectedCarreira && !selectedRM2 && !selectedTTC;
+    
+    if (!allSelected && !noneSelected) {
+      // Apenas alguns selecionados - filtrar
       const hasCarreira = item.opcao?.includes('CARREIRA');
       const hasRM2 = item.opcao?.includes('RM2');
       const hasTTC = item.opcao?.includes('TTC');
