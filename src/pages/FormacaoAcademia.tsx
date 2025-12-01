@@ -310,14 +310,17 @@ const FormacaoAcademia = () => {
   // Dynamically get all unique formacoes from data
   const allFormacoes = [...new Set(data.map(item => item.formacao))].sort();
   
-  // Get all unique opcoes from data
-  const allOpcoes = [...new Set(data.map(item => item.opcao).filter(Boolean))].sort();
+  // Fixed list of opcoes
+  const allOpcoes = ['C', 'RM2', 'TTC'];
 
   const filteredData = data.filter(item => {
     const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
     const pessoalMatch = selectedPessoal.length === 0 || selectedPessoal.includes(item.pessoal);
     const formacaoMatch = selectedFormacoes.length === 0 || selectedFormacoes.includes(item.formacao);
-    const opcaoMatch = selectedOpcoes.length === 0 || (item.opcao && selectedOpcoes.includes(item.opcao));
+    const opcaoMatch = selectedOpcoes.length === 0 || selectedOpcoes.some(opcao => {
+      const itemOpcao = item.opcao?.toUpperCase().trim() || '';
+      return itemOpcao.includes(opcao);
+    });
     return omMatch && pessoalMatch && formacaoMatch && opcaoMatch;
   });
 
@@ -531,9 +534,12 @@ const FormacaoAcademia = () => {
           {/* Filtro de Opção */}
           <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
             <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por Opção</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               {allOpcoes.map((opcao) => {
-                const count = data.filter(item => item.opcao === opcao).length;
+                const count = data.filter(item => {
+                  const itemOpcao = item.opcao?.toUpperCase().trim() || '';
+                  return itemOpcao.includes(opcao);
+                }).length;
                 return (
                   <div key={opcao} className="flex items-center space-x-2">
                     <Checkbox
