@@ -49,7 +49,9 @@ const FormacaoAcademia = () => {
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedPessoal, setSelectedPessoal] = useState<string[]>([]);
   const [selectedFormacoes, setSelectedFormacoes] = useState<string[]>([]);
-  const [selectedOpcoes, setSelectedOpcoes] = useState<string[]>([]);
+  const [selectedCarreira, setSelectedCarreira] = useState(false);
+  const [selectedRM2, setSelectedRM2] = useState(false);
+  const [selectedTTC, setSelectedTTC] = useState(false);
   
   // Refs para capturar os gráficos
   const topFormacoesChartRef = useRef<HTMLDivElement>(null);
@@ -310,19 +312,29 @@ const FormacaoAcademia = () => {
   // Dynamically get all unique formacoes from data
   const allFormacoes = [...new Set(data.map(item => item.formacao))].sort();
   
-  // Fixed list of opcoes
-  const allOpcoes = ['C', 'RM2', 'TTC'];
+  // Count records for each opcao type
+  const carreiraCount = data.filter(item => item.opcao?.includes('CARREIRA')).length;
+  const rm2Count = data.filter(item => item.opcao?.includes('RM2')).length;
+  const ttcCount = data.filter(item => item.opcao?.includes('TTC')).length;
 
   const filteredData = data.filter(item => {
     const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
     const pessoalMatch = selectedPessoal.length === 0 || selectedPessoal.includes(item.pessoal);
     const formacaoMatch = selectedFormacoes.length === 0 || selectedFormacoes.includes(item.formacao);
-    const opcaoMatch = selectedOpcoes.length === 0 || selectedOpcoes.some(opcao => {
-      const itemOpcao = item.opcao?.toUpperCase().trim() || '';
-      // Use word boundary regex to match C, RM2, or TTC
-      const regex = new RegExp(`\\b${opcao}\\b`, 'i');
-      return regex.test(itemOpcao);
-    });
+    
+    // Filtrar por Carreira, RM2 e TTC
+    let opcaoMatch = true;
+    if (selectedCarreira || selectedRM2 || selectedTTC) {
+      const hasCarreira = item.opcao?.includes('CARREIRA');
+      const hasRM2 = item.opcao?.includes('RM2');
+      const hasTTC = item.opcao?.includes('TTC');
+      
+      opcaoMatch = 
+        (selectedCarreira && hasCarreira) ||
+        (selectedRM2 && hasRM2) ||
+        (selectedTTC && hasTTC);
+    }
+    
     return omMatch && pessoalMatch && formacaoMatch && opcaoMatch;
   });
 
@@ -537,38 +549,45 @@ const FormacaoAcademia = () => {
           <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
             <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por Opção</h3>
             <div className="grid grid-cols-1 gap-3">
-              {allOpcoes.map((opcao) => {
-                // Count how many records contain this opcao type (C, RM2, or TTC)
-                const count = data.filter(item => {
-                  const itemOpcao = item.opcao?.toUpperCase().trim() || '';
-                  // Check if the opcao field contains the target opcao
-                  // Match patterns like "1 C", "2 C", "1 C e 1 RM2", etc.
-                  const regex = new RegExp(`\\b${opcao}\\b`, 'i');
-                  return regex.test(itemOpcao);
-                }).length;
-                
-                return (
-                  <div key={opcao} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`opcao-${opcao}`}
-                      checked={selectedOpcoes.includes(opcao)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedOpcoes([...selectedOpcoes, opcao]);
-                        } else {
-                          setSelectedOpcoes(selectedOpcoes.filter(o => o !== opcao));
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`opcao-${opcao}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      {opcao} ({count})
-                    </label>
-                  </div>
-                );
-              })}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="carreira"
+                  checked={selectedCarreira}
+                  onCheckedChange={(checked) => setSelectedCarreira(checked as boolean)}
+                />
+                <label
+                  htmlFor="carreira"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  CARREIRA ({carreiraCount})
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="rm2"
+                  checked={selectedRM2}
+                  onCheckedChange={(checked) => setSelectedRM2(checked as boolean)}
+                />
+                <label
+                  htmlFor="rm2"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  RM2 ({rm2Count})
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="ttc"
+                  checked={selectedTTC}
+                  onCheckedChange={(checked) => setSelectedTTC(checked as boolean)}
+                />
+                <label
+                  htmlFor="ttc"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  TTC ({ttcCount})
+                </label>
+              </div>
             </div>
           </div>
         </div>

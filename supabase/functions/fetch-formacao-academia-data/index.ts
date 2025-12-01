@@ -58,7 +58,10 @@ serve(async (req) => {
         { name: 'CDU-1DN', startCol: 24 },
       ];
       
-      const opcaoCol = 26; // Column index for Opção
+      // As 3 colunas de opções ficam depois dos OMs: CARREIRA (col 26), RM2 (col 27), TTC (col 28)
+      const carreiraCol = 26;
+      const rm2Col = 27;
+      const ttcCol = 28;
       
       console.log(`Total columns in header row: ${sheetsData.table.cols?.length || 'unknown'}`);
       
@@ -81,7 +84,18 @@ serve(async (req) => {
         const cells = sheetsData.table.rows[i].c || [];
         const colA = cells[0]?.v ? String(cells[0].v).trim() : '';
         const colB = cells[1]?.v ? String(cells[1].v).trim() : '';
-        const opcaoValue = cells[opcaoCol]?.v ? String(cells[opcaoCol].v).trim() : '';
+        
+        // Ler as 3 colunas de opções
+        const carreira = cells[carreiraCol]?.v ? Number(cells[carreiraCol].v) : 0;
+        const rm2 = cells[rm2Col]?.v ? Number(cells[rm2Col].v) : 0;
+        const ttc = cells[ttcCol]?.v ? Number(cells[ttcCol].v) : 0;
+        
+        // Criar string de opção baseado nos valores 1/0
+        const opcoes: string[] = [];
+        if (carreira === 1) opcoes.push('CARREIRA');
+        if (rm2 === 1) opcoes.push('RM2');
+        if (ttc === 1) opcoes.push('TTC');
+        const opcaoValue = opcoes.join(', ');
         
         console.log(`Row ${i}: colA = "${colA}", colB = "${colB}", opcao = "${opcaoValue}"`);
         
@@ -98,9 +112,8 @@ serve(async (req) => {
           // Process CONTRA-ALMIRANTE on the same row as formation
           if (colB && currentFormacao) {
             const pessoal = colB;
-            const opcao = cells[opcaoCol]?.v ? String(cells[opcaoCol].v).trim() : '';
             
-            console.log(`Formation "${currentFormacao}" - Pessoal "${pessoal}" - Opção: "${opcao}"`);
+            console.log(`Formation "${currentFormacao}" - Pessoal "${pessoal}" - Opção: "${opcaoValue}"`);
             
             oms.forEach(om => {
               const tmft = cells[om.startCol]?.v ? Number(cells[om.startCol].v) : 0;
@@ -110,7 +123,7 @@ serve(async (req) => {
                 formacao: currentFormacao,
                 pessoal: pessoal,
                 om: om.name,
-                opcao: opcao,
+                opcao: opcaoValue,
                 tmft: tmft,
                 efe: efe,
               });
@@ -122,7 +135,6 @@ serve(async (req) => {
         // Check if this is a data row (colB has pessoal rank)
         if (colB && currentFormacao) {
           const pessoal = colB;
-          const opcao = cells[opcaoCol]?.v ? String(cells[opcaoCol].v).trim() : '';
           
           // Create one record for each OM with the current formation
           oms.forEach(om => {
@@ -133,7 +145,7 @@ serve(async (req) => {
               formacao: currentFormacao,
               pessoal: pessoal,
               om: om.name,
-              opcao: opcao,
+              opcao: opcaoValue,
               tmft: tmft,
               efe: efe,
             });
