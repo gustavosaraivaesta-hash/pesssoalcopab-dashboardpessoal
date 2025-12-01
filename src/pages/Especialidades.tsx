@@ -181,20 +181,28 @@ const Especialidades = () => {
     const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
     const pageHeight = doc.internal.pageSize.height;
     const marginBottom = 15;
+    let isFirstPage = true;
 
-    // Adicionar brasão da República no topo centralizado
-    const brasaoWidth = 32;
-    const brasaoHeight = 32;
-    const brasaoX = (doc.internal.pageSize.width - brasaoWidth) / 2;
-    doc.addImage(brasaoRepublica, 'PNG', brasaoX, 10, brasaoWidth, brasaoHeight);
-    
-    // Adicionar textos centralizados abaixo do brasão
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('MARINHA DO BRASIL', doc.internal.pageSize.width / 2, 45, { align: 'center' });
-    doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', doc.internal.pageSize.width / 2, 50, { align: 'center' });
-    
-    let currentY = 66; // Começar 4 linhas abaixo do cabeçalho
+    const addHeader = () => {
+      if (isFirstPage) {
+        // Adicionar brasão da República no topo centralizado apenas na primeira página
+        const brasaoWidth = 32;
+        const brasaoHeight = 32;
+        const brasaoX = (doc.internal.pageSize.width - brasaoWidth) / 2;
+        doc.addImage(brasaoRepublica, 'PNG', brasaoX, 10, brasaoWidth, brasaoHeight);
+        
+        // Adicionar textos centralizados abaixo do brasão
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('MARINHA DO BRASIL', doc.internal.pageSize.width / 2, 45, { align: 'center' });
+        doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', doc.internal.pageSize.width / 2, 50, { align: 'center' });
+        isFirstPage = false;
+        return 66; // Começar 4 linhas abaixo do cabeçalho
+      }
+      return 10; // Páginas subsequentes começam no topo
+    };
+
+    let currentY = addHeader();
 
     // Título do documento
     doc.setFontSize(12);
@@ -266,7 +274,7 @@ const Especialidades = () => {
             especialidadeTotal.efe += rowEfe;
 
             if (rowTmft > 0 || rowEfe > 0) {
-              const diff = rowTmft - rowEfe;
+              const diff = rowEfe - rowTmft; // DIF = EFE - TMFT
               tableData.push([
                 grad,
                 rowTmft,
@@ -278,7 +286,7 @@ const Especialidades = () => {
 
           // Adicionar linha de total
           if (tableData.length > 0) {
-            const totalDiff = especialidadeTotal.tmft - especialidadeTotal.efe;
+            const totalDiff = especialidadeTotal.efe - especialidadeTotal.tmft; // DIF = EFE - TMFT
             tableData.push([
               { content: 'TOTAL', styles: { fontStyle: 'bold' } },
               { content: especialidadeTotal.tmft.toString(), styles: { fontStyle: 'bold' } },
@@ -293,7 +301,7 @@ const Especialidades = () => {
             // Verificar se precisa adicionar nova página
             if (currentY + neededSpace > pageHeight - marginBottom) {
               doc.addPage();
-              currentY = 10;
+              currentY = addHeader();
               
               // Repetir título da OM na nova página
               doc.setFontSize(11);
@@ -352,7 +360,7 @@ const Especialidades = () => {
           especialidadeTotal.efe += rowEfe;
 
           if (rowTmft > 0 || rowEfe > 0) {
-            const diff = rowTmft - rowEfe;
+            const diff = rowEfe - rowTmft; // DIF = EFE - TMFT
             tableData.push([
               grad,
               rowTmft,
@@ -364,7 +372,7 @@ const Especialidades = () => {
 
         // Adicionar linha de total
         if (tableData.length > 0) {
-          const totalDiff = especialidadeTotal.tmft - especialidadeTotal.efe;
+          const totalDiff = especialidadeTotal.efe - especialidadeTotal.tmft; // DIF = EFE - TMFT
           tableData.push([
             { content: 'TOTAL', styles: { fontStyle: 'bold' } },
             { content: especialidadeTotal.tmft.toString(), styles: { fontStyle: 'bold' } },
@@ -378,7 +386,7 @@ const Especialidades = () => {
           
           if (currentY + neededSpace > pageHeight - marginBottom) {
             doc.addPage();
-            currentY = 10;
+            currentY = addHeader();
           }
 
           if (!isFirstSection) {
@@ -860,7 +868,7 @@ const Especialidades = () => {
             
             filteredData.forEach(item => {
               const current = deficitByEspecialidade.get(item.especialidade) || 0;
-              const dif = (item.tmft_sum || 0) - (item.efe_sum || 0);
+              const dif = (item.efe_sum || 0) - (item.tmft_sum || 0); // DIF = EFE - TMFT
               deficitByEspecialidade.set(item.especialidade, current + dif);
             });
 
@@ -944,9 +952,9 @@ const Especialidades = () => {
                           {rowEfe}
                         </TableCell>
                         <TableCell className={`text-center font-semibold bg-primary/5 ${
-                          rowTmft - rowEfe < 0 ? 'text-red-600 dark:text-red-400' : ''
+                          rowEfe - rowTmft < 0 ? 'text-red-600 dark:text-red-400' : ''
                         }`}>
-                          {rowTmft - rowEfe}
+                          {rowEfe - rowTmft}
                         </TableCell>
                       </TableRow>
                     );
@@ -965,9 +973,9 @@ const Especialidades = () => {
                         {especialidadeTotal.efe}
                       </TableCell>
                       <TableCell className={`text-center bg-primary/20 ${
-                        especialidadeTotal.tmft - especialidadeTotal.efe < 0 ? 'text-red-600 dark:text-red-400 font-bold' : ''
+                        especialidadeTotal.efe - especialidadeTotal.tmft < 0 ? 'text-red-600 dark:text-red-400 font-bold' : ''
                       }`}>
-                        {especialidadeTotal.tmft - especialidadeTotal.efe}
+                        {especialidadeTotal.efe - especialidadeTotal.tmft}
                       </TableCell>
                     </TableRow>
                   );
