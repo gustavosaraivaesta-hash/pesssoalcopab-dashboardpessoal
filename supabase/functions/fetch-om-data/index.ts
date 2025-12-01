@@ -13,28 +13,30 @@ serve(async (req) => {
   try {
     console.log('Fetching OM data from Google Sheets...');
     
-    const SHEET_ID = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
-    const RANGE = 'PESSOAL POR OM!A:Z'; // Range to fetch all data from the sheet
-    const API_KEY = Deno.env.get('GOOGLE_SHEETS_API_KEY');
+    const spreadsheetId = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
+    const gid = '581706093'; // GID for PESSOAL POR OM sheet
+    const timestamp = new Date().getTime();
     
-    if (!API_KEY) {
-      throw new Error('GOOGLE_SHEETS_API_KEY not configured');
-    }
-
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(RANGE)}?key=${API_KEY}`;
+    const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=${gid}&tqx=out:json&timestamp=${timestamp}`;
     
     console.log('Fetching from URL:', url);
     
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Google Sheets API error:', errorText);
-      throw new Error(`Failed to fetch data: ${response.status} ${errorText}`);
+      throw new Error(`Google Sheets API returned ${response.status}`);
     }
 
-    const data = await response.json();
-    const rows = data.values;
+    const text = await response.text();
+    const jsonString = text.substring(47).slice(0, -2);
+    const sheetsData = JSON.parse(jsonString);
+    const rows = sheetsData.table.rows;
 
     if (!rows || rows.length === 0) {
       throw new Error('No data found in sheet');
@@ -42,14 +44,19 @@ serve(async (req) => {
 
     console.log('Processing OM data...');
     
+    if (rows.length < 2) {
+      throw new Error('Not enough data in sheet');
+    }
+    
     // First row contains headers with OM names and metric types
-    const headerRow = rows[0];
+    const headerRow = rows[0].c || [];
     
     // Extract OMs from header (every 3 columns after PESSOAL)
     const oms: string[] = [];
     for (let i = 1; i < headerRow.length; i += 3) {
-      if (headerRow[i]) {
-        const omName = headerRow[i].replace(' TMFT', '').trim();
+      const cellValue = headerRow[i]?.v || '';
+      if (cellValue) {
+        const omName = String(cellValue).replace(' TMFT', '').trim();
         if (omName && omName !== 'TOTAL') {
           oms.push(omName);
         }
@@ -62,17 +69,17 @@ serve(async (req) => {
     const processedData: any[] = [];
     
     for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
-      const row = rows[rowIndex];
-      const pessoal = row[0];
+      const cells = rows[rowIndex].c || [];
+      const pessoal = cells[0]?.v || '';
       
       if (!pessoal) continue;
       
       // For each OM, extract TMFT, EXI, DIF
       for (let omIndex = 0; omIndex < oms.length; omIndex++) {
         const colStart = 1 + (omIndex * 3);
-        const tmft = parseInt(row[colStart]) || 0;
-        const exi = parseInt(row[colStart + 1]) || 0;
-        const dif = parseInt(row[colStart + 2]) || 0;
+        const tmft = Number(cells[colStart]?.v || 0);
+        const exi = Number(cells[colStart + 1]?.v || 0);
+        const dif = Number(cells[colStart + 2]?.v || 0);
         
         processedData.push({
           id: `${oms[omIndex]}-${pessoal}-${rowIndex}`,
