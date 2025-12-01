@@ -55,16 +55,13 @@ const DashboardOM = () => {
   };
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/login');
-        return;
-      }
-      fetchData();
-    };
-
-    checkAuth();
+    const isAuthenticated = localStorage.getItem("isAuthenticated");
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    
+    fetchData();
   }, [navigate]);
 
   const filteredData = useMemo(() => {
@@ -239,8 +236,8 @@ const DashboardOM = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    localStorage.removeItem("isAuthenticated");
     navigate('/login');
   };
 
