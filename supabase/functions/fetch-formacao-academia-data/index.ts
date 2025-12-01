@@ -60,6 +60,8 @@ serve(async (req) => {
       
       const opcaoCol = 26; // Column index for Opção
       
+      console.log(`Total columns in header row: ${sheetsData.table.cols?.length || 'unknown'}`);
+      
       let currentFormacao = '';
       
       // Skip header rows, process data rows
@@ -67,8 +69,9 @@ serve(async (req) => {
         const cells = sheetsData.table.rows[i].c || [];
         const colA = cells[0]?.v ? String(cells[0].v).trim() : '';
         const colB = cells[1]?.v ? String(cells[1].v).trim() : '';
+        const opcaoValue = cells[opcaoCol]?.v ? String(cells[opcaoCol].v).trim() : '';
         
-        console.log(`Row ${i}: colA = "${colA}", colB = "${colB}"`);
+        console.log(`Row ${i}: colA = "${colA}", colB = "${colB}", opcao = "${opcaoValue}"`);
         
         // Check if this is a formation header row (colA has formation name)
         // Detect formations dynamically - if colA has content and colB has a rank, it's a formation row
@@ -84,6 +87,8 @@ serve(async (req) => {
           if (colB && currentFormacao) {
             const pessoal = colB;
             const opcao = cells[opcaoCol]?.v ? String(cells[opcaoCol].v).trim() : '';
+            
+            console.log(`Formation "${currentFormacao}" - Pessoal "${pessoal}" - Opção: "${opcao}"`);
             
             oms.forEach(om => {
               const tmft = cells[om.startCol]?.v ? Number(cells[om.startCol].v) : 0;
@@ -126,6 +131,10 @@ serve(async (req) => {
     }
     
     console.log(`Transformed ${formacaoData.length} records from Page 4`);
+    
+    // Log opcoes found
+    const uniqueOpcoes = [...new Set(formacaoData.map(d => d.opcao).filter(Boolean))];
+    console.log(`Unique Opções found: ${uniqueOpcoes.join(', ')}`);
     
     return new Response(
       JSON.stringify({ data: formacaoData }),
