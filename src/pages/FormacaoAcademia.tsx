@@ -408,7 +408,7 @@ const FormacaoAcademia = () => {
               Voltar
             </Button>
             <h1 className="text-2xl font-bold text-foreground">
-              Ver Formação Acadêmica - OFI
+              VER QUADRO - OFI
             </h1>
           </div>
           <div className="flex gap-2">
