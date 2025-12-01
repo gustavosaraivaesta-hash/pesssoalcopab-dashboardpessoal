@@ -58,10 +58,10 @@ serve(async (req) => {
         { name: 'CDU-1DN', startCol: 24 },
       ];
       
-      // As 3 colunas de opções ficam depois dos OMs: CARREIRA (col 26), RM2 (col 27), TTC (col 28)
-      const carreiraCol = 26;
-      const rm2Col = 27;
-      const ttcCol = 28;
+      // As 3 colunas de opções são C, D, E (índices 2, 3, 4)
+      const carreiraCol = 2;
+      const rm2Col = 3;
+      const ttcCol = 4;
       
       console.log(`Total columns in header row: ${sheetsData.table.cols?.length || 'unknown'}`);
       
