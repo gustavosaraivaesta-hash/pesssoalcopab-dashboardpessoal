@@ -318,18 +318,31 @@ const FormacaoAcademia = () => {
   
   // Sum quantities for each opcao type (get unique formação+pessoal and sum their quantities)
   const uniqueKeys = [...new Set(data.map(item => `${item.formacao}-${item.pessoal}`))];
+  
+  // Debug: log items with carreiraQtd > 0
+  const itemsWithCarreira = data.filter(d => d.carreiraQtd && d.carreiraQtd > 0);
+  console.log("🔍 Items com carreiraQtd > 0:", itemsWithCarreira);
+  
   const carreiraCount = uniqueKeys.reduce((sum, key) => {
     const item = data.find(d => `${d.formacao}-${d.pessoal}` === key);
+    if (item?.carreiraQtd && item.carreiraQtd > 0) {
+      console.log(`✅ CARREIRA encontrada: ${key} = ${item.carreiraQtd}`);
+    }
     return sum + (item?.carreiraQtd || 0);
   }, 0);
   const rm2Count = uniqueKeys.reduce((sum, key) => {
     const item = data.find(d => `${d.formacao}-${d.pessoal}` === key);
+    if (item?.rm2Qtd && item.rm2Qtd > 0) {
+      console.log(`✅ RM2 encontrada: ${key} = ${item.rm2Qtd}`);
+    }
     return sum + (item?.rm2Qtd || 0);
   }, 0);
   const ttcCount = uniqueKeys.reduce((sum, key) => {
     const item = data.find(d => `${d.formacao}-${d.pessoal}` === key);
     return sum + (item?.ttcQtd || 0);
   }, 0);
+  
+  console.log(`📊 Totais: CARREIRA=${carreiraCount}, RM2=${rm2Count}, TTC=${ttcCount}`);
 
   const filteredData = data.filter(item => {
     const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
