@@ -39,7 +39,7 @@ interface DesembarqueRecord {
 // Sheet configurations - each GID represents an OM
 const SHEET_CONFIGS = [
   { gid: '1926090655', omName: 'CDU-BAMRJ' },
-  { gid: '1894966712', omName: 'CDU-1DN' },
+  { gid: '1894966712', omName: 'CDAM' },
 ];
 
 async function fetchSheetData(spreadsheetId: string, gid: string, omName: string): Promise<{
