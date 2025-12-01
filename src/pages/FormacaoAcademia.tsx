@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw, Download } from "lucide-react";
 import { toast } from "sonner";
+import html2canvas from "html2canvas";
 import {
   Table,
   TableBody,
@@ -47,6 +48,10 @@ const FormacaoAcademia = () => {
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedPessoal, setSelectedPessoal] = useState<string[]>([]);
   const [selectedFormacoes, setSelectedFormacoes] = useState<string[]>([]);
+  
+  // Refs para capturar os gráficos
+  const topFormacoesChartRef = useRef<HTMLDivElement>(null);
+  const topDeficitChartRef = useRef<HTMLDivElement>(null);
 
   const fetchFormacaoData = async () => {
     setLoading(true);
@@ -108,6 +113,24 @@ const FormacaoAcademia = () => {
     
     const selectedOMsDisplay = selectedOMs.length > 0 ? selectedOMs : allOMs;
     let isFirstPage = true;
+    
+    // Capturar gráficos como imagens
+    let topFormacoesImg: string | null = null;
+    let topDeficitImg: string | null = null;
+    
+    try {
+      if (topFormacoesChartRef.current) {
+        const canvas = await html2canvas(topFormacoesChartRef.current, { scale: 2, backgroundColor: '#ffffff' });
+        topFormacoesImg = canvas.toDataURL('image/png');
+      }
+      if (topDeficitChartRef.current) {
+        const canvas = await html2canvas(topDeficitChartRef.current, { scale: 2, backgroundColor: '#ffffff' });
+        topDeficitImg = canvas.toDataURL('image/png');
+      }
+    } catch (error) {
+      console.error('Erro ao capturar gráficos:', error);
+      toast.error('Erro ao capturar gráficos para o PDF');
+    }
 
     const addHeader = (isFirstPageParam: boolean) => {
       let yPosition = 10;
@@ -164,6 +187,33 @@ const FormacaoAcademia = () => {
 
       doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 12;
+      
+      // Adicionar gráficos apenas na primeira página da primeira OM
+      if (omIndex === 0) {
+        if (topFormacoesImg) {
+          const imgWidth = 180;
+          const imgHeight = 70;
+          if (yPosition + imgHeight > pageHeight - 20) {
+            doc.addPage();
+            isFirstPage = false;
+            yPosition = 10;
+          }
+          doc.addImage(topFormacoesImg, 'PNG', 15, yPosition, imgWidth, imgHeight);
+          yPosition += imgHeight + 8;
+        }
+        
+        if (topDeficitImg) {
+          const imgWidth = 180;
+          const imgHeight = 70;
+          if (yPosition + imgHeight > pageHeight - 20) {
+            doc.addPage();
+            isFirstPage = false;
+            yPosition = 10;
+          }
+          doc.addImage(topDeficitImg, 'PNG', 15, yPosition, imgWidth, imgHeight);
+          yPosition += imgHeight + 8;
+        }
+      }
 
       // Create table data for this OM
       const headers = ['Formação', 'Pessoal', 'TMFT', 'EFE', 'DIF'];
@@ -474,63 +524,67 @@ const FormacaoAcademia = () => {
         </div>
 
         {/* Gráfico de Top 5 Formações Acadêmicas */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Top 5 Formações Acadêmicas por EFE</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={allFormacoes.map(formacao => {
-                  const formacaoData = filteredData.filter(item => item.formacao === formacao);
-                  const totalEfe = formacaoData.reduce((sum, item) => sum + item.efe, 0);
-                  return {
-                    name: formacao,
-                    value: totalEfe
-                  };
-                }).sort((a, b) => b.value - a.value).slice(0, 5)}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" />
-                  <YAxis className="text-xs" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '6px'
-                    }}
-                    formatter={(value: number) => [value, 'EFE']}
-                  />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]}>
-                    <LabelList 
-                      dataKey="value" 
-                      position="top" 
-                      style={{ fontWeight: 'bold', fontSize: '14px', fill: '#000' }}
+        <div ref={topFormacoesChartRef}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Top 5 Formações Acadêmicas por EFE</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={allFormacoes.map(formacao => {
+                    const formacaoData = filteredData.filter(item => item.formacao === formacao);
+                    const totalEfe = formacaoData.reduce((sum, item) => sum + item.efe, 0);
+                    return {
+                      name: formacao,
+                      value: totalEfe
+                    };
+                  }).sort((a, b) => b.value - a.value).slice(0, 5)}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="name" className="text-xs" />
+                    <YAxis className="text-xs" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '6px'
+                      }}
+                      formatter={(value: number) => [value, 'EFE']}
                     />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]}>
+                      <LabelList 
+                        dataKey="value" 
+                        position="top" 
+                        style={{ fontWeight: 'bold', fontSize: '14px', fill: '#000' }}
+                      />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Top 5 Deficit Chart */}
-        <TopDeficitChart 
-          data={(() => {
-            const formacaoDeficit = new Map<string, number>();
-            
-            filteredData.forEach(item => {
-              const current = formacaoDeficit.get(item.formacao) || 0;
-              const dif = (item.efe || 0) - (item.tmft || 0); // DIF = EFE - TMFT
-              formacaoDeficit.set(item.formacao, current + dif);
-            });
+        <div ref={topDeficitChartRef}>
+          <TopDeficitChart 
+            data={(() => {
+              const formacaoDeficit = new Map<string, number>();
+              
+              filteredData.forEach(item => {
+                const current = formacaoDeficit.get(item.formacao) || 0;
+                const dif = (item.efe || 0) - (item.tmft || 0); // DIF = EFE - TMFT
+                formacaoDeficit.set(item.formacao, current + dif);
+              });
 
-            return Array.from(formacaoDeficit.entries()).map(([name, deficit]) => ({
-              name,
-              deficit
-            }));
-          })()}
-          title="Top 5 Formações com Maior Deficit"
-        />
+              return Array.from(formacaoDeficit.entries()).map(([name, deficit]) => ({
+                name,
+                deficit
+              }));
+            })()}
+            title="Top 5 Formações com Maior Deficit"
+          />
+        </div>
 
         {/* Tabela com Formação na primeira coluna */}
         <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
