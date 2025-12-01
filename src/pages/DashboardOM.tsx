@@ -285,10 +285,10 @@ const DashboardOM = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">OM:</span>
+              <span className="text-sm text-muted-foreground">Opção:</span>
               <Select value={selectedOM} onValueChange={setSelectedOM}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Selecione OM" />
+                  <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todos">Todos</SelectItem>
@@ -300,10 +300,10 @@ const DashboardOM = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Pessoal:</span>
+              <span className="text-sm text-muted-foreground">Quadro:</span>
               <Select value={selectedPessoal} onValueChange={setSelectedPessoal}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Selecione Pessoal" />
+                  <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
                   {availablePessoal.map(pessoal => (
