@@ -49,11 +49,13 @@ const DashboardOM = () => {
   const navigate = useNavigate();
   const [personnelData, setPersonnelData] = useState<PersonnelRecord[]>([]);
   const [desembarqueData, setDesembarqueData] = useState<DesembarqueRecord[]>([]);
-  const [availableSetores, setAvailableSetores] = useState<string[]>([]);
+  const [availableOMs, setAvailableOMs] = useState<string[]>([]);
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
+  const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSetor, setSelectedSetor] = useState<string>("Todos");
+  const [selectedOM, setSelectedOM] = useState<string>("Todos");
   const [selectedQuadro, setSelectedQuadro] = useState<string>("Todos");
+  const [selectedOpcao, setSelectedOpcao] = useState<string>("Todos");
   const [activeTab, setActiveTab] = useState<string>("efetivo");
   const [lastUpdate, setLastUpdate] = useState<string>("");
   
@@ -74,10 +76,17 @@ const DashboardOM = () => {
 
       if (result) {
         console.log('Received OM data:', result);
-        setPersonnelData(result.data || []);
+        const data = result.data || [];
+        setPersonnelData(data);
         setDesembarqueData(result.desembarque || []);
-        setAvailableSetores(result.setores || []);
+        
+        // Extract unique OMs and Opcoes from data
+        const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
+        const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
+        
+        setAvailableOMs(oms as string[]);
         setAvailableQuadros(result.quadros || []);
+        setAvailableOpcoes(opcoes as string[]);
         setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString('pt-BR'));
       }
     } catch (error) {
@@ -105,16 +114,20 @@ const DashboardOM = () => {
   const filteredData = useMemo(() => {
     let filtered = personnelData;
 
-    if (selectedSetor !== "Todos") {
-      filtered = filtered.filter(item => item.setor === selectedSetor);
+    if (selectedOM !== "Todos") {
+      filtered = filtered.filter(item => item.om === selectedOM);
     }
 
     if (selectedQuadro !== "Todos") {
       filtered = filtered.filter(item => item.quadroTmft === selectedQuadro);
     }
 
+    if (selectedOpcao !== "Todos") {
+      filtered = filtered.filter(item => item.opcaoTmft === selectedOpcao);
+    }
+
     return filtered;
-  }, [personnelData, selectedSetor, selectedQuadro]);
+  }, [personnelData, selectedOM, selectedQuadro, selectedOpcao]);
 
   const metrics = useMemo(() => {
     const totalTMFT = filteredData.length;
@@ -189,11 +202,12 @@ const DashboardOM = () => {
       pdf.text('Tabela Mestra de Força de Trabalho', pdf.internal.pageSize.getWidth() / 2, yPosition, { align: 'center' });
       yPosition += 15;
 
-      if (selectedSetor !== "Todos") {
+      if (selectedOM !== "Todos" || selectedOpcao !== "Todos") {
         pdf.setFontSize(10);
         pdf.text('Filtros Aplicados:', 14, yPosition);
         yPosition += 6;
-        pdf.text(`Setor: ${selectedSetor}`, 20, yPosition);
+        if (selectedOM !== "Todos") pdf.text(`OM: ${selectedOM}`, 20, yPosition);
+        if (selectedOpcao !== "Todos") pdf.text(`Opção: ${selectedOpcao}`, 80, yPosition);
         yPosition += 10;
       }
 
@@ -309,15 +323,15 @@ const DashboardOM = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Setor:</span>
-              <Select value={selectedSetor} onValueChange={setSelectedSetor}>
+              <span className="text-sm text-muted-foreground">OM:</span>
+              <Select value={selectedOM} onValueChange={setSelectedOM}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todos">Todos</SelectItem>
-                  {availableSetores.map(setor => (
-                    <SelectItem key={setor} value={setor}>{setor}</SelectItem>
+                  {availableOMs.map(om => (
+                    <SelectItem key={om} value={om}>{om}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -333,6 +347,21 @@ const DashboardOM = () => {
                   <SelectItem value="Todos">Todos</SelectItem>
                   {availableQuadros.map(quadro => (
                     <SelectItem key={quadro} value={quadro}>{quadro}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Opção:</span>
+              <Select value={selectedOpcao} onValueChange={setSelectedOpcao}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todos">Todos</SelectItem>
+                  {availableOpcoes.map(opcao => (
+                    <SelectItem key={opcao} value={opcao}>{opcao}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
