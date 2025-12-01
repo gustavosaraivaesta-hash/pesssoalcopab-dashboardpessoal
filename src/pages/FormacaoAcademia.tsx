@@ -107,29 +107,37 @@ const FormacaoAcademia = () => {
     const pageHeight = doc.internal.pageSize.getHeight();
     
     const selectedOMsDisplay = selectedOMs.length > 0 ? selectedOMs : allOMs;
+    let isFirstPage = true;
+
+    const addHeader = (isFirstPageParam: boolean) => {
+      let yPosition = 10;
+      
+      if (isFirstPageParam) {
+        // Adicionar brasão apenas na primeira página
+        const brasaoImg = new Image();
+        brasaoImg.src = brasaoRepublica;
+        doc.addImage(brasaoImg, 'PNG', pageWidth / 2 - 10, yPosition, 20, 20);
+        yPosition += 25;
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('MARINHA DO BRASIL', pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 5;
+        doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 12;
+      }
+      
+      return yPosition;
+    };
 
     selectedOMsDisplay.forEach((om, omIndex) => {
       if (omIndex > 0) {
         doc.addPage();
+        isFirstPage = false;
       }
 
-      let yPosition = 10;
-
-      // Header
-      const brasaoImg = new Image();
-      brasaoImg.src = brasaoRepublica;
-      doc.addImage(brasaoImg, 'PNG', pageWidth / 2 - 10, yPosition, 20, 20);
-      yPosition += 25;
-
-      const marinhaImg = new Image();
-      marinhaImg.src = marinhaHeader;
-      doc.addImage(marinhaImg, 'PNG', pageWidth / 2 - 30, yPosition, 60, 15);
-      yPosition += 20;
-
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('CENTRO DE OPERAÇÕES DO ABASTECIMENTO', pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 12;
+      let yPosition = addHeader(isFirstPage);
+      if (omIndex === 0) isFirstPage = false;
 
       // OM Title
       doc.setFontSize(14);
@@ -350,7 +358,7 @@ const FormacaoAcademia = () => {
               Voltar
             </Button>
             <h1 className="text-2xl font-bold text-foreground">
-              Formação Acadêmica - OFI
+              Ver Formação Acadêmica - OFI
             </h1>
           </div>
           <div className="flex gap-2">
@@ -512,7 +520,7 @@ const FormacaoAcademia = () => {
             
             filteredData.forEach(item => {
               const current = formacaoDeficit.get(item.formacao) || 0;
-              const dif = (item.tmft || 0) - (item.efe || 0);
+              const dif = (item.efe || 0) - (item.tmft || 0); // DIF = EFE - TMFT
               formacaoDeficit.set(item.formacao, current + dif);
             });
 
