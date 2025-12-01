@@ -1,15 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { X, Filter, Download, Home, Shield, Users, TrendingDown, TrendingUp } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Download, Home, Users2, UserCheck, UserX, TrendingUp, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
-import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -22,9 +18,8 @@ const DashboardOM = () => {
   const [data, setData] = useState<OMData[]>([]);
   const [availableOMs, setAvailableOMs] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
-  const [selectedPessoal, setSelectedPessoal] = useState<string[]>([]);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [selectedOM, setSelectedOM] = useState<string>("Todos");
+  const [selectedPessoal, setSelectedPessoal] = useState<string>("Todos");
   
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -67,16 +62,16 @@ const DashboardOM = () => {
   const filteredData = useMemo(() => {
     let filtered = data;
 
-    if (selectedOMs.length > 0) {
-      filtered = filtered.filter(item => selectedOMs.includes(item.om));
+    if (selectedOM !== "Todos") {
+      filtered = filtered.filter(item => item.om === selectedOM);
     }
 
-    if (selectedPessoal.length > 0) {
-      filtered = filtered.filter(item => selectedPessoal.includes(item.pessoal));
+    if (selectedPessoal !== "Todos") {
+      filtered = filtered.filter(item => item.pessoal === selectedPessoal);
     }
 
     return filtered;
-  }, [data, selectedOMs, selectedPessoal]);
+  }, [data, selectedOM, selectedPessoal]);
 
   const metrics = useMemo<OMMetrics>(() => {
     const totalTMFT = filteredData.reduce((sum, item) => sum + item.tmft, 0);
@@ -97,31 +92,6 @@ const DashboardOM = () => {
     data.forEach(item => pessoalSet.add(item.pessoal));
     return Array.from(pessoalSet).sort();
   }, [data]);
-
-  const handleOMChange = (om: string, checked: boolean) => {
-    setSelectedOMs(prev =>
-      checked ? [...prev, om] : prev.filter(o => o !== om)
-    );
-  };
-
-  const handlePessoalChange = (pessoal: string, checked: boolean) => {
-    setSelectedPessoal(prev =>
-      checked ? [...prev, pessoal] : prev.filter(p => p !== pessoal)
-    );
-  };
-
-  const handleRemoveFilter = (type: 'om' | 'pessoal', value: string) => {
-    if (type === 'om') {
-      setSelectedOMs(prev => prev.filter(o => o !== value));
-    } else {
-      setSelectedPessoal(prev => prev.filter(p => p !== value));
-    }
-  };
-
-  const handleClearFilters = () => {
-    setSelectedOMs([]);
-    setSelectedPessoal([]);
-  };
 
   const chartDataByOM = useMemo(() => {
     const grouped = filteredData.reduce((acc, item) => {
@@ -159,18 +129,18 @@ const DashboardOM = () => {
       yPosition += 15;
 
       // Filters
-      if (selectedOMs.length > 0 || selectedPessoal.length > 0) {
+      if (selectedOM !== "Todos" || selectedPessoal !== "Todos") {
         pdf.setFontSize(10);
         pdf.text('Filtros Aplicados:', 14, yPosition);
         yPosition += 6;
 
-        if (selectedOMs.length > 0) {
-          pdf.text(`OMs: ${selectedOMs.join(', ')}`, 20, yPosition);
+        if (selectedOM !== "Todos") {
+          pdf.text(`OM: ${selectedOM}`, 20, yPosition);
           yPosition += 6;
         }
 
-        if (selectedPessoal.length > 0) {
-          pdf.text(`Pessoal: ${selectedPessoal.join(', ')}`, 20, yPosition);
+        if (selectedPessoal !== "Todos") {
+          pdf.text(`Pessoal: ${selectedPessoal}`, 20, yPosition);
           yPosition += 6;
         }
         yPosition += 4;
@@ -250,29 +220,27 @@ const DashboardOM = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-900">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-navy-800/50 border-b border-navy-700 p-6">
+      <div className="border-b bg-card p-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-3xl font-bold mb-2">
               Dashboard por Organização Militar
             </h1>
-            <p className="text-navy-300">Centro de Operações do Abastecimento</p>
+            <p className="text-muted-foreground">Centro de Operações do Abastecimento</p>
           </div>
           <div className="flex gap-3">
             <Button
               onClick={() => navigate('/')}
               variant="outline"
-              className="bg-navy-700 hover:bg-navy-600 text-white border-navy-600"
             >
               <Home className="mr-2 h-4 w-4" />
               Início
             </Button>
             <Button
               onClick={handleLogout}
-              variant="outline"
-              className="bg-red-600 hover:bg-red-700 text-white border-red-500"
+              variant="destructive"
             >
               Sair
             </Button>
@@ -281,159 +249,182 @@ const DashboardOM = () => {
       </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Filters */}
-        <div className="flex flex-wrap gap-3 items-center">
-          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" className="bg-navy-700 hover:bg-navy-600 text-white border-navy-600">
-                <Filter className="mr-2 h-4 w-4" />
-                Filtros
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="bg-navy-800 text-white border-navy-700 overflow-y-auto">
-              <SheetHeader>
-                <SheetTitle className="text-white">Filtros</SheetTitle>
-              </SheetHeader>
-              <Tabs defaultValue="om" className="mt-6">
-                <TabsList className="grid w-full grid-cols-2 bg-navy-700">
-                  <TabsTrigger value="om" className="data-[state=active]:bg-navy-600">OM</TabsTrigger>
-                  <TabsTrigger value="pessoal" className="data-[state=active]:bg-navy-600">Pessoal</TabsTrigger>
-                </TabsList>
-                <TabsContent value="om" className="space-y-4 mt-4">
+        {/* Filters Bar */}
+        <Card className="p-4">
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Filtros:</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">OM:</span>
+              <Select value={selectedOM} onValueChange={setSelectedOM}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Selecione OM" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todos">Todos</SelectItem>
                   {availableOMs.map(om => (
-                    <div key={om} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`om-${om}`}
-                        checked={selectedOMs.includes(om)}
-                        onCheckedChange={(checked) => handleOMChange(om, checked as boolean)}
-                      />
-                      <label htmlFor={`om-${om}`} className="text-sm cursor-pointer">
-                        {om}
-                      </label>
-                    </div>
+                    <SelectItem key={om} value={om}>{om}</SelectItem>
                   ))}
-                </TabsContent>
-                <TabsContent value="pessoal" className="space-y-4 mt-4">
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Pessoal:</span>
+              <Select value={selectedPessoal} onValueChange={setSelectedPessoal}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Selecione Pessoal" />
+                </SelectTrigger>
+                <SelectContent>
                   {availablePessoal.map(pessoal => (
-                    <div key={pessoal} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`pessoal-${pessoal}`}
-                        checked={selectedPessoal.includes(pessoal)}
-                        onCheckedChange={(checked) => handlePessoalChange(pessoal, checked as boolean)}
-                      />
-                      <label htmlFor={`pessoal-${pessoal}`} className="text-sm cursor-pointer">
-                        {pessoal}
-                      </label>
-                    </div>
+                    <SelectItem key={pessoal} value={pessoal}>{pessoal}</SelectItem>
                   ))}
-                </TabsContent>
-              </Tabs>
-            </SheetContent>
-          </Sheet>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Active Filters */}
-          {selectedOMs.map(om => (
-            <Badge key={`badge-om-${om}`} variant="secondary" className="bg-navy-700 text-white">
-              {om}
-              <X
-                className="ml-2 h-3 w-3 cursor-pointer"
-                onClick={() => handleRemoveFilter('om', om)}
-              />
-            </Badge>
-          ))}
-          {selectedPessoal.map(pessoal => (
-            <Badge key={`badge-pessoal-${pessoal}`} variant="secondary" className="bg-navy-700 text-white">
-              {pessoal}
-              <X
-                className="ml-2 h-3 w-3 cursor-pointer"
-                onClick={() => handleRemoveFilter('pessoal', pessoal)}
-              />
-            </Badge>
-          ))}
-
-          {(selectedOMs.length > 0 || selectedPessoal.length > 0) && (
             <Button
-              onClick={handleClearFilters}
-              variant="ghost"
-              size="sm"
-              className="text-navy-300 hover:text-white"
+              onClick={exportToPDF}
+              variant="outline"
+              className="ml-auto"
             >
-              Limpar filtros
+              <Download className="mr-2 h-4 w-4" />
+              Exportar PDF
             </Button>
-          )}
-
-          <Button
-            onClick={exportToPDF}
-            variant="outline"
-            className="ml-auto bg-green-600 hover:bg-green-700 text-white border-green-500"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Exportar PDF
-          </Button>
-        </div>
+          </div>
+        </Card>
 
         {/* Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <MetricsCard
-            title="TMFT Total"
-            value={metrics.totalTMFT}
-            icon={Shield}
-            variant="default"
-          />
-          <MetricsCard
-            title="EXI Total"
-            value={metrics.totalEXI}
-            icon={Users}
-            variant="success"
-          />
-          <MetricsCard
-            title="DIF Total"
-            value={metrics.totalDIF}
-            icon={metrics.totalDIF >= 0 ? TrendingUp : TrendingDown}
-            variant={metrics.totalDIF >= 0 ? "success" : "destructive"}
-          />
-          <Card className="shadow-card bg-gradient-to-br from-blue-500/5 to-blue-600/10 border-blue-500/20">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 border-blue-200">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
-                    Preenchimento
+                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                    TMFT
                   </p>
-                  <p className="text-3xl font-bold text-foreground">
-                    {metrics.percentualPreenchimento.toFixed(1)}%
+                  <p className="text-4xl font-bold text-blue-900 dark:text-blue-100">
+                    {metrics.totalTMFT}
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                    Tabela Mestra
                   </p>
                 </div>
+                <Users2 className="h-8 w-8 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">
+                    EFETIVO
+                  </p>
+                  <p className="text-4xl font-bold text-green-900 dark:text-green-100">
+                    {metrics.totalEXI}
+                  </p>
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                    Cargos ocupados
+                  </p>
+                </div>
+                <UserCheck className="h-8 w-8 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-1">
+                    VAGOS
+                  </p>
+                  <p className="text-4xl font-bold text-red-900 dark:text-red-100">
+                    {Math.abs(metrics.totalDIF)}
+                  </p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                    Cargos sem ocupante
+                  </p>
+                </div>
+                <UserX className="h-8 w-8 text-red-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-1">
+                    ATENDIMENTO
+                  </p>
+                  <p className="text-4xl font-bold text-amber-900 dark:text-amber-100">
+                    {metrics.percentualPreenchimento.toFixed(0)}%
+                  </p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                    Situação: {metrics.totalDIF < 0 ? metrics.totalDIF : `+${metrics.totalDIF}`}
+                  </p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-amber-500" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Chart */}
-        <Card className="bg-navy-800/50 border-navy-700 p-6" ref={chartRef}>
-          <h3 className="text-xl font-semibold text-white mb-4">Distribuição por OM</h3>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={chartDataByOM}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="om" stroke="#94a3b8" />
-              <YAxis stroke="#94a3b8" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1e293b',
-                  border: '1px solid #334155',
-                  borderRadius: '8px',
-                  color: '#fff',
-                }}
-              />
-              <Legend />
-              <Bar dataKey="tmft" name="TMFT" fill="#3b82f6" />
-              <Bar dataKey="exi" name="EXI" fill="#10b981" />
-              <Bar dataKey="dif" name="DIF">
-                {chartDataByOM.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.dif >= 0 ? '#10b981' : '#ef4444'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Resumo da Situação */}
+        <Card ref={chartRef}>
+          <CardHeader className="border-l-4 border-l-blue-500">
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Resumo da Situação
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-4">
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground mb-2">TMFT</div>
+                <div className="text-3xl font-bold">{metrics.totalTMFT}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground mb-2">EFE</div>
+                <div className="text-3xl font-bold text-green-600">{metrics.totalEXI}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground mb-2">SIT</div>
+                <div className={`text-3xl font-bold ${metrics.totalDIF < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  {metrics.totalDIF}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground mb-2">% Atendimento</div>
+                <div className="text-3xl font-bold text-blue-600">{metrics.percentualPreenchimento.toFixed(0)}%</div>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={chartDataByOM}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="om" className="text-xs" />
+                  <YAxis className="text-xs" />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="tmft" name="TMFT" fill="hsl(var(--chart-1))" />
+                  <Bar dataKey="exi" name="EXI" fill="hsl(var(--chart-2))" />
+                  <Bar dataKey="dif" name="DIF">
+                    {chartDataByOM.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.dif >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-5))'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
         </Card>
       </div>
     </div>
