@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.fetch-especialidades-data]
 verify_jwt = false
+
+[functions.fetch-om-data]
+verify_jwt = false
