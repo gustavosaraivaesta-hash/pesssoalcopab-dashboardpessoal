@@ -523,11 +523,11 @@ const FormacaoAcademia = () => {
           </div>
         </div>
 
-        {/* Gráfico de Top 5 Formações Acadêmicas */}
+        {/* Gráfico de Top 5 QUADRO Acadêmicas */}
         <div ref={topFormacoesChartRef}>
           <Card>
             <CardHeader>
-              <CardTitle>Top 5 Formações Acadêmicas por EFE</CardTitle>
+              <CardTitle>Top 5 QUADRO Acadêmicas por EFE</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-[400px]">
@@ -582,7 +582,7 @@ const FormacaoAcademia = () => {
                 deficit
               }));
             })()}
-            title="Top 5 Formações com Maior Deficit"
+            title="Top 5 QUADRO com Maior Deficit"
           />
         </div>
 
