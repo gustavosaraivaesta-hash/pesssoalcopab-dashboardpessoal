@@ -494,9 +494,9 @@ const FormacaoAcademia = () => {
             </div>
           </div>
 
-          {/* Filtro de Formação Acadêmica */}
+          {/* Filtro de QUADRO */}
           <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
-            <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por Formação Acad</h3>
+            <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por QUADRO</h3>
             <div className="grid grid-cols-1 gap-3">
               {allFormacoes.map((formacao) => (
                 <div key={formacao} className="flex items-center space-x-2">
