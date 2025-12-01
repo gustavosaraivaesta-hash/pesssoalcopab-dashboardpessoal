@@ -2,6 +2,8 @@ export interface OMData {
   id: string;
   om: string;
   pessoal: string;
+  quadro: string;
+  opcao: string;
   tmft: number;
   exi: number;
   dif: number;
