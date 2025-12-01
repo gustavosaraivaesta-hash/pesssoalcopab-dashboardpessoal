@@ -73,6 +73,7 @@ serve(async (req) => {
     const cargoCol = findColumnIndex(['CARGO', 'INCUMBÊNCIA']);
     const postoCol = findColumnIndex(['POSTO']);
     const corpoCol = findColumnIndex(['CORPO']);
+    const quadroCol = findColumnIndex(['QUADRO']);
     const tmftCol = findColumnIndex(['TMFT']);
     const exiCol = findColumnIndex(['EXI', 'EFE']);
     const difCol = findColumnIndex(['DIF', 'SIT']);
@@ -83,13 +84,15 @@ serve(async (req) => {
       cargo: cargoCol,
       posto: postoCol,
       corpo: corpoCol,
+      quadro: quadroCol,
       tmft: tmftCol,
       exi: exiCol,
       dif: difCol
     });
     
-    // Extract unique setores for filtering
+    // Extract unique setores and quadros for filtering
     const setores = new Set<string>();
+    const quadros = new Set<string>();
 
     // Process data rows
     const processedData: any[] = [];
@@ -102,6 +105,7 @@ serve(async (req) => {
       const cargo = cargoCol >= 0 ? String(cells[cargoCol]?.v || '') : '';
       const posto = postoCol >= 0 ? String(cells[postoCol]?.v || '') : '';
       const corpo = corpoCol >= 0 ? String(cells[corpoCol]?.v || '') : '';
+      const quadro = quadroCol >= 0 ? String(cells[quadroCol]?.v || '') : '';
       const tmft = tmftCol >= 0 ? Number(cells[tmftCol]?.v || 0) : 0;
       const exi = exiCol >= 0 ? Number(cells[exiCol]?.v || 0) : 0;
       const dif = difCol >= 0 ? Number(cells[difCol]?.v || 0) : 0;
@@ -110,6 +114,7 @@ serve(async (req) => {
       if (!setor && !cargo) continue;
       
       if (setor) setores.add(setor);
+      if (quadro) quadros.add(quadro);
       
       processedData.push({
         id: `${setor}-${cargo}-${rowIndex}`,
@@ -118,6 +123,7 @@ serve(async (req) => {
         cargo: cargo,
         posto: posto,
         corpo: corpo,
+        quadro: quadro,
         tmft: tmft,
         exi: exi,
         dif: dif,
@@ -129,7 +135,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         data: processedData,
-        setores: Array.from(setores).sort()
+        setores: Array.from(setores).sort(),
+        quadros: Array.from(quadros).sort()
       }),
       { 
         headers: { 
