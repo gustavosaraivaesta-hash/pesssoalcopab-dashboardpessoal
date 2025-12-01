@@ -14,7 +14,7 @@ serve(async (req) => {
     console.log('Fetching OM data from Google Sheets...');
     
     const spreadsheetId = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
-    const gid = '581706093'; // GID for PESSOAL POR OM sheet
+    const gid = '1926090655'; // GID for PESSOAL POR OM sheet
     const timestamp = new Date().getTime();
     
     const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=${gid}&tqx=out:json&timestamp=${timestamp}`;
