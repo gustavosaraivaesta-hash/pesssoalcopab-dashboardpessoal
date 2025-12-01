@@ -42,6 +42,7 @@ serve(async (req) => {
     
     if (sheetsData.table.rows && sheetsData.table.rows.length > 1) {
       // Define OMs and their column positions (TMFT, EFE)
+      // Coluna 0: Formação, Coluna 1: Pessoal, Coluna 26: Opção, depois vêm os dados dos OMs
       const oms = [
         { name: 'COpAb', startCol: 2 },
         { name: 'BAMRJ', startCol: 4 },
@@ -56,6 +57,8 @@ serve(async (req) => {
         { name: 'CDU-BAMRJ', startCol: 22 },
         { name: 'CDU-1DN', startCol: 24 },
       ];
+      
+      const opcaoCol = 26; // Column index for Opção
       
       let currentFormacao = '';
       
@@ -80,6 +83,7 @@ serve(async (req) => {
           // Process CONTRA-ALMIRANTE on the same row as formation
           if (colB && currentFormacao) {
             const pessoal = colB;
+            const opcao = cells[opcaoCol]?.v ? String(cells[opcaoCol].v).trim() : '';
             
             oms.forEach(om => {
               const tmft = cells[om.startCol]?.v ? Number(cells[om.startCol].v) : 0;
@@ -89,6 +93,7 @@ serve(async (req) => {
                 formacao: currentFormacao,
                 pessoal: pessoal,
                 om: om.name,
+                opcao: opcao,
                 tmft: tmft,
                 efe: efe,
               });
@@ -100,6 +105,7 @@ serve(async (req) => {
         // Check if this is a data row (colB has pessoal rank)
         if (colB && currentFormacao) {
           const pessoal = colB;
+          const opcao = cells[opcaoCol]?.v ? String(cells[opcaoCol].v).trim() : '';
           
           // Create one record for each OM with the current formation
           oms.forEach(om => {
@@ -110,6 +116,7 @@ serve(async (req) => {
               formacao: currentFormacao,
               pessoal: pessoal,
               om: om.name,
+              opcao: opcao,
               tmft: tmft,
               efe: efe,
             });
