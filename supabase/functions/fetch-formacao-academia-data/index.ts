@@ -42,20 +42,20 @@ serve(async (req) => {
     
     if (sheetsData.table.rows && sheetsData.table.rows.length > 1) {
       // Define OMs and their column positions (TMFT, EFE)
-      // Coluna 0: Formação, Coluna 1: Pessoal, Coluna 26: Opção, depois vêm os dados dos OMs
+      // Coluna 0: Formação, Coluna 1: Pessoal, Colunas 2-4: CARREIRA/RM2/TTC, depois vêm os dados dos OMs a partir da coluna 5
       const oms = [
-        { name: 'COpAb', startCol: 2 },
-        { name: 'BAMRJ', startCol: 4 },
-        { name: 'CMM', startCol: 6 },
-        { name: 'DepCMRJ', startCol: 8 },
-        { name: 'CDAM', startCol: 10 },
-        { name: 'DepSMRJ', startCol: 12 },
-        { name: 'CSupAb', startCol: 14 },
-        { name: 'DepSIMRJ', startCol: 16 },
-        { name: 'DepMSMRJ', startCol: 18 },
-        { name: 'DepFMRJ', startCol: 20 },
-        { name: 'CDU-BAMRJ', startCol: 22 },
-        { name: 'CDU-1DN', startCol: 24 },
+        { name: 'COpAb', startCol: 5 },
+        { name: 'BAMRJ', startCol: 7 },
+        { name: 'CMM', startCol: 9 },
+        { name: 'DepCMRJ', startCol: 11 },
+        { name: 'CDAM', startCol: 13 },
+        { name: 'DepSMRJ', startCol: 15 },
+        { name: 'CSupAb', startCol: 17 },
+        { name: 'DepSIMRJ', startCol: 19 },
+        { name: 'DepMSMRJ', startCol: 21 },
+        { name: 'DepFMRJ', startCol: 23 },
+        { name: 'CDU-BAMRJ', startCol: 25 },
+        { name: 'CDU-1DN', startCol: 27 },
       ];
       
       // CARREIRA, RM2, TTC estão nas colunas C, D, E (índices 2, 3, 4)
