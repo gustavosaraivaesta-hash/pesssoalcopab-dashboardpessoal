@@ -51,25 +51,31 @@ serve(async (req) => {
     // First row contains headers
     const headerRow = rows[0].c || [];
     
-    // Find column indices by header name
-    const findColumnIndex = (headerName: string): number => {
+    // Log all headers to debug
+    console.log('All headers found:', headerRow.map((cell: any, idx: number) => `${idx}: ${cell?.v || 'empty'}`).join(', '));
+    
+    // Find column indices by header name (flexible matching)
+    const findColumnIndex = (searchTerms: string[]): number => {
       for (let i = 0; i < headerRow.length; i++) {
         const cellValue = String(headerRow[i]?.v || '').toUpperCase().trim();
-        if (cellValue === headerName.toUpperCase()) {
-          return i;
+        for (const term of searchTerms) {
+          if (cellValue.includes(term.toUpperCase())) {
+            console.log(`Found column "${term}" at index ${i}: "${cellValue}"`);
+            return i;
+          }
         }
       }
       return -1;
     };
     
-    const tipoSetorCol = findColumnIndex('TIPO SETOR');
-    const setorCol = findColumnIndex('SETOR');
-    const cargoCol = findColumnIndex('CARGO/INCUMBÊNCIA');
-    const postoCol = findColumnIndex('POSTO');
-    const corpoCol = findColumnIndex('CORPO');
-    const tmftCol = findColumnIndex('TMFT');
-    const exiCol = findColumnIndex('EXI');
-    const difCol = findColumnIndex('DIF');
+    const tipoSetorCol = findColumnIndex(['TIPO SETOR', 'TIPO']);
+    const setorCol = findColumnIndex(['SETOR']);
+    const cargoCol = findColumnIndex(['CARGO', 'INCUMBÊNCIA']);
+    const postoCol = findColumnIndex(['POSTO']);
+    const corpoCol = findColumnIndex(['CORPO']);
+    const tmftCol = findColumnIndex(['TMFT']);
+    const exiCol = findColumnIndex(['EXI', 'EFE']);
+    const difCol = findColumnIndex(['DIF', 'SIT']);
     
     console.log('Column indices:', {
       tipoSetor: tipoSetorCol,
