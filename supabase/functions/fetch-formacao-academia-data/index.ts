@@ -91,19 +91,19 @@ serve(async (req) => {
         const colA = cells[0]?.v ? String(cells[0].v).trim() : '';
         const colB = cells[1]?.v ? String(cells[1].v).trim() : '';
         
-        // Ler as 3 colunas de opções
-        const carreira = cells[carreiraCol]?.v ? Number(cells[carreiraCol].v) : 0;
-        const rm2 = cells[rm2Col]?.v ? Number(cells[rm2Col].v) : 0;
-        const ttc = cells[ttcCol]?.v ? Number(cells[ttcCol].v) : 0;
+        // Ler os valores numéricos das 3 colunas de opções (são quantidades, não flags)
+        const carreiraQtd = cells[carreiraCol]?.v ? Number(cells[carreiraCol].v) : 0;
+        const rm2Qtd = cells[rm2Col]?.v ? Number(cells[rm2Col].v) : 0;
+        const ttcQtd = cells[ttcCol]?.v ? Number(cells[ttcCol].v) : 0;
         
-        // Criar string de opção baseado nos valores 1/0
+        // Criar string de opção baseado nos valores > 0
         const opcoes: string[] = [];
-        if (carreira === 1) opcoes.push('CARREIRA');
-        if (rm2 === 1) opcoes.push('RM2');
-        if (ttc === 1) opcoes.push('TTC');
+        if (carreiraQtd > 0) opcoes.push('CARREIRA');
+        if (rm2Qtd > 0) opcoes.push('RM2');
+        if (ttcQtd > 0) opcoes.push('TTC');
         const opcaoValue = opcoes.join(', ');
         
-        console.log(`Row ${i}: colA = "${colA}", colB = "${colB}", opcao = "${opcaoValue}"`);
+        console.log(`Row ${i}: colA = "${colA}", colB = "${colB}", carreira=${carreiraQtd}, rm2=${rm2Qtd}, ttc=${ttcQtd}`);
         
         // Check if this is a formation header row (colA has formation name)
         // Detect formations dynamically - if colA has content and colB has a rank, it's a formation row
@@ -130,6 +130,9 @@ serve(async (req) => {
                 pessoal: pessoal,
                 om: om.name,
                 opcao: opcaoValue,
+                carreiraQtd: carreiraQtd,
+                rm2Qtd: rm2Qtd,
+                ttcQtd: ttcQtd,
                 tmft: tmft,
                 efe: efe,
               });
@@ -152,6 +155,9 @@ serve(async (req) => {
               pessoal: pessoal,
               om: om.name,
               opcao: opcaoValue,
+              carreiraQtd: carreiraQtd,
+              rm2Qtd: rm2Qtd,
+              ttcQtd: ttcQtd,
               tmft: tmft,
               efe: efe,
             });

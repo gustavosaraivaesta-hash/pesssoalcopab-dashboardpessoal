@@ -38,6 +38,9 @@ interface FormacaoData {
   om: string;
   especialidade?: string;
   opcao?: string;
+  carreiraQtd?: number;
+  rm2Qtd?: number;
+  ttcQtd?: number;
   tmft: number;
   efe: number;
 }
@@ -313,10 +316,20 @@ const FormacaoAcademia = () => {
   // Dynamically get all unique formacoes from data
   const allFormacoes = [...new Set(data.map(item => item.formacao))].sort();
   
-  // Count unique formação+pessoal combinations for each opcao type (not multiplied by OMs)
-  const carreiraCount = [...new Set(data.filter(item => item.opcao?.includes('CARREIRA')).map(item => `${item.formacao}-${item.pessoal}`))].length;
-  const rm2Count = [...new Set(data.filter(item => item.opcao?.includes('RM2')).map(item => `${item.formacao}-${item.pessoal}`))].length;
-  const ttcCount = [...new Set(data.filter(item => item.opcao?.includes('TTC')).map(item => `${item.formacao}-${item.pessoal}`))].length;
+  // Sum quantities for each opcao type (get unique formação+pessoal and sum their quantities)
+  const uniqueKeys = [...new Set(data.map(item => `${item.formacao}-${item.pessoal}`))];
+  const carreiraCount = uniqueKeys.reduce((sum, key) => {
+    const item = data.find(d => `${d.formacao}-${d.pessoal}` === key);
+    return sum + (item?.carreiraQtd || 0);
+  }, 0);
+  const rm2Count = uniqueKeys.reduce((sum, key) => {
+    const item = data.find(d => `${d.formacao}-${d.pessoal}` === key);
+    return sum + (item?.rm2Qtd || 0);
+  }, 0);
+  const ttcCount = uniqueKeys.reduce((sum, key) => {
+    const item = data.find(d => `${d.formacao}-${d.pessoal}` === key);
+    return sum + (item?.ttcQtd || 0);
+  }, 0);
 
   const filteredData = data.filter(item => {
     const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
