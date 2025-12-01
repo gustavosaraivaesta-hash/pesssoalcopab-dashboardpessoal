@@ -51,9 +51,13 @@ serve(async (req) => {
     // First row contains headers with OM names and metric types
     const headerRow = rows[0].c || [];
     
-    // Check if we have QUADRO and OPÇÃO columns (should be first columns before OMs)
-    const hasQuadroOpcao = headerRow.length > 2;
+    // Check if we have QUADRO and OPÇÃO columns by checking header names
+    const firstHeader = String(headerRow[0]?.v || '').toUpperCase();
+    const secondHeader = String(headerRow[1]?.v || '').toUpperCase();
+    const hasQuadroOpcao = firstHeader.includes('QUADRO') || secondHeader.includes('OPÇÃO') || secondHeader.includes('OPCAO');
     const dataStartCol = hasQuadroOpcao ? 3 : 1; // If QUADRO and OPÇÃO exist, OMs start at column 3
+    
+    console.log('First header:', firstHeader, 'Second header:', secondHeader, 'Has QUADRO/OPÇÃO:', hasQuadroOpcao);
     
     // Extract OMs from header (every 3 columns after initial columns)
     const oms: string[] = [];
