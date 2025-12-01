@@ -62,6 +62,18 @@ serve(async (req) => {
       
       console.log(`Total columns in header row: ${sheetsData.table.cols?.length || 'unknown'}`);
       
+      // Log first 5 rows completely to identify correct column
+      console.log('=== DEBUGGING: Logging first 5 rows with ALL columns ===');
+      for (let debugRow = 0; debugRow < Math.min(5, sheetsData.table.rows.length); debugRow++) {
+        const debugCells = sheetsData.table.rows[debugRow].c || [];
+        const allColumns: string[] = [];
+        for (let col = 0; col < Math.min(30, debugCells.length); col++) {
+          const val = debugCells[col]?.v ? String(debugCells[col].v).trim() : '';
+          allColumns.push(`[${col}]="${val}"`);
+        }
+        console.log(`DEBUG Row ${debugRow}: ${allColumns.join(', ')}`);
+      }
+      
       let currentFormacao = '';
       
       // Skip header rows, process data rows
