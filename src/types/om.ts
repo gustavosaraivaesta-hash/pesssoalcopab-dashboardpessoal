@@ -1,9 +1,10 @@
 export interface OMData {
   id: string;
-  om: string;
-  pessoal: string;
-  quadro: string;
-  opcao: string;
+  tipoSetor: string;
+  setor: string;
+  cargo: string;
+  posto: string;
+  corpo: string;
   tmft: number;
   exi: number;
   dif: number;
