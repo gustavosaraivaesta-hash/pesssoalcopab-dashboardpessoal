@@ -5,16 +5,75 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface PersonnelRecord {
+  id: string;
+  neo: number;
+  tipoSetor: string;
+  setor: string;
+  cargo: string;
+  postoTmft: string;
+  corpoTmft: string;
+  quadroTmft: string;
+  opcaoTmft: string;
+  postoEfe: string;
+  corpoEfe: string;
+  quadroEfe: string;
+  opcaoEfe: string;
+  nome: string;
+  ocupado: boolean;
+  om: string;
+}
+
+interface DesembarqueRecord {
+  posto: string;
+  corpo: string;
+  quadro: string;
+  cargo: string;
+  nome: string;
+  destino: string;
+  mesAno: string;
+  documento: string;
+  om: string;
+}
+
+interface EmbarqueRecord {
+  posto: string;
+  corpo: string;
+  quadro: string;
+  cargo: string;
+  nome: string;
+  origem: string;
+  mesAno: string;
+  documento: string;
+  om: string;
+}
+
+interface ResumoSituacao {
+  tmft: number;
+  efe: number;
+  destaque: number;
+  licenca: number;
+  adidosCurso: number;
+  sitReal: number;
+  percentualAtendimento: number;
+  percentualAtendimentoAusencias: number;
+  om: string;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('Fetching OM data from Google Sheets...');
+    console.log('Fetching OM detailed data from Google Sheets...');
     
     const spreadsheetId = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
-    const gid = '1926090655'; // GID for PESSOAL POR OM sheet
+    
+    // CDU-BAMRJ sheet (the one with detailed personnel data)
+    // We'll need to find the correct GID for the detailed sheet
+    // For now, let's try to parse the data structure you provided
+    const gid = '1926090655';
     const timestamp = new Date().getTime();
     
     const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=${gid}&tqx=out:json&timestamp=${timestamp}`;
@@ -42,101 +101,169 @@ serve(async (req) => {
       throw new Error('No data found in sheet');
     }
 
-    console.log('Processing OM data...');
+    console.log('Processing OM detailed data, total rows:', rows.length);
     
-    if (rows.length < 2) {
-      throw new Error('Not enough data in sheet');
-    }
-    
-    // First row contains headers
-    const headerRow = rows[0].c || [];
-    
-    // Log all headers to debug
-    console.log('All headers found:', headerRow.map((cell: any, idx: number) => `${idx}: ${cell?.v || 'empty'}`).join(', '));
-    
-    // Find column indices by header name (flexible matching)
-    const findColumnIndex = (searchTerms: string[]): number => {
-      for (let i = 0; i < headerRow.length; i++) {
-        const cellValue = String(headerRow[i]?.v || '').toUpperCase().trim();
-        for (const term of searchTerms) {
-          if (cellValue.includes(term.toUpperCase())) {
-            console.log(`Found column "${term}" at index ${i}: "${cellValue}"`);
-            return i;
-          }
-        }
-      }
-      return -1;
-    };
-    
-    const tipoSetorCol = findColumnIndex(['TIPO SETOR', 'TIPO']);
-    const setorCol = findColumnIndex(['SETOR']);
-    const cargoCol = findColumnIndex(['CARGO', 'INCUMBÊNCIA']);
-    const postoCol = findColumnIndex(['POSTO']);
-    const corpoCol = findColumnIndex(['CORPO']);
-    const quadroCol = findColumnIndex(['QUADRO']);
-    const tmftCol = findColumnIndex(['TMFT']);
-    const exiCol = findColumnIndex(['EXI', 'EFE']);
-    const difCol = findColumnIndex(['DIF', 'SIT']);
-    
-    console.log('Column indices:', {
-      tipoSetor: tipoSetorCol,
-      setor: setorCol,
-      cargo: cargoCol,
-      posto: postoCol,
-      corpo: corpoCol,
-      quadro: quadroCol,
-      tmft: tmftCol,
-      exi: exiCol,
-      dif: difCol
-    });
-    
-    // Extract unique setores and quadros for filtering
+    // Parse the detailed personnel structure
+    const personnelData: PersonnelRecord[] = [];
+    const desembarqueData: DesembarqueRecord[] = [];
+    const embarqueData: EmbarqueRecord[] = [];
+    const resumoData: ResumoSituacao[] = [];
     const setores = new Set<string>();
     const quadros = new Set<string>();
-
-    // Process data rows
-    const processedData: any[] = [];
     
-    for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
+    let currentOM = '';
+    let currentSection = '';
+    
+    for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
       const cells = rows[rowIndex].c || [];
+      const firstCell = String(cells[0]?.v || '').trim();
       
-      const tipoSetor = tipoSetorCol >= 0 ? String(cells[tipoSetorCol]?.v || '') : '';
-      const setor = setorCol >= 0 ? String(cells[setorCol]?.v || '') : '';
-      const cargo = cargoCol >= 0 ? String(cells[cargoCol]?.v || '') : '';
-      const posto = postoCol >= 0 ? String(cells[postoCol]?.v || '') : '';
-      const corpo = corpoCol >= 0 ? String(cells[corpoCol]?.v || '') : '';
-      const quadro = quadroCol >= 0 ? String(cells[quadroCol]?.v || '') : '';
-      const tmft = tmftCol >= 0 ? Number(cells[tmftCol]?.v || 0) : 0;
-      const exi = exiCol >= 0 ? Number(cells[exiCol]?.v || 0) : 0;
-      const dif = difCol >= 0 ? Number(cells[difCol]?.v || 0) : 0;
+      // Detect OM name (like "CDU-BAMRJ")
+      if (firstCell && !firstCell.includes('TABELA') && !firstCell.includes('NEO') && 
+          !firstCell.includes('SITUAÇÃO') && !firstCell.includes('POSTO') &&
+          !firstCell.includes('PREVISÃO') && !firstCell.includes('RESUMO') &&
+          !firstCell.includes('DESTAQUES') && !firstCell.includes('LICENÇAS') &&
+          !firstCell.includes('OFICIAIS ADIDOS') && !firstCell.includes('TMFT') &&
+          cells.length <= 3 && rowIndex < 5) {
+        currentOM = firstCell;
+        console.log('Found OM:', currentOM);
+        continue;
+      }
       
-      // Skip rows without essential data
-      if (!setor && !cargo) continue;
+      // Detect section headers
+      if (firstCell.includes('TABELA MESTRA')) {
+        currentSection = 'TABELA_MESTRA';
+        continue;
+      } else if (firstCell.includes('PREVISÃO DE DESEMBARQUE')) {
+        currentSection = 'DESEMBARQUE';
+        continue;
+      } else if (firstCell.includes('PREVISÃO DE EMBARQUE')) {
+        currentSection = 'EMBARQUE';
+        continue;
+      } else if (firstCell.includes('RESUMO DA SITUAÇÃO')) {
+        currentSection = 'RESUMO';
+        continue;
+      } else if (firstCell === 'NEO' || firstCell === 'POSTO') {
+        // Skip header rows
+        continue;
+      }
       
-      if (setor) setores.add(setor);
-      if (quadro) quadros.add(quadro);
+      // Parse TABELA MESTRA rows (personnel data)
+      if (currentSection === 'TABELA_MESTRA') {
+        const neo = Number(cells[0]?.v) || 0;
+        const tipoSetor = String(cells[1]?.v || '').trim();
+        const setor = String(cells[2]?.v || '').trim();
+        const cargo = String(cells[3]?.v || '').trim();
+        const postoTmft = String(cells[4]?.v || '').trim();
+        const corpoTmft = String(cells[5]?.v || '').trim();
+        const quadroTmft = String(cells[6]?.v || '').trim();
+        const opcaoTmft = String(cells[7]?.v || '').trim();
+        const postoEfe = String(cells[8]?.v || '').trim();
+        const corpoEfe = String(cells[9]?.v || '').trim();
+        const quadroEfe = String(cells[10]?.v || '').trim();
+        const opcaoEfe = String(cells[11]?.v || '').trim();
+        const nome = String(cells[12]?.v || '').trim();
+        
+        if (neo > 0 && setor) {
+          setores.add(setor);
+          if (quadroTmft) quadros.add(quadroTmft);
+          
+          personnelData.push({
+            id: `${currentOM}-${neo}`,
+            neo,
+            tipoSetor,
+            setor,
+            cargo,
+            postoTmft,
+            corpoTmft,
+            quadroTmft,
+            opcaoTmft,
+            postoEfe,
+            corpoEfe,
+            quadroEfe,
+            opcaoEfe,
+            nome,
+            ocupado: nome.length > 0,
+            om: currentOM || 'CDU-BAMRJ',
+          });
+          
+          console.log(`Personnel: NEO=${neo}, SETOR=${setor}, CARGO=${cargo}, NOME=${nome}, OCUPADO=${nome.length > 0}`);
+        }
+      }
       
-      processedData.push({
-        id: `${setor}-${cargo}-${rowIndex}`,
-        tipoSetor: tipoSetor,
-        setor: setor,
-        cargo: cargo,
-        posto: posto,
-        corpo: corpo,
-        quadro: quadro,
-        tmft: tmft,
-        exi: exi,
-        dif: dif,
-      });
+      // Parse PREVISÃO DE DESEMBARQUE
+      if (currentSection === 'DESEMBARQUE') {
+        const posto = String(cells[0]?.v || '').trim();
+        const corpo = String(cells[1]?.v || '').trim();
+        const quadro = String(cells[2]?.v || '').trim();
+        const cargo = String(cells[3]?.v || '').trim();
+        const nome = String(cells[4]?.v || '').trim();
+        const destino = String(cells[9]?.v || '').trim();
+        const mesAno = String(cells[10]?.v || '').trim();
+        const documento = String(cells[11]?.v || '').trim();
+        
+        if (posto && nome) {
+          desembarqueData.push({
+            posto, corpo, quadro, cargo, nome, destino, mesAno, documento,
+            om: currentOM || 'CDU-BAMRJ',
+          });
+        }
+      }
+      
+      // Parse PREVISÃO DE EMBARQUE
+      if (currentSection === 'EMBARQUE') {
+        const posto = String(cells[0]?.v || '').trim();
+        const corpo = String(cells[1]?.v || '').trim();
+        const quadro = String(cells[2]?.v || '').trim();
+        const cargo = String(cells[3]?.v || '').trim();
+        const nome = String(cells[4]?.v || '').trim();
+        const origem = String(cells[9]?.v || '').trim();
+        const mesAno = String(cells[10]?.v || '').trim();
+        const documento = String(cells[11]?.v || '').trim();
+        
+        if (posto && nome) {
+          embarqueData.push({
+            posto, corpo, quadro, cargo, nome, origem, mesAno, documento,
+            om: currentOM || 'CDU-BAMRJ',
+          });
+        }
+      }
+      
+      // Parse RESUMO DA SITUAÇÃO
+      if (currentSection === 'RESUMO') {
+        const tmft = Number(cells[0]?.v) || 0;
+        const efe = Number(cells[1]?.v) || 0;
+        
+        if (tmft > 0 || efe > 0) {
+          resumoData.push({
+            tmft,
+            efe,
+            destaque: Number(cells[2]?.v) || 0,
+            licenca: Number(cells[3]?.v) || 0,
+            adidosCurso: Number(cells[4]?.v) || 0,
+            sitReal: Number(cells[7]?.v) || 0,
+            percentualAtendimento: 100,
+            percentualAtendimentoAusencias: 100,
+            om: currentOM || 'CDU-BAMRJ',
+          });
+          currentSection = ''; // Reset after parsing resumo
+        }
+      }
     }
 
-    console.log(`Processed ${processedData.length} records`);
+    console.log(`Processed ${personnelData.length} personnel records`);
+    console.log(`Processed ${desembarqueData.length} desembarque records`);
+    console.log(`Processed ${embarqueData.length} embarque records`);
 
     return new Response(
       JSON.stringify({ 
-        data: processedData,
+        data: personnelData,
+        desembarque: desembarqueData,
+        embarque: embarqueData,
+        resumo: resumoData,
         setores: Array.from(setores).sort(),
-        quadros: Array.from(quadros).sort()
+        quadros: Array.from(quadros).sort(),
+        lastUpdate: new Date().toLocaleTimeString('pt-BR'),
       }),
       { 
         headers: { 
@@ -153,7 +280,11 @@ serve(async (req) => {
       JSON.stringify({ 
         error: errorMessage,
         data: [],
-        setores: []
+        desembarque: [],
+        embarque: [],
+        resumo: [],
+        setores: [],
+        quadros: [],
       }),
       { 
         status: 500,

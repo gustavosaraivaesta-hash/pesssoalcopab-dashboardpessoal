@@ -6,24 +6,56 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Download, Home, Users2, UserCheck, UserX, TrendingUp, BarChart3 } from "lucide-react";
+import { Download, Home, Users2, UserCheck, UserX, TrendingUp, BarChart3, RefreshCw, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import type { OMData, OMMetrics } from "@/types/om";
 import brasaoRepublica from "@/assets/brasao-republica.png";
+
+interface PersonnelRecord {
+  id: string;
+  neo: number;
+  tipoSetor: string;
+  setor: string;
+  cargo: string;
+  postoTmft: string;
+  corpoTmft: string;
+  quadroTmft: string;
+  opcaoTmft: string;
+  postoEfe: string;
+  corpoEfe: string;
+  quadroEfe: string;
+  opcaoEfe: string;
+  nome: string;
+  ocupado: boolean;
+  om: string;
+}
+
+interface DesembarqueRecord {
+  posto: string;
+  corpo: string;
+  quadro: string;
+  cargo: string;
+  nome: string;
+  destino: string;
+  mesAno: string;
+  documento: string;
+  om: string;
+}
 
 const DashboardOM = () => {
   const navigate = useNavigate();
-  const [data, setData] = useState<OMData[]>([]);
+  const [personnelData, setPersonnelData] = useState<PersonnelRecord[]>([]);
+  const [desembarqueData, setDesembarqueData] = useState<DesembarqueRecord[]>([]);
   const [availableSetores, setAvailableSetores] = useState<string[]>([]);
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSetor, setSelectedSetor] = useState<string>("Todos");
   const [selectedQuadro, setSelectedQuadro] = useState<string>("Todos");
   const [activeTab, setActiveTab] = useState<string>("efetivo");
+  const [lastUpdate, setLastUpdate] = useState<string>("");
   
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -40,11 +72,13 @@ const DashboardOM = () => {
         return;
       }
 
-      if (result?.data) {
-        console.log('Received OM data:', result.data.length, 'records');
-        setData(result.data);
+      if (result) {
+        console.log('Received OM data:', result);
+        setPersonnelData(result.data || []);
+        setDesembarqueData(result.desembarque || []);
         setAvailableSetores(result.setores || []);
         setAvailableQuadros(result.quadros || []);
+        setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString('pt-BR'));
       }
     } catch (error) {
       console.error('Error in fetchData:', error);
@@ -62,26 +96,30 @@ const DashboardOM = () => {
     }
     
     fetchData();
+    
+    // Auto-sync every 30 seconds
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
   }, [navigate]);
 
   const filteredData = useMemo(() => {
-    let filtered = data;
+    let filtered = personnelData;
 
     if (selectedSetor !== "Todos") {
       filtered = filtered.filter(item => item.setor === selectedSetor);
     }
 
     if (selectedQuadro !== "Todos") {
-      filtered = filtered.filter(item => item.quadro === selectedQuadro);
+      filtered = filtered.filter(item => item.quadroTmft === selectedQuadro);
     }
 
     return filtered;
-  }, [data, selectedSetor, selectedQuadro]);
+  }, [personnelData, selectedSetor, selectedQuadro]);
 
-  const metrics = useMemo<OMMetrics>(() => {
-    const totalTMFT = filteredData.reduce((sum, item) => sum + item.tmft, 0);
-    const totalEXI = filteredData.reduce((sum, item) => sum + item.exi, 0);
-    const totalDIF = filteredData.reduce((sum, item) => sum + item.dif, 0);
+  const metrics = useMemo(() => {
+    const totalTMFT = filteredData.length;
+    const totalEXI = filteredData.filter(item => item.ocupado).length;
+    const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
 
     return {
@@ -92,45 +130,41 @@ const DashboardOM = () => {
     };
   }, [filteredData]);
 
-  const chartDataBySetor = useMemo(() => {
-    const grouped = filteredData.reduce((acc, item) => {
-      if (!acc[item.setor]) {
-        acc[item.setor] = { setor: item.setor, tmft: 0, exi: 0, dif: 0 };
+  // Group data by setor
+  const groupedBySetor = useMemo(() => {
+    const groups: Record<string, PersonnelRecord[]> = {};
+    
+    filteredData.forEach(item => {
+      if (!groups[item.setor]) {
+        groups[item.setor] = [];
       }
-      acc[item.setor].tmft += item.tmft;
-      acc[item.setor].exi += item.exi;
-      acc[item.setor].dif += item.dif;
-      return acc;
-    }, {} as Record<string, { setor: string; tmft: number; exi: number; dif: number }>);
-
-    return Object.values(grouped);
+      groups[item.setor].push(item);
+    });
+    
+    return groups;
   }, [filteredData]);
+
+  const chartDataBySetor = useMemo(() => {
+    return Object.entries(groupedBySetor).map(([setor, items]) => ({
+      setor,
+      ocupados: items.filter(i => i.ocupado).length,
+      vagos: items.filter(i => !i.ocupado).length,
+    }));
+  }, [groupedBySetor]);
 
   const chartDataByPosto = useMemo(() => {
     const grouped = filteredData.reduce((acc, item) => {
-      if (item.posto && !acc[item.posto]) {
-        acc[item.posto] = { name: item.posto, value: 0 };
+      const posto = item.ocupado ? item.postoEfe : item.postoTmft;
+      if (posto && !acc[posto]) {
+        acc[posto] = { name: posto, value: 0 };
       }
-      if (item.posto) {
-        acc[item.posto].value += item.exi;
+      if (posto) {
+        acc[posto].value += 1;
       }
       return acc;
     }, {} as Record<string, { name: string; value: number }>);
 
     return Object.values(grouped).filter(item => item.value > 0);
-  }, [filteredData]);
-
-  const chartDataBySetorHorizontal = useMemo(() => {
-    const grouped = filteredData.reduce((acc, item) => {
-      if (!acc[item.setor]) {
-        acc[item.setor] = { setor: item.setor, ocupados: 0, vagos: 0 };
-      }
-      acc[item.setor].ocupados += item.exi;
-      acc[item.setor].vagos += Math.max(0, item.tmft - item.exi);
-      return acc;
-    }, {} as Record<string, { setor: string; ocupados: number; vagos: number }>);
-
-    return Object.values(grouped);
   }, [filteredData]);
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
@@ -140,7 +174,6 @@ const DashboardOM = () => {
       const pdf = new jsPDF('l', 'mm', 'a4');
       let yPosition = 20;
 
-      // Add brasão only on first page
       const brasaoImg = new Image();
       brasaoImg.src = brasaoRepublica;
       await new Promise((resolve) => {
@@ -153,10 +186,9 @@ const DashboardOM = () => {
       yPosition += 10;
 
       pdf.setFontSize(14);
-      pdf.text('Dashboard por Organização Militar', pdf.internal.pageSize.getWidth() / 2, yPosition, { align: 'center' });
+      pdf.text('Tabela Mestra de Força de Trabalho', pdf.internal.pageSize.getWidth() / 2, yPosition, { align: 'center' });
       yPosition += 15;
 
-      // Filters
       if (selectedSetor !== "Todos") {
         pdf.setFontSize(10);
         pdf.text('Filtros Aplicados:', 14, yPosition);
@@ -165,15 +197,13 @@ const DashboardOM = () => {
         yPosition += 10;
       }
 
-      // Metrics
       pdf.setFontSize(10);
       pdf.text(`TMFT Total: ${metrics.totalTMFT}`, 14, yPosition);
-      pdf.text(`EXI Total: ${metrics.totalEXI}`, 80, yPosition);
-      pdf.text(`DIF Total: ${metrics.totalDIF}`, 146, yPosition);
+      pdf.text(`Ocupados: ${metrics.totalEXI}`, 80, yPosition);
+      pdf.text(`Vagos: ${Math.abs(metrics.totalDIF)}`, 146, yPosition);
       pdf.text(`Preenchimento: ${metrics.percentualPreenchimento.toFixed(1)}%`, 212, yPosition);
       yPosition += 10;
 
-      // Capture chart
       if (chartRef.current) {
         const canvas = await html2canvas(chartRef.current, { scale: 2 });
         const imgData = canvas.toDataURL('image/png');
@@ -189,20 +219,22 @@ const DashboardOM = () => {
         yPosition += imgHeight + 10;
       }
 
-      // Table
-      const tableData = chartDataBySetor.map(item => [
+      const tableData = filteredData.map(item => [
+        item.neo.toString(),
         item.setor,
-        item.tmft.toString(),
-        item.exi.toString(),
-        item.dif.toString(),
+        item.cargo,
+        item.postoTmft,
+        item.quadroTmft,
+        item.nome || '-',
+        item.ocupado ? 'Ocupado' : 'Vago',
       ]);
 
       autoTable(pdf, {
         startY: yPosition,
-        head: [['SETOR', 'TMFT', 'EXI', 'DIF']],
+        head: [['NEO', 'SETOR', 'CARGO', 'POSTO', 'QUADRO', 'NOME', 'STATUS']],
         body: tableData,
         theme: 'grid',
-        styles: { fontSize: 10 },
+        styles: { fontSize: 8 },
         headStyles: { fillColor: [41, 128, 185], textColor: 255 },
         didDrawPage: (data) => {
           const pageCount = pdf.getNumberOfPages();
@@ -217,7 +249,7 @@ const DashboardOM = () => {
         },
       });
 
-      pdf.save('dashboard-om.pdf');
+      pdf.save('tabela-mestra-forca-trabalho.pdf');
       toast.success('PDF gerado com sucesso!');
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -306,14 +338,20 @@ const DashboardOM = () => {
               </Select>
             </div>
 
-            <Button
-              onClick={exportToPDF}
-              variant="outline"
-              className="ml-auto"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Exportar PDF
-            </Button>
+            <div className="ml-auto flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <RefreshCw className="h-4 w-4" />
+                <span>Última atualização: {lastUpdate}</span>
+                <span className="text-xs">• Auto-sync a cada 30s</span>
+              </div>
+              <Button
+                onClick={exportToPDF}
+                variant="outline"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Exportar PDF
+              </Button>
+            </div>
           </div>
         </Card>
 
@@ -396,60 +434,27 @@ const DashboardOM = () => {
           </Card>
         </div>
 
-        {/* Resumo da Situação */}
-        <Card ref={chartRef}>
-          <CardHeader className="border-l-4 border-l-blue-500">
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Resumo da Situação
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-4">
-              <div className="text-center">
-                <div className="text-sm text-muted-foreground mb-2">TMFT</div>
-                <div className="text-3xl font-bold">{metrics.totalTMFT}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm text-muted-foreground mb-2">EFE</div>
-                <div className="text-3xl font-bold text-green-600">{metrics.totalEXI}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm text-muted-foreground mb-2">SIT</div>
-                <div className={`text-3xl font-bold ${metrics.totalDIF < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                  {metrics.totalDIF}
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm text-muted-foreground mb-2">% Atendimento</div>
-                <div className="text-3xl font-bold text-blue-600">{metrics.percentualPreenchimento.toFixed(0)}%</div>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <ResponsiveContainer width="100%" height={400}>
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" ref={chartRef}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Ocupação por Setor</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartDataBySetor}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="setor" className="text-xs" />
                   <YAxis className="text-xs" />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="tmft" name="TMFT" fill="hsl(var(--chart-1))" />
-                  <Bar dataKey="exi" name="EXI" fill="hsl(var(--chart-2))" />
-                  <Bar dataKey="dif" name="DIF">
-                    {chartDataBySetor.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.dif >= 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-5))'} />
-                    ))}
-                  </Bar>
+                  <Bar dataKey="ocupados" name="Ocupados" fill="#10b981" />
+                  <Bar dataKey="vagos" name="Vagos" fill="#ef4444" />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Additional Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Distribuição por Posto */}
           <Card>
             <CardHeader>
               <CardTitle>Distribuição por Posto</CardTitle>
@@ -476,31 +481,11 @@ const DashboardOM = () => {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-
-          {/* Ocupação por Setor */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Ocupação por Setor</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartDataBySetorHorizontal} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis type="number" className="text-xs" />
-                  <YAxis dataKey="setor" type="category" className="text-xs" width={100} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="ocupados" name="Ocupados" fill="#10b981" stackId="a" />
-                  <Bar dataKey="vagos" name="Vagos" fill="#ef4444" stackId="a" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Tabela de Dados com Tabs */}
+        {/* Tabela Mestra com Tabs */}
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="bg-muted/30">
                 <TabsTrigger value="efetivo" className="data-[state=active]:bg-background">
@@ -512,62 +497,64 @@ const DashboardOM = () => {
               </TabsList>
             </Tabs>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <h2 className="text-xl font-bold mb-6">Tabela Mestra de Força de Trabalho</h2>
             
             {activeTab === "efetivo" && (
-              <div className="space-y-6">
-                {chartDataBySetor.map((setorData) => {
-                  const setorRecords = filteredData.filter(item => item.setor === setorData.setor);
-                  
-                  return (
-                    <div key={setorData.setor}>
-                      <div className="flex items-center gap-2 mb-4">
-                        <Users2 className="h-5 w-5 text-muted-foreground" />
-                        <h3 className="text-lg font-semibold">{setorData.setor}</h3>
-                        <Badge variant="secondary" className="ml-2">
-                          {setorRecords.length}
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        {setorRecords.map((item, index) => (
-                          <div 
-                            key={index} 
-                            className="border-l-4 border-l-blue-500 bg-card rounded-lg p-4 hover:shadow-md transition-shadow"
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <h4 className="text-base font-semibold text-blue-600">
-                                    {item.cargo}
-                                  </h4>
-                                  <Badge 
-                                    variant={item.exi >= item.tmft ? "default" : "destructive"}
-                                    className={item.exi >= item.tmft ? "bg-green-500 hover:bg-green-600" : ""}
-                                  >
-                                    {item.exi >= item.tmft ? 'Ocupado' : 'Vago'}
-                                  </Badge>
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                  {item.cargo}
-                                </p>
-                              </div>
+              <div className="space-y-8">
+                {Object.entries(groupedBySetor).map(([setor, items]) => (
+                  <div key={setor}>
+                    <div className="flex items-center gap-3 mb-4">
+                      <Building2 className="h-5 w-5 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold">{setor}</h3>
+                      <Badge variant="secondary" className="rounded-full">
+                        {items.length}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {items.map((item) => (
+                        <div 
+                          key={item.id} 
+                          className="border-l-4 border-l-blue-500 bg-card rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h4 className="text-base font-bold text-foreground">
+                                {item.nome || item.cargo}
+                              </h4>
+                              <p className="text-sm text-muted-foreground">
+                                {item.cargo}
+                              </p>
+                              <p className="text-xs text-blue-600 mt-1">
+                                NEO: {item.neo} - {item.cargo}
+                              </p>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <Badge 
+                                variant={item.ocupado ? "default" : "destructive"}
+                                className={item.ocupado 
+                                  ? "bg-green-100 text-green-700 border border-green-300 hover:bg-green-100" 
+                                  : "bg-red-100 text-red-700 border border-red-300 hover:bg-red-100"
+                                }
+                              >
+                                {item.ocupado ? 'Ocupado' : 'Vago'}
+                              </Badge>
                               <div className="flex gap-2">
-                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                  {item.posto}
+                                <Badge variant="outline" className="bg-background">
+                                  {item.ocupado ? item.postoEfe : item.postoTmft}
                                 </Badge>
-                                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                                  {item.corpo}
+                                <Badge variant="outline" className="bg-background">
+                                  {item.ocupado ? item.quadroEfe : item.quadroTmft}
                                 </Badge>
                               </div>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
                 
                 {filteredData.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
@@ -578,8 +565,43 @@ const DashboardOM = () => {
             )}
             
             {activeTab === "previsao" && (
-              <div className="text-center py-8 text-muted-foreground">
-                Dados de Previsão de Desembarque em desenvolvimento.
+              <div className="space-y-4">
+                {desembarqueData.length > 0 ? (
+                  desembarqueData.map((item, index) => (
+                    <div 
+                      key={index}
+                      className="border-l-4 border-l-amber-500 bg-card rounded-lg p-4 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-base font-bold text-foreground">
+                            {item.nome}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            {item.cargo}
+                          </p>
+                          <div className="flex items-center gap-4 mt-2 text-sm">
+                            <span className="text-amber-600">Destino: {item.destino}</span>
+                            <span className="text-muted-foreground">{item.mesAno}</span>
+                          </div>
+                          {item.documento && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {item.documento}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge variant="outline">{item.posto}</Badge>
+                          <Badge variant="outline">{item.quadro}</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhuma previsão de desembarque encontrada.
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
