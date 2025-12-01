@@ -14,14 +14,14 @@ serve(async (req) => {
     console.log('Fetching OM data from Google Sheets...');
     
     const SHEET_ID = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
-    const GID = '581706093'; // Page with OM data
+    const RANGE = 'PESSOAL POR OM!A:Z'; // Range to fetch all data from the sheet
     const API_KEY = Deno.env.get('GOOGLE_SHEETS_API_KEY');
     
     if (!API_KEY) {
       throw new Error('GOOGLE_SHEETS_API_KEY not configured');
     }
 
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/gid=${GID}?key=${API_KEY}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(RANGE)}?key=${API_KEY}`;
     
     console.log('Fetching from URL:', url);
     
