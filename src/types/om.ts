@@ -5,6 +5,7 @@ export interface OMData {
   cargo: string;
   posto: string;
   corpo: string;
+  quadro: string;
   tmft: number;
   exi: number;
   dif: number;

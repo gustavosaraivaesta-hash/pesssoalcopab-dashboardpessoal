@@ -19,8 +19,10 @@ const DashboardOM = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<OMData[]>([]);
   const [availableSetores, setAvailableSetores] = useState<string[]>([]);
+  const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSetor, setSelectedSetor] = useState<string>("Todos");
+  const [selectedQuadro, setSelectedQuadro] = useState<string>("Todos");
   const [activeTab, setActiveTab] = useState<string>("efetivo");
   
   const chartRef = useRef<HTMLDivElement>(null);
@@ -42,6 +44,7 @@ const DashboardOM = () => {
         console.log('Received OM data:', result.data.length, 'records');
         setData(result.data);
         setAvailableSetores(result.setores || []);
+        setAvailableQuadros(result.quadros || []);
       }
     } catch (error) {
       console.error('Error in fetchData:', error);
@@ -68,8 +71,12 @@ const DashboardOM = () => {
       filtered = filtered.filter(item => item.setor === selectedSetor);
     }
 
+    if (selectedQuadro !== "Todos") {
+      filtered = filtered.filter(item => item.quadro === selectedQuadro);
+    }
+
     return filtered;
-  }, [data, selectedSetor]);
+  }, [data, selectedSetor, selectedQuadro]);
 
   const metrics = useMemo<OMMetrics>(() => {
     const totalTMFT = filteredData.reduce((sum, item) => sum + item.tmft, 0);
@@ -279,6 +286,21 @@ const DashboardOM = () => {
                   <SelectItem value="Todos">Todos</SelectItem>
                   {availableSetores.map(setor => (
                     <SelectItem key={setor} value={setor}>{setor}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Quadro:</span>
+              <Select value={selectedQuadro} onValueChange={setSelectedQuadro}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todos">Todos</SelectItem>
+                  {availableQuadros.map(quadro => (
+                    <SelectItem key={quadro} value={quadro}>{quadro}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
