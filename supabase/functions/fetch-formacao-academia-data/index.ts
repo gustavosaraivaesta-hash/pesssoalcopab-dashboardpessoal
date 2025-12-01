@@ -70,16 +70,18 @@ serve(async (req) => {
         console.log(`Column headers: ${colLabels.join(', ')}`);
       }
       
-      // Log first 10 rows with ALL columns to find CARREIRA, RM2, TTC
-      console.log('=== DEBUGGING: Logging first 10 rows with ALL columns ===');
-      for (let debugRow = 0; debugRow < Math.min(10, sheetsData.table.rows.length); debugRow++) {
+      // Log first 15 rows showing columns 0-6 with ALL values (including empty)
+      console.log('=== DEBUG: Primeiras 15 linhas - colunas 0-6 ===');
+      for (let debugRow = 0; debugRow < Math.min(15, sheetsData.table.rows.length); debugRow++) {
         const debugCells = sheetsData.table.rows[debugRow].c || [];
-        const allColumns: string[] = [];
-        for (let col = 0; col < Math.min(35, debugCells.length); col++) {
-          const val = debugCells[col]?.v ? String(debugCells[col].v).trim() : '';
-          if (val) allColumns.push(`[${col}]="${val}"`);
-        }
-        console.log(`Row ${debugRow}: ${allColumns.join(', ')}`);
+        const col0 = debugCells[0]?.v ?? 'VAZIO';
+        const col1 = debugCells[1]?.v ?? 'VAZIO';
+        const col2 = debugCells[2]?.v ?? 'VAZIO';
+        const col3 = debugCells[3]?.v ?? 'VAZIO';
+        const col4 = debugCells[4]?.v ?? 'VAZIO';
+        const col5 = debugCells[5]?.v ?? 'VAZIO';
+        const col6 = debugCells[6]?.v ?? 'VAZIO';
+        console.log(`Row ${debugRow}: QUADRO="${col0}", PESSOAL="${col1}", CARREIRA="${col2}", RM2="${col3}", TTC="${col4}", COpAb_TMFT="${col5}", COpAb_EFE="${col6}"`);
       }
       
       let currentFormacao = '';
