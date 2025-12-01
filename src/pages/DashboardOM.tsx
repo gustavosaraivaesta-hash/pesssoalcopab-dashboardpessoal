@@ -550,7 +550,7 @@ const DashboardOM = () => {
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <h4 className="text-base font-bold text-foreground">
-                                {item.nome || item.cargo}
+                                {item.nome || `NEO ${item.neo} - VAZIO`}
                               </h4>
                               <p className="text-sm text-muted-foreground">
                                 {item.cargo}
