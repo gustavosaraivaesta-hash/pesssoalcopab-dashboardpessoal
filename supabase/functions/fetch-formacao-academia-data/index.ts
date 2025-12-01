@@ -41,8 +41,7 @@ serve(async (req) => {
     const formacaoData: any[] = [];
     
     if (sheetsData.table.rows && sheetsData.table.rows.length > 1) {
-      // Define OMs and their column positions (TMFT, EFE)
-      // Coluna 0: Formação, Coluna 1: Pessoal, Colunas 2-4: CARREIRA/RM2/TTC, depois vêm os dados dos OMs a partir da coluna 5
+      // Define OMs and their column positions (TMFT, EFE) - OMs começam na coluna 5
       const oms = [
         { name: 'COpAb', startCol: 5 },
         { name: 'BAMRJ', startCol: 7 },
@@ -58,7 +57,7 @@ serve(async (req) => {
         { name: 'CDU-1DN', startCol: 27 },
       ];
       
-      // CARREIRA, RM2, TTC estão nas colunas C, D, E (índices 2, 3, 4)
+      // CARREIRA, RM2, TTC nas colunas 2, 3, 4
       const carreiraCol = 2;
       const rm2Col = 3;
       const ttcCol = 4;
