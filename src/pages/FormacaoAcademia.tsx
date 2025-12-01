@@ -37,6 +37,7 @@ interface FormacaoData {
   pessoal: string;
   om: string;
   especialidade?: string;
+  opcao?: string;
   tmft: number;
   efe: number;
 }
@@ -48,6 +49,7 @@ const FormacaoAcademia = () => {
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedPessoal, setSelectedPessoal] = useState<string[]>([]);
   const [selectedFormacoes, setSelectedFormacoes] = useState<string[]>([]);
+  const [selectedOpcoes, setSelectedOpcoes] = useState<string[]>([]);
   
   // Refs para capturar os gráficos
   const topFormacoesChartRef = useRef<HTMLDivElement>(null);
@@ -307,12 +309,16 @@ const FormacaoAcademia = () => {
 
   // Dynamically get all unique formacoes from data
   const allFormacoes = [...new Set(data.map(item => item.formacao))].sort();
+  
+  // Get all unique opcoes from data
+  const allOpcoes = [...new Set(data.map(item => item.opcao).filter(Boolean))].sort();
 
   const filteredData = data.filter(item => {
     const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
     const pessoalMatch = selectedPessoal.length === 0 || selectedPessoal.includes(item.pessoal);
     const formacaoMatch = selectedFormacoes.length === 0 || selectedFormacoes.includes(item.formacao);
-    return omMatch && pessoalMatch && formacaoMatch;
+    const opcaoMatch = selectedOpcoes.length === 0 || (item.opcao && selectedOpcoes.includes(item.opcao));
+    return omMatch && pessoalMatch && formacaoMatch && opcaoMatch;
   });
 
   // Build table data structure with formation in first column
@@ -437,7 +443,7 @@ const FormacaoAcademia = () => {
         </div>
 
         {/* Filtros */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           {/* Filtro de OMs */}
           <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
             <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por OM</h3>
@@ -519,6 +525,37 @@ const FormacaoAcademia = () => {
                   </label>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Filtro de Opção */}
+          <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
+            <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por Opção</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {allOpcoes.map((opcao) => {
+                const count = data.filter(item => item.opcao === opcao).length;
+                return (
+                  <div key={opcao} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`opcao-${opcao}`}
+                      checked={selectedOpcoes.includes(opcao)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedOpcoes([...selectedOpcoes, opcao]);
+                        } else {
+                          setSelectedOpcoes(selectedOpcoes.filter(o => o !== opcao));
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={`opcao-${opcao}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      {opcao} ({count})
+                    </label>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
