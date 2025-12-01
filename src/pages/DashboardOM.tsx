@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Download, Home, Users2, UserCheck, UserX, TrendingUp, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
@@ -23,6 +25,7 @@ const DashboardOM = () => {
   const [selectedOM, setSelectedOM] = useState<string>("Todos");
   const [selectedQuadro, setSelectedQuadro] = useState<string>("Todos");
   const [selectedOpcao, setSelectedOpcao] = useState<string>("Todos");
+  const [activeTab, setActiveTab] = useState<string>("efetivo");
   
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -514,51 +517,95 @@ const DashboardOM = () => {
           </Card>
         </div>
 
-        {/* Tabela de Dados */}
+        {/* Tabela de Dados com Tabs */}
         <Card>
           <CardHeader>
-            <CardTitle>Tabela Mestra de Força de Trabalho</CardTitle>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="bg-muted/30">
+                <TabsTrigger value="efetivo" className="data-[state=active]:bg-background">
+                  Tabela de Efetivo
+                </TabsTrigger>
+                <TabsTrigger value="previsao" className="data-[state=active]:bg-background">
+                  Previsão de Desembarque
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-3 font-semibold">OM</th>
-                    <th className="text-left p-3 font-semibold">Pessoal</th>
-                    <th className="text-right p-3 font-semibold">TMFT</th>
-                    <th className="text-right p-3 font-semibold">EXI</th>
-                    <th className="text-right p-3 font-semibold">DIF</th>
-                    <th className="text-center p-3 font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredData.slice(0, 50).map((item, index) => (
-                    <tr key={index} className="border-b hover:bg-muted/50">
-                      <td className="p-3">{item.om}</td>
-                      <td className="p-3">{item.pessoal}</td>
-                      <td className="text-right p-3">{item.tmft}</td>
-                      <td className="text-right p-3">{item.exi}</td>
-                      <td className={`text-right p-3 font-semibold ${item.dif < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {item.dif}
-                      </td>
-                      <td className="text-center p-3">
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                          item.exi >= item.tmft ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {item.exi >= item.tmft ? 'Completo' : 'Deficitário'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {filteredData.length > 50 && (
-                <div className="text-center text-sm text-muted-foreground mt-4">
-                  Mostrando 50 de {filteredData.length} registros. Use os filtros para refinar a busca.
-                </div>
-              )}
-            </div>
+            <h2 className="text-xl font-bold mb-6">Tabela Mestra de Força de Trabalho</h2>
+            
+            {activeTab === "efetivo" && (
+              <div className="space-y-6">
+                {chartDataByOM.map((omData) => {
+                  const omRecords = filteredData.filter(item => item.om === omData.om);
+                  
+                  return (
+                    <div key={omData.om}>
+                      <div className="flex items-center gap-2 mb-4">
+                        <Users2 className="h-5 w-5 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold">{omData.om}</h3>
+                        <Badge variant="secondary" className="ml-2">
+                          {omRecords.length}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {omRecords.map((item, index) => (
+                          <div 
+                            key={index} 
+                            className="border-l-4 border-l-blue-500 bg-card rounded-lg p-4 hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <h4 className="text-base font-semibold text-blue-600">
+                                    {item.pessoal}
+                                  </h4>
+                                  <Badge 
+                                    variant={item.exi >= item.tmft ? "default" : "destructive"}
+                                    className={item.exi >= item.tmft ? "bg-green-500 hover:bg-green-600" : ""}
+                                  >
+                                    {item.exi >= item.tmft ? 'Ocupado' : 'Vago'}
+                                  </Badge>
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-sm font-medium text-foreground">
+                                    {item.quadro}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {item.opcao}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                  TMFT: {item.tmft}
+                                </Badge>
+                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                  EXI: {item.exi}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {filteredData.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhum registro encontrado com os filtros selecionados.
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {activeTab === "previsao" && (
+              <div className="text-center py-8 text-muted-foreground">
+                Dados de Previsão de Desembarque em desenvolvimento.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
