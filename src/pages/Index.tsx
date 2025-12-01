@@ -287,6 +287,13 @@ const Index = () => {
               </Button>
               <Button
                 variant="secondary"
+                onClick={() => navigate("/dashboard-om")}
+              >
+                <FileText size={18} className="mr-2" />
+                Dashboard por OM
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={handleManualRefresh}
                 disabled={isRefreshing}
               >
