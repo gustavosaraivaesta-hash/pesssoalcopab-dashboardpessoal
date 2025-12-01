@@ -312,10 +312,10 @@ const FormacaoAcademia = () => {
   // Dynamically get all unique formacoes from data
   const allFormacoes = [...new Set(data.map(item => item.formacao))].sort();
   
-  // Count records for each opcao type
-  const carreiraCount = data.filter(item => item.opcao?.includes('CARREIRA')).length;
-  const rm2Count = data.filter(item => item.opcao?.includes('RM2')).length;
-  const ttcCount = data.filter(item => item.opcao?.includes('TTC')).length;
+  // Count unique formação+pessoal combinations for each opcao type (not multiplied by OMs)
+  const carreiraCount = [...new Set(data.filter(item => item.opcao?.includes('CARREIRA')).map(item => `${item.formacao}-${item.pessoal}`))].length;
+  const rm2Count = [...new Set(data.filter(item => item.opcao?.includes('RM2')).map(item => `${item.formacao}-${item.pessoal}`))].length;
+  const ttcCount = [...new Set(data.filter(item => item.opcao?.includes('TTC')).map(item => `${item.formacao}-${item.pessoal}`))].length;
 
   const filteredData = data.filter(item => {
     const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);

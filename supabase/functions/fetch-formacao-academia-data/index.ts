@@ -65,16 +65,22 @@ serve(async (req) => {
       
       console.log(`Total columns in header row: ${sheetsData.table.cols?.length || 'unknown'}`);
       
-      // Log first 5 rows completely to identify correct column
-      console.log('=== DEBUGGING: Logging first 5 rows with ALL columns ===');
-      for (let debugRow = 0; debugRow < Math.min(5, sheetsData.table.rows.length); debugRow++) {
+      // Log column headers
+      if (sheetsData.table.cols) {
+        const colLabels = sheetsData.table.cols.map((col: any, idx: number) => `[${idx}]=${col.label || ''}`);
+        console.log(`Column headers: ${colLabels.join(', ')}`);
+      }
+      
+      // Log first 10 rows with ALL columns to find CARREIRA, RM2, TTC
+      console.log('=== DEBUGGING: Logging first 10 rows with ALL columns ===');
+      for (let debugRow = 0; debugRow < Math.min(10, sheetsData.table.rows.length); debugRow++) {
         const debugCells = sheetsData.table.rows[debugRow].c || [];
         const allColumns: string[] = [];
-        for (let col = 0; col < Math.min(30, debugCells.length); col++) {
+        for (let col = 0; col < Math.min(35, debugCells.length); col++) {
           const val = debugCells[col]?.v ? String(debugCells[col].v).trim() : '';
-          allColumns.push(`[${col}]="${val}"`);
+          if (val) allColumns.push(`[${col}]="${val}"`);
         }
-        console.log(`DEBUG Row ${debugRow}: ${allColumns.join(', ')}`);
+        console.log(`Row ${debugRow}: ${allColumns.join(', ')}`);
       }
       
       let currentFormacao = '';
