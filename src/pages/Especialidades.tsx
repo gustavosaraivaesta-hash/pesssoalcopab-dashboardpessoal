@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { TopSpecialtiesChart } from "@/components/dashboard/TopSpecialtiesChart";
 import { GraduationDistributionChart } from "@/components/dashboard/GraduationDistributionChart";
 import TopDeficitChart from "@/components/dashboard/TopDeficitChart";
+import html2canvas from "html2canvas";
 import {
   Table,
   TableBody,
@@ -84,6 +85,11 @@ const Especialidades = () => {
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedEspecialidades, setSelectedEspecialidades] = useState<string[]>([]);
   const [selectedGraduacoes, setSelectedGraduacoes] = useState<string[]>([]);
+  
+  // Refs para capturar os gráficos
+  const topSpecialtiesChartRef = useRef<HTMLDivElement>(null);
+  const topDeficitChartRef = useRef<HTMLDivElement>(null);
+  const graduationChartRef = useRef<HTMLDivElement>(null);
 
   const fetchEspecialidadesData = async () => {
     setLoading(true);
@@ -162,7 +168,7 @@ const Especialidades = () => {
     navigate("/login");
   };
 
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     const doc = new jsPDF();
     let pageTitle = "Especialidades";
     if (selectedOMs.length > 0 || selectedEspecialidades.length > 0) {
@@ -176,6 +182,29 @@ const Especialidades = () => {
       }
     } else {
       pageTitle += " - Todas as OMs";
+    }
+    
+    // Capturar gráficos como imagens
+    let topSpecialtiesImg: string | null = null;
+    let topDeficitImg: string | null = null;
+    let graduationImg: string | null = null;
+    
+    try {
+      if (topSpecialtiesChartRef.current) {
+        const canvas = await html2canvas(topSpecialtiesChartRef.current, { scale: 2, backgroundColor: '#ffffff' });
+        topSpecialtiesImg = canvas.toDataURL('image/png');
+      }
+      if (topDeficitChartRef.current) {
+        const canvas = await html2canvas(topDeficitChartRef.current, { scale: 2, backgroundColor: '#ffffff' });
+        topDeficitImg = canvas.toDataURL('image/png');
+      }
+      if (graduationChartRef.current) {
+        const canvas = await html2canvas(graduationChartRef.current, { scale: 2, backgroundColor: '#ffffff' });
+        graduationImg = canvas.toDataURL('image/png');
+      }
+    } catch (error) {
+      console.error('Erro ao capturar gráficos:', error);
+      toast.error('Erro ao capturar gráficos para o PDF');
     }
     
     const graduacaoKeys = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
@@ -209,6 +238,39 @@ const Especialidades = () => {
     doc.setTextColor(0, 0, 0);
     doc.text(pageTitle, 14, currentY);
     currentY += 6;
+    
+    // Adicionar gráficos na primeira página
+    if (topSpecialtiesImg) {
+      currentY += 4;
+      const imgWidth = 180;
+      const imgHeight = 70;
+      doc.addImage(topSpecialtiesImg, 'PNG', 15, currentY, imgWidth, imgHeight);
+      currentY += imgHeight + 8;
+    }
+    
+    if (topDeficitImg) {
+      if (currentY + 70 > pageHeight - marginBottom) {
+        doc.addPage();
+        isFirstPage = false;
+        currentY = 10;
+      }
+      const imgWidth = 180;
+      const imgHeight = 70;
+      doc.addImage(topDeficitImg, 'PNG', 15, currentY, imgWidth, imgHeight);
+      currentY += imgHeight + 8;
+    }
+    
+    if (graduationImg) {
+      if (currentY + 70 > pageHeight - marginBottom) {
+        doc.addPage();
+        isFirstPage = false;
+        currentY = 10;
+      }
+      const imgWidth = 180;
+      const imgHeight = 70;
+      doc.addImage(graduationImg, 'PNG', 15, currentY, imgWidth, imgHeight);
+      currentY += imgHeight + 8;
+    }
 
     // Se múltiplas OMs selecionadas OU especialidades filtradas, separar por OM
     if (selectedOMs.length > 1 || selectedEspecialidades.length > 0) {
@@ -855,37 +917,43 @@ const Especialidades = () => {
         </div>
 
         {/* Top 5 Especialidades Chart */}
-        <TopSpecialtiesChart 
-          selectedOMs={selectedOMs} 
-          selectedEspecialidades={selectedEspecialidades}
-          selectedGraduacoes={selectedGraduacoes}
-        />
+        <div ref={topSpecialtiesChartRef}>
+          <TopSpecialtiesChart 
+            selectedOMs={selectedOMs} 
+            selectedEspecialidades={selectedEspecialidades}
+            selectedGraduacoes={selectedGraduacoes}
+          />
+        </div>
 
         {/* Top 5 Deficit Chart */}
-        <TopDeficitChart 
-          data={(() => {
-            const deficitByEspecialidade = new Map<string, number>();
-            
-            filteredData.forEach(item => {
-              const current = deficitByEspecialidade.get(item.especialidade) || 0;
-              const dif = (item.efe_sum || 0) - (item.tmft_sum || 0); // DIF = EFE - TMFT
-              deficitByEspecialidade.set(item.especialidade, current + dif);
-            });
+        <div ref={topDeficitChartRef}>
+          <TopDeficitChart 
+            data={(() => {
+              const deficitByEspecialidade = new Map<string, number>();
+              
+              filteredData.forEach(item => {
+                const current = deficitByEspecialidade.get(item.especialidade) || 0;
+                const dif = (item.efe_sum || 0) - (item.tmft_sum || 0); // DIF = EFE - TMFT
+                deficitByEspecialidade.set(item.especialidade, current + dif);
+              });
 
-            return Array.from(deficitByEspecialidade.entries()).map(([name, deficit]) => ({
-              name,
-              deficit
-            }));
-          })()}
-          title="Top 5 Especialidades com Maior Deficit"
-        />
+              return Array.from(deficitByEspecialidade.entries()).map(([name, deficit]) => ({
+                name,
+                deficit
+              }));
+            })()}
+            title="Top 5 Especialidades com Maior Deficit"
+          />
+        </div>
 
         {/* Graduation Distribution Chart */}
-        <GraduationDistributionChart 
-          selectedOMs={selectedOMs} 
-          selectedEspecialidades={selectedEspecialidades}
-          selectedGraduacoes={selectedGraduacoes}
-        />
+        <div ref={graduationChartRef}>
+          <GraduationDistributionChart 
+            selectedOMs={selectedOMs} 
+            selectedEspecialidades={selectedEspecialidades}
+            selectedGraduacoes={selectedGraduacoes}
+          />
+        </div>
 
         {/* Spreadsheet View */}
         <div className="bg-card rounded-lg shadow-md border border-border overflow-x-auto">
