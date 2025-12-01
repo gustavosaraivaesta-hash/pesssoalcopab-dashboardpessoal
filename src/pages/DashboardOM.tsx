@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, Home, Users2, UserCheck, UserX, TrendingUp, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -106,6 +106,33 @@ const DashboardOM = () => {
 
     return Object.values(grouped);
   }, [filteredData]);
+
+  const chartDataByPessoal = useMemo(() => {
+    const grouped = filteredData.reduce((acc, item) => {
+      if (!acc[item.pessoal]) {
+        acc[item.pessoal] = { name: item.pessoal, value: 0 };
+      }
+      acc[item.pessoal].value += item.exi;
+      return acc;
+    }, {} as Record<string, { name: string; value: number }>);
+
+    return Object.values(grouped).filter(item => item.value > 0);
+  }, [filteredData]);
+
+  const chartDataByOMHorizontal = useMemo(() => {
+    const grouped = filteredData.reduce((acc, item) => {
+      if (!acc[item.om]) {
+        acc[item.om] = { om: item.om, ocupados: 0, vagos: 0 };
+      }
+      acc[item.om].ocupados += item.exi;
+      acc[item.om].vagos += Math.max(0, item.tmft - item.exi);
+      return acc;
+    }, {} as Record<string, { om: string; ocupados: number; vagos: number }>);
+
+    return Object.values(grouped);
+  }, [filteredData]);
+
+  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
   const exportToPDF = async () => {
     try {
@@ -423,6 +450,105 @@ const DashboardOM = () => {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Additional Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Distribuição por Posto */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Distribuição por Posto</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={chartDataByPessoal}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={(entry) => `${entry.name} (${entry.value})`}
+                  >
+                    {chartDataByPessoal.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Ocupação por OM */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Ocupação por Organização Militar</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartDataByOMHorizontal} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis type="number" className="text-xs" />
+                  <YAxis dataKey="om" type="category" className="text-xs" width={100} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="ocupados" name="Ocupados" fill="#10b981" stackId="a" />
+                  <Bar dataKey="vagos" name="Vagos" fill="#ef4444" stackId="a" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tabela de Dados */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Tabela Mestra de Força de Trabalho</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-3 font-semibold">OM</th>
+                    <th className="text-left p-3 font-semibold">Pessoal</th>
+                    <th className="text-right p-3 font-semibold">TMFT</th>
+                    <th className="text-right p-3 font-semibold">EXI</th>
+                    <th className="text-right p-3 font-semibold">DIF</th>
+                    <th className="text-center p-3 font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.slice(0, 50).map((item, index) => (
+                    <tr key={index} className="border-b hover:bg-muted/50">
+                      <td className="p-3">{item.om}</td>
+                      <td className="p-3">{item.pessoal}</td>
+                      <td className="text-right p-3">{item.tmft}</td>
+                      <td className="text-right p-3">{item.exi}</td>
+                      <td className={`text-right p-3 font-semibold ${item.dif < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {item.dif}
+                      </td>
+                      <td className="text-center p-3">
+                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                          item.exi >= item.tmft ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {item.exi >= item.tmft ? 'Completo' : 'Deficitário'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredData.length > 50 && (
+                <div className="text-center text-sm text-muted-foreground mt-4">
+                  Mostrando 50 de {filteredData.length} registros. Use os filtros para refinar a busca.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
