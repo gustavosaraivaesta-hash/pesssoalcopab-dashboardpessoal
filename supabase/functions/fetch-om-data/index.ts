@@ -51,9 +51,13 @@ serve(async (req) => {
     // First row contains headers with OM names and metric types
     const headerRow = rows[0].c || [];
     
-    // Extract OMs from header (every 3 columns after PESSOAL)
+    // Check if we have QUADRO and OPÇÃO columns (should be first columns before OMs)
+    const hasQuadroOpcao = headerRow.length > 2;
+    const dataStartCol = hasQuadroOpcao ? 3 : 1; // If QUADRO and OPÇÃO exist, OMs start at column 3
+    
+    // Extract OMs from header (every 3 columns after initial columns)
     const oms: string[] = [];
-    for (let i = 1; i < headerRow.length; i += 3) {
+    for (let i = dataStartCol; i < headerRow.length; i += 3) {
       const cellValue = headerRow[i]?.v || '';
       if (cellValue) {
         const omName = String(cellValue).replace(' TMFT', '').trim();
@@ -64,19 +68,29 @@ serve(async (req) => {
     }
     
     console.log('Found OMs:', oms);
+    
+    // Extract unique QUADRO and OPÇÃO values
+    const quadros = new Set<string>();
+    const opcoes = new Set<string>();
 
     // Process data rows
     const processedData: any[] = [];
     
     for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
       const cells = rows[rowIndex].c || [];
-      const pessoal = cells[0]?.v || '';
+      
+      const quadro = hasQuadroOpcao ? (cells[0]?.v || '') : '';
+      const opcao = hasQuadroOpcao ? (cells[1]?.v || '') : '';
+      const pessoal = hasQuadroOpcao ? (cells[2]?.v || '') : (cells[0]?.v || '');
       
       if (!pessoal) continue;
       
+      if (quadro) quadros.add(String(quadro));
+      if (opcao) opcoes.add(String(opcao));
+      
       // For each OM, extract TMFT, EXI, DIF
       for (let omIndex = 0; omIndex < oms.length; omIndex++) {
-        const colStart = 1 + (omIndex * 3);
+        const colStart = dataStartCol + (omIndex * 3);
         const tmft = Number(cells[colStart]?.v || 0);
         const exi = Number(cells[colStart + 1]?.v || 0);
         const dif = Number(cells[colStart + 2]?.v || 0);
@@ -85,6 +99,8 @@ serve(async (req) => {
           id: `${oms[omIndex]}-${pessoal}-${rowIndex}`,
           om: oms[omIndex],
           pessoal: pessoal,
+          quadro: quadro,
+          opcao: opcao,
           tmft: tmft,
           exi: exi,
           dif: dif,
@@ -97,7 +113,9 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         data: processedData,
-        oms: oms 
+        oms: oms,
+        quadros: Array.from(quadros).sort(),
+        opcoes: Array.from(opcoes).sort()
       }),
       { 
         headers: { 

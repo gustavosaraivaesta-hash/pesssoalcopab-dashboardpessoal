@@ -17,9 +17,12 @@ const DashboardOM = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<OMData[]>([]);
   const [availableOMs, setAvailableOMs] = useState<string[]>([]);
+  const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
+  const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOM, setSelectedOM] = useState<string>("Todos");
-  const [selectedPessoal, setSelectedPessoal] = useState<string>("Todos");
+  const [selectedQuadro, setSelectedQuadro] = useState<string>("Todos");
+  const [selectedOpcao, setSelectedOpcao] = useState<string>("Todos");
   
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -40,6 +43,8 @@ const DashboardOM = () => {
         console.log('Received OM data:', result.data.length, 'records');
         setData(result.data);
         setAvailableOMs(result.oms || []);
+        setAvailableQuadros(result.quadros || []);
+        setAvailableOpcoes(result.opcoes || []);
       }
     } catch (error) {
       console.error('Error in fetchData:', error);
@@ -66,12 +71,16 @@ const DashboardOM = () => {
       filtered = filtered.filter(item => item.om === selectedOM);
     }
 
-    if (selectedPessoal !== "Todos") {
-      filtered = filtered.filter(item => item.pessoal === selectedPessoal);
+    if (selectedQuadro !== "Todos") {
+      filtered = filtered.filter(item => item.quadro === selectedQuadro);
+    }
+
+    if (selectedOpcao !== "Todos") {
+      filtered = filtered.filter(item => item.opcao === selectedOpcao);
     }
 
     return filtered;
-  }, [data, selectedOM, selectedPessoal]);
+  }, [data, selectedOM, selectedQuadro, selectedOpcao]);
 
   const metrics = useMemo<OMMetrics>(() => {
     const totalTMFT = filteredData.reduce((sum, item) => sum + item.tmft, 0);
@@ -86,12 +95,6 @@ const DashboardOM = () => {
       percentualPreenchimento,
     };
   }, [filteredData]);
-
-  const availablePessoal = useMemo(() => {
-    const pessoalSet = new Set<string>();
-    data.forEach(item => pessoalSet.add(item.pessoal));
-    return Array.from(pessoalSet).sort();
-  }, [data]);
 
   const chartDataByOM = useMemo(() => {
     const grouped = filteredData.reduce((acc, item) => {
@@ -156,7 +159,7 @@ const DashboardOM = () => {
       yPosition += 15;
 
       // Filters
-      if (selectedOM !== "Todos" || selectedPessoal !== "Todos") {
+      if (selectedOM !== "Todos" || selectedQuadro !== "Todos" || selectedOpcao !== "Todos") {
         pdf.setFontSize(10);
         pdf.text('Filtros Aplicados:', 14, yPosition);
         yPosition += 6;
@@ -166,8 +169,13 @@ const DashboardOM = () => {
           yPosition += 6;
         }
 
-        if (selectedPessoal !== "Todos") {
-          pdf.text(`Pessoal: ${selectedPessoal}`, 20, yPosition);
+        if (selectedQuadro !== "Todos") {
+          pdf.text(`Quadro: ${selectedQuadro}`, 20, yPosition);
+          yPosition += 6;
+        }
+
+        if (selectedOpcao !== "Todos") {
+          pdf.text(`Opção: ${selectedOpcao}`, 20, yPosition);
           yPosition += 6;
         }
         yPosition += 4;
@@ -285,29 +293,30 @@ const DashboardOM = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Opção:</span>
-              <Select value={selectedOM} onValueChange={setSelectedOM}>
-                <SelectTrigger className="w-[180px]">
+              <span className="text-sm text-muted-foreground">Quadro:</span>
+              <Select value={selectedQuadro} onValueChange={setSelectedQuadro}>
+                <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todos">Todos</SelectItem>
-                  {availableOMs.map(om => (
-                    <SelectItem key={om} value={om}>{om}</SelectItem>
+                  {availableQuadros.map(quadro => (
+                    <SelectItem key={quadro} value={quadro}>{quadro}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Quadro:</span>
-              <Select value={selectedPessoal} onValueChange={setSelectedPessoal}>
-                <SelectTrigger className="w-[180px]">
+              <span className="text-sm text-muted-foreground">Opção:</span>
+              <Select value={selectedOpcao} onValueChange={setSelectedOpcao}>
+                <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availablePessoal.map(pessoal => (
-                    <SelectItem key={pessoal} value={pessoal}>{pessoal}</SelectItem>
+                  <SelectItem value="Todos">Todos</SelectItem>
+                  {availableOpcoes.map(opcao => (
+                    <SelectItem key={opcao} value={opcao}>{opcao}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
