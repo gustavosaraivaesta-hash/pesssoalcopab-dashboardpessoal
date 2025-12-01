@@ -36,30 +36,6 @@ interface DesembarqueRecord {
   om: string;
 }
 
-interface EmbarqueRecord {
-  posto: string;
-  corpo: string;
-  quadro: string;
-  cargo: string;
-  nome: string;
-  origem: string;
-  mesAno: string;
-  documento: string;
-  om: string;
-}
-
-interface ResumoSituacao {
-  tmft: number;
-  efe: number;
-  destaque: number;
-  licenca: number;
-  adidosCurso: number;
-  sitReal: number;
-  percentualAtendimento: number;
-  percentualAtendimentoAusencias: number;
-  om: string;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -69,10 +45,6 @@ serve(async (req) => {
     console.log('Fetching OM detailed data from Google Sheets...');
     
     const spreadsheetId = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
-    
-    // CDU-BAMRJ sheet (the one with detailed personnel data)
-    // We'll need to find the correct GID for the detailed sheet
-    // For now, let's try to parse the data structure you provided
     const gid = '1926090655';
     const timestamp = new Date().getTime();
     
@@ -101,79 +73,93 @@ serve(async (req) => {
       throw new Error('No data found in sheet');
     }
 
-    console.log('Processing OM detailed data, total rows:', rows.length);
+    console.log('Total rows:', rows.length);
     
-    // Parse the detailed personnel structure
     const personnelData: PersonnelRecord[] = [];
     const desembarqueData: DesembarqueRecord[] = [];
-    const embarqueData: EmbarqueRecord[] = [];
-    const resumoData: ResumoSituacao[] = [];
     const setores = new Set<string>();
     const quadros = new Set<string>();
     
-    let currentOM = '';
-    let currentSection = '';
+    let currentSection = 'TABELA_MESTRA';
+    const currentOM = 'CDU-BAMRJ'; // Default OM name
+    
+    // Data structure from logs:
+    // Row 0: [0]=NEO, [1]=SETOR, [2]=CARGO, [3]=CARGO, [4]=POSTO_TMFT, [5]=CORPO_TMFT, [6]=QUADRO_TMFT, [7]=OPCAO_TMFT, [8]=POSTO_EFE, [9]=CORPO_EFE, [10]=QUADRO_EFE, [11]=OPCAO_EFE, [12]=NOME
     
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
       const cells = rows[rowIndex].c || [];
       const firstCell = String(cells[0]?.v || '').trim();
       
-      // Detect OM name (like "CDU-BAMRJ")
-      if (firstCell && !firstCell.includes('TABELA') && !firstCell.includes('NEO') && 
-          !firstCell.includes('SITUAÇÃO') && !firstCell.includes('POSTO') &&
-          !firstCell.includes('PREVISÃO') && !firstCell.includes('RESUMO') &&
-          !firstCell.includes('DESTAQUES') && !firstCell.includes('LICENÇAS') &&
-          !firstCell.includes('OFICIAIS ADIDOS') && !firstCell.includes('TMFT') &&
-          cells.length <= 3 && rowIndex < 5) {
-        currentOM = firstCell;
-        console.log('Found OM:', currentOM);
+      // Detect section headers
+      if (firstCell === 'DESTAQUES' || firstCell === 'LICENÇAS' || firstCell === 'OFICIAIS ADIDOS') {
+        currentSection = 'SKIP';
+        continue;
+      }
+      if (firstCell === 'PREVISÃO DE DESEMBARQUE' || firstCell.includes('DESEMBARQUE')) {
+        currentSection = 'DESEMBARQUE';
+        continue;
+      }
+      if (firstCell === 'POSTO' && currentSection !== 'DESEMBARQUE') {
+        // This is a header row, skip it
+        continue;
+      }
+      if (firstCell === 'RESUMO DA SITUAÇÃO') {
+        currentSection = 'RESUMO';
         continue;
       }
       
-      // Detect section headers
-      if (firstCell.includes('TABELA MESTRA')) {
-        currentSection = 'TABELA_MESTRA';
-        continue;
-      } else if (firstCell.includes('PREVISÃO DE DESEMBARQUE')) {
-        currentSection = 'DESEMBARQUE';
-        continue;
-      } else if (firstCell.includes('PREVISÃO DE EMBARQUE')) {
-        currentSection = 'EMBARQUE';
-        continue;
-      } else if (firstCell.includes('RESUMO DA SITUAÇÃO')) {
-        currentSection = 'RESUMO';
-        continue;
-      } else if (firstCell === 'NEO' || firstCell === 'POSTO') {
-        // Skip header rows
+      // Skip non-data rows
+      if (!firstCell || isNaN(Number(firstCell))) {
+        // Check if it's a desembarque data row (starts with posto like CT, CF, etc.)
+        if (currentSection === 'DESEMBARQUE' && ['CT', 'CF', 'CC', 'CMG', '1TEN', '2TEN', 'SO', '1SG', '2SG', '3SG', 'CB', 'MN'].includes(firstCell)) {
+          const posto = firstCell;
+          const corpo = String(cells[1]?.v || '').trim();
+          const quadro = String(cells[2]?.v || '').trim();
+          const cargo = String(cells[3]?.v || '').trim();
+          const nome = String(cells[4]?.v || '').trim();
+          const destino = String(cells[9]?.v || '').trim();
+          const mesAno = String(cells[10]?.v || '').trim();
+          const documento = String(cells[11]?.v || '').trim();
+          
+          if (nome) {
+            desembarqueData.push({
+              posto, corpo, quadro, cargo, nome, destino, mesAno, documento, om: currentOM
+            });
+            console.log(`Desembarque: ${nome} - ${destino} - ${mesAno}`);
+          }
+        }
         continue;
       }
       
       // Parse TABELA MESTRA rows (personnel data)
-      if (currentSection === 'TABELA_MESTRA') {
+      if (currentSection === 'TABELA_MESTRA' || currentSection === 'SKIP') {
         const neo = Number(cells[0]?.v) || 0;
-        const tipoSetor = String(cells[1]?.v || '').trim();
-        const setor = String(cells[2]?.v || '').trim();
-        const cargo = String(cells[3]?.v || '').trim();
-        const postoTmft = String(cells[4]?.v || '').trim();
-        const corpoTmft = String(cells[5]?.v || '').trim();
-        const quadroTmft = String(cells[6]?.v || '').trim();
-        const opcaoTmft = String(cells[7]?.v || '').trim();
-        const postoEfe = String(cells[8]?.v || '').trim();
-        const corpoEfe = String(cells[9]?.v || '').trim();
-        const quadroEfe = String(cells[10]?.v || '').trim();
-        const opcaoEfe = String(cells[11]?.v || '').trim();
-        const nome = String(cells[12]?.v || '').trim();
         
-        if (neo > 0 && setor) {
-          setores.add(setor);
+        if (neo > 0) {
+          currentSection = 'TABELA_MESTRA'; // Reset to tabela mestra if we find data
+          
+          const setor = String(cells[1]?.v || '').trim();
+          const cargoSetor = String(cells[2]?.v || '').trim();
+          const cargo = String(cells[3]?.v || '').trim();
+          const postoTmft = String(cells[4]?.v || '').trim();
+          const corpoTmft = String(cells[5]?.v || '').trim();
+          const quadroTmft = String(cells[6]?.v || '').trim();
+          const opcaoTmft = String(cells[7]?.v || '').trim();
+          const postoEfe = String(cells[8]?.v || '').trim();
+          const corpoEfe = String(cells[9]?.v || '').trim();
+          const quadroEfe = String(cells[10]?.v || '').trim();
+          const opcaoEfe = String(cells[11]?.v || '').trim();
+          const nome = String(cells[12]?.v || '').trim();
+          
+          if (setor) setores.add(setor);
           if (quadroTmft) quadros.add(quadroTmft);
           
-          personnelData.push({
+          const record: PersonnelRecord = {
             id: `${currentOM}-${neo}`,
             neo,
-            tipoSetor,
-            setor,
-            cargo,
+            tipoSetor: setor,
+            setor: setor,
+            cargo: cargo || cargoSetor,
             postoTmft,
             corpoTmft,
             quadroTmft,
@@ -184,83 +170,23 @@ serve(async (req) => {
             opcaoEfe,
             nome,
             ocupado: nome.length > 0,
-            om: currentOM || 'CDU-BAMRJ',
-          });
+            om: currentOM,
+          };
           
-          console.log(`Personnel: NEO=${neo}, SETOR=${setor}, CARGO=${cargo}, NOME=${nome}, OCUPADO=${nome.length > 0}`);
-        }
-      }
-      
-      // Parse PREVISÃO DE DESEMBARQUE
-      if (currentSection === 'DESEMBARQUE') {
-        const posto = String(cells[0]?.v || '').trim();
-        const corpo = String(cells[1]?.v || '').trim();
-        const quadro = String(cells[2]?.v || '').trim();
-        const cargo = String(cells[3]?.v || '').trim();
-        const nome = String(cells[4]?.v || '').trim();
-        const destino = String(cells[9]?.v || '').trim();
-        const mesAno = String(cells[10]?.v || '').trim();
-        const documento = String(cells[11]?.v || '').trim();
-        
-        if (posto && nome) {
-          desembarqueData.push({
-            posto, corpo, quadro, cargo, nome, destino, mesAno, documento,
-            om: currentOM || 'CDU-BAMRJ',
-          });
-        }
-      }
-      
-      // Parse PREVISÃO DE EMBARQUE
-      if (currentSection === 'EMBARQUE') {
-        const posto = String(cells[0]?.v || '').trim();
-        const corpo = String(cells[1]?.v || '').trim();
-        const quadro = String(cells[2]?.v || '').trim();
-        const cargo = String(cells[3]?.v || '').trim();
-        const nome = String(cells[4]?.v || '').trim();
-        const origem = String(cells[9]?.v || '').trim();
-        const mesAno = String(cells[10]?.v || '').trim();
-        const documento = String(cells[11]?.v || '').trim();
-        
-        if (posto && nome) {
-          embarqueData.push({
-            posto, corpo, quadro, cargo, nome, origem, mesAno, documento,
-            om: currentOM || 'CDU-BAMRJ',
-          });
-        }
-      }
-      
-      // Parse RESUMO DA SITUAÇÃO
-      if (currentSection === 'RESUMO') {
-        const tmft = Number(cells[0]?.v) || 0;
-        const efe = Number(cells[1]?.v) || 0;
-        
-        if (tmft > 0 || efe > 0) {
-          resumoData.push({
-            tmft,
-            efe,
-            destaque: Number(cells[2]?.v) || 0,
-            licenca: Number(cells[3]?.v) || 0,
-            adidosCurso: Number(cells[4]?.v) || 0,
-            sitReal: Number(cells[7]?.v) || 0,
-            percentualAtendimento: 100,
-            percentualAtendimentoAusencias: 100,
-            om: currentOM || 'CDU-BAMRJ',
-          });
-          currentSection = ''; // Reset after parsing resumo
+          personnelData.push(record);
+          console.log(`Personnel NEO=${neo}: ${nome || 'VAGO'} - ${setor} - ${cargo} - ${postoTmft}`);
         }
       }
     }
 
     console.log(`Processed ${personnelData.length} personnel records`);
     console.log(`Processed ${desembarqueData.length} desembarque records`);
-    console.log(`Processed ${embarqueData.length} embarque records`);
+    console.log(`Setores: ${Array.from(setores).join(', ')}`);
 
     return new Response(
       JSON.stringify({ 
         data: personnelData,
         desembarque: desembarqueData,
-        embarque: embarqueData,
-        resumo: resumoData,
         setores: Array.from(setores).sort(),
         quadros: Array.from(quadros).sort(),
         lastUpdate: new Date().toLocaleTimeString('pt-BR'),
@@ -281,8 +207,6 @@ serve(async (req) => {
         error: errorMessage,
         data: [],
         desembarque: [],
-        embarque: [],
-        resumo: [],
         setores: [],
         quadros: [],
       }),
