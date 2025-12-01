@@ -319,7 +319,9 @@ const FormacaoAcademia = () => {
     const formacaoMatch = selectedFormacoes.length === 0 || selectedFormacoes.includes(item.formacao);
     const opcaoMatch = selectedOpcoes.length === 0 || selectedOpcoes.some(opcao => {
       const itemOpcao = item.opcao?.toUpperCase().trim() || '';
-      return itemOpcao.includes(opcao);
+      // Use word boundary regex to match C, RM2, or TTC
+      const regex = new RegExp(`\\b${opcao}\\b`, 'i');
+      return regex.test(itemOpcao);
     });
     return omMatch && pessoalMatch && formacaoMatch && opcaoMatch;
   });
@@ -536,10 +538,15 @@ const FormacaoAcademia = () => {
             <h3 className="text-sm font-semibold mb-3 text-foreground">Filtrar por Opção</h3>
             <div className="grid grid-cols-1 gap-3">
               {allOpcoes.map((opcao) => {
+                // Count how many records contain this opcao type (C, RM2, or TTC)
                 const count = data.filter(item => {
                   const itemOpcao = item.opcao?.toUpperCase().trim() || '';
-                  return itemOpcao.includes(opcao);
+                  // Check if the opcao field contains the target opcao
+                  // Match patterns like "1 C", "2 C", "1 C e 1 RM2", etc.
+                  const regex = new RegExp(`\\b${opcao}\\b`, 'i');
+                  return regex.test(itemOpcao);
                 }).length;
+                
                 return (
                   <div key={opcao} className="flex items-center space-x-2">
                     <Checkbox
