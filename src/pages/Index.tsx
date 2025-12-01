@@ -283,7 +283,7 @@ const Index = () => {
                 onClick={() => navigate("/formacao-academia")}
               >
                 <FileText size={18} className="mr-2" />
-                Ver Formação Academia - OFI
+                Ver Formação Acadêmica - OFI
               </Button>
               <Button
                 variant="secondary"
