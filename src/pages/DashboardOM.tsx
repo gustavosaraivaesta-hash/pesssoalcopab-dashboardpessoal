@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Download, Home, Users2, UserCheck, UserX, TrendingUp, BarChart3, RefreshCw, Building2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Download, Home, Users2, UserCheck, UserX, TrendingUp, BarChart3, RefreshCw, Building2, Filter } from "lucide-react";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -53,11 +54,12 @@ const DashboardOM = () => {
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
   const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOM, setSelectedOM] = useState<string>("Todos");
-  const [selectedQuadro, setSelectedQuadro] = useState<string>("Todos");
-  const [selectedOpcao, setSelectedOpcao] = useState<string>("Todos");
+  const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
+  const [selectedQuadros, setSelectedQuadros] = useState<string[]>([]);
+  const [selectedOpcoes, setSelectedOpcoes] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("efetivo");
   const [lastUpdate, setLastUpdate] = useState<string>("");
+  const [filterOpen, setFilterOpen] = useState(false);
   
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -114,20 +116,46 @@ const DashboardOM = () => {
   const filteredData = useMemo(() => {
     let filtered = personnelData;
 
-    if (selectedOM !== "Todos") {
-      filtered = filtered.filter(item => item.om === selectedOM);
+    if (selectedOMs.length > 0) {
+      filtered = filtered.filter(item => selectedOMs.includes(item.om));
     }
 
-    if (selectedQuadro !== "Todos") {
-      filtered = filtered.filter(item => item.quadroTmft === selectedQuadro);
+    if (selectedQuadros.length > 0) {
+      filtered = filtered.filter(item => selectedQuadros.includes(item.quadroTmft));
     }
 
-    if (selectedOpcao !== "Todos") {
-      filtered = filtered.filter(item => item.opcaoTmft === selectedOpcao);
+    if (selectedOpcoes.length > 0) {
+      filtered = filtered.filter(item => selectedOpcoes.includes(item.opcaoTmft));
     }
 
     return filtered;
-  }, [personnelData, selectedOM, selectedQuadro, selectedOpcao]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes]);
+
+  const toggleOM = (om: string) => {
+    setSelectedOMs(prev => 
+      prev.includes(om) ? prev.filter(o => o !== om) : [...prev, om]
+    );
+  };
+
+  const toggleQuadro = (quadro: string) => {
+    setSelectedQuadros(prev => 
+      prev.includes(quadro) ? prev.filter(q => q !== quadro) : [...prev, quadro]
+    );
+  };
+
+  const toggleOpcao = (opcao: string) => {
+    setSelectedOpcoes(prev => 
+      prev.includes(opcao) ? prev.filter(o => o !== opcao) : [...prev, opcao]
+    );
+  };
+
+  const clearFilters = () => {
+    setSelectedOMs([]);
+    setSelectedQuadros([]);
+    setSelectedOpcoes([]);
+  };
+
+  const OPCOES_FIXAS = ['CARREIRA', 'RM-2', 'RM1', 'TTC'];
 
   const metrics = useMemo(() => {
     const totalTMFT = filteredData.length;
@@ -202,12 +230,12 @@ const DashboardOM = () => {
       pdf.text('Tabela Mestra de Força de Trabalho', pdf.internal.pageSize.getWidth() / 2, yPosition, { align: 'center' });
       yPosition += 15;
 
-      if (selectedOM !== "Todos" || selectedOpcao !== "Todos") {
+      if (selectedOMs.length > 0 || selectedOpcoes.length > 0) {
         pdf.setFontSize(10);
         pdf.text('Filtros Aplicados:', 14, yPosition);
         yPosition += 6;
-        if (selectedOM !== "Todos") pdf.text(`OM: ${selectedOM}`, 20, yPosition);
-        if (selectedOpcao !== "Todos") pdf.text(`Opção: ${selectedOpcao}`, 80, yPosition);
+        if (selectedOMs.length > 0) pdf.text(`OM: ${selectedOMs.join(', ')}`, 20, yPosition);
+        if (selectedOpcoes.length > 0) pdf.text(`Opção: ${selectedOpcoes.join(', ')}`, 80, yPosition);
         yPosition += 10;
       }
 
@@ -317,56 +345,119 @@ const DashboardOM = () => {
         {/* Filters Bar */}
         <Card className="p-4">
           <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Filtros:</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">OM:</span>
-              <Select value={selectedOM} onValueChange={setSelectedOM}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Todos">Todos</SelectItem>
-                  {availableOMs.map(om => (
-                    <SelectItem key={om} value={om}>{om}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filtros
+                  {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0) && (
+                    <Badge variant="secondary" className="ml-1">
+                      {selectedOMs.length + selectedQuadros.length + selectedOpcoes.length}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-[400px] sm:w-[540px]">
+                <SheetHeader>
+                  <SheetTitle>Filtros</SheetTitle>
+                </SheetHeader>
+                <div className="py-6 space-y-6">
+                  {/* OM Filter */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">OM</h4>
+                      {selectedOMs.length > 0 && (
+                        <Badge variant="outline">{selectedOMs.length} selecionado(s)</Badge>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 p-3 border rounded-lg bg-muted/30">
+                      {availableOMs.map(om => (
+                        <div key={om} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`om-${om}`} 
+                            checked={selectedOMs.includes(om)}
+                            onCheckedChange={() => toggleOM(om)}
+                          />
+                          <label htmlFor={`om-${om}`} className="text-sm cursor-pointer">{om}</label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Quadro:</span>
-              <Select value={selectedQuadro} onValueChange={setSelectedQuadro}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Todos">Todos</SelectItem>
-                  {availableQuadros.map(quadro => (
-                    <SelectItem key={quadro} value={quadro}>{quadro}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  {/* Quadro Filter */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Quadro</h4>
+                      {selectedQuadros.length > 0 && (
+                        <Badge variant="outline">{selectedQuadros.length} selecionado(s)</Badge>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 p-3 border rounded-lg bg-muted/30">
+                      {availableQuadros.map(quadro => (
+                        <div key={quadro} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`quadro-${quadro}`} 
+                            checked={selectedQuadros.includes(quadro)}
+                            onCheckedChange={() => toggleQuadro(quadro)}
+                          />
+                          <label htmlFor={`quadro-${quadro}`} className="text-sm cursor-pointer">{quadro}</label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Opção:</span>
-              <Select value={selectedOpcao} onValueChange={setSelectedOpcao}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Todos">Todos</SelectItem>
-                  <SelectItem value="CARREIRA">CARREIRA</SelectItem>
-                  <SelectItem value="RM-2">RM-2</SelectItem>
-                  <SelectItem value="RM1">RM1</SelectItem>
-                  <SelectItem value="TTC">TTC</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  {/* Opção Filter */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Opção</h4>
+                      {selectedOpcoes.length > 0 && (
+                        <Badge variant="outline">{selectedOpcoes.length} selecionado(s)</Badge>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 p-3 border rounded-lg bg-muted/30">
+                      {OPCOES_FIXAS.map(opcao => (
+                        <div key={opcao} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`opcao-${opcao}`} 
+                            checked={selectedOpcoes.includes(opcao)}
+                            onCheckedChange={() => toggleOpcao(opcao)}
+                          />
+                          <label htmlFor={`opcao-${opcao}`} className="text-sm cursor-pointer">{opcao}</label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button variant="outline" onClick={clearFilters} className="w-full">
+                    Limpar Filtros
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            {/* Active Filters Display */}
+            {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0) && (
+              <div className="flex flex-wrap gap-2">
+                {selectedOMs.map(om => (
+                  <Badge key={om} variant="secondary" className="gap-1">
+                    OM: {om}
+                    <button onClick={() => toggleOM(om)} className="ml-1 hover:text-destructive">×</button>
+                  </Badge>
+                ))}
+                {selectedQuadros.map(quadro => (
+                  <Badge key={quadro} variant="secondary" className="gap-1">
+                    Quadro: {quadro}
+                    <button onClick={() => toggleQuadro(quadro)} className="ml-1 hover:text-destructive">×</button>
+                  </Badge>
+                ))}
+                {selectedOpcoes.map(opcao => (
+                  <Badge key={opcao} variant="secondary" className="gap-1">
+                    Opção: {opcao}
+                    <button onClick={() => toggleOpcao(opcao)} className="ml-1 hover:text-destructive">×</button>
+                  </Badge>
+                ))}
+              </div>
+            )}
 
             <div className="ml-auto flex items-center gap-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
