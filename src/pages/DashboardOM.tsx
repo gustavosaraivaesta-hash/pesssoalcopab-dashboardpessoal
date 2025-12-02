@@ -360,15 +360,17 @@ const DashboardOM = () => {
         item.postoTmft,
         item.quadroTmft,
         item.nome || '-',
+        item.postoEfe || '-',
+        item.quadroEfe || '-',
         item.ocupado ? 'Ocupado' : 'Vago',
       ]);
 
       autoTable(pdf, {
         startY: yPosition,
-        head: [['NEO', 'SETOR', 'CARGO', 'POSTO', 'QUADRO', 'NOME', 'STATUS']],
+        head: [['NEO', 'SETOR', 'CARGO', 'POSTO TMFT', 'QUADRO TMFT', 'NOME', 'POSTO REAL', 'QUADRO REAL', 'STATUS']],
         body: tableData,
         theme: 'grid',
-        styles: { fontSize: 8 },
+        styles: { fontSize: 7 },
         headStyles: { fillColor: [41, 128, 185], textColor: 255 },
         didDrawPage: (data) => {
           const pageCount = pdf.getNumberOfPages();
