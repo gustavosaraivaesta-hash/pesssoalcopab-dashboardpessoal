@@ -276,14 +276,14 @@ const Index = () => {
                 onClick={() => navigate("/especialidades")}
               >
                 <FileText size={18} className="mr-2" />
-                Ver Especialidades por OM
+                Ver Especialidades por OM - PRAÇAS
               </Button>
               <Button
                 variant="secondary"
                 onClick={() => navigate("/dashboard-om")}
               >
                 <FileText size={18} className="mr-2" />
-                Dashboard por OM
+                Dashboard por OM - OFICIAIS
               </Button>
               <Button
                 variant="secondary"
