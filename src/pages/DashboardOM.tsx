@@ -194,6 +194,8 @@ const DashboardOM = () => {
   }, [groupedBySetor]);
 
   const chartDataByPosto = useMemo(() => {
+    const POSTO_ORDER = ['CONTRA-ALMIRANTE', 'CMG', 'CF', 'CC', 'CT', '1TEN', '2TEN', 'GM'];
+    
     const grouped = filteredData.reduce((acc, item) => {
       const posto = item.ocupado ? item.postoEfe : item.postoTmft;
       if (posto && !acc[posto]) {
@@ -205,7 +207,17 @@ const DashboardOM = () => {
       return acc;
     }, {} as Record<string, { name: string; value: number }>);
 
-    return Object.values(grouped).filter(item => item.value > 0);
+    const values = Object.values(grouped).filter(item => item.value > 0);
+    
+    // Sort by the defined order
+    return values.sort((a, b) => {
+      const indexA = POSTO_ORDER.indexOf(a.name);
+      const indexB = POSTO_ORDER.indexOf(b.name);
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
   }, [filteredData]);
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
