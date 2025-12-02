@@ -360,9 +360,10 @@ const DashboardOM = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todos">Todos</SelectItem>
-                  {availableOpcoes.map(opcao => (
-                    <SelectItem key={opcao} value={opcao}>{opcao}</SelectItem>
-                  ))}
+                  <SelectItem value="CARREIRA">CARREIRA</SelectItem>
+                  <SelectItem value="RM-2">RM-2</SelectItem>
+                  <SelectItem value="RM1">RM1</SelectItem>
+                  <SelectItem value="TTC">TTC</SelectItem>
                 </SelectContent>
               </Select>
             </div>
