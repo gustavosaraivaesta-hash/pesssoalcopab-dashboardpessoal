@@ -17,50 +17,43 @@ import { supabase } from "@/integrations/supabase/client";
 // Função para detectar mudanças nos dados
 const detectChanges = (oldData: MilitaryData[], newData: MilitaryData[]): string[] => {
   const changes: string[] = [];
-  
+
   // Criar mapa dos dados antigos para comparação rápida
-  const oldDataMap = new Map(
-    oldData.map(item => [
-      `${item.om}-${item.especialidade}-${item.graduacao}`,
-      item
-    ])
-  );
-  
+  const oldDataMap = new Map(oldData.map((item) => [`${item.om}-${item.especialidade}-${item.graduacao}`, item]));
+
   // Comparar com novos dados
-  newData.forEach(newItem => {
+  newData.forEach((newItem) => {
     const key = `${newItem.om}-${newItem.especialidade}-${newItem.graduacao}`;
     const oldItem = oldDataMap.get(key);
-    
+
     if (oldItem) {
       // Detectar mudanças em TMFT
       if (oldItem.tmft !== newItem.tmft) {
         changes.push(
-          `🔄 TMFT alterado em ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao}): ${oldItem.tmft} → ${newItem.tmft}`
+          `🔄 TMFT alterado em ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao}): ${oldItem.tmft} → ${newItem.tmft}`,
         );
       }
-      
+
       // Detectar mudanças em EXI
       if (oldItem.exi !== newItem.exi) {
         changes.push(
-          `✅ EXI alterado em ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao}): ${oldItem.exi} → ${newItem.exi}`
+          `✅ EXI alterado em ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao}): ${oldItem.exi} → ${newItem.exi}`,
         );
       }
-      
+
       // Detectar mudanças em DIF
       if (oldItem.dif !== newItem.dif) {
-        const icon = newItem.dif >= 0 ? '📈' : '📉';
+        const icon = newItem.dif >= 0 ? "📈" : "📉";
         changes.push(
-          `${icon} DIF alterado em ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao}): ${oldItem.dif} → ${newItem.dif}`
+          `${icon} DIF alterado em ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao}): ${oldItem.dif} → ${newItem.dif}`,
         );
       }
     } else if (newItem.tmft > 0 || newItem.exi > 0) {
       // Novo registro detectado
-      changes.push(
-        `🆕 Novo registro: ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao})`
-      );
+      changes.push(`🆕 Novo registro: ${newItem.om} - ${newItem.especialidade} (${newItem.graduacao})`);
     }
   });
-  
+
   return changes.slice(0, 5); // Limitar a 5 notificações por vez
 };
 
@@ -82,46 +75,46 @@ const Index = () => {
   const fetchData = async (showToast = false) => {
     if (showToast) setIsRefreshing(true);
     try {
-      console.log('Fetching data from edge function...');
-      const { data, error } = await supabase.functions.invoke('fetch-sheets-data');
-      
+      console.log("Fetching data from edge function...");
+      const { data, error } = await supabase.functions.invoke("fetch-sheets-data");
+
       if (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
         toast.error("Erro ao carregar dados da planilha. Usando dados de exemplo.");
         setMilitaryData(mockMilitaryData);
         return;
       }
-      
+
       if (data?.data && data.data.length > 0) {
         console.log(`Loaded ${data.data.length} records from sheets`);
-        
+
         // Detectar alterações nos valores
         if (previousData.length > 0 && showToast) {
           const changes = detectChanges(previousData, data.data);
           if (changes.length > 0) {
-            changes.forEach(change => {
+            changes.forEach((change) => {
               toast.success(change, {
                 duration: 5000,
               });
             });
           }
         }
-        
+
         setPreviousData(militaryData);
         setMilitaryData(data.data);
-        
+
         if (showToast) {
           toast.success(`Dados atualizados! ${data.data.length} registros da planilha.`);
         }
       } else {
-        console.log('No data from sheets, using mock data');
+        console.log("No data from sheets, using mock data");
         toast("Usando dados de exemplo", {
-          description: "Adicione dados na planilha para ver informações reais."
+          description: "Adicione dados na planilha para ver informações reais.",
         });
         setMilitaryData(mockMilitaryData);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       toast.error("Erro ao conectar. Usando dados de exemplo.");
       setMilitaryData(mockMilitaryData);
     } finally {
@@ -146,7 +139,7 @@ const Index = () => {
 
     // Auto-refresh a cada 2 minutos
     const interval = setInterval(() => {
-      console.log('Auto-refreshing data...');
+      console.log("Auto-refreshing data...");
       fetchData();
     }, 120000); // 2 minutos
 
@@ -161,59 +154,51 @@ const Index = () => {
 
   const filterOptions = useMemo(() => {
     // Filtrar dados baseado na categoria selecionada
-    const dataByCategory = militaryData.filter(item => item.categoria === filters.categoria);
-    
+    const dataByCategory = militaryData.filter((item) => item.categoria === filters.categoria);
+
     // Obter valores únicos apenas da categoria selecionada
-    const filteredOMs = Array.from(
-      new Set(dataByCategory.map(item => item.om))
-    ).sort();
-    
-    const filteredEspecialidades = Array.from(
-      new Set(dataByCategory.map(item => item.especialidade))
-    ).sort();
-    
-    const filteredGraduacoes = Array.from(
-      new Set(dataByCategory.map(item => item.graduacao))
-    ).sort();
-    
-    const filteredSDPs = Array.from(
-      new Set(dataByCategory.map(item => item.sdp).filter(Boolean))
-    ).sort();
-    
+    const filteredOMs = Array.from(new Set(dataByCategory.map((item) => item.om))).sort();
+
+    const filteredEspecialidades = Array.from(new Set(dataByCategory.map((item) => item.especialidade))).sort();
+
+    const filteredGraduacoes = Array.from(new Set(dataByCategory.map((item) => item.graduacao))).sort();
+
+    const filteredSDPs = Array.from(new Set(dataByCategory.map((item) => item.sdp).filter(Boolean))).sort();
+
     const filteredMeses = Array.from(
-      new Set(dataByCategory.map(item => item.previsaoEmbarque).filter(Boolean))
+      new Set(dataByCategory.map((item) => item.previsaoEmbarque).filter(Boolean)),
     ).sort();
-    
+
     return {
       oms: filteredOMs,
       especialidades: filteredEspecialidades,
       graduacoes: filteredGraduacoes,
       sdps: filteredSDPs,
-      meses: filteredMeses
+      meses: filteredMeses,
     };
   }, [militaryData, filters.categoria]);
 
   const filteredData = useMemo(() => {
     let data = militaryData;
-    
+
     // Filtrar por categoria (PRAÇAS/OFICIAIS)
-    data = data.filter(item => item.categoria === filters.categoria);
-    
+    data = data.filter((item) => item.categoria === filters.categoria);
+
     // Filtrar por OM
     if (filters.om.length > 0) {
-      data = data.filter(item => filters.om.includes(item.om));
+      data = data.filter((item) => filters.om.includes(item.om));
     }
 
     // Filtrar por especialidade
     if (filters.especialidade.length > 0) {
-      data = data.filter(item => filters.especialidade.includes(item.especialidade));
+      data = data.filter((item) => filters.especialidade.includes(item.especialidade));
     }
 
     // Filtrar por pessoal (graduação)
     if (filters.pessoal.length > 0) {
-      data = data.filter(item => filters.pessoal.includes(item.graduacao));
+      data = data.filter((item) => filters.pessoal.includes(item.graduacao));
     }
-    
+
     return data;
   }, [filters, militaryData]);
 
@@ -225,20 +210,20 @@ const Index = () => {
     return {
       totalTMFT,
       totalEXI,
-      totalDIF
+      totalDIF,
     };
   }, [filteredData]);
 
   const handleFilterChange = (filterType: string, values: string[] | "PRAÇAS" | "OFICIAIS") => {
     if (filterType === "categoria") {
       // Limpar filtros de pessoal ao trocar de categoria
-      setFilters(prev => ({ 
-        ...prev, 
+      setFilters((prev) => ({
+        ...prev,
         categoria: values as "PRAÇAS" | "OFICIAIS",
-        pessoal: []
+        pessoal: [],
       }));
     } else {
-      setFilters(prev => ({ ...prev, [filterType]: values }));
+      setFilters((prev) => ({ ...prev, [filterType]: values }));
     }
   };
 
@@ -253,12 +238,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-blue-50 relative">
       {/* Background Image with Overlay */}
-      <div 
+      <div
         className="fixed inset-0 bg-cover bg-no-repeat opacity-20 pointer-events-none"
-        style={{ backgroundImage: `url(${militaryBg})`, backgroundPosition: '45% center' }}
+        style={{ backgroundImage: `url(${militaryBg})`, backgroundPosition: "45% center" }}
       />
       <div className="fixed inset-0 bg-blue-50/80 pointer-events-none" />
-      
+
       {/* Header */}
       <header className="bg-blue-600 text-primary-foreground shadow-elevated relative z-10">
         <div className="container mx-auto px-4 py-6">
@@ -267,30 +252,22 @@ const Index = () => {
               <Shield size={36} className="text-primary-foreground" />
               <div>
                 <h1 className="text-3xl font-bold">Dashboard COpAb</h1>
-                <p className="text-sm opacity-90">Centro de Operações do Abastecimento - Análise do Pessoal Militar e Civil</p>
+                <p className="text-sm opacity-90">
+                  Centro de Operações do Abastecimento - Análise do Pessoal Militar e Civil
+                </p>
               </div>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => navigate("/especialidades")}
-              >
+              <Button variant="secondary" onClick={() => navigate("/especialidades")}>
                 <FileText size={18} className="mr-2" />
-                Ver Especialidades por OM - PRAÇAS
+                PRAÇAS
               </Button>
-              <Button
-                variant="secondary"
-                onClick={() => navigate("/dashboard-om")}
-              >
+              <Button variant="secondary" onClick={() => navigate("/dashboard-om")}>
                 <FileText size={18} className="mr-2" />
-                Dashboard por OM - OFICIAIS
+                OFICIAIS
               </Button>
-              <Button
-                variant="secondary"
-                onClick={handleManualRefresh}
-                disabled={isRefreshing}
-              >
-                <RefreshCw size={18} className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <Button variant="secondary" onClick={handleManualRefresh} disabled={isRefreshing}>
+                <RefreshCw size={18} className={`mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
                 Atualizar
               </Button>
             </div>
@@ -301,7 +278,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 space-y-6 relative z-10">
         {/* Filtros */}
-        <DashboardFilters 
+        <DashboardFilters
           filterOptions={filterOptions}
           selectedFilters={filters}
           onFilterChange={handleFilterChange}
@@ -312,19 +289,9 @@ const Index = () => {
 
         {/* Métricas principais */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <MetricsCard 
-            title="Total TMFT"
-            value={metrics.totalTMFT}
-            icon={Shield}
-            variant="default"
-          />
-          <MetricsCard 
-            title="Total EXI"
-            value={metrics.totalEXI}
-            icon={Users}
-            variant="success"
-          />
-          <MetricsCard 
+          <MetricsCard title="Total TMFT" value={metrics.totalTMFT} icon={Shield} variant="default" />
+          <MetricsCard title="Total EXI" value={metrics.totalEXI} icon={Users} variant="success" />
+          <MetricsCard
             title="Total DIF"
             value={metrics.totalDIF}
             icon={metrics.totalDIF >= 0 ? TrendingUp : TrendingDown}
@@ -334,19 +301,12 @@ const Index = () => {
 
         {/* Gráfico de Totais */}
         <div ref={chartRef}>
-          <TotalsChart 
-            totalTMFT={metrics.totalTMFT}
-            totalEXI={metrics.totalEXI}
-            totalDIF={metrics.totalDIF}
-          />
+          <TotalsChart totalTMFT={metrics.totalTMFT} totalEXI={metrics.totalEXI} totalDIF={metrics.totalDIF} />
         </div>
 
         {/* Gráfico de Distribuição por OM (quando há filtro de especialidade) */}
         {filters.especialidade.length > 0 && (
-          <DistributionChart 
-            data={filteredData}
-            selectedSpecialties={filters.especialidade}
-          />
+          <DistributionChart data={filteredData} selectedSpecialties={filters.especialidade} />
         )}
 
         {/* Tabela de Pessoal por OM */}
@@ -358,8 +318,8 @@ const Index = () => {
 
       {/* Botão Sair - Canto Inferior Esquerdo */}
       <div className="fixed bottom-6 left-6 z-20">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={handleLogout}
           className="border-blue-600 bg-white text-blue-600 hover:bg-blue-600 hover:text-white font-semibold shadow-lg"
         >
