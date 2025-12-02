@@ -155,6 +155,12 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       const opcaoEfe = String(cells[11]?.v || '').trim();
       const nome = String(cells[12]?.v || '').trim();
       
+      // Skip summary rows (contain percentages like "100%", "71%", etc.)
+      if (setor.includes('%') || cargoSetor.includes('%') || cargo.includes('%')) {
+        console.log(`${omName} Skipping summary row NEO=${neo}: ${setor}`);
+        continue;
+      }
+      
       if (setor) setores.add(setor);
       if (quadroTmft) quadros.add(quadroTmft);
       if (opcaoTmft) opcoes.add(opcaoTmft);
