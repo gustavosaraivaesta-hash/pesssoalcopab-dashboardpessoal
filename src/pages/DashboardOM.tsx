@@ -354,8 +354,8 @@ const DashboardOM = () => {
       </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Fixed Top Filters */}
-        <Card className="p-4 sticky top-0 z-10 bg-card">
+        {/* Top Filters */}
+        <Card className="p-4 bg-card">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold flex items-center gap-2">
