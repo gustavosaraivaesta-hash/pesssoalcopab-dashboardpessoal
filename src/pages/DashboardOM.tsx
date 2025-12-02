@@ -253,9 +253,28 @@ const DashboardOM = () => {
     });
   }, [filteredData]);
 
+  // Base filtered data for vagas chart (without statusFilter, respects OM, Quadro, Opção filters)
+  const baseFilteredForVagos = useMemo(() => {
+    let filtered = personnelData;
+
+    if (selectedOMs.length > 0) {
+      filtered = filtered.filter(item => selectedOMs.includes(item.om));
+    }
+
+    if (selectedQuadros.length > 0) {
+      filtered = filtered.filter(item => selectedQuadros.includes(item.quadroTmft));
+    }
+
+    if (selectedOpcoes.length > 0) {
+      filtered = filtered.filter(item => selectedOpcoes.includes(item.opcaoTmft));
+    }
+
+    return filtered;
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes]);
+
   // Chart data showing vacancies by OM
   const chartDataVagosByOM = useMemo(() => {
-    const grouped = personnelData.reduce((acc, item) => {
+    const grouped = baseFilteredForVagos.reduce((acc, item) => {
       if (!acc[item.om]) {
         acc[item.om] = { om: item.om, vagos: 0, ocupados: 0, total: 0 };
       }
@@ -271,13 +290,13 @@ const DashboardOM = () => {
     return Object.values(grouped)
       .filter(item => item.vagos > 0)
       .sort((a, b) => b.vagos - a.vagos);
-  }, [personnelData]);
+  }, [baseFilteredForVagos]);
 
   // Get vacant positions for selected OMs
   const vagosForSelectedOMs = useMemo(() => {
     if (selectedOMsForVagos.length === 0) return [];
-    return personnelData.filter(item => selectedOMsForVagos.includes(item.om) && !item.ocupado);
-  }, [personnelData, selectedOMsForVagos]);
+    return baseFilteredForVagos.filter(item => selectedOMsForVagos.includes(item.om) && !item.ocupado);
+  }, [baseFilteredForVagos, selectedOMsForVagos]);
 
   const handleVagosBarClick = (data: any) => {
     if (data && data.om) {
