@@ -717,7 +717,11 @@ const DashboardOM = () => {
               <BarChart data={chartDataByPosto}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis dataKey="name" className="text-xs" />
-                <YAxis className="text-xs" />
+                <YAxis 
+                  className="text-xs" 
+                  domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.2)]}
+                  allowDecimals={false}
+                />
                 <Tooltip />
                 <Bar dataKey="value" name="Quantidade" fill="#93c5fd">
                   <LabelList dataKey="value" position="top" style={{ fontWeight: 'bold', fontSize: '14px' }} />
