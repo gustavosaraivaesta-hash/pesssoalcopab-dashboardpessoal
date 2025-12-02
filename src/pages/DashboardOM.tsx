@@ -213,14 +213,6 @@ const DashboardOM = () => {
     return filtered;
   }, [desembarqueData, selectedOMs, selectedQuadros]);
 
-  const chartDataBySetor = useMemo(() => {
-    return Object.entries(groupedBySetor).map(([setor, items]) => ({
-      setor,
-      ocupados: items.filter(i => i.ocupado).length,
-      vagos: items.filter(i => !i.ocupado).length,
-    }));
-  }, [groupedBySetor]);
-
   const chartDataByPosto = useMemo(() => {
     const POSTO_ORDER = ['C ALTE', 'CMG', 'CF', 'CC', 'CT', '1T', '2T', 'GM'];
     
@@ -713,46 +705,25 @@ const DashboardOM = () => {
           </Card>
         )}
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" ref={chartRef}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Ocupação por Setor</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartDataBySetor}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="setor" className="text-xs" />
-                  <YAxis className="text-xs" />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="ocupados" name="Ocupados" fill="#10b981" />
-                  <Bar dataKey="vagos" name="Vagos" fill="#ef4444" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Distribuição por Posto</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartDataByPosto}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" />
-                  <YAxis className="text-xs" />
-                  <Tooltip />
-                  <Bar dataKey="value" name="Quantidade" fill="#93c5fd">
-                    <LabelList dataKey="value" position="top" style={{ fontWeight: 'bold', fontSize: '14px' }} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Chart Distribuição por Posto */}
+        <Card ref={chartRef}>
+          <CardHeader>
+            <CardTitle>Distribuição por Posto</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartDataByPosto}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="name" className="text-xs" />
+                <YAxis className="text-xs" />
+                <Tooltip />
+                <Bar dataKey="value" name="Quantidade" fill="#93c5fd">
+                  <LabelList dataKey="value" position="top" style={{ fontWeight: 'bold', fontSize: '14px' }} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
         {/* Tabela Mestra com Tabs */}
         <Card>
