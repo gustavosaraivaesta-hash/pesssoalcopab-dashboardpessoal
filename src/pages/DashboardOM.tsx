@@ -32,6 +32,7 @@ interface PersonnelRecord {
   nome: string;
   ocupado: boolean;
   om: string;
+  semNeo?: boolean;
 }
 
 interface DesembarqueRecord {
@@ -618,19 +619,28 @@ const DashboardOM = () => {
                       {items.map((item) => (
                         <div 
                           key={item.id} 
-                          className="border-l-4 border-l-blue-500 bg-card rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
+                          className={`border-l-4 ${item.semNeo ? 'border-l-amber-500' : 'border-l-blue-500'} bg-card rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow`}
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <h4 className="text-base font-bold text-foreground">
-                                {item.nome || `NEO ${item.neo} - VAZIO`}
-                              </h4>
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-base font-bold text-foreground">
+                                  {item.nome || `NEO ${item.neo} - VAZIO`}
+                                </h4>
+                                {item.semNeo && (
+                                  <Badge className="bg-amber-100 text-amber-700 border border-amber-300 hover:bg-amber-100 text-xs">
+                                    SEM NEO
+                                  </Badge>
+                                )}
+                              </div>
                               <p className="text-sm text-muted-foreground">
                                 {item.cargo}
                               </p>
-                              <p className="text-xs text-blue-600 mt-1">
-                                NEO: {item.neo} - {item.cargo}
-                              </p>
+                              {!item.semNeo && (
+                                <p className="text-xs text-blue-600 mt-1">
+                                  NEO: {item.neo} - {item.cargo}
+                                </p>
+                              )}
                             </div>
                             <div className="flex flex-col items-end gap-2">
                               <Badge 
