@@ -61,6 +61,7 @@ const DashboardOM = () => {
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'ocupados' | 'vagos'>('all');
+  const [selectedOMForVagos, setSelectedOMForVagos] = useState<string | null>(null);
   
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -266,6 +267,18 @@ const DashboardOM = () => {
       .filter(item => item.vagos > 0)
       .sort((a, b) => b.vagos - a.vagos);
   }, [personnelData]);
+
+  // Get vacant positions for selected OM
+  const vagosForSelectedOM = useMemo(() => {
+    if (!selectedOMForVagos) return [];
+    return personnelData.filter(item => item.om === selectedOMForVagos && !item.ocupado);
+  }, [personnelData, selectedOMForVagos]);
+
+  const handleVagosBarClick = (data: any) => {
+    if (data && data.om) {
+      setSelectedOMForVagos(prev => prev === data.om ? null : data.om);
+    }
+  };
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -590,12 +603,13 @@ const DashboardOM = () => {
             <CardTitle className="flex items-center gap-2 text-red-700">
               <UserX className="h-5 w-5" />
               Vagas por Organização Militar
+              <span className="text-xs font-normal text-muted-foreground ml-2">(Clique na barra para ver detalhes)</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {chartDataVagosByOM.length > 0 ? (
               <ResponsiveContainer width="100%" height={Math.max(200, chartDataVagosByOM.length * 45)}>
-                <BarChart data={chartDataVagosByOM} layout="vertical">
+                <BarChart data={chartDataVagosByOM} layout="vertical" onClick={(e) => e && e.activePayload && handleVagosBarClick(e.activePayload[0]?.payload)}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis type="number" className="text-xs" />
                   <YAxis dataKey="om" type="category" className="text-xs" width={120} />
@@ -603,10 +617,16 @@ const DashboardOM = () => {
                     formatter={(value: number, name: string) => [value, name === 'vagos' ? 'Vagos' : name]}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
                   />
-                  <Bar dataKey="vagos" name="Vagos" fill="#ef4444" radius={[0, 4, 4, 0]}>
+                  <Bar dataKey="vagos" name="Vagos" fill="#ef4444" radius={[0, 4, 4, 0]} style={{ cursor: 'pointer' }}>
                     {chartDataVagosByOM.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill="#ef4444" />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={selectedOMForVagos === entry.om ? '#b91c1c' : '#ef4444'} 
+                        stroke={selectedOMForVagos === entry.om ? '#7f1d1d' : 'none'}
+                        strokeWidth={selectedOMForVagos === entry.om ? 2 : 0}
+                      />
                     ))}
+                    <LabelList dataKey="vagos" position="right" style={{ fontWeight: 'bold', fontSize: '12px' }} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -617,6 +637,49 @@ const DashboardOM = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Detalhes dos NEOs Vagos */}
+        {selectedOMForVagos && vagosForSelectedOM.length > 0 && (
+          <Card className="border-red-300 bg-gradient-to-br from-red-50 to-background">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-red-700">
+                  <UserX className="h-5 w-5" />
+                  NEOs Vagos - {selectedOMForVagos}
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedOMForVagos(null)}>
+                  Fechar
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {vagosForSelectedOM.map((item, index) => (
+                  <div 
+                    key={`vago-${index}`} 
+                    className="p-3 bg-red-100/50 border border-red-200 rounded-lg"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline" className="bg-red-500 text-white border-red-500 text-xs">
+                        NEO {item.neo}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {item.postoTmft}
+                      </Badge>
+                    </div>
+                    <p className="font-medium text-sm text-foreground">{item.cargo}</p>
+                    <p className="text-xs text-muted-foreground">{item.setor}</p>
+                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
+                      <span>Quadro: {item.quadroTmft || '-'}</span>
+                      <span>•</span>
+                      <span>Opção: {item.opcaoTmft || '-'}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" ref={chartRef}>
