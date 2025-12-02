@@ -42,6 +42,7 @@ const SHEET_CONFIGS = [
   { gid: '1894966712', omName: 'CDAM' },
   { gid: '1868624840', omName: 'CDU-1DN' },
   { gid: '1324793191', omName: 'CMM' },
+  { gid: '1363629973', omName: 'CSUPAB' },
 ];
 
 async function fetchSheetData(spreadsheetId: string, gid: string, omName: string): Promise<{
