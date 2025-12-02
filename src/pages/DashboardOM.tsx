@@ -60,6 +60,7 @@ const DashboardOM = () => {
   const [activeTab, setActiveTab] = useState<string>("efetivo");
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [filterOpen, setFilterOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'ocupados' | 'vagos'>('all');
   
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -128,8 +129,15 @@ const DashboardOM = () => {
       filtered = filtered.filter(item => selectedOpcoes.includes(item.opcaoTmft));
     }
 
+    // Apply status filter from card click
+    if (statusFilter === 'ocupados') {
+      filtered = filtered.filter(item => item.ocupado);
+    } else if (statusFilter === 'vagos') {
+      filtered = filtered.filter(item => !item.ocupado);
+    }
+
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, statusFilter]);
 
   const toggleOM = (om: string) => {
     setSelectedOMs(prev => 
@@ -153,6 +161,11 @@ const DashboardOM = () => {
     setSelectedOMs([]);
     setSelectedQuadros([]);
     setSelectedOpcoes([]);
+    setStatusFilter('all');
+  };
+
+  const handleStatusCardClick = (status: 'all' | 'ocupados' | 'vagos') => {
+    setStatusFilter(prev => prev === status ? 'all' : status);
   };
 
   const OPCOES_FIXAS = ['CARREIRA', 'RM-2', 'RM1', 'TTC'];
@@ -464,8 +477,11 @@ const DashboardOM = () => {
         </Card>
 
         {/* Metrics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 border-blue-200">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card 
+            className={`bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 border-blue-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${statusFilter === 'all' ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+            onClick={() => handleStatusCardClick('all')}
+          >
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div>
@@ -484,7 +500,10 @@ const DashboardOM = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200">
+          <Card 
+            className={`bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${statusFilter === 'ocupados' ? 'ring-2 ring-green-500 ring-offset-2' : ''}`}
+            onClick={() => handleStatusCardClick('ocupados')}
+          >
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div>
@@ -503,7 +522,10 @@ const DashboardOM = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200">
+          <Card 
+            className={`bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${statusFilter === 'vagos' ? 'ring-2 ring-red-500 ring-offset-2' : ''}`}
+            onClick={() => handleStatusCardClick('vagos')}
+          >
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div>
