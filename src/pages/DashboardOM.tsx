@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Download, Home, Users2, UserCheck, UserX, TrendingUp, BarChart3, RefreshCw, Building2, Filter } from "lucide-react";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -654,6 +654,7 @@ const DashboardOM = () => {
                     {chartDataByPosto.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
+                    <LabelList dataKey="value" position="top" style={{ fontWeight: 'bold', fontSize: '14px' }} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
