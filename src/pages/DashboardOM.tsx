@@ -222,10 +222,15 @@ const DashboardOM = () => {
   }, [groupedBySetor]);
 
   const chartDataByPosto = useMemo(() => {
-    const POSTO_ORDER = ['CONTRA-ALMIRANTE', 'CMG', 'CF', 'CC', 'CT', '1TEN', '2TEN', 'GM'];
+    const POSTO_ORDER = ['C ALTE', 'CMG', 'CF', 'CC', 'CT', '1T', '2T', 'GM'];
     
     const grouped = filteredData.reduce((acc, item) => {
-      const posto = item.ocupado ? item.postoEfe : item.postoTmft;
+      let posto = item.ocupado ? item.postoEfe : item.postoTmft;
+      // Normalize posto names
+      if (posto === 'CONTRA-ALMIRANTE') posto = 'C ALTE';
+      if (posto === '1TEN') posto = '1T';
+      if (posto === '2TEN') posto = '2T';
+      
       if (posto && !acc[posto]) {
         acc[posto] = { name: posto, value: 0 };
       }
@@ -721,10 +726,7 @@ const DashboardOM = () => {
                   <XAxis dataKey="name" className="text-xs" />
                   <YAxis className="text-xs" />
                   <Tooltip />
-                  <Bar dataKey="value" name="Quantidade" fill="#3b82f6">
-                    {chartDataByPosto.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
+                  <Bar dataKey="value" name="Quantidade" fill="#93c5fd">
                     <LabelList dataKey="value" position="top" style={{ fontWeight: 'bold', fontSize: '14px' }} />
                   </Bar>
                 </BarChart>
