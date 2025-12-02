@@ -122,10 +122,18 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     }
     
     // Skip non-data rows for TABELA_MESTRA
-    if (!firstCell || isNaN(Number(firstCell))) {
+    // Check if NEO contains a dot (like 01.01, 02.01.2001)
+    const neoString = String(cells[0]?.v || '').trim();
+    const isValidNeo = neoString && (
+      !isNaN(Number(neoString)) || 
+      /^\d+(\.\d+)*$/.test(neoString)
+    );
+    
+    if (!firstCell || !isValidNeo) {
       // Check if it's a desembarque/embarque data row
+      const validPostos = ['C ALTE', 'CONTRA-ALMIRANTE', 'CT', 'CF', 'CC', 'CMG', '1TEN', '2TEN', '1T', '2T', 'SO', '1SG', '2SG', '3SG', 'CB', 'MN', 'GM'];
       if ((currentSection === 'DESEMBARQUE' || currentSection === 'EMBARQUE') && 
-          ['CT', 'CF', 'CC', 'CMG', '1TEN', '2TEN', 'SO', '1SG', '2SG', '3SG', 'CB', 'MN', 'GM'].includes(firstCell)) {
+          validPostos.includes(firstCell)) {
         const posto = firstCell;
         const corpo = String(cells[1]?.v || '').trim();
         const quadro = String(cells[2]?.v || '').trim();
@@ -146,56 +154,57 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     }
     
     // Parse TABELA MESTRA rows (personnel data)
-    const neo = Number(cells[0]?.v) || 0;
+    currentSection = 'TABELA_MESTRA';
     
-    if (neo > 0) {
-      currentSection = 'TABELA_MESTRA';
-      
-      const setor = String(cells[1]?.v || '').trim();
-      const cargoSetor = String(cells[2]?.v || '').trim();
-      const cargo = String(cells[3]?.v || '').trim();
-      const postoTmft = String(cells[4]?.v || '').trim();
-      const corpoTmft = String(cells[5]?.v || '').trim();
-      const quadroTmft = String(cells[6]?.v || '').trim();
-      const opcaoTmft = String(cells[7]?.v || '').trim();
-      const postoEfe = String(cells[8]?.v || '').trim();
-      const corpoEfe = String(cells[9]?.v || '').trim();
-      const quadroEfe = String(cells[10]?.v || '').trim();
-      const opcaoEfe = String(cells[11]?.v || '').trim();
-      const nome = String(cells[12]?.v || '').trim();
-      
-      // Skip summary rows (contain percentages like "100%", "71%", etc.)
-      if (setor.includes('%') || cargoSetor.includes('%') || cargo.includes('%')) {
-        console.log(`${omName} Skipping summary row NEO=${neo}: ${setor}`);
-        continue;
-      }
-      
-      if (setor) setores.add(setor);
-      if (quadroTmft) quadros.add(quadroTmft);
-      if (opcaoTmft) opcoes.add(opcaoTmft);
-      
-      const record: PersonnelRecord = {
-        id: `${omName}-${neo}`,
-        neo,
-        tipoSetor: setor,
-        setor: setor,
-        cargo: cargo || cargoSetor,
-        postoTmft,
-        corpoTmft,
-        quadroTmft,
-        opcaoTmft,
-        postoEfe,
-        corpoEfe,
-        quadroEfe,
-        opcaoEfe,
-        nome,
-        ocupado: nome.length > 0,
-        om: omName,
-      };
-      
-      personnelData.push(record);
-      console.log(`${omName} Personnel NEO=${neo}: ${nome || 'VAGO'} - ${setor} - ${cargo}`);
+    const tipoSetor = String(cells[1]?.v || '').trim();
+    const setor = String(cells[2]?.v || '').trim();
+    const cargo = String(cells[3]?.v || '').trim();
+    const postoTmft = String(cells[4]?.v || '').trim();
+    const corpoTmft = String(cells[5]?.v || '').trim();
+    const quadroTmft = String(cells[6]?.v || '').trim();
+    const opcaoTmft = String(cells[7]?.v || '').trim();
+    const postoEfe = String(cells[8]?.v || '').trim();
+    const corpoEfe = String(cells[9]?.v || '').trim();
+    const quadroEfe = String(cells[10]?.v || '').trim();
+    const opcaoEfe = String(cells[11]?.v || '').trim();
+    const nome = String(cells[12]?.v || '').trim();
+    
+    // Skip summary rows (contain percentages like "100%", "71%", etc.)
+    if (tipoSetor.includes('%') || setor.includes('%') || cargo.includes('%')) {
+      console.log(`${omName} Skipping summary row NEO=${neoString}: ${tipoSetor}`);
+      continue;
     }
+    
+    // Skip header rows
+    if (tipoSetor === 'TIPO SETOR' || setor === 'SETOR') {
+      continue;
+    }
+    
+    if (tipoSetor) setores.add(tipoSetor);
+    if (quadroTmft) quadros.add(quadroTmft);
+    if (opcaoTmft) opcoes.add(opcaoTmft);
+    
+    const record: PersonnelRecord = {
+      id: `${omName}-${neoString}`,
+      neo: parseFloat(neoString) || 0,
+      tipoSetor,
+      setor,
+      cargo,
+      postoTmft,
+      corpoTmft,
+      quadroTmft,
+      opcaoTmft,
+      postoEfe,
+      corpoEfe,
+      quadroEfe,
+      opcaoEfe,
+      nome,
+      ocupado: nome.length > 0 && nome !== 'VAZIO',
+      om: omName,
+    };
+    
+    personnelData.push(record);
+    console.log(`${omName} Personnel NEO=${neoString}: ${nome || 'VAGO'} - ${tipoSetor}/${setor} - ${cargo}`);
   }
 
   console.log(`${omName}: Processed ${personnelData.length} personnel, ${desembarqueData.length} desembarque`);
