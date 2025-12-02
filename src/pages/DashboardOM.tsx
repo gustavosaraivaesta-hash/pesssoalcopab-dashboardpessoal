@@ -185,6 +185,20 @@ const DashboardOM = () => {
     return groups;
   }, [filteredData]);
 
+  const filteredDesembarqueData = useMemo(() => {
+    let filtered = desembarqueData;
+
+    if (selectedOMs.length > 0) {
+      filtered = filtered.filter(item => selectedOMs.includes(item.om));
+    }
+
+    if (selectedQuadros.length > 0) {
+      filtered = filtered.filter(item => selectedQuadros.includes(item.quadro));
+    }
+
+    return filtered;
+  }, [desembarqueData, selectedOMs, selectedQuadros]);
+
   const chartDataBySetor = useMemo(() => {
     return Object.entries(groupedBySetor).map(([setor, items]) => ({
       setor,
@@ -654,8 +668,8 @@ const DashboardOM = () => {
             
             {activeTab === "previsao" && (
               <div className="space-y-4">
-                {desembarqueData.length > 0 ? (
-                  desembarqueData.map((item, index) => (
+                {filteredDesembarqueData.length > 0 ? (
+                  filteredDesembarqueData.map((item, index) => (
                     <div 
                       key={index}
                       className="border-l-4 border-l-amber-500 bg-card rounded-lg p-4 shadow-sm"
