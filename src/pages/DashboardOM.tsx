@@ -61,7 +61,7 @@ const DashboardOM = () => {
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'ocupados' | 'vagos'>('all');
-  const [selectedOMForVagos, setSelectedOMForVagos] = useState<string | null>(null);
+  const [selectedOMsForVagos, setSelectedOMsForVagos] = useState<string[]>([]);
   
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -268,15 +268,19 @@ const DashboardOM = () => {
       .sort((a, b) => b.vagos - a.vagos);
   }, [personnelData]);
 
-  // Get vacant positions for selected OM
-  const vagosForSelectedOM = useMemo(() => {
-    if (!selectedOMForVagos) return [];
-    return personnelData.filter(item => item.om === selectedOMForVagos && !item.ocupado);
-  }, [personnelData, selectedOMForVagos]);
+  // Get vacant positions for selected OMs
+  const vagosForSelectedOMs = useMemo(() => {
+    if (selectedOMsForVagos.length === 0) return [];
+    return personnelData.filter(item => selectedOMsForVagos.includes(item.om) && !item.ocupado);
+  }, [personnelData, selectedOMsForVagos]);
 
   const handleVagosBarClick = (data: any) => {
     if (data && data.om) {
-      setSelectedOMForVagos(prev => prev === data.om ? null : data.om);
+      setSelectedOMsForVagos(prev => 
+        prev.includes(data.om) 
+          ? prev.filter(om => om !== data.om) 
+          : [...prev, data.om]
+      );
     }
   };
 
@@ -621,9 +625,9 @@ const DashboardOM = () => {
                     {chartDataVagosByOM.map((entry, index) => (
                       <Cell 
                         key={`cell-${index}`} 
-                        fill={selectedOMForVagos === entry.om ? '#b91c1c' : '#ef4444'} 
-                        stroke={selectedOMForVagos === entry.om ? '#7f1d1d' : 'none'}
-                        strokeWidth={selectedOMForVagos === entry.om ? 2 : 0}
+                        fill={selectedOMsForVagos.includes(entry.om) ? '#b91c1c' : '#ef4444'} 
+                        stroke={selectedOMsForVagos.includes(entry.om) ? '#7f1d1d' : 'none'}
+                        strokeWidth={selectedOMsForVagos.includes(entry.om) ? 2 : 0}
                       />
                     ))}
                     <LabelList dataKey="vagos" position="right" style={{ fontWeight: 'bold', fontSize: '12px' }} />
@@ -639,22 +643,23 @@ const DashboardOM = () => {
         </Card>
 
         {/* Detalhes dos NEOs Vagos */}
-        {selectedOMForVagos && vagosForSelectedOM.length > 0 && (
+        {selectedOMsForVagos.length > 0 && vagosForSelectedOMs.length > 0 && (
           <Card className="border-red-300 bg-gradient-to-br from-red-50 to-background">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-red-700">
                   <UserX className="h-5 w-5" />
-                  NEOs Vagos - {selectedOMForVagos}
+                  NEOs Vagos - {selectedOMsForVagos.join(', ')}
+                  <Badge variant="outline" className="ml-2">{vagosForSelectedOMs.length} vagas</Badge>
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedOMForVagos(null)}>
-                  Fechar
+                <Button variant="ghost" size="sm" onClick={() => setSelectedOMsForVagos([])}>
+                  Limpar seleção
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {vagosForSelectedOM.map((item, index) => (
+                {vagosForSelectedOMs.map((item, index) => (
                   <div 
                     key={`vago-${index}`} 
                     className="p-3 bg-red-100/50 border border-red-200 rounded-lg"
@@ -665,6 +670,9 @@ const DashboardOM = () => {
                       </Badge>
                       <Badge variant="outline" className="text-xs">
                         {item.postoTmft}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {item.om}
                       </Badge>
                     </div>
                     <p className="font-medium text-sm text-foreground">{item.cargo}</p>
