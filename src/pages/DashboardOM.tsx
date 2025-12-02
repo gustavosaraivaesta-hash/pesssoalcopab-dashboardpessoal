@@ -247,6 +247,26 @@ const DashboardOM = () => {
     });
   }, [filteredData]);
 
+  // Chart data showing vacancies by OM
+  const chartDataVagosByOM = useMemo(() => {
+    const grouped = personnelData.reduce((acc, item) => {
+      if (!acc[item.om]) {
+        acc[item.om] = { om: item.om, vagos: 0, ocupados: 0, total: 0 };
+      }
+      acc[item.om].total += 1;
+      if (item.ocupado) {
+        acc[item.om].ocupados += 1;
+      } else {
+        acc[item.om].vagos += 1;
+      }
+      return acc;
+    }, {} as Record<string, { om: string; vagos: number; ocupados: number; total: number }>);
+
+    return Object.values(grouped)
+      .filter(item => item.vagos > 0)
+      .sort((a, b) => b.vagos - a.vagos);
+  }, [personnelData]);
+
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
   const exportToPDF = async () => {
@@ -563,6 +583,40 @@ const DashboardOM = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Vagos por OM */}
+        <Card className="border-red-200 bg-gradient-to-br from-red-50/50 to-background">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-700">
+              <UserX className="h-5 w-5" />
+              Vagas por Organização Militar
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {chartDataVagosByOM.length > 0 ? (
+              <ResponsiveContainer width="100%" height={Math.max(200, chartDataVagosByOM.length * 45)}>
+                <BarChart data={chartDataVagosByOM} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis type="number" className="text-xs" />
+                  <YAxis dataKey="om" type="category" className="text-xs" width={120} />
+                  <Tooltip 
+                    formatter={(value: number, name: string) => [value, name === 'vagos' ? 'Vagos' : name]}
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                  />
+                  <Bar dataKey="vagos" name="Vagos" fill="#ef4444" radius={[0, 4, 4, 0]}>
+                    {chartDataVagosByOM.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill="#ef4444" />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhuma vaga encontrada
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" ref={chartRef}>
