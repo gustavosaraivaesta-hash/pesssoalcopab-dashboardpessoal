@@ -108,8 +108,8 @@ const DashboardOM = () => {
     
     fetchData();
     
-    // Auto-sync every 30 seconds
-    const interval = setInterval(fetchData, 30000);
+    // Auto-sync every 5 minutes
+    const interval = setInterval(fetchData, 300000);
     return () => clearInterval(interval);
   }, [navigate]);
 
