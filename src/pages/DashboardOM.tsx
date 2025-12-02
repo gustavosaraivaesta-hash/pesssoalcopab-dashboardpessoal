@@ -353,111 +353,103 @@ const DashboardOM = () => {
         </div>
       </div>
 
-      <div className="flex min-h-[calc(100vh-80px)]">
-        {/* Fixed Filters Sidebar */}
-        <aside className="w-72 border-r bg-card p-4 space-y-4 overflow-y-auto sticky top-0 h-[calc(100vh-80px)]">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              Filtros
-            </h3>
-            {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
-                Limpar
-              </Button>
-            )}
-          </div>
-
-          {/* OM Filter */}
-          <div className="space-y-2">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Fixed Top Filters */}
+        <Card className="p-4 sticky top-0 z-10 bg-card">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">OM</h4>
-              {selectedOMs.length > 0 && (
-                <Badge variant="outline" className="text-xs">{selectedOMs.length}</Badge>
-              )}
-            </div>
-            <div className="space-y-1 p-2 border rounded-lg bg-muted/30 max-h-48 overflow-y-auto">
-              {availableOMs.map(om => (
-                <div key={om} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`om-${om}`} 
-                    checked={selectedOMs.includes(om)}
-                    onCheckedChange={() => toggleOM(om)}
-                  />
-                  <label htmlFor={`om-${om}`} className="text-sm cursor-pointer">{om}</label>
+              <h3 className="font-semibold flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                Filtros
+              </h3>
+              <div className="flex items-center gap-4">
+                {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0) && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                    Limpar Filtros
+                  </Button>
+                )}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Atualização: {lastUpdate}</span>
                 </div>
-              ))}
+                <Button onClick={exportToPDF} variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Exportar PDF
+                </Button>
+              </div>
             </div>
-          </div>
 
-          {/* Quadro Filter */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Quadro</h4>
-              {selectedQuadros.length > 0 && (
-                <Badge variant="outline" className="text-xs">{selectedQuadros.length}</Badge>
-              )}
-            </div>
-            <div className="space-y-1 p-2 border rounded-lg bg-muted/30">
-              {availableQuadros.map(quadro => (
-                <div key={quadro} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`quadro-${quadro}`} 
-                    checked={selectedQuadros.includes(quadro)}
-                    onCheckedChange={() => toggleQuadro(quadro)}
-                  />
-                  <label htmlFor={`quadro-${quadro}`} className="text-sm cursor-pointer">{quadro}</label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* OM Filter */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">OM</h4>
+                  {selectedOMs.length > 0 && (
+                    <Badge variant="outline" className="text-xs">{selectedOMs.length} selecionado(s)</Badge>
+                  )}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Opção Filter */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Opção</h4>
-              {selectedOpcoes.length > 0 && (
-                <Badge variant="outline" className="text-xs">{selectedOpcoes.length}</Badge>
-              )}
-            </div>
-            <div className="space-y-1 p-2 border rounded-lg bg-muted/30">
-              {OPCOES_FIXAS.map(opcao => (
-                <div key={opcao} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`opcao-${opcao}`} 
-                    checked={selectedOpcoes.includes(opcao)}
-                    onCheckedChange={() => toggleOpcao(opcao)}
-                  />
-                  <label htmlFor={`opcao-${opcao}`} className="text-sm cursor-pointer">{opcao}</label>
+                <div className="grid grid-cols-2 gap-1 p-2 border rounded-lg bg-muted/30 max-h-32 overflow-y-auto">
+                  {availableOMs.map(om => (
+                    <div key={om} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`om-${om}`} 
+                        checked={selectedOMs.includes(om)}
+                        onCheckedChange={() => toggleOM(om)}
+                      />
+                      <label htmlFor={`om-${om}`} className="text-xs cursor-pointer">{om}</label>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* Quadro Filter */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Quadro</h4>
+                  {selectedQuadros.length > 0 && (
+                    <Badge variant="outline" className="text-xs">{selectedQuadros.length} selecionado(s)</Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-1 p-2 border rounded-lg bg-muted/30">
+                  {availableQuadros.map(quadro => (
+                    <div key={quadro} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`quadro-${quadro}`} 
+                        checked={selectedQuadros.includes(quadro)}
+                        onCheckedChange={() => toggleQuadro(quadro)}
+                      />
+                      <label htmlFor={`quadro-${quadro}`} className="text-xs cursor-pointer">{quadro}</label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Opção Filter */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Opção</h4>
+                  {selectedOpcoes.length > 0 && (
+                    <Badge variant="outline" className="text-xs">{selectedOpcoes.length} selecionado(s)</Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-1 p-2 border rounded-lg bg-muted/30">
+                  {OPCOES_FIXAS.map(opcao => (
+                    <div key={opcao} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`opcao-${opcao}`} 
+                        checked={selectedOpcoes.includes(opcao)}
+                        onCheckedChange={() => toggleOpcao(opcao)}
+                      />
+                      <label htmlFor={`opcao-${opcao}`} className="text-xs cursor-pointer">{opcao}</label>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
+        </Card>
 
-          {/* Info */}
-          <div className="pt-4 border-t text-xs text-muted-foreground space-y-1">
-            <div className="flex items-center gap-1">
-              <RefreshCw className="h-3 w-3" />
-              <span>Atualização: {lastUpdate}</span>
-            </div>
-            <span>Auto-sync a cada 30s</span>
-          </div>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 p-6 space-y-6 overflow-y-auto">
-          {/* Header Actions */}
-          <div className="flex justify-end">
-            <Button
-              onClick={exportToPDF}
-              variant="outline"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Exportar PDF
-            </Button>
-          </div>
-
-          {/* Metrics Cards */}
+        {/* Metrics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 border-blue-200">
             <CardContent className="p-6">
@@ -702,7 +694,6 @@ const DashboardOM = () => {
             )}
           </CardContent>
         </Card>
-        </main>
       </div>
     </div>
   );
