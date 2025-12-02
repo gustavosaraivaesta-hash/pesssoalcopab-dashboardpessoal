@@ -280,13 +280,6 @@ const Index = () => {
               </Button>
               <Button
                 variant="secondary"
-                onClick={() => navigate("/formacao-academia")}
-              >
-                <FileText size={18} className="mr-2" />
-                VER QUADRO - OFI
-              </Button>
-              <Button
-                variant="secondary"
                 onClick={() => navigate("/dashboard-om")}
               >
                 <FileText size={18} className="mr-2" />
