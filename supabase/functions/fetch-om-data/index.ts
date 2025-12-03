@@ -96,6 +96,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
   const opcoes = new Set<string>();
   
   let currentSection = 'TABELA_MESTRA';
+  let extraLotacaoCounter = 0;
   
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
     const cells = rows[rowIndex].c || [];
@@ -149,6 +150,41 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             posto, corpo, quadro, cargo, nome, destino, mesAno, documento, om: omName
           });
           console.log(`${omName} Desembarque: ${nome}`);
+        }
+      }
+      
+      // Check if it's an EXTRA LOTAÇÃO row (has POSTO but no NEO)
+      if (currentSection === 'TABELA_MESTRA' && validPostos.includes(firstCell)) {
+        const postoEfe = firstCell;
+        const corpoEfe = String(cells[1]?.v || '').trim();
+        const quadroEfe = String(cells[2]?.v || '').trim();
+        const opcaoEfe = String(cells[3]?.v || '').trim();
+        const nome = String(cells[4]?.v || '').trim();
+        
+        if (nome && nome !== 'NOME') {
+          extraLotacaoCounter++;
+          const extraRecord: PersonnelRecord = {
+            id: `${omName}-EXTRA-${extraLotacaoCounter}`,
+            neo: 0,
+            tipoSetor: 'EXTRA LOTAÇÃO',
+            setor: 'EXTRA LOTAÇÃO',
+            cargo: 'EXTRA LOTAÇÃO',
+            postoTmft: '',
+            corpoTmft: '',
+            quadroTmft: '',
+            opcaoTmft: '',
+            postoEfe,
+            corpoEfe,
+            quadroEfe,
+            opcaoEfe,
+            nome,
+            ocupado: true,
+            om: omName,
+          };
+          personnelData.push(extraRecord);
+          if (quadroEfe) quadros.add(quadroEfe);
+          if (opcaoEfe) opcoes.add(opcaoEfe);
+          console.log(`${omName} EXTRA LOTAÇÃO: ${nome} - ${postoEfe} ${corpoEfe} ${quadroEfe}`);
         }
       }
       continue;
