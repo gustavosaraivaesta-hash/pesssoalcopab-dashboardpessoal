@@ -198,8 +198,9 @@ const DashboardOM = () => {
   const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TTC"];
 
   const metrics = useMemo(() => {
-    const totalTMFT = filteredData.length;
-    const totalEXI = filteredData.filter((item) => item.ocupado).length;
+    const regularData = filteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+    const totalTMFT = regularData.length;
+    const totalEXI = regularData.filter((item) => item.ocupado).length;
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
     const totalExtraLotacao = filteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
