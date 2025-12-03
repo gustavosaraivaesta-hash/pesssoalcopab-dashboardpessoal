@@ -85,6 +85,7 @@ const DashboardOM = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "ocupados" | "vagos">("all");
   const [selectedOMsForVagos, setSelectedOMsForVagos] = useState<string[]>([]);
   const [showOnlyExtraLotacao, setShowOnlyExtraLotacao] = useState(false);
+  const [selectedPostos, setSelectedPostos] = useState<string[]>([]);
 
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -326,6 +327,28 @@ const DashboardOM = () => {
       );
     }
   };
+
+  const handlePostoBarClick = (data: any) => {
+    if (data && data.name) {
+      setSelectedPostos((prev) =>
+        prev.includes(data.name) ? prev.filter((p) => p !== data.name) : [...prev, data.name],
+      );
+    }
+  };
+
+  // Get personnel for selected postos
+  const personnelForSelectedPostos = useMemo(() => {
+    if (selectedPostos.length === 0) return [];
+    
+    return filteredData.filter((item) => {
+      let posto = item.ocupado ? item.postoEfe : item.postoTmft;
+      // Normalize posto names for comparison
+      if (posto === "CONTRA-ALMIRANTE") posto = "C ALTE";
+      if (posto === "1TEN") posto = "1T";
+      if (posto === "2TEN") posto = "2T";
+      return selectedPostos.includes(posto);
+    });
+  }, [filteredData, selectedPostos]);
 
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
 
@@ -748,6 +771,7 @@ const DashboardOM = () => {
         <Card ref={chartRef}>
           <CardHeader>
             <CardTitle>Distribuição por Posto</CardTitle>
+            <p className="text-sm text-muted-foreground">Clique nas colunas para ver os militares</p>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -760,13 +784,89 @@ const DashboardOM = () => {
                   allowDecimals={false}
                 />
                 <Tooltip />
-                <Bar dataKey="value" name="Quantidade" fill="#93c5fd">
+                <Bar 
+                  dataKey="value" 
+                  name="Quantidade" 
+                  cursor="pointer"
+                  onClick={handlePostoBarClick}
+                >
+                  {chartDataByPosto.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={selectedPostos.includes(entry.name) ? "#3b82f6" : "#93c5fd"}
+                      stroke={selectedPostos.includes(entry.name) ? "#1d4ed8" : "transparent"}
+                      strokeWidth={selectedPostos.includes(entry.name) ? 2 : 0}
+                    />
+                  ))}
                   <LabelList dataKey="value" position="top" style={{ fontWeight: "bold", fontSize: "14px" }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
+
+        {/* Detalhes dos Militares por Posto */}
+        {selectedPostos.length > 0 && personnelForSelectedPostos.length > 0 && (
+          <Card className="border-blue-300 bg-gradient-to-br from-blue-50 to-background">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-blue-700">
+                  <Users2 className="h-5 w-5" />
+                  Militares - {selectedPostos.join(", ")}
+                  <Badge variant="outline" className="ml-2">
+                    {personnelForSelectedPostos.length} pessoa(s)
+                  </Badge>
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedPostos([])}>
+                  Limpar seleção
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {personnelForSelectedPostos.map((item, index) => (
+                  <div 
+                    key={`posto-${index}`} 
+                    className={`p-3 border rounded-lg ${
+                      item.tipoSetor === 'EXTRA LOTAÇÃO' 
+                        ? 'bg-orange-100/50 border-orange-200' 
+                        : item.ocupado 
+                          ? 'bg-green-100/50 border-green-200' 
+                          : 'bg-red-100/50 border-red-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      {item.neo > 0 && (
+                        <Badge variant="outline" className="bg-blue-500 text-white border-blue-500 text-xs">
+                          NEO {item.neo}
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        {item.postoEfe || item.postoTmft}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {item.om}
+                      </Badge>
+                      {item.tipoSetor === 'EXTRA LOTAÇÃO' && (
+                        <Badge className="bg-orange-500 text-white text-xs">
+                          EXTRA
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="font-medium text-sm text-foreground">
+                      {item.nome || "VAGO"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{item.cargo}</p>
+                    <p className="text-xs text-muted-foreground">{item.setor}</p>
+                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
+                      <span>Quadro: {item.quadroEfe || item.quadroTmft || "-"}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tabela Mestra com Tabs */}
         <Card>
