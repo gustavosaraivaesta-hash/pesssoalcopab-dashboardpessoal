@@ -627,27 +627,8 @@ const DashboardOM = () => {
                 </div>
               </div>
             </div>
-
-            {/* Extra Lotação Filter */}
-            <div className="mt-4 pt-4 border-t">
-              <div className="flex items-center space-x-3">
-                <Checkbox
-                  id="extra-lotacao"
-                  checked={showOnlyExtraLotacao}
-                  onCheckedChange={(checked) => setShowOnlyExtraLotacao(checked === true)}
-                />
-                <label htmlFor="extra-lotacao" className="text-sm font-medium cursor-pointer flex items-center gap-2">
-                  Mostrar apenas EXTRA LOTAÇÃO
-                  {showOnlyExtraLotacao && (
-                    <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">
-                      Ativo
-                    </Badge>
-                  )}
-                </label>
-              </div>
-            </div>
-          </div>
-        </Card>
+            
+        
 
         {/* Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
