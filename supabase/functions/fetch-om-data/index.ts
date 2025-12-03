@@ -155,8 +155,12 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     const firstCell = String(cells[0]?.v || '').trim();
     
     // Detect section headers
-    if (firstCell === 'DESTAQUES/LICENÇAS' || firstCell === 'DESTAQUES' || firstCell === 'LICENÇAS') {
-      currentSection = 'DESTAQUES_LICENCAS';
+    if (firstCell === 'DESTAQUES/LICENÇAS' || firstCell === 'DESTAQUES') {
+      currentSection = 'DESTAQUES';
+      continue;
+    }
+    if (firstCell === 'LICENÇAS') {
+      currentSection = 'LICENCAS';
       continue;
     }
     if (firstCell === 'OFICIAIS ADIDOS' || firstCell.includes('OFICIAIS ADIDOS')) {
@@ -252,8 +256,8 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         }
       }
       
-      // Check if it's a DESTAQUES/LICENÇAS data row
-      if (currentSection === 'DESTAQUES_LICENCAS' && validPostos.includes(firstCell)) {
+      // Check if it's a DESTAQUES data row
+      if (currentSection === 'DESTAQUES' && validPostos.includes(firstCell)) {
         const posto = firstCell;
         const corpo = String(cells[1]?.v || '').trim();
         const quadro = String(cells[2]?.v || '').trim();
@@ -264,19 +268,27 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         const periodo = String(cells[11]?.v || '').trim();
         
         if (nome) {
-          // Determine if it's a destaque or licença based on available data
-          if (emOutraOm || deOutraOm) {
-            destaquesData.push({
-              posto, corpo, quadro, cargo, nome, emOutraOm, deOutraOm, periodo, om: omName
-            });
-            console.log(`${omName} Destaque: ${nome} - Em: ${emOutraOm}, De: ${deOutraOm}`);
-          }
-          if (periodo) {
-            licencasData.push({
-              posto, corpo, quadro, cargo, nome, emOutraOm, deOutraOm, periodo, om: omName
-            });
-            console.log(`${omName} Licença: ${nome} - Período: ${periodo}`);
-          }
+          destaquesData.push({
+            posto, corpo, quadro, cargo, nome, emOutraOm, deOutraOm, periodo, om: omName
+          });
+          console.log(`${omName} Destaque: ${nome} - Em: ${emOutraOm}, De: ${deOutraOm}, Período: ${periodo}`);
+        }
+      }
+      
+      // Check if it's a LICENÇAS data row
+      if (currentSection === 'LICENCAS' && validPostos.includes(firstCell)) {
+        const posto = firstCell;
+        const corpo = String(cells[1]?.v || '').trim();
+        const quadro = String(cells[2]?.v || '').trim();
+        const cargo = String(cells[3]?.v || '').trim();
+        const nome = String(cells[4]?.v || '').trim();
+        const motivo = String(cells[9]?.v || '').trim();
+        
+        if (nome) {
+          licencasData.push({
+            posto, corpo, quadro, cargo, nome, emOutraOm: '', deOutraOm: '', periodo: motivo, om: omName
+          });
+          console.log(`${omName} Licença: ${nome} - Motivo: ${motivo}`);
         }
       }
       
