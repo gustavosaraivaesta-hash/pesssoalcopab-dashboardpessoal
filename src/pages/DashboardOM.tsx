@@ -900,10 +900,10 @@ const DashboardOM = () => {
           </Card>
         )}
 
-        {/* Chart Distribuição por Corpo (QUADRO/CORPO) */}
+        {/* Chart Distribuição por Corpo (CORPO) */}
         <Card>
           <CardHeader>
-            <CardTitle>QUADRO/CORPO</CardTitle>
+            <CardTitle>Corpo</CardTitle>
             <p className="text-sm text-muted-foreground">Clique nas colunas para ver os militares</p>
           </CardHeader>
           <CardContent>
