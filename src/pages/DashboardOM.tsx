@@ -616,24 +616,13 @@ const DashboardOM = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-1 p-2 border rounded-lg bg-muted/30 max-h-32 overflow-y-auto">
                   {availableOMs.map((om) => (
-                    <div
-                      key={om}
-                      className={`flex items-center space-x-2 p-1.5 rounded-md transition-colors cursor-pointer ${
-                        selectedOMs.includes(om)
-                          ? "bg-primary/20 border border-primary/50"
-                          : "hover:bg-muted/50"
-                      }`}
-                      onClick={() => toggleOM(om)}
-                    >
+                    <div key={om} className="flex items-center space-x-2">
                       <Checkbox
                         id={`om-${om}`}
                         checked={selectedOMs.includes(om)}
                         onCheckedChange={() => toggleOM(om)}
                       />
-                      <label
-                        htmlFor={`om-${om}`}
-                        className={`text-xs cursor-pointer ${selectedOMs.includes(om) ? "font-medium text-primary" : ""}`}
-                      >
+                      <label htmlFor={`om-${om}`} className="text-xs cursor-pointer">
                         {om}
                       </label>
                     </div>
@@ -653,24 +642,13 @@ const DashboardOM = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-1 p-2 border rounded-lg bg-muted/30">
                   {availableQuadros.map((quadro) => (
-                    <div
-                      key={quadro}
-                      className={`flex items-center space-x-2 p-1.5 rounded-md transition-colors cursor-pointer ${
-                        selectedQuadros.includes(quadro)
-                          ? "bg-primary/20 border border-primary/50"
-                          : "hover:bg-muted/50"
-                      }`}
-                      onClick={() => toggleQuadro(quadro)}
-                    >
+                    <div key={quadro} className="flex items-center space-x-2">
                       <Checkbox
                         id={`quadro-${quadro}`}
                         checked={selectedQuadros.includes(quadro)}
                         onCheckedChange={() => toggleQuadro(quadro)}
                       />
-                      <label
-                        htmlFor={`quadro-${quadro}`}
-                        className={`text-xs cursor-pointer ${selectedQuadros.includes(quadro) ? "font-medium text-primary" : ""}`}
-                      >
+                      <label htmlFor={`quadro-${quadro}`} className="text-xs cursor-pointer">
                         {quadro}
                       </label>
                     </div>
@@ -690,24 +668,13 @@ const DashboardOM = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-1 p-2 border rounded-lg bg-muted/30">
                   {OPCOES_FIXAS.map((opcao) => (
-                    <div
-                      key={opcao}
-                      className={`flex items-center space-x-2 p-1.5 rounded-md transition-colors cursor-pointer ${
-                        selectedOpcoes.includes(opcao)
-                          ? "bg-primary/20 border border-primary/50"
-                          : "hover:bg-muted/50"
-                      }`}
-                      onClick={() => toggleOpcao(opcao)}
-                    >
+                    <div key={opcao} className="flex items-center space-x-2">
                       <Checkbox
                         id={`opcao-${opcao}`}
                         checked={selectedOpcoes.includes(opcao)}
                         onCheckedChange={() => toggleOpcao(opcao)}
                       />
-                      <label
-                        htmlFor={`opcao-${opcao}`}
-                        className={`text-xs cursor-pointer ${selectedOpcoes.includes(opcao) ? "font-medium text-primary" : ""}`}
-                      >
+                      <label htmlFor={`opcao-${opcao}`} className="text-xs cursor-pointer">
                         {opcao}
                       </label>
                     </div>
