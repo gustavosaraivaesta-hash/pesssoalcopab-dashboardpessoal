@@ -1002,12 +1002,24 @@ const DashboardOM = () => {
         <Card>
           <CardHeader className="pb-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="bg-muted/30">
+              <TabsList className="bg-muted/30 flex-wrap h-auto gap-1">
                 <TabsTrigger value="efetivo" className="data-[state=active]:bg-background">
                   Tabela de Efetivo
                 </TabsTrigger>
                 <TabsTrigger value="previsao" className="data-[state=active]:bg-background">
                   Previsão de Desembarque
+                </TabsTrigger>
+                <TabsTrigger value="trrm" className="data-[state=active]:bg-background">
+                  Previsão de TRRM
+                </TabsTrigger>
+                <TabsTrigger value="licencas" className="data-[state=active]:bg-background">
+                  Licenças
+                </TabsTrigger>
+                <TabsTrigger value="destaques" className="data-[state=active]:bg-background">
+                  Destaques
+                </TabsTrigger>
+                <TabsTrigger value="concurso" className="data-[state=active]:bg-background">
+                  Concurso C-EMOS
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -1105,6 +1117,34 @@ const DashboardOM = () => {
                     Nenhuma previsão de desembarque encontrada.
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === "trrm" && (
+              <div className="text-center py-12 text-muted-foreground">
+                <p className="text-lg font-medium mb-2">Previsão de TRRM</p>
+                <p className="text-sm">Dados de previsão de TRRM serão exibidos aqui.</p>
+              </div>
+            )}
+
+            {activeTab === "licencas" && (
+              <div className="text-center py-12 text-muted-foreground">
+                <p className="text-lg font-medium mb-2">Licenças</p>
+                <p className="text-sm">Dados de licenças serão exibidos aqui.</p>
+              </div>
+            )}
+
+            {activeTab === "destaques" && (
+              <div className="text-center py-12 text-muted-foreground">
+                <p className="text-lg font-medium mb-2">Destaques</p>
+                <p className="text-sm">Dados de destaques serão exibidos aqui.</p>
+              </div>
+            )}
+
+            {activeTab === "concurso" && (
+              <div className="text-center py-12 text-muted-foreground">
+                <p className="text-lg font-medium mb-2">Concurso C-EMOS</p>
+                <p className="text-sm">Dados do concurso C-EMOS serão exibidos aqui.</p>
               </div>
             )}
           </CardContent>
