@@ -352,7 +352,7 @@ const DashboardOM = () => {
     });
   }, [filteredData, selectedPostos]);
 
-  // Chart data by Corpo (CORPO/QUADRO)
+  // Chart data by Corpo (CORPO)
   const chartDataByCorpo = useMemo(() => {
     const grouped = filteredData.reduce(
       (acc, item) => {
