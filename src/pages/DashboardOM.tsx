@@ -86,6 +86,7 @@ const DashboardOM = () => {
   const [selectedOMsForVagos, setSelectedOMsForVagos] = useState<string[]>([]);
   const [showOnlyExtraLotacao, setShowOnlyExtraLotacao] = useState(false);
   const [selectedPostos, setSelectedPostos] = useState<string[]>([]);
+  const [selectedCorpos, setSelectedCorpos] = useState<string[]>([]);
 
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -187,6 +188,7 @@ const DashboardOM = () => {
     setSelectedOpcoes([]);
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
+    setSelectedCorpos([]);
   };
 
   const handleStatusCardClick = (status: "all" | "ocupados" | "vagos") => {
@@ -349,6 +351,45 @@ const DashboardOM = () => {
       return selectedPostos.includes(posto);
     });
   }, [filteredData, selectedPostos]);
+
+  // Chart data by Corpo (Concurso C-EMOS)
+  const chartDataByCorpo = useMemo(() => {
+    const grouped = filteredData.reduce(
+      (acc, item) => {
+        const corpo = item.ocupado ? item.corpoEfe : item.corpoTmft;
+        if (corpo && corpo.trim() !== '') {
+          if (!acc[corpo]) {
+            acc[corpo] = { name: corpo, value: 0 };
+          }
+          acc[corpo].value += 1;
+        }
+        return acc;
+      },
+      {} as Record<string, { name: string; value: number }>,
+    );
+
+    return Object.values(grouped)
+      .filter((item) => item.value > 0)
+      .sort((a, b) => b.value - a.value);
+  }, [filteredData]);
+
+  const handleCorpoBarClick = (data: any) => {
+    if (data && data.name) {
+      setSelectedCorpos((prev) =>
+        prev.includes(data.name) ? prev.filter((c) => c !== data.name) : [...prev, data.name],
+      );
+    }
+  };
+
+  // Get personnel for selected corpos
+  const personnelForSelectedCorpos = useMemo(() => {
+    if (selectedCorpos.length === 0) return [];
+    
+    return filteredData.filter((item) => {
+      const corpo = item.ocupado ? item.corpoEfe : item.corpoTmft;
+      return selectedCorpos.includes(corpo);
+    });
+  }, [filteredData, selectedCorpos]);
 
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
 
@@ -859,6 +900,113 @@ const DashboardOM = () => {
                     <p className="text-xs text-muted-foreground">{item.cargo}</p>
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
                     <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
+                      <span>Quadro: {item.quadroEfe || item.quadroTmft || "-"}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Chart Distribuição por Corpo (Concurso C-EMOS) */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Concurso C-EMOS</CardTitle>
+            <p className="text-sm text-muted-foreground">Clique nas colunas para ver os militares</p>
+          </CardHeader>
+          <CardContent>
+            {chartDataByCorpo.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartDataByCorpo}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="name" className="text-xs" />
+                  <YAxis
+                    className="text-xs"
+                    domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.2)]}
+                    allowDecimals={false}
+                  />
+                  <Tooltip />
+                  <Bar 
+                    dataKey="value" 
+                    name="Quantidade" 
+                    cursor="pointer"
+                    onClick={handleCorpoBarClick}
+                  >
+                    {chartDataByCorpo.map((entry, index) => (
+                      <Cell 
+                        key={`cell-corpo-${index}`} 
+                        fill={selectedCorpos.includes(entry.name) ? "#8b5cf6" : "#c4b5fd"}
+                        stroke={selectedCorpos.includes(entry.name) ? "#6d28d9" : "transparent"}
+                        strokeWidth={selectedCorpos.includes(entry.name) ? 2 : 0}
+                      />
+                    ))}
+                    <LabelList dataKey="value" position="top" style={{ fontWeight: "bold", fontSize: "14px" }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">Nenhum dado de corpo encontrado</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Detalhes dos Militares por Corpo */}
+        {selectedCorpos.length > 0 && personnelForSelectedCorpos.length > 0 && (
+          <Card className="border-purple-300 bg-gradient-to-br from-purple-50 to-background">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-purple-700">
+                  <Users2 className="h-5 w-5" />
+                  Militares - {selectedCorpos.join(", ")}
+                  <Badge variant="outline" className="ml-2">
+                    {personnelForSelectedCorpos.length} pessoa(s)
+                  </Badge>
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedCorpos([])}>
+                  Limpar seleção
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {personnelForSelectedCorpos.map((item, index) => (
+                  <div 
+                    key={`corpo-${index}`} 
+                    className={`p-3 border rounded-lg ${
+                      item.tipoSetor === 'EXTRA LOTAÇÃO' 
+                        ? 'bg-orange-100/50 border-orange-200' 
+                        : item.ocupado 
+                          ? 'bg-green-100/50 border-green-200' 
+                          : 'bg-red-100/50 border-red-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      {item.neo > 0 && (
+                        <Badge variant="outline" className="bg-purple-500 text-white border-purple-500 text-xs">
+                          NEO {item.neo}
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        {item.postoEfe || item.postoTmft}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {item.om}
+                      </Badge>
+                      {item.tipoSetor === 'EXTRA LOTAÇÃO' && (
+                        <Badge className="bg-orange-500 text-white text-xs">
+                          EXTRA
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="font-medium text-sm text-foreground">
+                      {item.nome || "VAGO"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{item.cargo}</p>
+                    <p className="text-xs text-muted-foreground">{item.setor}</p>
+                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
+                      <span>Corpo: {item.corpoEfe || item.corpoTmft || "-"}</span>
+                      <span>•</span>
                       <span>Quadro: {item.quadroEfe || item.quadroTmft || "-"}</span>
                     </div>
                   </div>
