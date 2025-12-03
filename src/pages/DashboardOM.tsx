@@ -164,7 +164,7 @@ const DashboardOM = () => {
 
     // Apply EXTRA LOTAÇÃO filter
     if (showOnlyExtraLotacao) {
-      filtered = filtered.filter((item) => item.tipoSetor === 'EXTRA LOTAÇÃO');
+      filtered = filtered.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO");
     }
 
     return filtered;
@@ -341,7 +341,7 @@ const DashboardOM = () => {
   // Get personnel for selected postos
   const personnelForSelectedPostos = useMemo(() => {
     if (selectedPostos.length === 0) return [];
-    
+
     return filteredData.filter((item) => {
       let posto = item.ocupado ? item.postoEfe : item.postoTmft;
       // Normalize posto names for comparison
@@ -352,12 +352,12 @@ const DashboardOM = () => {
     });
   }, [filteredData, selectedPostos]);
 
-  // Chart data by Corpo (Concurso C-EMOS)
+  // Chart data by Corpo (CORPO/QUADRO)
   const chartDataByCorpo = useMemo(() => {
     const grouped = filteredData.reduce(
       (acc, item) => {
         const corpo = item.ocupado ? item.corpoEfe : item.corpoTmft;
-        if (corpo && corpo.trim() !== '') {
+        if (corpo && corpo.trim() !== "") {
           if (!acc[corpo]) {
             acc[corpo] = { name: corpo, value: 0 };
           }
@@ -384,7 +384,7 @@ const DashboardOM = () => {
   // Get personnel for selected corpos
   const personnelForSelectedCorpos = useMemo(() => {
     if (selectedCorpos.length === 0) return [];
-    
+
     return filteredData.filter((item) => {
       const corpo = item.ocupado ? item.corpoEfe : item.corpoTmft;
       return selectedCorpos.includes(corpo);
@@ -825,15 +825,10 @@ const DashboardOM = () => {
                   allowDecimals={false}
                 />
                 <Tooltip />
-                <Bar 
-                  dataKey="value" 
-                  name="Quantidade" 
-                  cursor="pointer"
-                  onClick={handlePostoBarClick}
-                >
+                <Bar dataKey="value" name="Quantidade" cursor="pointer" onClick={handlePostoBarClick}>
                   {chartDataByPosto.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
+                    <Cell
+                      key={`cell-${index}`}
                       fill={selectedPostos.includes(entry.name) ? "#3b82f6" : "#93c5fd"}
                       stroke={selectedPostos.includes(entry.name) ? "#1d4ed8" : "transparent"}
                       strokeWidth={selectedPostos.includes(entry.name) ? 2 : 0}
@@ -866,14 +861,14 @@ const DashboardOM = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {personnelForSelectedPostos.map((item, index) => (
-                  <div 
-                    key={`posto-${index}`} 
+                  <div
+                    key={`posto-${index}`}
                     className={`p-3 border rounded-lg ${
-                      item.tipoSetor === 'EXTRA LOTAÇÃO' 
-                        ? 'bg-orange-100/50 border-orange-200' 
-                        : item.ocupado 
-                          ? 'bg-green-100/50 border-green-200' 
-                          : 'bg-red-100/50 border-red-200'
+                      item.tipoSetor === "EXTRA LOTAÇÃO"
+                        ? "bg-orange-100/50 border-orange-200"
+                        : item.ocupado
+                          ? "bg-green-100/50 border-green-200"
+                          : "bg-red-100/50 border-red-200"
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -888,15 +883,11 @@ const DashboardOM = () => {
                       <Badge variant="secondary" className="text-xs">
                         {item.om}
                       </Badge>
-                      {item.tipoSetor === 'EXTRA LOTAÇÃO' && (
-                        <Badge className="bg-orange-500 text-white text-xs">
-                          EXTRA
-                        </Badge>
+                      {item.tipoSetor === "EXTRA LOTAÇÃO" && (
+                        <Badge className="bg-orange-500 text-white text-xs">EXTRA</Badge>
                       )}
                     </div>
-                    <p className="font-medium text-sm text-foreground">
-                      {item.nome || "VAGO"}
-                    </p>
+                    <p className="font-medium text-sm text-foreground">{item.nome || "VAGO"}</p>
                     <p className="text-xs text-muted-foreground">{item.cargo}</p>
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
                     <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
@@ -927,15 +918,10 @@ const DashboardOM = () => {
                     allowDecimals={false}
                   />
                   <Tooltip />
-                  <Bar 
-                    dataKey="value" 
-                    name="Quantidade" 
-                    cursor="pointer"
-                    onClick={handleCorpoBarClick}
-                  >
+                  <Bar dataKey="value" name="Quantidade" cursor="pointer" onClick={handleCorpoBarClick}>
                     {chartDataByCorpo.map((entry, index) => (
-                      <Cell 
-                        key={`cell-corpo-${index}`} 
+                      <Cell
+                        key={`cell-corpo-${index}`}
                         fill={selectedCorpos.includes(entry.name) ? "#8b5cf6" : "#c4b5fd"}
                         stroke={selectedCorpos.includes(entry.name) ? "#6d28d9" : "transparent"}
                         strokeWidth={selectedCorpos.includes(entry.name) ? 2 : 0}
@@ -971,14 +957,14 @@ const DashboardOM = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {personnelForSelectedCorpos.map((item, index) => (
-                  <div 
-                    key={`corpo-${index}`} 
+                  <div
+                    key={`corpo-${index}`}
                     className={`p-3 border rounded-lg ${
-                      item.tipoSetor === 'EXTRA LOTAÇÃO' 
-                        ? 'bg-orange-100/50 border-orange-200' 
-                        : item.ocupado 
-                          ? 'bg-green-100/50 border-green-200' 
-                          : 'bg-red-100/50 border-red-200'
+                      item.tipoSetor === "EXTRA LOTAÇÃO"
+                        ? "bg-orange-100/50 border-orange-200"
+                        : item.ocupado
+                          ? "bg-green-100/50 border-green-200"
+                          : "bg-red-100/50 border-red-200"
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -993,15 +979,11 @@ const DashboardOM = () => {
                       <Badge variant="secondary" className="text-xs">
                         {item.om}
                       </Badge>
-                      {item.tipoSetor === 'EXTRA LOTAÇÃO' && (
-                        <Badge className="bg-orange-500 text-white text-xs">
-                          EXTRA
-                        </Badge>
+                      {item.tipoSetor === "EXTRA LOTAÇÃO" && (
+                        <Badge className="bg-orange-500 text-white text-xs">EXTRA</Badge>
                       )}
                     </div>
-                    <p className="font-medium text-sm text-foreground">
-                      {item.nome || "VAGO"}
-                    </p>
+                    <p className="font-medium text-sm text-foreground">{item.nome || "VAGO"}</p>
                     <p className="text-xs text-muted-foreground">{item.cargo}</p>
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
                     <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
