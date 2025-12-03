@@ -123,17 +123,18 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       continue;
     }
     
-    // Skip non-data rows for TABELA_MESTRA
-    // Check if NEO contains a dot (like 01.01, 02.01.2001)
+    // Check if NEO contains a dot (like 01.01, 02.01.2001) or is a valid number
     const neoString = String(cells[0]?.v || '').trim();
     const isValidNeo = neoString && (
       !isNaN(Number(neoString)) || 
       /^\d+(\.\d+)*$/.test(neoString)
     );
     
+    const validPostos = ['C ALTE', 'CONTRA-ALMIRANTE', 'CT', 'CF', 'CC', 'CMG', '1TEN', '2TEN', '1T', '2T', 'SO', '1SG', '2SG', '3SG', 'CB', 'MN', 'GM'];
+    
+    // Handle rows with empty/invalid NEO
     if (!firstCell || !isValidNeo) {
       // Check if it's a desembarque/embarque data row
-      const validPostos = ['C ALTE', 'CONTRA-ALMIRANTE', 'CT', 'CF', 'CC', 'CMG', '1TEN', '2TEN', '1T', '2T', 'SO', '1SG', '2SG', '3SG', 'CB', 'MN', 'GM'];
       if ((currentSection === 'DESEMBARQUE' || currentSection === 'EMBARQUE') && 
           validPostos.includes(firstCell)) {
         const posto = firstCell;
@@ -185,6 +186,46 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           if (quadroEfe) quadros.add(quadroEfe);
           if (opcaoEfe) opcoes.add(opcaoEfe);
           console.log(`${omName} EXTRA LOTAÇÃO: ${nome} - ${postoEfe} ${corpoEfe} ${quadroEfe}`);
+        }
+      }
+      
+      // Check if it's a TABELA_MESTRA row with data but empty NEO (EXTRA LOTAÇÃO)
+      if (currentSection === 'TABELA_MESTRA' && !isValidNeo) {
+        // Check if there's nome data in column 12 (standard TABELA_MESTRA format)
+        const nome = String(cells[12]?.v || '').trim();
+        const postoEfe = String(cells[8]?.v || '').trim();
+        
+        if (nome && nome !== 'NOME' && nome !== 'VAZIO' && postoEfe) {
+          extraLotacaoCounter++;
+          const tipoSetor = String(cells[1]?.v || '').trim();
+          const setor = String(cells[2]?.v || '').trim();
+          const cargo = String(cells[3]?.v || '').trim();
+          const corpoEfe = String(cells[9]?.v || '').trim();
+          const quadroEfe = String(cells[10]?.v || '').trim();
+          const opcaoEfe = String(cells[11]?.v || '').trim();
+          
+          const extraRecord: PersonnelRecord = {
+            id: `${omName}-EXTRA-${extraLotacaoCounter}`,
+            neo: 0,
+            tipoSetor: tipoSetor || 'EXTRA LOTAÇÃO',
+            setor: setor || 'EXTRA LOTAÇÃO',
+            cargo: cargo || 'EXTRA LOTAÇÃO',
+            postoTmft: String(cells[4]?.v || '').trim(),
+            corpoTmft: String(cells[5]?.v || '').trim(),
+            quadroTmft: String(cells[6]?.v || '').trim(),
+            opcaoTmft: String(cells[7]?.v || '').trim(),
+            postoEfe,
+            corpoEfe,
+            quadroEfe,
+            opcaoEfe,
+            nome,
+            ocupado: true,
+            om: omName,
+          };
+          personnelData.push(extraRecord);
+          if (quadroEfe) quadros.add(quadroEfe);
+          if (opcaoEfe) opcoes.add(opcaoEfe);
+          console.log(`${omName} EXTRA LOTAÇÃO (empty NEO): ${nome} - ${postoEfe} ${corpoEfe} ${quadroEfe}`);
         }
       }
       continue;
