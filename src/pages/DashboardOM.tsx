@@ -68,10 +68,58 @@ interface DesembarqueRecord {
   om: string;
 }
 
+interface TrrmRecord {
+  posto: string;
+  corpo: string;
+  quadro: string;
+  cargo: string;
+  nome: string;
+  epocaPrevista: string;
+  om: string;
+}
+
+interface LicencaRecord {
+  posto: string;
+  corpo: string;
+  quadro: string;
+  cargo: string;
+  nome: string;
+  emOutraOm: string;
+  deOutraOm: string;
+  periodo: string;
+  om: string;
+}
+
+interface DestaqueRecord {
+  posto: string;
+  corpo: string;
+  quadro: string;
+  cargo: string;
+  nome: string;
+  emOutraOm: string;
+  deOutraOm: string;
+  periodo: string;
+  om: string;
+}
+
+interface ConcursoRecord {
+  posto: string;
+  corpo: string;
+  quadro: string;
+  cargo: string;
+  nome: string;
+  anoPrevisto: string;
+  om: string;
+}
+
 const DashboardOM = () => {
   const navigate = useNavigate();
   const [personnelData, setPersonnelData] = useState<PersonnelRecord[]>([]);
   const [desembarqueData, setDesembarqueData] = useState<DesembarqueRecord[]>([]);
+  const [trrmData, setTrrmData] = useState<TrrmRecord[]>([]);
+  const [licencasData, setLicencasData] = useState<LicencaRecord[]>([]);
+  const [destaquesData, setDestaquesData] = useState<DestaqueRecord[]>([]);
+  const [concursoData, setConcursoData] = useState<ConcursoRecord[]>([]);
   const [availableOMs, setAvailableOMs] = useState<string[]>([]);
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
   const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
@@ -108,6 +156,10 @@ const DashboardOM = () => {
         const data = result.data || [];
         setPersonnelData(data);
         setDesembarqueData(result.desembarque || []);
+        setTrrmData(result.trrm || []);
+        setLicencasData(result.licencas || []);
+        setDestaquesData(result.destaques || []);
+        setConcursoData(result.concurso || []);
 
         // Extract unique OMs and Opcoes from data
         const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
@@ -1121,30 +1173,127 @@ const DashboardOM = () => {
             )}
 
             {activeTab === "trrm" && (
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-lg font-medium mb-2">Previsão de TRRM</p>
-                <p className="text-sm">Dados de previsão de TRRM serão exibidos aqui.</p>
+              <div className="space-y-4">
+                {trrmData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                  trrmData
+                    .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .map((item, index) => (
+                    <div key={index} className="border-l-4 border-l-purple-500 bg-card rounded-lg p-4 shadow-sm">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm">
+                            <span className="text-purple-600">Época Prevista: {item.epocaPrevista || "Não informado"}</span>
+                            <Badge variant="secondary">{item.om}</Badge>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge variant="outline">{item.posto}</Badge>
+                          <Badge variant="outline">{item.quadro}</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhuma previsão de TRRM encontrada.
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === "licencas" && (
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-lg font-medium mb-2">Licenças</p>
-                <p className="text-sm">Dados de licenças serão exibidos aqui.</p>
+              <div className="space-y-4">
+                {licencasData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                  licencasData
+                    .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .map((item, index) => (
+                    <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm">
+                            <span className="text-orange-600">Período: {item.periodo || "Não informado"}</span>
+                            <Badge variant="secondary">{item.om}</Badge>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge variant="outline">{item.posto}</Badge>
+                          <Badge variant="outline">{item.quadro}</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhuma licença encontrada.
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === "destaques" && (
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-lg font-medium mb-2">Destaques</p>
-                <p className="text-sm">Dados de destaques serão exibidos aqui.</p>
+              <div className="space-y-4">
+                {destaquesData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                  destaquesData
+                    .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .map((item, index) => (
+                    <div key={index} className="border-l-4 border-l-cyan-500 bg-card rounded-lg p-4 shadow-sm">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm">
+                            {item.emOutraOm && <span className="text-cyan-600">Em: {item.emOutraOm}</span>}
+                            {item.deOutraOm && <span className="text-cyan-600">De: {item.deOutraOm}</span>}
+                            <Badge variant="secondary">{item.om}</Badge>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge variant="outline">{item.posto}</Badge>
+                          <Badge variant="outline">{item.quadro}</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhum destaque encontrado.
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === "concurso" && (
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-lg font-medium mb-2">Concurso C-EMOS</p>
-                <p className="text-sm">Dados do concurso C-EMOS serão exibidos aqui.</p>
+              <div className="space-y-4">
+                {concursoData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                  concursoData
+                    .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .map((item, index) => (
+                    <div key={index} className="border-l-4 border-l-emerald-500 bg-card rounded-lg p-4 shadow-sm">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm">
+                            <span className="text-emerald-600">Ano Previsto: {item.anoPrevisto || "Não informado"}</span>
+                            <Badge variant="secondary">{item.om}</Badge>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge variant="outline">{item.posto}</Badge>
+                          <Badge variant="outline">{item.quadro}</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhum registro de Concurso C-EMOS encontrado.
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

@@ -36,6 +36,50 @@ interface DesembarqueRecord {
   om: string;
 }
 
+interface TrrmRecord {
+  posto: string;
+  corpo: string;
+  quadro: string;
+  cargo: string;
+  nome: string;
+  epocaPrevista: string;
+  om: string;
+}
+
+interface LicencaRecord {
+  posto: string;
+  corpo: string;
+  quadro: string;
+  cargo: string;
+  nome: string;
+  emOutraOm: string;
+  deOutraOm: string;
+  periodo: string;
+  om: string;
+}
+
+interface DestaqueRecord {
+  posto: string;
+  corpo: string;
+  quadro: string;
+  cargo: string;
+  nome: string;
+  emOutraOm: string;
+  deOutraOm: string;
+  periodo: string;
+  om: string;
+}
+
+interface ConcursoRecord {
+  posto: string;
+  corpo: string;
+  quadro: string;
+  cargo: string;
+  nome: string;
+  anoPrevisto: string;
+  om: string;
+}
+
 // Sheet configurations - each GID represents an OM
 const SHEET_CONFIGS = [
   { gid: '1926090655', omName: 'CDU-BAMRJ' },
@@ -55,6 +99,10 @@ const SHEET_CONFIGS = [
 async function fetchSheetData(spreadsheetId: string, gid: string, omName: string): Promise<{
   personnel: PersonnelRecord[];
   desembarque: DesembarqueRecord[];
+  trrm: TrrmRecord[];
+  licencas: LicencaRecord[];
+  destaques: DestaqueRecord[];
+  concurso: ConcursoRecord[];
   setores: string[];
   quadros: string[];
   opcoes: string[];
@@ -74,7 +122,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
   
   if (!response.ok) {
     console.error(`Failed to fetch ${omName}: ${response.status}`);
-    return { personnel: [], desembarque: [], setores: [], quadros: [], opcoes: [] };
+    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [] };
   }
 
   const text = await response.text();
@@ -84,13 +132,17 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
 
   if (!rows || rows.length === 0) {
     console.log(`No data found for ${omName}`);
-    return { personnel: [], desembarque: [], setores: [], quadros: [], opcoes: [] };
+    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [] };
   }
 
   console.log(`${omName}: Total rows = ${rows.length}`);
   
   const personnelData: PersonnelRecord[] = [];
   const desembarqueData: DesembarqueRecord[] = [];
+  const trrmData: TrrmRecord[] = [];
+  const licencasData: LicencaRecord[] = [];
+  const destaquesData: DestaqueRecord[] = [];
+  const concursoData: ConcursoRecord[] = [];
   const setores = new Set<string>();
   const quadros = new Set<string>();
   const opcoes = new Set<string>();
@@ -103,7 +155,11 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     const firstCell = String(cells[0]?.v || '').trim();
     
     // Detect section headers
-    if (firstCell === 'DESTAQUES' || firstCell === 'LICENÇAS' || firstCell === 'OFICIAIS ADIDOS') {
+    if (firstCell === 'DESTAQUES/LICENÇAS' || firstCell === 'DESTAQUES' || firstCell === 'LICENÇAS') {
+      currentSection = 'DESTAQUES_LICENCAS';
+      continue;
+    }
+    if (firstCell === 'OFICIAIS ADIDOS' || firstCell.includes('OFICIAIS ADIDOS')) {
       currentSection = 'SKIP';
       continue;
     }
@@ -115,7 +171,15 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       currentSection = 'EMBARQUE';
       continue;
     }
-    if (firstCell === 'POSTO' && currentSection !== 'DESEMBARQUE' && currentSection !== 'EMBARQUE') {
+    if (firstCell === 'PREVISÃO DE TRRM' || firstCell.includes('TRRM')) {
+      currentSection = 'TRRM';
+      continue;
+    }
+    if (firstCell === 'CONCURSO C-EMOS' || firstCell.includes('C-EMOS')) {
+      currentSection = 'CONCURSO';
+      continue;
+    }
+    if (firstCell === 'POSTO' && currentSection !== 'DESEMBARQUE' && currentSection !== 'EMBARQUE' && currentSection !== 'TRRM' && currentSection !== 'CONCURSO' && currentSection !== 'DESTAQUES_LICENCAS') {
       continue;
     }
     if (firstCell === 'RESUMO DA SITUAÇÃO') {
@@ -151,6 +215,68 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             posto, corpo, quadro, cargo, nome, destino, mesAno, documento, om: omName
           });
           console.log(`${omName} Desembarque: ${nome}`);
+        }
+      }
+      
+      // Check if it's a TRRM data row
+      if (currentSection === 'TRRM' && validPostos.includes(firstCell)) {
+        const posto = firstCell;
+        const corpo = String(cells[1]?.v || '').trim();
+        const quadro = String(cells[2]?.v || '').trim();
+        const cargo = String(cells[3]?.v || '').trim();
+        const nome = String(cells[4]?.v || '').trim();
+        const epocaPrevista = String(cells[9]?.v || '').trim();
+        
+        if (nome) {
+          trrmData.push({
+            posto, corpo, quadro, cargo, nome, epocaPrevista, om: omName
+          });
+          console.log(`${omName} TRRM: ${nome} - ${epocaPrevista}`);
+        }
+      }
+      
+      // Check if it's a CONCURSO data row
+      if (currentSection === 'CONCURSO' && validPostos.includes(firstCell)) {
+        const posto = firstCell;
+        const corpo = String(cells[1]?.v || '').trim();
+        const quadro = String(cells[2]?.v || '').trim();
+        const cargo = String(cells[3]?.v || '').trim();
+        const nome = String(cells[4]?.v || '').trim();
+        const anoPrevisto = String(cells[9]?.v || '').trim();
+        
+        if (nome) {
+          concursoData.push({
+            posto, corpo, quadro, cargo, nome, anoPrevisto, om: omName
+          });
+          console.log(`${omName} Concurso C-EMOS: ${nome} - ${anoPrevisto}`);
+        }
+      }
+      
+      // Check if it's a DESTAQUES/LICENÇAS data row
+      if (currentSection === 'DESTAQUES_LICENCAS' && validPostos.includes(firstCell)) {
+        const posto = firstCell;
+        const corpo = String(cells[1]?.v || '').trim();
+        const quadro = String(cells[2]?.v || '').trim();
+        const cargo = String(cells[3]?.v || '').trim();
+        const nome = String(cells[4]?.v || '').trim();
+        const emOutraOm = String(cells[9]?.v || '').trim();
+        const deOutraOm = String(cells[10]?.v || '').trim();
+        const periodo = String(cells[11]?.v || '').trim();
+        
+        if (nome) {
+          // Determine if it's a destaque or licença based on available data
+          if (emOutraOm || deOutraOm) {
+            destaquesData.push({
+              posto, corpo, quadro, cargo, nome, emOutraOm, deOutraOm, periodo, om: omName
+            });
+            console.log(`${omName} Destaque: ${nome} - Em: ${emOutraOm}, De: ${deOutraOm}`);
+          }
+          if (periodo) {
+            licencasData.push({
+              posto, corpo, quadro, cargo, nome, emOutraOm, deOutraOm, periodo, om: omName
+            });
+            console.log(`${omName} Licença: ${nome} - Período: ${periodo}`);
+          }
         }
       }
       
@@ -285,11 +411,15 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     console.log(`${omName} Personnel NEO=${neoString}: ${nome || 'VAGO'} - ${tipoSetor}/${setor} - ${cargo}`);
   }
 
-  console.log(`${omName}: Processed ${personnelData.length} personnel, ${desembarqueData.length} desembarque`);
+  console.log(`${omName}: Processed ${personnelData.length} personnel, ${desembarqueData.length} desembarque, ${trrmData.length} TRRM, ${licencasData.length} licenças, ${destaquesData.length} destaques, ${concursoData.length} concurso`);
   
   return {
     personnel: personnelData,
     desembarque: desembarqueData,
+    trrm: trrmData,
+    licencas: licencasData,
+    destaques: destaquesData,
+    concurso: concursoData,
     setores: Array.from(setores),
     quadros: Array.from(quadros),
     opcoes: Array.from(opcoes),
@@ -316,6 +446,10 @@ serve(async (req) => {
     // Combine all results
     const allPersonnel: PersonnelRecord[] = [];
     const allDesembarque: DesembarqueRecord[] = [];
+    const allTrrm: TrrmRecord[] = [];
+    const allLicencas: LicencaRecord[] = [];
+    const allDestaques: DestaqueRecord[] = [];
+    const allConcurso: ConcursoRecord[] = [];
     const allSetores = new Set<string>();
     const allQuadros = new Set<string>();
     const allOpcoes = new Set<string>();
@@ -324,6 +458,10 @@ serve(async (req) => {
     for (const result of results) {
       allPersonnel.push(...result.personnel);
       allDesembarque.push(...result.desembarque);
+      allTrrm.push(...result.trrm);
+      allLicencas.push(...result.licencas);
+      allDestaques.push(...result.destaques);
+      allConcurso.push(...result.concurso);
       result.setores.forEach(s => allSetores.add(s));
       result.quadros.forEach(q => allQuadros.add(q));
       result.opcoes.forEach(o => allOpcoes.add(o));
@@ -332,12 +470,16 @@ serve(async (req) => {
     // Get unique OMs from data
     allPersonnel.forEach(p => allOMs.add(p.om));
     
-    console.log(`Total: ${allPersonnel.length} personnel, ${allDesembarque.length} desembarque from ${allOMs.size} OMs`);
+    console.log(`Total: ${allPersonnel.length} personnel, ${allDesembarque.length} desembarque, ${allTrrm.length} TRRM, ${allLicencas.length} licenças, ${allDestaques.length} destaques, ${allConcurso.length} concurso from ${allOMs.size} OMs`);
 
     return new Response(
       JSON.stringify({ 
         data: allPersonnel,
         desembarque: allDesembarque,
+        trrm: allTrrm,
+        licencas: allLicencas,
+        destaques: allDestaques,
+        concurso: allConcurso,
         setores: Array.from(allSetores).sort(),
         quadros: Array.from(allQuadros).sort(),
         opcoes: Array.from(allOpcoes).sort(),
@@ -360,6 +502,10 @@ serve(async (req) => {
         error: errorMessage,
         data: [],
         desembarque: [],
+        trrm: [],
+        licencas: [],
+        destaques: [],
+        concurso: [],
         setores: [],
         quadros: [],
         opcoes: [],
