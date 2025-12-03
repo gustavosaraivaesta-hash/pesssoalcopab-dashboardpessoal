@@ -84,6 +84,7 @@ const DashboardOM = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"all" | "ocupados" | "vagos">("all");
   const [selectedOMsForVagos, setSelectedOMsForVagos] = useState<string[]>([]);
+  const [showOnlyExtraLotacao, setShowOnlyExtraLotacao] = useState(false);
 
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -159,8 +160,13 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => !item.ocupado);
     }
 
+    // Apply EXTRA LOTAÇÃO filter
+    if (showOnlyExtraLotacao) {
+      filtered = filtered.filter((item) => item.tipoSetor === 'EXTRA LOTAÇÃO');
+    }
+
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, statusFilter]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, statusFilter, showOnlyExtraLotacao]);
 
   const toggleOM = (om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
@@ -179,6 +185,7 @@ const DashboardOM = () => {
     setSelectedQuadros([]);
     setSelectedOpcoes([]);
     setStatusFilter("all");
+    setShowOnlyExtraLotacao(false);
   };
 
   const handleStatusCardClick = (status: "all" | "ocupados" | "vagos") => {
@@ -554,6 +561,25 @@ const DashboardOM = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Extra Lotação Filter */}
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="extra-lotacao"
+                  checked={showOnlyExtraLotacao}
+                  onCheckedChange={(checked) => setShowOnlyExtraLotacao(checked === true)}
+                />
+                <label htmlFor="extra-lotacao" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                  Mostrar apenas EXTRA LOTAÇÃO
+                  {showOnlyExtraLotacao && (
+                    <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">
+                      Ativo
+                    </Badge>
+                  )}
+                </label>
               </div>
             </div>
           </div>
