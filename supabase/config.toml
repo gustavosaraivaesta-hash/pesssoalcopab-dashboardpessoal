@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.fetch-om-data]
 verify_jwt = false
+
+[functions.fetch-pracas-data]
+verify_jwt = false
