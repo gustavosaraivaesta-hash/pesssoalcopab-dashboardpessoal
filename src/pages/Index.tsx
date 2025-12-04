@@ -262,6 +262,10 @@ const Index = () => {
                 <FileText size={18} className="mr-2" />
                 PRAÇAS
               </Button>
+              <Button variant="secondary" onClick={() => navigate("/dashboard-pracas")}>
+                <FileText size={18} className="mr-2" />
+                PRAÇAS NOVO
+              </Button>
               <Button variant="secondary" onClick={() => navigate("/dashboard-om")}>
                 <FileText size={18} className="mr-2" />
                 OFICIAIS
