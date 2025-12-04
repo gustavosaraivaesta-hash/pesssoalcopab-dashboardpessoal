@@ -80,7 +80,7 @@ interface ConcursoRecord {
   om: string;
 }
 
-async function fetchSheetData(spreadsheetId: string, sheetName: string, apiKey: string): Promise<{
+async function fetchSheetData(spreadsheetId: string, gid: string, apiKey: string): Promise<{
   personnel: PersonnelRecord[];
   desembarque: DesembarqueRecord[];
   trrm: TrrmRecord[];
@@ -92,33 +92,55 @@ async function fetchSheetData(spreadsheetId: string, sheetName: string, apiKey: 
   opcoes: string[];
   detectedOmName: string;
 }> {
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}?key=${apiKey}`;
+  // Use export URL to get CSV data (works without requiring sheet name)
+  const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
   
-  console.log(`Fetching PRAÇAS sheet: ${sheetName}...`);
+  console.log(`Fetching PRAÇAS from GID ${gid}...`);
   
   const response = await fetch(url);
   
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`Failed to fetch sheet ${sheetName}: ${response.status} - ${errorText}`);
-    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [], detectedOmName: sheetName };
+    console.error(`Failed to fetch GID ${gid}: ${response.status} - ${errorText}`);
+    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [], detectedOmName: `OM-${gid}` };
   }
 
-  const data = await response.json();
-  const rows: string[][] = data.values || [];
+  const csvText = await response.text();
+  
+  // Parse CSV
+  const rows: string[][] = [];
+  const lines = csvText.split('\n');
+  for (const line of lines) {
+    const row: string[] = [];
+    let inQuotes = false;
+    let cell = '';
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        row.push(cell.trim());
+        cell = '';
+      } else {
+        cell += char;
+      }
+    }
+    row.push(cell.trim());
+    rows.push(row);
+  }
 
   if (rows.length === 0) {
-    console.log(`No data found for sheet ${sheetName}`);
-    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [], detectedOmName: sheetName };
+    console.log(`No data found for GID ${gid}`);
+    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [], detectedOmName: `OM-${gid}` };
   }
 
-  console.log(`Sheet ${sheetName}: Total rows = ${rows.length}`);
+  console.log(`GID ${gid}: Total rows = ${rows.length}`);
   
   // Helper function to get cell value
   const getCell = (row: string[], index: number): string => String(row?.[index] || '').trim();
   
   // Detect OM name from first row
-  let detectedOmName = sheetName;
+  let detectedOmName = `OM-${gid}`;
   const firstCellValue = getCell(rows[0], 0);
   if (firstCellValue && !firstCellValue.includes('NEO') && !firstCellValue.includes('TABELA') && !firstCellValue.includes('SITUAÇÃO')) {
     detectedOmName = firstCellValue;
@@ -384,8 +406,8 @@ serve(async (req) => {
     
     const spreadsheetId = '13YC7pfsERAJxdwzWPN12tTdNOVhlT_bbZXZigDZvalA';
     
-    // Fetch first sheet by name - using "DEPMSMRJ" as seen in the data
-    const result = await fetchSheetData(spreadsheetId, 'DEPMSMRJ', apiKey);
+    // Fetch first sheet (gid=0)
+    const result = await fetchSheetData(spreadsheetId, '0', apiKey || '');
     
     const allOMs = new Set<string>();
     result.personnel.forEach(p => allOMs.add(p.om));
