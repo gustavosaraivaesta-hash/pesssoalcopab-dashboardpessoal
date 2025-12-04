@@ -287,15 +287,17 @@ async function fetchSheetData(spreadsheetId: string, gid: string, apiKey: string
         }
       }
       
-      // EXTRA LOTAÇÃO - has POSTO but no valid NEO
-      if (currentSection === 'TABELA_MESTRA' && validPostos.includes(firstCell)) {
-        const postoEfe = firstCell;
-        const corpoEfe = getCell(row, 1);
-        const quadroEfe = getCell(row, 2);
-        const opcaoEfe = getCell(row, 3);
-        const nome = getCell(row, 4);
+      // EXTRA LOTAÇÃO - NEO is EMPTY but row has personnel data
+      // Check if NEO column is empty and there's a valid POSTO in the EFETIVO section (column 8)
+      if (currentSection === 'TABELA_MESTRA' && !neoString) {
+        const postoEfe = getCell(row, 8);  // POSTO from EFETIVO columns
+        const corpoEfe = getCell(row, 9);
+        const quadroEfe = getCell(row, 10);
+        const opcaoEfe = getCell(row, 11);
+        const nome = getCell(row, 12);
         
-        if (nome && nome !== 'NOME') {
+        // Only add if there's a valid POSTO or a name
+        if ((validPostos.includes(postoEfe) || nome) && nome !== 'NOME') {
           extraLotacaoCounter++;
           personnelData.push({
             id: `${detectedOmName}-EXTRA-${extraLotacaoCounter}`,
