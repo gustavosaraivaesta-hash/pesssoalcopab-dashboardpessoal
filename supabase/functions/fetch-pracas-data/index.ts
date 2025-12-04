@@ -80,12 +80,7 @@ interface ConcursoRecord {
   om: string;
 }
 
-// Sheet configurations - each GID represents an OM for PRAÇAS
-const SHEET_CONFIGS = [
-  { gid: '0', omName: 'OM1' },
-];
-
-async function fetchSheetData(spreadsheetId: string, gid: string, omName: string): Promise<{
+async function fetchSheetData(spreadsheetId: string, sheetName: string, apiKey: string): Promise<{
   personnel: PersonnelRecord[];
   desembarque: DesembarqueRecord[];
   trrm: TrrmRecord[];
@@ -97,41 +92,35 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
   opcoes: string[];
   detectedOmName: string;
 }> {
-  const timestamp = new Date().getTime();
-  const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=${gid}&tqx=out:json&timestamp=${timestamp}`;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}?key=${apiKey}`;
   
-  console.log(`Fetching PRAÇAS ${omName} from GID ${gid}...`);
+  console.log(`Fetching PRAÇAS sheet: ${sheetName}...`);
   
-  const response = await fetch(url, {
-    headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    }
-  });
+  const response = await fetch(url);
   
   if (!response.ok) {
-    console.error(`Failed to fetch ${omName}: ${response.status}`);
-    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [], detectedOmName: omName };
+    const errorText = await response.text();
+    console.error(`Failed to fetch sheet ${sheetName}: ${response.status} - ${errorText}`);
+    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [], detectedOmName: sheetName };
   }
 
-  const text = await response.text();
-  const jsonString = text.substring(47).slice(0, -2);
-  const sheetsData = JSON.parse(jsonString);
-  const rows = sheetsData.table.rows;
+  const data = await response.json();
+  const rows: string[][] = data.values || [];
 
-  if (!rows || rows.length === 0) {
-    console.log(`No data found for ${omName}`);
-    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [], detectedOmName: omName };
+  if (rows.length === 0) {
+    console.log(`No data found for sheet ${sheetName}`);
+    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [], detectedOmName: sheetName };
   }
 
-  console.log(`${omName}: Total rows = ${rows.length}`);
+  console.log(`Sheet ${sheetName}: Total rows = ${rows.length}`);
   
-  // Try to detect OM name from first row
-  let detectedOmName = omName;
-  const firstRowCells = rows[0]?.c || [];
-  const firstCellValue = String(firstRowCells[0]?.v || '').trim();
-  if (firstCellValue && !firstCellValue.includes('NEO') && !firstCellValue.includes('TABELA')) {
+  // Helper function to get cell value
+  const getCell = (row: string[], index: number): string => String(row?.[index] || '').trim();
+  
+  // Detect OM name from first row
+  let detectedOmName = sheetName;
+  const firstCellValue = getCell(rows[0], 0);
+  if (firstCellValue && !firstCellValue.includes('NEO') && !firstCellValue.includes('TABELA') && !firstCellValue.includes('SITUAÇÃO')) {
     detectedOmName = firstCellValue;
     console.log(`Detected OM name: ${detectedOmName}`);
   }
@@ -149,12 +138,11 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
   let currentSection = 'TABELA_MESTRA';
   let extraLotacaoCounter = 0;
   
-  // Valid military ranks for PRAÇAS
   const validPostos = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN', 'C ALTE', 'CONTRA-ALMIRANTE', 'CT', 'CF', 'CC', 'CMG', '1TEN', '2TEN', '1T', '2T', 'GM'];
   
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-    const cells = rows[rowIndex].c || [];
-    const firstCell = String(cells[0]?.v || '').trim();
+    const row = rows[rowIndex] || [];
+    const firstCell = getCell(row, 0);
     
     // Detect section headers
     if (firstCell === 'DESTAQUES/LICENÇAS' || firstCell === 'DESTAQUES') {
@@ -165,144 +153,129 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       currentSection = 'LICENCAS';
       continue;
     }
-    if (firstCell === 'OFICIAIS ADIDOS' || firstCell.includes('OFICIAIS ADIDOS') || firstCell.includes('PRAÇAS ADIDOS')) {
+    if (firstCell.includes('ADIDOS')) {
       currentSection = 'SKIP';
       continue;
     }
-    if (firstCell === 'PREVISÃO DE DESEMBARQUE' || firstCell.includes('DESEMBARQUE')) {
+    if (firstCell.includes('DESEMBARQUE')) {
       currentSection = 'DESEMBARQUE';
       continue;
     }
-    if (firstCell === 'PREVISÃO DE EMBARQUE' || firstCell.includes('EMBARQUE')) {
+    if (firstCell.includes('EMBARQUE')) {
       currentSection = 'EMBARQUE';
       continue;
     }
-    if (firstCell === 'PREVISÃO DE TRRM' || firstCell.includes('TRRM')) {
+    if (firstCell.includes('TRRM')) {
       currentSection = 'TRRM';
       continue;
     }
-    if (firstCell === 'CONCURSO C-EMOS' || firstCell.includes('C-EMOS')) {
+    if (firstCell.includes('C-EMOS') || firstCell.includes('CONCURSO')) {
       currentSection = 'CONCURSO';
       continue;
     }
-    if (firstCell === 'POSTO' && currentSection !== 'DESEMBARQUE' && currentSection !== 'EMBARQUE' && currentSection !== 'TRRM' && currentSection !== 'CONCURSO') {
+    if (firstCell === 'POSTO' || firstCell === 'NEO') {
       continue;
     }
-    if (firstCell === 'RESUMO DA SITUAÇÃO') {
+    if (firstCell.includes('RESUMO')) {
       currentSection = 'RESUMO';
       continue;
     }
     
-    // Check if NEO contains a dot (like 01.01, 02.01.2001) or is a valid number
-    const neoString = String(cells[0]?.v || '').trim();
+    // Check if NEO is valid
+    const neoString = firstCell;
     const isValidNeo = neoString && (
       !isNaN(Number(neoString)) || 
       /^\d+(\.\d+)*$/.test(neoString)
     );
     
-    // Handle rows with empty/invalid NEO
-    if (!firstCell || !isValidNeo) {
-      // Check if it's a desembarque/embarque data row
-      if ((currentSection === 'DESEMBARQUE' || currentSection === 'EMBARQUE') && 
-          validPostos.includes(firstCell)) {
+    // Handle rows based on section
+    if (!isValidNeo) {
+      // Check if it's a data row in special sections
+      if ((currentSection === 'DESEMBARQUE' || currentSection === 'EMBARQUE') && validPostos.includes(firstCell)) {
         const posto = firstCell;
-        const corpo = String(cells[1]?.v || '').trim();
-        const quadro = String(cells[2]?.v || '').trim();
-        const cargo = String(cells[3]?.v || '').trim();
-        const nome = String(cells[4]?.v || '').trim();
-        const destino = String(cells[9]?.v || '').trim();
-        const mesAno = String(cells[10]?.v || '').trim();
-        const documento = String(cells[11]?.v || '').trim();
+        const corpo = getCell(row, 1);
+        const quadro = getCell(row, 2);
+        const cargo = getCell(row, 3);
+        const nome = getCell(row, 4);
+        const destino = getCell(row, 9);
+        const mesAno = getCell(row, 10);
+        const documento = getCell(row, 11);
         
         if (nome && currentSection === 'DESEMBARQUE') {
-          desembarqueData.push({
-            posto, corpo, quadro, cargo, nome, destino, mesAno, documento, om: detectedOmName
-          });
+          desembarqueData.push({ posto, corpo, quadro, cargo, nome, destino, mesAno, documento, om: detectedOmName });
           console.log(`${detectedOmName} Desembarque: ${nome}`);
         }
       }
       
-      // Check if it's a TRRM data row
       if (currentSection === 'TRRM' && validPostos.includes(firstCell)) {
         const posto = firstCell;
-        const corpo = String(cells[1]?.v || '').trim();
-        const quadro = String(cells[2]?.v || '').trim();
-        const cargo = String(cells[3]?.v || '').trim();
-        const nome = String(cells[4]?.v || '').trim();
-        const epocaPrevista = String(cells[9]?.v || '').trim();
+        const corpo = getCell(row, 1);
+        const quadro = getCell(row, 2);
+        const cargo = getCell(row, 3);
+        const nome = getCell(row, 4);
+        const epocaPrevista = getCell(row, 9);
         
         if (nome) {
-          trrmData.push({
-            posto, corpo, quadro, cargo, nome, epocaPrevista, om: detectedOmName
-          });
-          console.log(`${detectedOmName} TRRM: ${nome} - ${epocaPrevista}`);
+          trrmData.push({ posto, corpo, quadro, cargo, nome, epocaPrevista, om: detectedOmName });
+          console.log(`${detectedOmName} TRRM: ${nome}`);
         }
       }
       
-      // Check if it's a CONCURSO data row
       if (currentSection === 'CONCURSO' && validPostos.includes(firstCell)) {
         const posto = firstCell;
-        const corpo = String(cells[1]?.v || '').trim();
-        const quadro = String(cells[2]?.v || '').trim();
-        const cargo = String(cells[3]?.v || '').trim();
-        const nome = String(cells[4]?.v || '').trim();
-        const anoPrevisto = String(cells[9]?.v || '').trim();
+        const corpo = getCell(row, 1);
+        const quadro = getCell(row, 2);
+        const cargo = getCell(row, 3);
+        const nome = getCell(row, 4);
+        const anoPrevisto = getCell(row, 9);
         
         if (nome) {
-          concursoData.push({
-            posto, corpo, quadro, cargo, nome, anoPrevisto, om: detectedOmName
-          });
-          console.log(`${detectedOmName} Concurso: ${nome} - ${anoPrevisto}`);
+          concursoData.push({ posto, corpo, quadro, cargo, nome, anoPrevisto, om: detectedOmName });
+          console.log(`${detectedOmName} Concurso: ${nome}`);
         }
       }
       
-      // Check if it's a DESTAQUES data row
       if (currentSection === 'DESTAQUES' && validPostos.includes(firstCell)) {
         const posto = firstCell;
-        const corpo = String(cells[1]?.v || '').trim();
-        const quadro = String(cells[2]?.v || '').trim();
-        const cargo = String(cells[3]?.v || '').trim();
-        const nome = String(cells[4]?.v || '').trim();
-        const emOutraOm = String(cells[9]?.v || '').trim();
-        const deOutraOm = String(cells[10]?.v || '').trim();
-        const periodo = String(cells[11]?.v || '').trim();
+        const corpo = getCell(row, 1);
+        const quadro = getCell(row, 2);
+        const cargo = getCell(row, 3);
+        const nome = getCell(row, 4);
+        const emOutraOm = getCell(row, 9);
+        const deOutraOm = getCell(row, 10);
+        const periodo = getCell(row, 11);
         
         if (nome) {
-          destaquesData.push({
-            posto, corpo, quadro, cargo, nome, emOutraOm, deOutraOm, periodo, om: detectedOmName
-          });
+          destaquesData.push({ posto, corpo, quadro, cargo, nome, emOutraOm, deOutraOm, periodo, om: detectedOmName });
           console.log(`${detectedOmName} Destaque: ${nome}`);
         }
       }
       
-      // Check if it's a LICENÇAS data row
       if (currentSection === 'LICENCAS' && validPostos.includes(firstCell)) {
         const posto = firstCell;
-        const corpo = String(cells[1]?.v || '').trim();
-        const quadro = String(cells[2]?.v || '').trim();
-        const cargo = String(cells[3]?.v || '').trim();
-        const nome = String(cells[4]?.v || '').trim();
-        const motivo = String(cells[9]?.v || '').trim();
+        const corpo = getCell(row, 1);
+        const quadro = getCell(row, 2);
+        const cargo = getCell(row, 3);
+        const nome = getCell(row, 4);
+        const motivo = getCell(row, 9);
         
         if (nome) {
-          licencasData.push({
-            posto, corpo, quadro, cargo, nome, emOutraOm: '', deOutraOm: '', periodo: motivo, om: detectedOmName
-          });
-          console.log(`${detectedOmName} Licença: ${nome} - Motivo: ${motivo}`);
+          licencasData.push({ posto, corpo, quadro, cargo, nome, emOutraOm: '', deOutraOm: '', periodo: motivo, om: detectedOmName });
+          console.log(`${detectedOmName} Licença: ${nome}`);
         }
       }
       
-      // Check if it's an EXTRA LOTAÇÃO row (has POSTO but no NEO)
+      // EXTRA LOTAÇÃO - has POSTO but no valid NEO
       if (currentSection === 'TABELA_MESTRA' && validPostos.includes(firstCell)) {
         const postoEfe = firstCell;
-        const corpoEfe = String(cells[1]?.v || '').trim();
-        const quadroEfe = String(cells[2]?.v || '').trim();
-        const opcaoEfe = String(cells[3]?.v || '').trim();
-        const nome = String(cells[4]?.v || '').trim();
+        const corpoEfe = getCell(row, 1);
+        const quadroEfe = getCell(row, 2);
+        const opcaoEfe = getCell(row, 3);
+        const nome = getCell(row, 4);
         
         if (nome && nome !== 'NOME') {
           extraLotacaoCounter++;
-          const extraRecord: PersonnelRecord = {
+          personnelData.push({
             id: `${detectedOmName}-EXTRA-${extraLotacaoCounter}`,
             neo: 0,
             tipoSetor: 'EXTRA LOTAÇÃO',
@@ -319,33 +292,32 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             nome,
             ocupado: true,
             om: detectedOmName,
-          };
-          personnelData.push(extraRecord);
+          });
           if (quadroEfe) quadros.add(quadroEfe);
           if (opcaoEfe) opcoes.add(opcaoEfe);
-          console.log(`${detectedOmName} EXTRA LOTAÇÃO: ${nome} - ${postoEfe}`);
+          console.log(`${detectedOmName} EXTRA LOTAÇÃO: ${nome}`);
         }
       }
       continue;
     }
     
-    // Parse TABELA MESTRA rows (personnel data)
+    // Parse TABELA MESTRA rows (personnel data with valid NEO)
     currentSection = 'TABELA_MESTRA';
     
-    const tipoSetor = String(cells[1]?.v || '').trim();
-    const setor = String(cells[2]?.v || '').trim();
-    const cargo = String(cells[3]?.v || '').trim();
-    const postoTmft = String(cells[4]?.v || '').trim();
-    const corpoTmft = String(cells[5]?.v || '').trim();
-    const quadroTmft = String(cells[6]?.v || '').trim();
-    const opcaoTmft = String(cells[7]?.v || '').trim();
-    const postoEfe = String(cells[8]?.v || '').trim();
-    const corpoEfe = String(cells[9]?.v || '').trim();
-    const quadroEfe = String(cells[10]?.v || '').trim();
-    const opcaoEfe = String(cells[11]?.v || '').trim();
-    const nome = String(cells[12]?.v || '').trim();
+    const tipoSetor = getCell(row, 1);
+    const setor = getCell(row, 2);
+    const cargo = getCell(row, 3);
+    const postoTmft = getCell(row, 4);
+    const corpoTmft = getCell(row, 5);
+    const quadroTmft = getCell(row, 6);
+    const opcaoTmft = getCell(row, 7);
+    const postoEfe = getCell(row, 8);
+    const corpoEfe = getCell(row, 9);
+    const quadroEfe = getCell(row, 10);
+    const opcaoEfe = getCell(row, 11);
+    const nome = getCell(row, 12);
     
-    // Skip summary rows (contain percentages)
+    // Skip summary rows
     if (tipoSetor.includes('%') || setor.includes('%') || cargo.includes('%')) {
       continue;
     }
@@ -359,7 +331,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     if (quadroTmft) quadros.add(quadroTmft);
     if (opcaoTmft) opcoes.add(opcaoTmft);
     
-    const record: PersonnelRecord = {
+    personnelData.push({
       id: `${detectedOmName}-${neoString}`,
       neo: parseFloat(neoString) || 0,
       tipoSetor,
@@ -376,13 +348,12 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       nome,
       ocupado: nome.length > 0 && nome !== 'VAZIO',
       om: detectedOmName,
-    };
+    });
     
-    personnelData.push(record);
-    console.log(`${detectedOmName} Personnel NEO=${neoString}: ${nome || 'VAGO'}`);
+    console.log(`${detectedOmName} NEO=${neoString}: ${nome || 'VAGO'}`);
   }
 
-  console.log(`${detectedOmName}: Processed ${personnelData.length} personnel, ${desembarqueData.length} desembarque`);
+  console.log(`${detectedOmName}: ${personnelData.length} personnel, ${desembarqueData.length} desembarque`);
   
   return {
     personnel: personnelData,
@@ -406,15 +377,15 @@ serve(async (req) => {
   try {
     console.log('Fetching PRAÇAS data from spreadsheet...');
     
-    // New spreadsheet ID for PRAÇAS
+    const apiKey = Deno.env.get('GOOGLE_SHEETS_API_KEY');
+    if (!apiKey) {
+      throw new Error('GOOGLE_SHEETS_API_KEY not configured');
+    }
+    
     const spreadsheetId = '13YC7pfsERAJxdwzWPN12tTdNOVhlT_bbZXZigDZvalA';
     
-    // First, fetch sheet info to get all tabs
-    const timestamp = new Date().getTime();
-    const infoUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&timestamp=${timestamp}`;
-    
-    // Fetch the first sheet (gid=0) to start
-    const result = await fetchSheetData(spreadsheetId, '0', 'PRAÇAS');
+    // Fetch first sheet by name - using "DEPMSMRJ" as seen in the data
+    const result = await fetchSheetData(spreadsheetId, 'DEPMSMRJ', apiKey);
     
     const allOMs = new Set<string>();
     result.personnel.forEach(p => allOMs.add(p.om));
