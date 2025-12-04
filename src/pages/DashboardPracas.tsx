@@ -566,10 +566,10 @@ const DashboardPracas = () => {
                 </div>
               </div>
 
-              {/* Quadro Filter */}
+              {/* Especialidade Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium">Quadro</h4>
+                  <h4 className="text-sm font-medium">Especialidade</h4>
                   {selectedQuadros.length > 0 && (
                     <Badge variant="outline" className="text-xs">
                       {selectedQuadros.length} selecionado(s)
