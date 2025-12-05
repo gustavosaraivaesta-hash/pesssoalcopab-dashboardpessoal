@@ -201,9 +201,13 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         continue;
       }
 
-      // Skip header rows
-      if (firstCell === 'NEO' || firstCell === 'NOME' || firstCell === 'N°' || 
-          firstCell === 'Nº' || firstCell.includes('TIPO SETOR') || firstCell === '') {
+      // Skip header rows and common header keywords
+      const skipKeywords = ['NEO', 'NOME', 'N°', 'Nº', 'TIPO SETOR', 'GRADUAÇÃO', 'POSTO', 
+        'ESPECIALIDADE', 'DATA', 'MOTIVO', 'DESTINO', 'LOCAL', 'STATUS', 'CONCURSO',
+        'PREVISÃO DE EMBARQUE', 'RESUMO DA SITUAÇÃO', 'OFICIAIS ADIDOS', 'CURSO', 
+        'TIPO', 'PERÍODO', 'OBS', 'OBSERVAÇÃO', 'SO', '1SG', '2SG', '3SG', 'CB', 'MN',
+        'SETOR', 'CARGO', 'OPÇÃO', 'QUADRO', 'EFETIVO', 'TMFT', 'VAGO'];
+      if (firstCell === '' || skipKeywords.some(kw => firstCell === kw || firstCell.includes(kw))) {
         continue;
       }
 
@@ -288,7 +292,9 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         }
       } else if (currentSection === 'DESEMBARQUE') {
         const nome = getCell(row, 0) || getCell(row, 1);
-        if (nome && nome.length > 2 && !nome.includes('NOME')) {
+        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'DESTINO', 'MOTIVO', 'PREVISÃO', 'EMBARQUE', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS'];
+        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw));
+        if (nome && nome.length > 2 && !isHeader) {
           desembarqueCounter++;
           const record: DesembarqueRecord = {
             id: `${omName}-DES-${desembarqueCounter}`,
@@ -305,7 +311,9 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         }
       } else if (currentSection === 'TRRM') {
         const nome = getCell(row, 0) || getCell(row, 1);
-        if (nome && nome.length > 2 && !nome.includes('NOME')) {
+        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'PREVISÃO', 'CURSO', 'RESUMO', 'SITUAÇÃO', 'OFICIAIS', 'ADIDOS'];
+        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw));
+        if (nome && nome.length > 2 && !isHeader) {
           trrmCounter++;
           const record: TrrmRecord = {
             id: `${omName}-TRRM-${trrmCounter}`,
@@ -320,7 +328,9 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         }
       } else if (currentSection === 'LICENCAS') {
         const nome = getCell(row, 0) || getCell(row, 1);
-        if (nome && nome.length > 2 && !nome.includes('NOME')) {
+        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'TIPO', 'PERÍODO', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS'];
+        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw));
+        if (nome && nome.length > 2 && !isHeader) {
           licencaCounter++;
           const record: LicencaRecord = {
             id: `${omName}-LIC-${licencaCounter}`,
@@ -337,7 +347,9 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         }
       } else if (currentSection === 'DESTAQUES') {
         const nome = getCell(row, 0) || getCell(row, 1);
-        if (nome && nome.length > 2 && !nome.includes('NOME')) {
+        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'LOCAL', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS'];
+        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw));
+        if (nome && nome.length > 2 && !isHeader) {
           destaqueCounter++;
           const record: DestaqueRecord = {
             id: `${omName}-DEST-${destaqueCounter}`,
@@ -354,7 +366,9 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         }
       } else if (currentSection === 'CONCURSO') {
         const nome = getCell(row, 0) || getCell(row, 1);
-        if (nome && nome.length > 2 && !nome.includes('NOME')) {
+        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'STATUS', 'CONCURSO', 'C-EMOS', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS'];
+        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw));
+        if (nome && nome.length > 2 && !isHeader) {
           concursoCounter++;
           const record: ConcursoRecord = {
             id: `${omName}-CONC-${concursoCounter}`,
