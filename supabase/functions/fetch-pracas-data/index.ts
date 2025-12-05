@@ -483,15 +483,36 @@ Deno.serve(async (req) => {
 
     console.log(`Total: ${allPersonnel.length} personnel from ${allOMs.size} OMs`);
 
+    // Transform personnel data to match frontend interface
+    const transformedData = allPersonnel.map(p => ({
+      id: p.id,
+      neo: p.neo,
+      tipoSetor: p.tipoSetor,
+      setor: p.setor,
+      cargo: p.cargo,
+      postoTmft: p.postoTmft,
+      corpoTmft: '',
+      quadroTmft: p.especialidadeTmft, // Map especialidade to quadro for filter
+      opcaoTmft: p.opcaoTmft,
+      postoEfe: p.postoEfe,
+      corpoEfe: '',
+      quadroEfe: p.especialidadeEfe,
+      opcaoEfe: p.opcaoEfe,
+      nome: p.nome,
+      ocupado: !p.isVago,
+      om: p.om,
+      isExtraLotacao: p.isExtraLotacao,
+    }));
+
     const responseData = {
-      personnel: allPersonnel,
+      data: transformedData,
       desembarque: allDesembarque,
       trrm: allTrrm,
       licencas: allLicencas,
       destaques: allDestaques,
       concurso: allConcurso,
       setores: Array.from(allSetores).sort(),
-      especialidades: Array.from(allEspecialidades).sort(),
+      quadros: Array.from(allEspecialidades).sort(), // Return as quadros for frontend
       opcoes: Array.from(allOpcoes).sort(),
       oms: Array.from(allOMs).sort(),
       lastUpdate: new Date().toISOString(),
