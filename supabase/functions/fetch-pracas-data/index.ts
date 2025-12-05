@@ -211,14 +211,16 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         continue;
       }
 
-      // Skip header rows
+      // Skip header rows (but not empty NEO rows in TABELA_MESTRA - those might be EXTRA LOTAÇÃO)
       const skipKeywords = ['NEO', 'NOME', 'N°', 'Nº', 'TIPO SETOR', 'GRADUAÇÃO', 'POSTO', 
         'ESPECIALIDADE', 'DATA', 'MOTIVO', 'DESTINO', 'LOCAL', 'STATUS', 'CONCURSO',
         'PREVISÃO', 'RESUMO', 'OFICIAIS', 'CURSO', 'TIPO', 'PERÍODO', 'OBS', 'OBSERVAÇÃO',
         'SETOR', 'CARGO', 'OPÇÃO', 'QUADRO', 'EFETIVO', 'TMFT', 'EFE', 'DST', 'SIT',
         'PERCENTUAL', 'DOCUMENTO', 'REFERÊNCIA', 'MÊS', 'ANO', 'ORIGEM', 'EPOCA'];
       
-      if (firstCell === '' || skipKeywords.some(kw => firstCell === kw || firstCell.includes(kw))) {
+      // Only skip empty firstCell if NOT in TABELA_MESTRA (to allow EXTRA LOTAÇÃO detection)
+      const shouldSkipEmpty = firstCell === '' && currentSection !== 'TABELA_MESTRA';
+      if (shouldSkipEmpty || skipKeywords.some(kw => firstCell === kw || firstCell.includes(kw))) {
         continue;
       }
 
