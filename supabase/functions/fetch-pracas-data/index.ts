@@ -1,86 +1,92 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Edge function for fetching PRAÇAS data
 
 interface PersonnelRecord {
   id: string;
-  neo: number;
+  neo: string;
   tipoSetor: string;
   setor: string;
   cargo: string;
   postoTmft: string;
-  corpoTmft: string;
-  quadroTmft: string;
+  especialidadeTmft: string;
   opcaoTmft: string;
-  postoEfe: string;
-  corpoEfe: string;
-  quadroEfe: string;
-  opcaoEfe: string;
   nome: string;
-  ocupado: boolean;
+  postoEfe: string;
+  especialidadeEfe: string;
+  opcaoEfe: string;
   om: string;
+  isVago: boolean;
+  isExtraLotacao: boolean;
 }
 
 interface DesembarqueRecord {
-  posto: string;
-  corpo: string;
-  quadro: string;
-  cargo: string;
+  id: string;
   nome: string;
-  destino: string;
-  mesAno: string;
-  documento: string;
+  posto: string;
+  especialidade: string;
   om: string;
+  dataDesembarque: string;
+  destino: string;
+  motivo: string;
 }
 
 interface TrrmRecord {
-  posto: string;
-  corpo: string;
-  quadro: string;
-  cargo: string;
+  id: string;
   nome: string;
-  epocaPrevista: string;
+  posto: string;
+  especialidade: string;
   om: string;
+  dataTrrm: string;
 }
 
 interface LicencaRecord {
-  posto: string;
-  corpo: string;
-  quadro: string;
-  cargo: string;
+  id: string;
   nome: string;
-  emOutraOm: string;
-  deOutraOm: string;
-  periodo: string;
+  posto: string;
+  especialidade: string;
   om: string;
+  tipoLicenca: string;
+  dataInicio: string;
+  dataFim: string;
 }
 
 interface DestaqueRecord {
-  posto: string;
-  corpo: string;
-  quadro: string;
-  cargo: string;
+  id: string;
   nome: string;
-  emOutraOm: string;
-  deOutraOm: string;
-  periodo: string;
+  posto: string;
+  especialidade: string;
   om: string;
+  local: string;
+  dataInicio: string;
+  dataFim: string;
 }
 
 interface ConcursoRecord {
-  posto: string;
-  corpo: string;
-  quadro: string;
-  cargo: string;
+  id: string;
   nome: string;
-  anoPrevisto: string;
+  posto: string;
+  especialidade: string;
   om: string;
+  concurso: string;
+  status: string;
 }
 
-async function fetchSheetData(spreadsheetId: string, gid: string, apiKey: string): Promise<{
+// Sheet configurations for all OMs
+const SHEET_CONFIGS = [
+  { gid: '0', omName: 'DEPMSMRJ' },
+  { gid: '527671707', omName: 'COPAB' },
+  { gid: '280177623', omName: 'BAMRJ' },
+  { gid: '1658824367', omName: 'CDU-BAMRJ' },
+  { gid: '1650749150', omName: 'CDAM' },
+  { gid: '957180492', omName: 'CDU-1DN' },
+  { gid: '1495647476', omName: 'CMM' },
+  { gid: '469479928', omName: 'CSUPAB' },
+  { gid: '1610199360', omName: 'DEPSMRJ' },
+  { gid: '567760228', omName: 'DEPCMRJ' },
+  { gid: '1373834755', omName: 'DEPFMRJ' },
+  { gid: '295069813', omName: 'DEPSIMRJ' },
+];
+
+async function fetchSheetData(spreadsheetId: string, gid: string, omName: string): Promise<{
   personnel: PersonnelRecord[];
   desembarque: DesembarqueRecord[];
   trrm: TrrmRecord[];
@@ -88,360 +94,374 @@ async function fetchSheetData(spreadsheetId: string, gid: string, apiKey: string
   destaques: DestaqueRecord[];
   concurso: ConcursoRecord[];
   setores: string[];
-  quadros: string[];
+  especialidades: string[];
   opcoes: string[];
-  detectedOmName: string;
 }> {
-  // Use export URL to get CSV data (works without requiring sheet name)
-  const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
-  
-  console.log(`Fetching PRAÇAS from GID ${gid}...`);
-  
-  const response = await fetch(url);
-  
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`Failed to fetch GID ${gid}: ${response.status} - ${errorText}`);
-    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [], detectedOmName: `OM-${gid}` };
-  }
+  const personnel: PersonnelRecord[] = [];
+  const desembarque: DesembarqueRecord[] = [];
+  const trrm: TrrmRecord[] = [];
+  const licencas: LicencaRecord[] = [];
+  const destaques: DestaqueRecord[] = [];
+  const concurso: ConcursoRecord[] = [];
+  const setoresSet = new Set<string>();
+  const especialidadesSet = new Set<string>();
+  const opcoesSet = new Set<string>();
 
-  const csvText = await response.text();
-  
-  // Parse CSV
-  const rows: string[][] = [];
-  const lines = csvText.split('\n');
-  for (const line of lines) {
-    const row: string[] = [];
-    let inQuotes = false;
-    let cell = '';
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
+  try {
+    console.log(`Fetching PRAÇAS from GID ${gid} (${omName})...`);
+    
+    // Use CSV export URL
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
+    const response = await fetch(csvUrl);
+    
+    if (!response.ok) {
+      console.error(`Failed to fetch GID ${gid}: ${response.status}`);
+      return { personnel, desembarque, trrm, licencas, destaques, concurso, setores: [], especialidades: [], opcoes: [] };
+    }
+
+    const csvText = await response.text();
+    const rows: string[][] = [];
+    
+    // Parse CSV
+    let currentRow: string[] = [];
+    let currentCell = '';
+    let insideQuotes = false;
+    
+    for (let i = 0; i < csvText.length; i++) {
+      const char = csvText[i];
+      const nextChar = csvText[i + 1];
+      
       if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        row.push(cell.trim());
-        cell = '';
-      } else {
-        cell += char;
+        if (insideQuotes && nextChar === '"') {
+          currentCell += '"';
+          i++;
+        } else {
+          insideQuotes = !insideQuotes;
+        }
+      } else if (char === ',' && !insideQuotes) {
+        currentRow.push(currentCell.trim());
+        currentCell = '';
+      } else if ((char === '\n' || (char === '\r' && nextChar === '\n')) && !insideQuotes) {
+        currentRow.push(currentCell.trim());
+        if (currentRow.some(cell => cell !== '')) {
+          rows.push(currentRow);
+        }
+        currentRow = [];
+        currentCell = '';
+        if (char === '\r') i++;
+      } else if (char !== '\r') {
+        currentCell += char;
       }
     }
-    row.push(cell.trim());
-    rows.push(row);
-  }
+    
+    if (currentCell || currentRow.length > 0) {
+      currentRow.push(currentCell.trim());
+      if (currentRow.some(cell => cell !== '')) {
+        rows.push(currentRow);
+      }
+    }
 
-  if (rows.length === 0) {
-    console.log(`No data found for GID ${gid}`);
-    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [], detectedOmName: `OM-${gid}` };
-  }
+    console.log(`GID ${gid} (${omName}): Total rows = ${rows.length}`);
 
-  console.log(`GID ${gid}: Total rows = ${rows.length}`);
-  
-  // Helper function to get cell value
-  const getCell = (row: string[], index: number): string => String(row?.[index] || '').trim();
-  
-  // Detect OM name from first row
-  let detectedOmName = `OM-${gid}`;
-  const firstCellValue = getCell(rows[0], 0);
-  if (firstCellValue && !firstCellValue.includes('NEO') && !firstCellValue.includes('TABELA') && !firstCellValue.includes('SITUAÇÃO')) {
-    detectedOmName = firstCellValue;
-    console.log(`Detected OM name: ${detectedOmName}`);
-  }
-  
-  const personnelData: PersonnelRecord[] = [];
-  const desembarqueData: DesembarqueRecord[] = [];
-  const trrmData: TrrmRecord[] = [];
-  const licencasData: LicencaRecord[] = [];
-  const destaquesData: DestaqueRecord[] = [];
-  const concursoData: ConcursoRecord[] = [];
-  const setores = new Set<string>();
-  const quadros = new Set<string>();
-  const opcoes = new Set<string>();
-  
-  let currentSection = 'TABELA_MESTRA';
-  let extraLotacaoCounter = 0;
-  
-  const validPostos = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN', 'C ALTE', 'CONTRA-ALMIRANTE', 'CT', 'CF', 'CC', 'CMG', '1TEN', '2TEN', '1T', '2T', 'GM'];
-  
-  for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-    const row = rows[rowIndex] || [];
-    const firstCell = getCell(row, 0);
-    
-    // Detect section headers
-    if (firstCell === 'DESTAQUES/LICENÇAS' || firstCell === 'DESTAQUES') {
-      currentSection = 'DESTAQUES';
-      continue;
-    }
-    if (firstCell === 'LICENÇAS') {
-      currentSection = 'LICENCAS';
-      continue;
-    }
-    if (firstCell.includes('ADIDOS')) {
-      currentSection = 'SKIP';
-      continue;
-    }
-    if (firstCell.includes('DESEMBARQUE')) {
-      currentSection = 'DESEMBARQUE';
-      continue;
-    }
-    if (firstCell.includes('EMBARQUE')) {
-      currentSection = 'EMBARQUE';
-      continue;
-    }
-    if (firstCell.includes('TRRM')) {
-      currentSection = 'TRRM';
-      continue;
-    }
-    if (firstCell.includes('C-EMOS') || firstCell.includes('CONCURSO')) {
-      currentSection = 'CONCURSO';
-      continue;
-    }
-    if (firstCell === 'POSTO' || firstCell === 'NEO') {
-      continue;
-    }
-    if (firstCell.includes('RESUMO')) {
-      currentSection = 'RESUMO';
-      continue;
-    }
-    
-    // Check if NEO is valid
-    const neoString = firstCell;
-    const isValidNeo = neoString && (
-      !isNaN(Number(neoString)) || 
-      /^\d+(\.\d+)*$/.test(neoString)
-    );
-    
-    // Handle rows based on section
-    if (!isValidNeo) {
-      // Check if it's a data row in special sections
-      if ((currentSection === 'DESEMBARQUE' || currentSection === 'EMBARQUE') && validPostos.includes(firstCell)) {
-        const posto = firstCell;
-        const corpo = getCell(row, 1);
-        const quadro = getCell(row, 2);
-        const cargo = getCell(row, 3);
-        const nome = getCell(row, 4);
-        const destino = getCell(row, 9);
-        const mesAno = getCell(row, 10);
-        const documento = getCell(row, 11);
-        
-        if (nome && currentSection === 'DESEMBARQUE') {
-          desembarqueData.push({ posto, corpo, quadro, cargo, nome, destino, mesAno, documento, om: detectedOmName });
-          console.log(`${detectedOmName} Desembarque: ${nome}`);
-        }
-      }
+    const getCell = (row: string[], index: number): string => {
+      return row && row[index] ? row[index].trim() : '';
+    };
+
+    let currentSection = '';
+    let personnelCounter = 0;
+    let desembarqueCounter = 0;
+    let trrmCounter = 0;
+    let licencaCounter = 0;
+    let destaqueCounter = 0;
+    let concursoCounter = 0;
+    let extraLotacaoCounter = 0;
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const firstCell = getCell(row, 0).toUpperCase();
       
-      if (currentSection === 'TRRM' && validPostos.includes(firstCell)) {
-        const posto = firstCell;
-        const corpo = getCell(row, 1);
-        const quadro = getCell(row, 2);
-        const cargo = getCell(row, 3);
-        const nome = getCell(row, 4);
-        const epocaPrevista = getCell(row, 9);
-        
-        if (nome) {
-          trrmData.push({ posto, corpo, quadro, cargo, nome, epocaPrevista, om: detectedOmName });
-          console.log(`${detectedOmName} TRRM: ${nome}`);
-        }
+      // Detect section headers
+      if (firstCell.includes('TABELA MESTRA') || firstCell.includes('TABELA_MESTRA')) {
+        currentSection = 'TABELA_MESTRA';
+        continue;
+      } else if (firstCell === 'DESEMBARQUE' || firstCell.includes('PREVISÃO DE DESEMBARQUE')) {
+        currentSection = 'DESEMBARQUE';
+        continue;
+      } else if (firstCell === 'TRRM' || firstCell.includes('PREVISÃO DE TRRM')) {
+        currentSection = 'TRRM';
+        continue;
+      } else if (firstCell === 'LICENÇAS' || firstCell === 'LICENCAS' || firstCell.includes('LICENÇA')) {
+        currentSection = 'LICENCAS';
+        continue;
+      } else if (firstCell === 'DESTAQUES' || firstCell.includes('DESTAQUE')) {
+        currentSection = 'DESTAQUES';
+        continue;
+      } else if (firstCell === 'CONCURSO' || firstCell.includes('C-EMOS') || firstCell.includes('CONCURSO')) {
+        currentSection = 'CONCURSO';
+        continue;
       }
-      
-      if (currentSection === 'CONCURSO' && validPostos.includes(firstCell)) {
-        const posto = firstCell;
-        const corpo = getCell(row, 1);
-        const quadro = getCell(row, 2);
-        const cargo = getCell(row, 3);
-        const nome = getCell(row, 4);
-        const anoPrevisto = getCell(row, 9);
-        
-        if (nome) {
-          concursoData.push({ posto, corpo, quadro, cargo, nome, anoPrevisto, om: detectedOmName });
-          console.log(`${detectedOmName} Concurso: ${nome}`);
-        }
+
+      // Skip header rows
+      if (firstCell === 'NEO' || firstCell === 'NOME' || firstCell === 'N°' || 
+          firstCell === 'Nº' || firstCell.includes('TIPO SETOR') || firstCell === '') {
+        continue;
       }
-      
-      if (currentSection === 'DESTAQUES' && validPostos.includes(firstCell)) {
-        const posto = firstCell;
-        const corpo = getCell(row, 1);
-        const quadro = getCell(row, 2);
-        const cargo = getCell(row, 3);
-        const nome = getCell(row, 4);
-        const emOutraOm = getCell(row, 9);
-        const deOutraOm = getCell(row, 10);
-        const periodo = getCell(row, 11);
-        
-        if (nome) {
-          destaquesData.push({ posto, corpo, quadro, cargo, nome, emOutraOm, deOutraOm, periodo, om: detectedOmName });
-          console.log(`${detectedOmName} Destaque: ${nome}`);
-        }
+
+      // Skip summary rows with percentages
+      if (row.some(cell => cell && cell.includes('%'))) {
+        continue;
       }
-      
-      if (currentSection === 'LICENCAS' && validPostos.includes(firstCell)) {
-        const posto = firstCell;
-        const corpo = getCell(row, 1);
-        const quadro = getCell(row, 2);
+
+      // Process based on current section
+      if (currentSection === 'TABELA_MESTRA') {
+        const neo = getCell(row, 0);
+        const tipoSetor = getCell(row, 1);
+        const setor = getCell(row, 2);
         const cargo = getCell(row, 3);
-        const nome = getCell(row, 4);
-        const motivo = getCell(row, 9);
-        
-        if (nome) {
-          licencasData.push({ posto, corpo, quadro, cargo, nome, emOutraOm: '', deOutraOm: '', periodo: motivo, om: detectedOmName });
-          console.log(`${detectedOmName} Licença: ${nome}`);
-        }
-      }
-      
-      // EXTRA LOTAÇÃO - NEO is EMPTY but row has personnel data
-      // Check if NEO column is empty and there's a valid POSTO in the EFETIVO section (column 8)
-      if (currentSection === 'TABELA_MESTRA' && !neoString) {
-        const postoEfe = getCell(row, 8);  // POSTO from EFETIVO columns
-        const corpoEfe = getCell(row, 9);
-        const quadroEfe = getCell(row, 10);
-        const opcaoEfe = getCell(row, 11);
+        const postoTmft = getCell(row, 4);
+        const especialidadeTmft = getCell(row, 5);
+        const opcaoTmft = getCell(row, 6);
         const nome = getCell(row, 12);
-        
-        // Only add if there's a valid POSTO or a name
-        if ((validPostos.includes(postoEfe) || nome) && nome !== 'NOME') {
+        const postoEfe = getCell(row, 8);
+        const especialidadeEfe = getCell(row, 9);
+        const opcaoEfe = getCell(row, 10);
+
+        // Check for EXTRA LOTAÇÃO: when NEO is empty but has valid personnel data
+        if (!neo && (postoEfe || nome)) {
           extraLotacaoCounter++;
-          personnelData.push({
-            id: `${detectedOmName}-EXTRA-${extraLotacaoCounter}`,
-            neo: 0,
+          const record: PersonnelRecord = {
+            id: `${omName}-EXTRA-${extraLotacaoCounter}`,
+            neo: '0',
             tipoSetor: 'EXTRA LOTAÇÃO',
             setor: 'EXTRA LOTAÇÃO',
             cargo: 'EXTRA LOTAÇÃO',
             postoTmft: '',
-            corpoTmft: '',
-            quadroTmft: '',
+            especialidadeTmft: '',
             opcaoTmft: '',
+            nome: nome || 'EXTRA LOTAÇÃO',
+            postoEfe: postoEfe,
+            especialidadeEfe: especialidadeEfe,
+            opcaoEfe: opcaoEfe,
+            om: omName,
+            isVago: false,
+            isExtraLotacao: true,
+          };
+          personnel.push(record);
+          console.log(`${omName} EXTRA LOTAÇÃO: ${nome || 'SEM NOME'}`);
+          
+          if (especialidadeEfe) especialidadesSet.add(especialidadeEfe);
+          if (opcaoEfe) opcoesSet.add(opcaoEfe);
+          continue;
+        }
+
+        // Regular personnel record - needs valid NEO
+        if (neo && (postoTmft || cargo || nome)) {
+          personnelCounter++;
+          const isVago = !nome || nome.toUpperCase() === 'VAGO' || nome.toUpperCase() === 'VAZIO';
+          
+          const record: PersonnelRecord = {
+            id: `${omName}-${neo}-${personnelCounter}`,
+            neo,
+            tipoSetor,
+            setor,
+            cargo,
+            postoTmft,
+            especialidadeTmft,
+            opcaoTmft,
+            nome: isVago ? 'VAGO' : nome,
             postoEfe,
-            corpoEfe,
-            quadroEfe,
+            especialidadeEfe,
             opcaoEfe,
+            om: omName,
+            isVago,
+            isExtraLotacao: false,
+          };
+          
+          personnel.push(record);
+          console.log(`${omName} NEO=${neo}: ${nome || 'VAGO'}`);
+          
+          if (setor) setoresSet.add(setor);
+          if (especialidadeTmft) especialidadesSet.add(especialidadeTmft);
+          if (especialidadeEfe) especialidadesSet.add(especialidadeEfe);
+          if (opcaoTmft) opcoesSet.add(opcaoTmft);
+          if (opcaoEfe) opcoesSet.add(opcaoEfe);
+        }
+      } else if (currentSection === 'DESEMBARQUE') {
+        const nome = getCell(row, 0) || getCell(row, 1);
+        if (nome && nome.length > 2 && !nome.includes('NOME')) {
+          desembarqueCounter++;
+          const record: DesembarqueRecord = {
+            id: `${omName}-DES-${desembarqueCounter}`,
             nome,
-            ocupado: true,
-            om: detectedOmName,
-          });
-          if (quadroEfe) quadros.add(quadroEfe);
-          if (opcaoEfe) opcoes.add(opcaoEfe);
-          console.log(`${detectedOmName} EXTRA LOTAÇÃO: ${nome}`);
+            posto: getCell(row, 1) || getCell(row, 2),
+            especialidade: getCell(row, 2) || getCell(row, 3),
+            om: omName,
+            dataDesembarque: getCell(row, 3) || getCell(row, 4),
+            destino: getCell(row, 4) || getCell(row, 5),
+            motivo: getCell(row, 5) || getCell(row, 6),
+          };
+          desembarque.push(record);
+          console.log(`${omName} Desembarque: ${nome}`);
+        }
+      } else if (currentSection === 'TRRM') {
+        const nome = getCell(row, 0) || getCell(row, 1);
+        if (nome && nome.length > 2 && !nome.includes('NOME')) {
+          trrmCounter++;
+          const record: TrrmRecord = {
+            id: `${omName}-TRRM-${trrmCounter}`,
+            nome,
+            posto: getCell(row, 1) || getCell(row, 2),
+            especialidade: getCell(row, 2) || getCell(row, 3),
+            om: omName,
+            dataTrrm: getCell(row, 3) || getCell(row, 4),
+          };
+          trrm.push(record);
+          console.log(`${omName} TRRM: ${nome}`);
+        }
+      } else if (currentSection === 'LICENCAS') {
+        const nome = getCell(row, 0) || getCell(row, 1);
+        if (nome && nome.length > 2 && !nome.includes('NOME')) {
+          licencaCounter++;
+          const record: LicencaRecord = {
+            id: `${omName}-LIC-${licencaCounter}`,
+            nome,
+            posto: getCell(row, 1) || getCell(row, 2),
+            especialidade: getCell(row, 2) || getCell(row, 3),
+            om: omName,
+            tipoLicenca: getCell(row, 3) || getCell(row, 4),
+            dataInicio: getCell(row, 4) || getCell(row, 5),
+            dataFim: getCell(row, 5) || getCell(row, 6),
+          };
+          licencas.push(record);
+          console.log(`${omName} Licença: ${nome}`);
+        }
+      } else if (currentSection === 'DESTAQUES') {
+        const nome = getCell(row, 0) || getCell(row, 1);
+        if (nome && nome.length > 2 && !nome.includes('NOME')) {
+          destaqueCounter++;
+          const record: DestaqueRecord = {
+            id: `${omName}-DEST-${destaqueCounter}`,
+            nome,
+            posto: getCell(row, 1) || getCell(row, 2),
+            especialidade: getCell(row, 2) || getCell(row, 3),
+            om: omName,
+            local: getCell(row, 3) || getCell(row, 4),
+            dataInicio: getCell(row, 4) || getCell(row, 5),
+            dataFim: getCell(row, 5) || getCell(row, 6),
+          };
+          destaques.push(record);
+          console.log(`${omName} Destaque: ${nome}`);
+        }
+      } else if (currentSection === 'CONCURSO') {
+        const nome = getCell(row, 0) || getCell(row, 1);
+        if (nome && nome.length > 2 && !nome.includes('NOME')) {
+          concursoCounter++;
+          const record: ConcursoRecord = {
+            id: `${omName}-CONC-${concursoCounter}`,
+            nome,
+            posto: getCell(row, 1) || getCell(row, 2),
+            especialidade: getCell(row, 2) || getCell(row, 3),
+            om: omName,
+            concurso: getCell(row, 3) || getCell(row, 4),
+            status: getCell(row, 4) || getCell(row, 5),
+          };
+          concurso.push(record);
+          console.log(`${omName} Concurso: ${nome}`);
         }
       }
-      continue;
     }
-    
-    // Parse TABELA MESTRA rows (personnel data with valid NEO)
-    currentSection = 'TABELA_MESTRA';
-    
-    const tipoSetor = getCell(row, 1);
-    const setor = getCell(row, 2);
-    const cargo = getCell(row, 3);
-    const postoTmft = getCell(row, 4);
-    const corpoTmft = getCell(row, 5);
-    const quadroTmft = getCell(row, 6);
-    const opcaoTmft = getCell(row, 7);
-    const postoEfe = getCell(row, 8);
-    const corpoEfe = getCell(row, 9);
-    const quadroEfe = getCell(row, 10);
-    const opcaoEfe = getCell(row, 11);
-    const nome = getCell(row, 12);
-    
-    // Skip summary rows
-    if (tipoSetor.includes('%') || setor.includes('%') || cargo.includes('%')) {
-      continue;
-    }
-    
-    // Skip header rows
-    if (tipoSetor === 'TIPO SETOR' || setor === 'SETOR') {
-      continue;
-    }
-    
-    if (tipoSetor) setores.add(tipoSetor);
-    if (quadroTmft) quadros.add(quadroTmft);
-    if (opcaoTmft) opcoes.add(opcaoTmft);
-    
-    personnelData.push({
-      id: `${detectedOmName}-${neoString}`,
-      neo: parseFloat(neoString) || 0,
-      tipoSetor,
-      setor,
-      cargo,
-      postoTmft,
-      corpoTmft,
-      quadroTmft,
-      opcaoTmft,
-      postoEfe,
-      corpoEfe,
-      quadroEfe,
-      opcaoEfe,
-      nome,
-      ocupado: nome.length > 0 && nome !== 'VAZIO',
-      om: detectedOmName,
-    });
-    
-    console.log(`${detectedOmName} NEO=${neoString}: ${nome || 'VAGO'}`);
+
+    console.log(`${omName}: ${personnel.length} personnel, ${desembarque.length} desembarque, ${trrm.length} trrm, ${licencas.length} licencas`);
+
+  } catch (error) {
+    console.error(`Error fetching GID ${gid} (${omName}):`, error);
   }
 
-  console.log(`${detectedOmName}: ${personnelData.length} personnel, ${desembarqueData.length} desembarque`);
-  
   return {
-    personnel: personnelData,
-    desembarque: desembarqueData,
-    trrm: trrmData,
-    licencas: licencasData,
-    destaques: destaquesData,
-    concurso: concursoData,
-    setores: Array.from(setores),
-    quadros: Array.from(quadros),
-    opcoes: Array.from(opcoes),
-    detectedOmName,
+    personnel,
+    desembarque,
+    trrm,
+    licencas,
+    destaques,
+    concurso,
+    setores: Array.from(setoresSet).sort(),
+    especialidades: Array.from(especialidadesSet).sort(),
+    opcoes: Array.from(opcoesSet).sort(),
   };
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('Fetching PRAÇAS data from spreadsheet...');
-    
-    const apiKey = Deno.env.get('GOOGLE_SHEETS_API_KEY');
-    if (!apiKey) {
-      throw new Error('GOOGLE_SHEETS_API_KEY not configured');
-    }
+    console.log('Fetching PRAÇAS data from all OMs...');
     
     const spreadsheetId = '13YC7pfsERAJxdwzWPN12tTdNOVhlT_bbZXZigDZvalA';
     
-    // Fetch first sheet (gid=0)
-    const result = await fetchSheetData(spreadsheetId, '0', apiKey || '');
-    
-    const allOMs = new Set<string>();
-    result.personnel.forEach(p => allOMs.add(p.om));
-    
-    console.log(`Total: ${result.personnel.length} personnel from ${allOMs.size} OMs`);
-
-    return new Response(
-      JSON.stringify({ 
-        data: result.personnel,
-        desembarque: result.desembarque,
-        trrm: result.trrm,
-        licencas: result.licencas,
-        destaques: result.destaques,
-        concurso: result.concurso,
-        setores: result.setores,
-        quadros: result.quadros,
-        opcoes: result.opcoes,
-        oms: Array.from(allOMs).sort(),
-        lastUpdate: new Date().toLocaleTimeString('pt-BR'),
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+    // Fetch all OMs in parallel
+    const results = await Promise.all(
+      SHEET_CONFIGS.map(config => 
+        fetchSheetData(spreadsheetId, config.gid, config.omName)
+      )
     );
+    
+    // Aggregate all results
+    const allPersonnel: PersonnelRecord[] = [];
+    const allDesembarque: DesembarqueRecord[] = [];
+    const allTrrm: TrrmRecord[] = [];
+    const allLicencas: LicencaRecord[] = [];
+    const allDestaques: DestaqueRecord[] = [];
+    const allConcurso: ConcursoRecord[] = [];
+    const allSetores = new Set<string>();
+    const allEspecialidades = new Set<string>();
+    const allOpcoes = new Set<string>();
+    const allOMs = new Set<string>();
+    
+    for (const result of results) {
+      allPersonnel.push(...result.personnel);
+      allDesembarque.push(...result.desembarque);
+      allTrrm.push(...result.trrm);
+      allLicencas.push(...result.licencas);
+      allDestaques.push(...result.destaques);
+      allConcurso.push(...result.concurso);
+      result.setores.forEach(s => allSetores.add(s));
+      result.especialidades.forEach(q => allEspecialidades.add(q));
+      result.opcoes.forEach(o => allOpcoes.add(o));
+      result.personnel.forEach(p => allOMs.add(p.om));
+    }
+
+    console.log(`Total: ${allPersonnel.length} personnel from ${allOMs.size} OMs`);
+
+    const responseData = {
+      personnel: allPersonnel,
+      desembarque: allDesembarque,
+      trrm: allTrrm,
+      licencas: allLicencas,
+      destaques: allDestaques,
+      concurso: allConcurso,
+      setores: Array.from(allSetores).sort(),
+      especialidades: Array.from(allEspecialidades).sort(),
+      opcoes: Array.from(allOpcoes).sort(),
+      oms: Array.from(allOMs).sort(),
+      lastUpdate: new Date().toISOString(),
+    };
+
+    return new Response(JSON.stringify(responseData), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
   } catch (error) {
     console.error('Error fetching PRAÇAS data:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
+    return new Response(JSON.stringify({ error: String(error) }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });
