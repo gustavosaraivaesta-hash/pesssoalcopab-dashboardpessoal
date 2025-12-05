@@ -110,7 +110,6 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
   try {
     console.log(`Fetching PRAÇAS from GID ${gid} (${omName})...`);
     
-    // Use CSV export URL
     const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
     const response = await fetch(csvUrl);
     
@@ -181,32 +180,44 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       const firstCell = getCell(row, 0).toUpperCase();
       
       // Detect section headers
-      if (firstCell.includes('TABELA MESTRA') || firstCell.includes('TABELA_MESTRA')) {
+      if (firstCell.includes('TABELA MESTRA') || firstCell.includes('TABELA_MESTRA') || firstCell.includes('SITUAÇÃO DA FORÇA')) {
         currentSection = 'TABELA_MESTRA';
+        console.log(`${omName}: Detected TABELA_MESTRA section`);
         continue;
-      } else if (firstCell === 'DESEMBARQUE' || firstCell.includes('PREVISÃO DE DESEMBARQUE')) {
+      } else if (firstCell.includes('PREVISÃO DE DESEMBARQUE') || firstCell === 'DESEMBARQUE') {
         currentSection = 'DESEMBARQUE';
+        console.log(`${omName}: Detected DESEMBARQUE section`);
         continue;
-      } else if (firstCell === 'TRRM' || firstCell.includes('PREVISÃO DE TRRM')) {
+      } else if (firstCell.includes('PREVISÃO DE TRRM') || firstCell === 'TRRM') {
         currentSection = 'TRRM';
         continue;
-      } else if (firstCell === 'LICENÇAS' || firstCell === 'LICENCAS' || firstCell.includes('LICENÇA')) {
+      } else if (firstCell.includes('DESTAQUES') || firstCell.includes('LICENÇA') || firstCell.includes('LICENÇAS')) {
         currentSection = 'LICENCAS';
         continue;
-      } else if (firstCell === 'DESTAQUES' || firstCell.includes('DESTAQUE')) {
-        currentSection = 'DESTAQUES';
+      } else if (firstCell.includes('OFICIAIS ADIDOS')) {
+        currentSection = 'SKIP';
         continue;
-      } else if (firstCell === 'CONCURSO' || firstCell.includes('C-EMOS') || firstCell.includes('CONCURSO')) {
+      } else if (firstCell.includes('PREVISÃO DE EMBARQUE')) {
+        currentSection = 'SKIP';
+        continue;
+      } else if (firstCell.includes('CURSO') && !firstCell.includes('INCUMBÊNCIA')) {
+        currentSection = 'SKIP';
+        continue;
+      } else if (firstCell.includes('RESUMO DA SITUAÇÃO')) {
+        currentSection = 'SKIP';
+        continue;
+      } else if (firstCell.includes('CONCURSO') || firstCell.includes('C-EMOS')) {
         currentSection = 'CONCURSO';
         continue;
       }
 
-      // Skip header rows and common header keywords
+      // Skip header rows
       const skipKeywords = ['NEO', 'NOME', 'N°', 'Nº', 'TIPO SETOR', 'GRADUAÇÃO', 'POSTO', 
         'ESPECIALIDADE', 'DATA', 'MOTIVO', 'DESTINO', 'LOCAL', 'STATUS', 'CONCURSO',
-        'PREVISÃO DE EMBARQUE', 'RESUMO DA SITUAÇÃO', 'OFICIAIS ADIDOS', 'CURSO', 
-        'TIPO', 'PERÍODO', 'OBS', 'OBSERVAÇÃO', 'SO', '1SG', '2SG', '3SG', 'CB', 'MN',
-        'SETOR', 'CARGO', 'OPÇÃO', 'QUADRO', 'EFETIVO', 'TMFT', 'VAGO'];
+        'PREVISÃO', 'RESUMO', 'OFICIAIS', 'CURSO', 'TIPO', 'PERÍODO', 'OBS', 'OBSERVAÇÃO',
+        'SETOR', 'CARGO', 'OPÇÃO', 'QUADRO', 'EFETIVO', 'TMFT', 'EFE', 'DST', 'SIT',
+        'PERCENTUAL', 'DOCUMENTO', 'REFERÊNCIA', 'MÊS', 'ANO', 'ORIGEM', 'EPOCA'];
+      
       if (firstCell === '' || skipKeywords.some(kw => firstCell === kw || firstCell.includes(kw))) {
         continue;
       }
@@ -216,19 +227,26 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         continue;
       }
 
+      // Skip if current section is SKIP
+      if (currentSection === 'SKIP') {
+        continue;
+      }
+
       // Process based on current section
       if (currentSection === 'TABELA_MESTRA') {
         const neo = getCell(row, 0);
         const tipoSetor = getCell(row, 1);
         const setor = getCell(row, 2);
         const cargo = getCell(row, 3);
-        const postoTmft = getCell(row, 4);
-        const especialidadeTmft = getCell(row, 5);
-        const opcaoTmft = getCell(row, 6);
-        const nome = getCell(row, 12);
-        const postoEfe = getCell(row, 8);
-        const especialidadeEfe = getCell(row, 9);
-        const opcaoEfe = getCell(row, 10);
+        const postoTmft = getCell(row, 4);        // GRADUAÇÃO TMFT
+        const quadroTmft = getCell(row, 5);       // QUADRO TMFT
+        const especialidadeTmft = getCell(row, 6); // ESPECIALIDADE TMFT
+        const opcaoTmft = getCell(row, 7);        // OPÇÃO TMFT
+        const postoEfe = getCell(row, 8);         // GRADUAÇÃO EFE
+        const quadroEfe = getCell(row, 9);        // QUADRO EFE
+        const especialidadeEfe = getCell(row, 10); // ESPECIALIDADE EFE
+        const opcaoEfe = getCell(row, 11);        // OPÇÃO EFE
+        const nome = getCell(row, 12);            // NOME
 
         // Check for EXTRA LOTAÇÃO: when NEO is empty but has valid personnel data
         if (!neo && (postoEfe || nome)) {
@@ -258,8 +276,8 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           continue;
         }
 
-        // Regular personnel record - needs valid NEO
-        if (neo && (postoTmft || cargo || nome)) {
+        // Regular personnel record - needs valid NEO (numeric or alphanumeric starting with digit)
+        if (neo && /^\d/.test(neo) && (postoTmft || cargo || nome)) {
           personnelCounter++;
           const isVago = !nome || nome.toUpperCase() === 'VAGO' || nome.toUpperCase() === 'VAZIO';
           
@@ -282,7 +300,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           };
           
           personnel.push(record);
-          console.log(`${omName} NEO=${neo}: ${nome || 'VAGO'}`);
+          console.log(`${omName} NEO=${neo}: ${nome || 'VAGO'} - ESP: ${especialidadeTmft}`);
           
           if (setor) setoresSet.add(setor);
           if (especialidadeTmft) especialidadesSet.add(especialidadeTmft);
@@ -291,93 +309,105 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           if (opcaoEfe) opcoesSet.add(opcaoEfe);
         }
       } else if (currentSection === 'DESEMBARQUE') {
-        const nome = getCell(row, 0) || getCell(row, 1);
-        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'DESTINO', 'MOTIVO', 'PREVISÃO', 'EMBARQUE', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS'];
-        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw));
-        if (nome && nome.length > 2 && !isHeader) {
+        // DESEMBARQUE columns: GRADUAÇÃO, QUADRO, ESPECIALIDADE, CARGO/INCUMBÊNCIA, NOME, ..., DESTINO, MÊS/ANO
+        const posto = getCell(row, 0);
+        const quadro = getCell(row, 1);
+        const especialidade = getCell(row, 2);
+        const cargo = getCell(row, 3);
+        const nome = getCell(row, 4);
+        
+        // Skip if nome looks like a header
+        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'DESTINO', 'MOTIVO', 'PREVISÃO', 'EMBARQUE', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS', 'QUADRO', 'CARGO'];
+        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw) || posto.toUpperCase().includes(hw));
+        
+        if (nome && nome.length > 2 && !isHeader && posto) {
           desembarqueCounter++;
+          const destino = getCell(row, 9) || getCell(row, 5);
+          const dataDesembarque = getCell(row, 10) || getCell(row, 6);
+          
           const record: DesembarqueRecord = {
             id: `${omName}-DES-${desembarqueCounter}`,
             nome,
-            posto: getCell(row, 1) || getCell(row, 2),
-            especialidade: getCell(row, 2) || getCell(row, 3),
+            posto,
+            especialidade,
             om: omName,
-            dataDesembarque: getCell(row, 3) || getCell(row, 4),
-            destino: getCell(row, 4) || getCell(row, 5),
-            motivo: getCell(row, 5) || getCell(row, 6),
+            dataDesembarque,
+            destino,
+            motivo: cargo,
           };
           desembarque.push(record);
-          console.log(`${omName} Desembarque: ${nome}`);
+          console.log(`${omName} Desembarque: ${nome} - ${posto}`);
         }
       } else if (currentSection === 'TRRM') {
-        const nome = getCell(row, 0) || getCell(row, 1);
-        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'PREVISÃO', 'CURSO', 'RESUMO', 'SITUAÇÃO', 'OFICIAIS', 'ADIDOS'];
-        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw));
-        if (nome && nome.length > 2 && !isHeader) {
+        const posto = getCell(row, 0);
+        const quadro = getCell(row, 1);
+        const especialidade = getCell(row, 2);
+        const cargo = getCell(row, 3);
+        const nome = getCell(row, 4);
+        
+        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'PREVISÃO', 'CURSO', 'RESUMO', 'SITUAÇÃO', 'OFICIAIS', 'ADIDOS', 'QUADRO', 'CARGO', 'EPOCA'];
+        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw) || posto.toUpperCase().includes(hw));
+        
+        if (nome && nome.length > 2 && !isHeader && posto) {
           trrmCounter++;
+          const dataTrrm = getCell(row, 9) || getCell(row, 5);
+          
           const record: TrrmRecord = {
             id: `${omName}-TRRM-${trrmCounter}`,
             nome,
-            posto: getCell(row, 1) || getCell(row, 2),
-            especialidade: getCell(row, 2) || getCell(row, 3),
+            posto,
+            especialidade,
             om: omName,
-            dataTrrm: getCell(row, 3) || getCell(row, 4),
+            dataTrrm,
           };
           trrm.push(record);
           console.log(`${omName} TRRM: ${nome}`);
         }
       } else if (currentSection === 'LICENCAS') {
-        const nome = getCell(row, 0) || getCell(row, 1);
-        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'TIPO', 'PERÍODO', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS'];
-        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw));
-        if (nome && nome.length > 2 && !isHeader) {
+        const posto = getCell(row, 0);
+        const quadro = getCell(row, 1);
+        const especialidade = getCell(row, 2);
+        const cargo = getCell(row, 3);
+        const nome = getCell(row, 4);
+        
+        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'TIPO', 'PERÍODO', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS', 'QUADRO', 'CARGO', 'EM OUTRA', 'DE OUTRA'];
+        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw) || posto.toUpperCase().includes(hw));
+        
+        if (nome && nome.length > 2 && !isHeader && posto) {
           licencaCounter++;
           const record: LicencaRecord = {
             id: `${omName}-LIC-${licencaCounter}`,
             nome,
-            posto: getCell(row, 1) || getCell(row, 2),
-            especialidade: getCell(row, 2) || getCell(row, 3),
+            posto,
+            especialidade,
             om: omName,
-            tipoLicenca: getCell(row, 3) || getCell(row, 4),
-            dataInicio: getCell(row, 4) || getCell(row, 5),
-            dataFim: getCell(row, 5) || getCell(row, 6),
+            tipoLicenca: cargo,
+            dataInicio: getCell(row, 10) || getCell(row, 5),
+            dataFim: getCell(row, 11) || getCell(row, 6),
           };
           licencas.push(record);
           console.log(`${omName} Licença: ${nome}`);
         }
-      } else if (currentSection === 'DESTAQUES') {
-        const nome = getCell(row, 0) || getCell(row, 1);
-        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'LOCAL', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS'];
-        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw));
-        if (nome && nome.length > 2 && !isHeader) {
-          destaqueCounter++;
-          const record: DestaqueRecord = {
-            id: `${omName}-DEST-${destaqueCounter}`,
-            nome,
-            posto: getCell(row, 1) || getCell(row, 2),
-            especialidade: getCell(row, 2) || getCell(row, 3),
-            om: omName,
-            local: getCell(row, 3) || getCell(row, 4),
-            dataInicio: getCell(row, 4) || getCell(row, 5),
-            dataFim: getCell(row, 5) || getCell(row, 6),
-          };
-          destaques.push(record);
-          console.log(`${omName} Destaque: ${nome}`);
-        }
       } else if (currentSection === 'CONCURSO') {
-        const nome = getCell(row, 0) || getCell(row, 1);
-        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'STATUS', 'CONCURSO', 'C-EMOS', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS'];
-        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw));
-        if (nome && nome.length > 2 && !isHeader) {
+        const posto = getCell(row, 0);
+        const quadro = getCell(row, 1);
+        const especialidade = getCell(row, 2);
+        const cargo = getCell(row, 3);
+        const nome = getCell(row, 4);
+        
+        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'STATUS', 'CONCURSO', 'C-EMOS', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS', 'QUADRO', 'CARGO'];
+        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw) || posto.toUpperCase().includes(hw));
+        
+        if (nome && nome.length > 2 && !isHeader && posto) {
           concursoCounter++;
           const record: ConcursoRecord = {
             id: `${omName}-CONC-${concursoCounter}`,
             nome,
-            posto: getCell(row, 1) || getCell(row, 2),
-            especialidade: getCell(row, 2) || getCell(row, 3),
+            posto,
+            especialidade,
             om: omName,
-            concurso: getCell(row, 3) || getCell(row, 4),
-            status: getCell(row, 4) || getCell(row, 5),
+            concurso: cargo,
+            status: getCell(row, 5),
           };
           concurso.push(record);
           console.log(`${omName} Concurso: ${nome}`);
