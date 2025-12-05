@@ -37,7 +37,7 @@ import brasaoRepublica from "@/assets/brasao-republica.png";
 
 interface PersonnelRecord {
   id: string;
-  neo: number;
+  neo: number | string;
   tipoSetor: string;
   setor: string;
   cargo: string;
@@ -52,6 +52,7 @@ interface PersonnelRecord {
   nome: string;
   ocupado: boolean;
   om: string;
+  isExtraLotacao?: boolean;
 }
 
 interface DesembarqueRecord {
@@ -864,7 +865,7 @@ const DashboardPracas = () => {
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      {item.neo > 0 && (
+                      {Number(item.neo) > 0 && (
                         <Badge variant="outline" className="bg-blue-500 text-white border-blue-500 text-xs">
                           NEO {item.neo}
                         </Badge>
