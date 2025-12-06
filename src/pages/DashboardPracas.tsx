@@ -101,10 +101,10 @@ interface DestaqueRecord {
   om: string;
 }
 
-interface ConcursoRecord {
+interface CursoRecord {
   posto: string;
-  corpo: string;
   quadro: string;
+  especialidade: string;
   cargo: string;
   nome: string;
   anoPrevisto: string;
@@ -118,7 +118,7 @@ const DashboardPracas = () => {
   const [trrmData, setTrrmData] = useState<TrrmRecord[]>([]);
   const [licencasData, setLicencasData] = useState<LicencaRecord[]>([]);
   const [destaquesData, setDestaquesData] = useState<DestaqueRecord[]>([]);
-  const [concursoData, setConcursoData] = useState<ConcursoRecord[]>([]);
+  const [cursoData, setCursoData] = useState<CursoRecord[]>([]);
   const [availableOMs, setAvailableOMs] = useState<string[]>([]);
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
   const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
@@ -156,7 +156,7 @@ const DashboardPracas = () => {
         setTrrmData(result.trrm || []);
         setLicencasData(result.licencas || []);
         setDestaquesData(result.destaques || []);
-        setConcursoData(result.concurso || []);
+        setCursoData(result.concurso || []);
 
         const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
         const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
@@ -1108,23 +1108,24 @@ const DashboardPracas = () => {
 
             {activeTab === "concurso" && (
               <div className="space-y-4">
-                {concursoData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
-                  concursoData
+                {cursoData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                  cursoData
                     .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
                     .map((item, index) => (
-                    <div key={index} className="border-l-4 border-l-emerald-500 bg-card rounded-lg p-4 shadow-sm">
+                    <div key={index} className="border-l-4 border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-lg p-4 shadow-sm">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                          <p className="text-sm text-muted-foreground">{item.cargo || "-"}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
-                            <span className="text-emerald-600">Ano Previsto: {item.anoPrevisto || "Não informado"}</span>
+                            <span className="text-emerald-600 font-medium">Ano Previsto: {item.anoPrevisto || "Não informado"}</span>
                             <Badge variant="secondary">{item.om}</Badge>
                           </div>
                         </div>
                         <div className="flex gap-2">
                           <Badge variant="outline">{item.posto}</Badge>
                           <Badge variant="outline">{item.quadro}</Badge>
+                          {item.especialidade && <Badge variant="outline">{item.especialidade}</Badge>}
                         </div>
                       </div>
                     </div>
