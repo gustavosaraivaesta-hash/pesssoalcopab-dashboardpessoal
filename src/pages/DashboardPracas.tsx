@@ -907,11 +907,11 @@ const DashboardPracas = () => {
                 <TabsTrigger value="licencas" className="data-[state=active]:bg-background">
                   Licenças
                 </TabsTrigger>
-                <TabsTrigger value="destaques" className="data-[state=active]:bg-background">
-                  Destaques
+                <TabsTrigger value="destaques" className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-800 data-[state=active]:border-yellow-400">
+                  ⭐ Destaques
                 </TabsTrigger>
                 <TabsTrigger value="concurso" className="data-[state=active]:bg-background">
-                  Concurso C-EMOS
+                  Previsão de Curso
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -1080,7 +1080,7 @@ const DashboardPracas = () => {
                   destaquesData
                     .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
                     .map((item, index) => (
-                    <div key={index} className="border-l-4 border-l-cyan-500 bg-card rounded-lg p-4 shadow-sm">
+                    <div key={index} className="border-l-4 border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/20 rounded-lg p-4 shadow-sm">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
@@ -1131,7 +1131,7 @@ const DashboardPracas = () => {
                   ))
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    Nenhum registro de Concurso C-EMOS encontrado.
+                    Nenhum registro de Previsão de Curso encontrado.
                   </div>
                 )}
               </div>
