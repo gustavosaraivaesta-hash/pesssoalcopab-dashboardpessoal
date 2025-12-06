@@ -59,6 +59,7 @@ interface DesembarqueRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  especialidade: string;
   cargo: string;
   nome: string;
   destino: string;
@@ -71,6 +72,7 @@ interface TrrmRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  especialidade: string;
   cargo: string;
   nome: string;
   epocaPrevista: string;
@@ -81,6 +83,7 @@ interface LicencaRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  especialidade: string;
   cargo: string;
   nome: string;
   emOutraOm: string;
@@ -93,6 +96,7 @@ interface DestaqueRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  especialidade: string;
   cargo: string;
   nome: string;
   emOutraOm: string;
@@ -997,9 +1001,11 @@ const DashboardPracas = () => {
                           </div>
                           {item.documento && <p className="text-xs text-muted-foreground mt-1">{item.documento}</p>}
                         </div>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{item.posto}</Badge>
-                          <Badge variant="outline">{item.quadro}</Badge>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">GRAD: {item.posto}</Badge>
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">QUADRO: {item.quadro || "-"}</Badge>
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">ESP: {item.especialidade || "-"}</Badge>
+                          <Badge variant="secondary">{item.om}</Badge>
                         </div>
                       </div>
                     </div>
@@ -1025,12 +1031,13 @@ const DashboardPracas = () => {
                           <p className="text-sm text-muted-foreground">{item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-purple-600">Época Prevista: {item.epocaPrevista || "Não informado"}</span>
-                            <Badge variant="secondary">{item.om}</Badge>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{item.posto}</Badge>
-                          <Badge variant="outline">{item.quadro}</Badge>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">GRAD: {item.posto}</Badge>
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">QUADRO: {item.quadro || "-"}</Badge>
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">ESP: {item.especialidade || "-"}</Badge>
+                          <Badge variant="secondary">{item.om}</Badge>
                         </div>
                       </div>
                     </div>
@@ -1056,12 +1063,13 @@ const DashboardPracas = () => {
                           <p className="text-sm text-muted-foreground">{item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-orange-600">Motivo: {item.periodo || "Não informado"}</span>
-                            <Badge variant="secondary">{item.om}</Badge>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{item.posto}</Badge>
-                          <Badge variant="outline">{item.quadro}</Badge>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">GRAD: {item.posto}</Badge>
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">QUADRO: {item.quadro || "-"}</Badge>
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">ESP: {item.especialidade || "-"}</Badge>
+                          <Badge variant="secondary">{item.om}</Badge>
                         </div>
                       </div>
                     </div>
@@ -1088,12 +1096,13 @@ const DashboardPracas = () => {
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             {item.emOutraOm && <span className="text-cyan-600">Em: {item.emOutraOm}</span>}
                             {item.deOutraOm && <span className="text-cyan-600">De: {item.deOutraOm}</span>}
-                            <Badge variant="secondary">{item.om}</Badge>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{item.posto}</Badge>
-                          <Badge variant="outline">{item.quadro}</Badge>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">GRAD: {item.posto}</Badge>
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">QUADRO: {item.quadro || "-"}</Badge>
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">ESP: {item.especialidade || "-"}</Badge>
+                          <Badge variant="secondary">{item.om}</Badge>
                         </div>
                       </div>
                     </div>
@@ -1119,13 +1128,13 @@ const DashboardPracas = () => {
                           <p className="text-sm text-muted-foreground">{item.cargo || "-"}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-emerald-600 font-medium">Ano Previsto: {item.anoPrevisto || "Não informado"}</span>
-                            <Badge variant="secondary">{item.om}</Badge>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{item.posto}</Badge>
-                          <Badge variant="outline">{item.quadro}</Badge>
-                          {item.especialidade && <Badge variant="outline">{item.especialidade}</Badge>}
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">GRAD: {item.posto}</Badge>
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">QUADRO: {item.quadro || "-"}</Badge>
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">ESP: {item.especialidade || "-"}</Badge>
+                          <Badge variant="secondary">{item.om}</Badge>
                         </div>
                       </div>
                     </div>
