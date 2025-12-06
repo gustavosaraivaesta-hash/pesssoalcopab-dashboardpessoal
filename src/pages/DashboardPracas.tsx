@@ -895,23 +895,23 @@ const DashboardPracas = () => {
           <CardHeader className="pb-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="bg-muted/30 flex-wrap h-auto gap-1">
-                <TabsTrigger value="efetivo" className="data-[state=active]:bg-background">
-                  Tabela de Efetivo
+                <TabsTrigger value="efetivo" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-800 data-[state=active]:border-blue-400">
+                  📋 Tabela de Efetivo
                 </TabsTrigger>
-                <TabsTrigger value="previsao" className="data-[state=active]:bg-background">
-                  Previsão de Desembarque
+                <TabsTrigger value="previsao" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-800 data-[state=active]:border-amber-400">
+                  🚢 Previsão de Desembarque
                 </TabsTrigger>
-                <TabsTrigger value="trrm" className="data-[state=active]:bg-background">
-                  Previsão de TRRM
+                <TabsTrigger value="trrm" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800 data-[state=active]:border-purple-400">
+                  📅 Previsão de TRRM
                 </TabsTrigger>
-                <TabsTrigger value="licencas" className="data-[state=active]:bg-background">
-                  Licenças
+                <TabsTrigger value="licencas" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-800 data-[state=active]:border-orange-400">
+                  🏠 Licenças
                 </TabsTrigger>
                 <TabsTrigger value="destaques" className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-800 data-[state=active]:border-yellow-400">
                   ⭐ Destaques
                 </TabsTrigger>
-                <TabsTrigger value="concurso" className="data-[state=active]:bg-background">
-                  Previsão de Curso
+                <TabsTrigger value="concurso" className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-800 data-[state=active]:border-emerald-400">
+                  🎓 Previsão de Curso
                 </TabsTrigger>
               </TabsList>
             </Tabs>
