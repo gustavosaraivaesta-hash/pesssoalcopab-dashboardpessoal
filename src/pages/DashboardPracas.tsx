@@ -19,17 +19,7 @@ import {
   Filter,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  LabelList,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from "recharts";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
@@ -899,22 +889,40 @@ const DashboardPracas = () => {
           <CardHeader className="pb-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="bg-muted/30 flex-wrap h-auto gap-1">
-                <TabsTrigger value="efetivo" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-800 data-[state=active]:border-blue-400">
+                <TabsTrigger
+                  value="efetivo"
+                  className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-800 data-[state=active]:border-blue-400"
+                >
                   📋 Tabela de Efetivo
                 </TabsTrigger>
-                <TabsTrigger value="previsao" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-800 data-[state=active]:border-amber-400">
+                <TabsTrigger
+                  value="previsao"
+                  className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-800 data-[state=active]:border-amber-400"
+                >
                   🚢 Previsão de Desembarque
                 </TabsTrigger>
-                <TabsTrigger value="trrm" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800 data-[state=active]:border-purple-400">
+                <TabsTrigger
+                  value="trrm"
+                  className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800 data-[state=active]:border-purple-400"
+                >
                   📅 Previsão de TRRM
                 </TabsTrigger>
-                <TabsTrigger value="licencas" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-800 data-[state=active]:border-orange-400">
+                <TabsTrigger
+                  value="licencas"
+                  className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-800 data-[state=active]:border-orange-400"
+                >
                   🏠 Licenças
                 </TabsTrigger>
-                <TabsTrigger value="destaques" className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-800 data-[state=active]:border-yellow-400">
+                <TabsTrigger
+                  value="destaques"
+                  className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-800 data-[state=active]:border-yellow-400"
+                >
                   ⭐ Destaques
                 </TabsTrigger>
-                <TabsTrigger value="concurso" className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-800 data-[state=active]:border-emerald-400">
+                <TabsTrigger
+                  value="concurso"
+                  className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-800 data-[state=active]:border-emerald-400"
+                >
                   🎓 Previsão de Curso
                 </TabsTrigger>
               </TabsList>
@@ -1002,9 +1010,18 @@ const DashboardPracas = () => {
                           {item.documento && <p className="text-xs text-muted-foreground mt-1">{item.documento}</p>}
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">GRAD: {item.posto}</Badge>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">QUADRO: {item.quadro || "-"}</Badge>
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">ESP: {item.especialidade || "-"}</Badge>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                            {" "}
+                            {item.posto}
+                          </Badge>
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                            {" "}
+                            : {item.quadro || "-"}
+                          </Badge>
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
+                            {" "}
+                            : {item.especialidade || "-"}
+                          </Badge>
                           <Badge variant="secondary">{item.om}</Badge>
                         </div>
                       </div>
@@ -1020,125 +1037,160 @@ const DashboardPracas = () => {
 
             {activeTab === "trrm" && (
               <div className="space-y-4">
-                {trrmData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                {trrmData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
                   trrmData
-                    .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
                     .map((item, index) => (
-                    <div key={index} className="border-l-4 border-l-purple-500 bg-card rounded-lg p-4 shadow-sm">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
-                          <div className="flex items-center gap-4 mt-2 text-sm">
-                            <span className="text-purple-600">Época Prevista: {item.epocaPrevista || "Não informado"}</span>
+                      <div key={index} className="border-l-4 border-l-purple-500 bg-card rounded-lg p-4 shadow-sm">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm">
+                              <span className="text-purple-600">
+                                Época Prevista: {item.epocaPrevista || "Não informado"}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                              {item.posto}
+                            </Badge>
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                              {" "}
+                              {item.quadro || "-"}
+                            </Badge>
+                            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
+                              {" "}
+                              {item.especialidade || "-"}
+                            </Badge>
+                            <Badge variant="secondary">{item.om}</Badge>
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">GRAD: {item.posto}</Badge>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">QUADRO: {item.quadro || "-"}</Badge>
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">ESP: {item.especialidade || "-"}</Badge>
-                          <Badge variant="secondary">{item.om}</Badge>
-                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhuma previsão de TRRM encontrada.
-                  </div>
+                  <div className="text-center py-8 text-muted-foreground">Nenhuma previsão de TRRM encontrada.</div>
                 )}
               </div>
             )}
 
             {activeTab === "licencas" && (
               <div className="space-y-4">
-                {licencasData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                {licencasData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
                   licencasData
-                    .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
                     .map((item, index) => (
-                    <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
-                          <div className="flex items-center gap-4 mt-2 text-sm">
-                            <span className="text-orange-600">Motivo: {item.periodo || "Não informado"}</span>
+                      <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm">
+                              <span className="text-orange-600">Motivo: {item.periodo || "Não informado"}</span>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                              {" "}
+                              {item.posto}
+                            </Badge>
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                              {item.quadro || "-"}
+                            </Badge>
+                            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
+                              {item.especialidade || "-"}
+                            </Badge>
+                            <Badge variant="secondary">{item.om}</Badge>
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">GRAD: {item.posto}</Badge>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">QUADRO: {item.quadro || "-"}</Badge>
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">ESP: {item.especialidade || "-"}</Badge>
-                          <Badge variant="secondary">{item.om}</Badge>
-                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhuma licença encontrada.
-                  </div>
+                  <div className="text-center py-8 text-muted-foreground">Nenhuma licença encontrada.</div>
                 )}
               </div>
             )}
 
             {activeTab === "destaques" && (
               <div className="space-y-4">
-                {destaquesData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                {destaquesData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length >
+                0 ? (
                   destaquesData
-                    .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
                     .map((item, index) => (
-                    <div key={index} className="border-l-4 border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/20 rounded-lg p-4 shadow-sm">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
-                          <div className="flex items-center gap-4 mt-2 text-sm">
-                            {item.emOutraOm && <span className="text-cyan-600">Em: {item.emOutraOm}</span>}
-                            {item.deOutraOm && <span className="text-cyan-600">De: {item.deOutraOm}</span>}
+                      <div
+                        key={index}
+                        className="border-l-4 border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/20 rounded-lg p-4 shadow-sm"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm">
+                              {item.emOutraOm && <span className="text-cyan-600">Em: {item.emOutraOm}</span>}
+                              {item.deOutraOm && <span className="text-cyan-600">De: {item.deOutraOm}</span>}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                              {item.posto}
+                            </Badge>
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                              {item.quadro || "-"}
+                            </Badge>
+                            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
+                              {item.especialidade || "-"}
+                            </Badge>
+                            <Badge variant="secondary">{item.om}</Badge>
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">GRAD: {item.posto}</Badge>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">QUADRO: {item.quadro || "-"}</Badge>
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">ESP: {item.especialidade || "-"}</Badge>
-                          <Badge variant="secondary">{item.om}</Badge>
-                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhum destaque encontrado.
-                  </div>
+                  <div className="text-center py-8 text-muted-foreground">Nenhum destaque encontrado.</div>
                 )}
               </div>
             )}
 
             {activeTab === "concurso" && (
               <div className="space-y-4">
-                {cursoData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                {cursoData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
                   cursoData
-                    .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
                     .map((item, index) => (
-                    <div key={index} className="border-l-4 border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-lg p-4 shadow-sm">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                          <p className="text-sm text-muted-foreground">{item.cargo || "-"}</p>
-                          <div className="flex items-center gap-4 mt-2 text-sm">
-                            <span className="text-emerald-600 font-medium">Ano Previsto: {item.anoPrevisto || "Não informado"}</span>
+                      <div
+                        key={index}
+                        className="border-l-4 border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-lg p-4 shadow-sm"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <p className="text-sm text-muted-foreground">{item.cargo || "-"}</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm">
+                              <span className="text-emerald-600 font-medium">
+                                Ano Previsto: {item.anoPrevisto || "Não informado"}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                              {" "}
+                              {item.posto}
+                            </Badge>
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                              {" "}
+                              {item.quadro || "-"}
+                            </Badge>
+                            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
+                              {" "}
+                              {item.especialidade || "-"}
+                            </Badge>
+                            <Badge variant="secondary">{item.om}</Badge>
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">GRAD: {item.posto}</Badge>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">QUADRO: {item.quadro || "-"}</Badge>
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">ESP: {item.especialidade || "-"}</Badge>
-                          <Badge variant="secondary">{item.om}</Badge>
-                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     Nenhum registro de Previsão de Curso encontrado.
