@@ -1010,17 +1010,8 @@ const DashboardPracas = () => {
                           {item.documento && <p className="text-xs text-muted-foreground mt-1">{item.documento}</p>}
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
-                            {" "}
-                            {item.posto}
-                          </Badge>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
-                            {" "}
-                            : {item.quadro || "-"}
-                          </Badge>
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
-                            {" "}
-                            : {item.especialidade || "-"}
+                          <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
                           </Badge>
                           <Badge variant="secondary">{item.om}</Badge>
                         </div>
@@ -1053,16 +1044,8 @@ const DashboardPracas = () => {
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
-                              {item.posto}
-                            </Badge>
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
-                              {" "}
-                              {item.quadro || "-"}
-                            </Badge>
-                            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
-                              {" "}
-                              {item.especialidade || "-"}
+                            <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+                              {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
                             </Badge>
                             <Badge variant="secondary">{item.om}</Badge>
                           </div>
@@ -1091,15 +1074,8 @@ const DashboardPracas = () => {
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
-                              {" "}
-                              {item.posto}
-                            </Badge>
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
-                              {item.quadro || "-"}
-                            </Badge>
-                            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
-                              {item.especialidade || "-"}
+                            <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+                              {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
                             </Badge>
                             <Badge variant="secondary">{item.om}</Badge>
                           </div>
@@ -1133,14 +1109,8 @@ const DashboardPracas = () => {
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
-                              {item.posto}
-                            </Badge>
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
-                              {item.quadro || "-"}
-                            </Badge>
-                            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
-                              {item.especialidade || "-"}
+                            <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+                              {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
                             </Badge>
                             <Badge variant="secondary">{item.om}</Badge>
                           </div>
@@ -1174,17 +1144,8 @@ const DashboardPracas = () => {
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
-                              {" "}
-                              {item.posto}
-                            </Badge>
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
-                              {" "}
-                              {item.quadro || "-"}
-                            </Badge>
-                            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
-                              {" "}
-                              {item.especialidade || "-"}
+                            <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+                              {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
                             </Badge>
                             <Badge variant="secondary">{item.om}</Badge>
                           </div>
