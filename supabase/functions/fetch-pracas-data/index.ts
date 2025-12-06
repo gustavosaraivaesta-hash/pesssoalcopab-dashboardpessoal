@@ -60,14 +60,15 @@ interface DestaqueRecord {
   dataFim: string;
 }
 
-interface ConcursoRecord {
+interface CursoRecord {
   id: string;
   nome: string;
   posto: string;
+  quadro: string;
   especialidade: string;
+  cargo: string;
   om: string;
-  concurso: string;
-  status: string;
+  anoPrevisto: string;
 }
 
 // Sheet configurations for all OMs
@@ -92,7 +93,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
   trrm: TrrmRecord[];
   licencas: LicencaRecord[];
   destaques: DestaqueRecord[];
-  concurso: ConcursoRecord[];
+  concurso: CursoRecord[];
   setores: string[];
   especialidades: string[];
   opcoes: string[];
@@ -102,7 +103,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
   const trrm: TrrmRecord[] = [];
   const licencas: LicencaRecord[] = [];
   const destaques: DestaqueRecord[] = [];
-  const concurso: ConcursoRecord[] = [];
+  const concurso: CursoRecord[] = [];
   const setoresSet = new Set<string>();
   const especialidadesSet = new Set<string>();
   const opcoesSet = new Set<string>();
@@ -172,7 +173,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     let trrmCounter = 0;
     let licencaCounter = 0;
     let destaqueCounter = 0;
-    let concursoCounter = 0;
+    let cursoCounter = 0;
     let extraLotacaoCounter = 0;
 
     for (let i = 0; i < rows.length; i++) {
@@ -200,14 +201,16 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       } else if (firstCell.includes('PREVISÃO DE EMBARQUE')) {
         currentSection = 'SKIP';
         continue;
-      } else if (firstCell.includes('CURSO') && !firstCell.includes('INCUMBÊNCIA')) {
-        currentSection = 'SKIP';
+      } else if (firstCell.includes('PREVISÃO DE CURSO') || firstCell.includes('CURSO') && !firstCell.includes('INCUMBÊNCIA')) {
+        currentSection = 'CURSO';
+        console.log(`${omName}: Detected PREVISÃO DE CURSO section`);
         continue;
       } else if (firstCell.includes('RESUMO DA SITUAÇÃO')) {
         currentSection = 'SKIP';
         continue;
       } else if (firstCell.includes('CONCURSO') || firstCell.includes('C-EMOS')) {
-        currentSection = 'CONCURSO';
+        currentSection = 'CURSO';
+        console.log(`${omName}: Detected CURSO/CONCURSO section`);
         continue;
       }
 
@@ -390,29 +393,32 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           licencas.push(record);
           console.log(`${omName} Licença: ${nome}`);
         }
-      } else if (currentSection === 'CONCURSO') {
+      } else if (currentSection === 'CURSO') {
         const posto = getCell(row, 0);
         const quadro = getCell(row, 1);
         const especialidade = getCell(row, 2);
         const cargo = getCell(row, 3);
         const nome = getCell(row, 4);
         
-        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'STATUS', 'CONCURSO', 'C-EMOS', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS', 'QUADRO', 'CARGO'];
+        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'STATUS', 'CONCURSO', 'C-EMOS', 'CURSO', 'RESUMO', 'OFICIAIS', 'ADIDOS', 'QUADRO', 'CARGO', 'ANO'];
         const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw) || posto.toUpperCase().includes(hw));
         
         if (nome && nome.length > 2 && !isHeader && posto) {
-          concursoCounter++;
-          const record: ConcursoRecord = {
-            id: `${omName}-CONC-${concursoCounter}`,
+          cursoCounter++;
+          const anoPrevisto = getCell(row, 9) || getCell(row, 5);
+          
+          const record: CursoRecord = {
+            id: `${omName}-CURSO-${cursoCounter}`,
             nome,
             posto,
+            quadro,
             especialidade,
+            cargo,
             om: omName,
-            concurso: cargo,
-            status: getCell(row, 5),
+            anoPrevisto,
           };
           concurso.push(record);
-          console.log(`${omName} Concurso: ${nome}`);
+          console.log(`${omName} Previsão de Curso: ${nome} - Ano: ${anoPrevisto}`);
         }
       }
     }
@@ -464,7 +470,7 @@ Deno.serve(async (req) => {
     const allTrrm: TrrmRecord[] = [];
     const allLicencas: LicencaRecord[] = [];
     const allDestaques: DestaqueRecord[] = [];
-    const allConcurso: ConcursoRecord[] = [];
+    const allConcurso: CursoRecord[] = [];
     const allSetores = new Set<string>();
     const allEspecialidades = new Set<string>();
     const allOpcoes = new Set<string>();
