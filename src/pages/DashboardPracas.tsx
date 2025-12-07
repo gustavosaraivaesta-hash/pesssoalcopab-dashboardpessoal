@@ -382,92 +382,338 @@ const DashboardPracas = () => {
   const exportToPDF = async () => {
     try {
       const pdf = new jsPDF("l", "mm", "a4");
-      let yPosition = 20;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      let isFirstPage = true;
 
+      // Load brasao image
       const brasaoImg = new Image();
       brasaoImg.src = brasaoRepublica;
       await new Promise((resolve) => {
         brasaoImg.onload = resolve;
       });
-      pdf.addImage(brasaoImg, "PNG", 10, 10, 20, 25);
 
-      pdf.setFontSize(16);
-      pdf.text("CENTRO DE OPERAÇÕES DO ABASTECIMENTO", pdf.internal.pageSize.getWidth() / 2, yPosition, {
-        align: "center",
-      });
-      yPosition += 10;
+      // Helper function to add header with brasao for each OM section
+      const addOMHeader = (omName: string, startY: number) => {
+        let y = startY;
+        
+        // Add brasao centered above OM name
+        const brasaoWidth = 15;
+        const brasaoHeight = 18;
+        const brasaoX = (pageWidth - brasaoWidth) / 2;
+        pdf.addImage(brasaoImg, "PNG", brasaoX, y, brasaoWidth, brasaoHeight);
+        y += brasaoHeight + 3;
+
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(omName, pageWidth / 2, y, { align: "center" });
+        y += 8;
+
+        return y;
+      };
+
+      // Helper to check and add new page if needed
+      const checkNewPage = (currentY: number, neededHeight: number) => {
+        if (currentY + neededHeight > pageHeight - 20) {
+          pdf.addPage();
+          isFirstPage = false;
+          return 20;
+        }
+        return currentY;
+      };
+
+      // Add page numbers
+      const addPageNumbers = () => {
+        const totalPages = pdf.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+          pdf.setPage(i);
+          pdf.setFontSize(10);
+          pdf.text(`${i} - ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+        }
+      };
+
+      // Get unique OMs from filtered data
+      const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
+
+      // ====== FIRST PAGE - GENERAL INFO ======
+      let yPosition = 15;
+      
+      // Brasao and title
+      pdf.addImage(brasaoImg, "PNG", (pageWidth - 20) / 2, yPosition, 20, 24);
+      yPosition += 28;
 
       pdf.setFontSize(14);
-      pdf.text("Tabela Mestra de Força de Trabalho - PRAÇAS", pdf.internal.pageSize.getWidth() / 2, yPosition, {
-        align: "center",
-      });
-      yPosition += 15;
+      pdf.setFont("helvetica", "bold");
+      pdf.text("CENTRO DE OPERAÇÕES DO ABASTECIMENTO", pageWidth / 2, yPosition, { align: "center" });
+      yPosition += 8;
 
-      if (selectedOMs.length > 0 || selectedOpcoes.length > 0) {
-        pdf.setFontSize(10);
-        pdf.text("Filtros Aplicados:", 14, yPosition);
-        yPosition += 6;
-        if (selectedOMs.length > 0) pdf.text(`OM: ${selectedOMs.join(", ")}`, 20, yPosition);
-        if (selectedOpcoes.length > 0) pdf.text(`Opção: ${selectedOpcoes.join(", ")}`, 80, yPosition);
-        yPosition += 10;
-      }
-
-      pdf.setFontSize(10);
-      pdf.text(`TMFT Total: ${metrics.totalTMFT}`, 14, yPosition);
-      pdf.text(`Ocupados: ${metrics.totalEXI}`, 80, yPosition);
-      pdf.text(`Vagos: ${Math.abs(metrics.totalDIF)}`, 146, yPosition);
-      pdf.text(`Preenchimento: ${metrics.percentualPreenchimento.toFixed(1)}%`, 212, yPosition);
+      pdf.setFontSize(12);
+      pdf.text("DASHBOARD PRAÇAS - RELATÓRIO COMPLETO", pageWidth / 2, yPosition, { align: "center" });
       yPosition += 10;
 
-      if (chartRef.current) {
-        const canvas = await html2canvas(chartRef.current, { scale: 2 });
-        const imgData = canvas.toDataURL("image/png");
-        const imgWidth = 260;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        if (yPosition + imgHeight > pdf.internal.pageSize.getHeight() - 20) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-
-        pdf.addImage(imgData, "PNG", 14, yPosition, imgWidth, imgHeight);
-        yPosition += imgHeight + 10;
+      // Filters
+      if (selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0) {
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "normal");
+        let filterText = "Filtros: ";
+        if (selectedOMs.length > 0) filterText += `OM: ${selectedOMs.join(", ")} | `;
+        if (selectedQuadros.length > 0) filterText += `Especialidade: ${selectedQuadros.join(", ")} | `;
+        if (selectedOpcoes.length > 0) filterText += `Opção: ${selectedOpcoes.join(", ")}`;
+        pdf.text(filterText, 14, yPosition);
+        yPosition += 8;
       }
 
-      const tableData = filteredData.map((item) => [
-        item.neo.toString(),
-        item.setor,
-        item.cargo,
-        item.postoTmft,
-        item.quadroTmft,
-        item.nome || "-",
-        item.postoEfe || "-",
-        item.quadroEfe || "-",
-        item.ocupado ? "Ocupado" : "Vago",
-      ]);
+      // Metrics summary
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("RESUMO GERAL", 14, yPosition);
+      yPosition += 6;
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`TMFT: ${metrics.totalTMFT} | Efetivo: ${metrics.totalEXI} | Vagos: ${Math.abs(metrics.totalDIF)} | Atendimento: ${metrics.percentualPreenchimento.toFixed(1)}% | Extra Lotação: ${metrics.totalExtraLotacao}`, 14, yPosition);
+      yPosition += 12;
 
-      autoTable(pdf, {
-        startY: yPosition,
-        head: [["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "NOME", "POSTO REAL", "QUADRO REAL", "STATUS"]],
-        body: tableData,
-        theme: "grid",
-        styles: { fontSize: 7 },
-        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-        didDrawPage: (data) => {
-          const pageCount = pdf.getNumberOfPages();
-          const currentPage = (pdf as any).internal.getCurrentPageInfo().pageNumber;
+      // ====== TABELA DE EFETIVO POR OM ======
+      for (const om of activeOMs) {
+        const omData = filteredData.filter(item => item.om === om);
+        if (omData.length === 0) continue;
+
+        // New page for each OM
+        pdf.addPage();
+        yPosition = 15;
+
+        // Header with brasao above OM name
+        yPosition = addOMHeader(om, yPosition);
+        
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("TABELA DE EFETIVO", pageWidth / 2, yPosition, { align: "center" });
+        yPosition += 8;
+
+        // Group by setor
+        const grouped: Record<string, PersonnelRecord[]> = {};
+        omData.forEach(item => {
+          if (!grouped[item.setor]) grouped[item.setor] = [];
+          grouped[item.setor].push(item);
+        });
+
+        for (const [setor, items] of Object.entries(grouped)) {
+          yPosition = checkNewPage(yPosition, 30);
+          
+          pdf.setFontSize(9);
+          pdf.setFont("helvetica", "bold");
+          pdf.text(`${setor} (${items.length})`, 14, yPosition);
+          yPosition += 4;
+
+          const tableData = items.map(item => [
+            item.neo.toString(),
+            item.cargo,
+            item.postoTmft,
+            item.quadroTmft,
+            item.nome || "VAGO",
+            item.postoEfe || "-",
+            item.quadroEfe || "-",
+            item.ocupado ? "Ocupado" : "Vago",
+          ]);
+
+          autoTable(pdf, {
+            startY: yPosition,
+            head: [["NEO", "CARGO", "GRAD TMFT", "ESP TMFT", "NOME", "GRAD REAL", "ESP REAL", "STATUS"]],
+            body: tableData,
+            theme: "grid",
+            styles: { fontSize: 7, cellPadding: 1 },
+            headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+            margin: { left: 14, right: 14 },
+          });
+          yPosition = (pdf as any).lastAutoTable.finalY + 6;
+        }
+      }
+
+      // ====== PREVISÃO DE DESEMBARQUE ======
+      const filteredDesembarque = desembarqueData.filter(item => 
+        activeOMs.includes(item.om) && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro))
+      );
+      if (filteredDesembarque.length > 0) {
+        for (const om of activeOMs) {
+          const omDesembarque = filteredDesembarque.filter(item => item.om === om);
+          if (omDesembarque.length === 0) continue;
+
+          pdf.addPage();
+          yPosition = 15;
+          yPosition = addOMHeader(om, yPosition);
+
           pdf.setFontSize(10);
-          pdf.text(
-            `${currentPage} - ${pageCount}`,
-            pdf.internal.pageSize.getWidth() / 2,
-            pdf.internal.pageSize.getHeight() - 10,
-            { align: "center" },
-          );
-        },
-      });
+          pdf.setFont("helvetica", "bold");
+          pdf.text("PREVISÃO DE DESEMBARQUE", pageWidth / 2, yPosition, { align: "center" });
+          yPosition += 8;
 
-      pdf.save("tabela-mestra-pracas.pdf");
-      toast.success("PDF gerado com sucesso!");
+          const tableData = omDesembarque.map(item => [
+            item.nome,
+            `${item.posto}, ${item.quadro || "-"}, ${item.especialidade || "-"}`,
+            item.cargo,
+            item.destino,
+            item.mesAno,
+            item.documento || "-",
+          ]);
+
+          autoTable(pdf, {
+            startY: yPosition,
+            head: [["NOME", "GRAD/ESP", "CARGO", "DESTINO", "MÊS/ANO", "DOCUMENTO"]],
+            body: tableData,
+            theme: "grid",
+            styles: { fontSize: 7, cellPadding: 1 },
+            headStyles: { fillColor: [217, 119, 6], textColor: 255 },
+            margin: { left: 14, right: 14 },
+          });
+        }
+      }
+
+      // ====== PREVISÃO DE TRRM ======
+      const filteredTrrm = trrmData.filter(item => activeOMs.includes(item.om));
+      if (filteredTrrm.length > 0) {
+        for (const om of activeOMs) {
+          const omTrrm = filteredTrrm.filter(item => item.om === om);
+          if (omTrrm.length === 0) continue;
+
+          pdf.addPage();
+          yPosition = 15;
+          yPosition = addOMHeader(om, yPosition);
+
+          pdf.setFontSize(10);
+          pdf.setFont("helvetica", "bold");
+          pdf.text("PREVISÃO DE TRRM", pageWidth / 2, yPosition, { align: "center" });
+          yPosition += 8;
+
+          const tableData = omTrrm.map(item => [
+            item.nome,
+            `${item.posto}, ${item.quadro || "-"}, ${item.especialidade || "-"}`,
+            item.cargo,
+            item.epocaPrevista || "-",
+          ]);
+
+          autoTable(pdf, {
+            startY: yPosition,
+            head: [["NOME", "GRAD/ESP", "CARGO", "ÉPOCA PREVISTA"]],
+            body: tableData,
+            theme: "grid",
+            styles: { fontSize: 7, cellPadding: 1 },
+            headStyles: { fillColor: [147, 51, 234], textColor: 255 },
+            margin: { left: 14, right: 14 },
+          });
+        }
+      }
+
+      // ====== LICENÇAS ======
+      const filteredLicencas = licencasData.filter(item => activeOMs.includes(item.om));
+      if (filteredLicencas.length > 0) {
+        for (const om of activeOMs) {
+          const omLicencas = filteredLicencas.filter(item => item.om === om);
+          if (omLicencas.length === 0) continue;
+
+          pdf.addPage();
+          yPosition = 15;
+          yPosition = addOMHeader(om, yPosition);
+
+          pdf.setFontSize(10);
+          pdf.setFont("helvetica", "bold");
+          pdf.text("LICENÇAS", pageWidth / 2, yPosition, { align: "center" });
+          yPosition += 8;
+
+          const tableData = omLicencas.map(item => [
+            item.nome,
+            `${item.posto}, ${item.quadro || "-"}, ${item.especialidade || "-"}`,
+            item.cargo,
+            item.periodo || "-",
+          ]);
+
+          autoTable(pdf, {
+            startY: yPosition,
+            head: [["NOME", "GRAD/ESP", "CARGO", "MOTIVO"]],
+            body: tableData,
+            theme: "grid",
+            styles: { fontSize: 7, cellPadding: 1 },
+            headStyles: { fillColor: [234, 88, 12], textColor: 255 },
+            margin: { left: 14, right: 14 },
+          });
+        }
+      }
+
+      // ====== DESTAQUES ======
+      const filteredDestaques = destaquesData.filter(item => activeOMs.includes(item.om));
+      if (filteredDestaques.length > 0) {
+        for (const om of activeOMs) {
+          const omDestaques = filteredDestaques.filter(item => item.om === om);
+          if (omDestaques.length === 0) continue;
+
+          pdf.addPage();
+          yPosition = 15;
+          yPosition = addOMHeader(om, yPosition);
+
+          pdf.setFontSize(10);
+          pdf.setFont("helvetica", "bold");
+          pdf.text("DESTAQUES", pageWidth / 2, yPosition, { align: "center" });
+          yPosition += 8;
+
+          const tableData = omDestaques.map(item => [
+            item.nome,
+            `${item.posto}, ${item.quadro || "-"}, ${item.especialidade || "-"}`,
+            item.cargo,
+            item.emOutraOm || "-",
+            item.deOutraOm || "-",
+            item.periodo || "-",
+          ]);
+
+          autoTable(pdf, {
+            startY: yPosition,
+            head: [["NOME", "GRAD/ESP", "CARGO", "EM OUTRA OM", "DE OUTRA OM", "PERÍODO"]],
+            body: tableData,
+            theme: "grid",
+            styles: { fontSize: 7, cellPadding: 1 },
+            headStyles: { fillColor: [202, 138, 4], textColor: 255 },
+            margin: { left: 14, right: 14 },
+          });
+        }
+      }
+
+      // ====== PREVISÃO DE CURSO ======
+      const filteredCurso = cursoData.filter(item => activeOMs.includes(item.om));
+      if (filteredCurso.length > 0) {
+        for (const om of activeOMs) {
+          const omCurso = filteredCurso.filter(item => item.om === om);
+          if (omCurso.length === 0) continue;
+
+          pdf.addPage();
+          yPosition = 15;
+          yPosition = addOMHeader(om, yPosition);
+
+          pdf.setFontSize(10);
+          pdf.setFont("helvetica", "bold");
+          pdf.text("PREVISÃO DE CURSO", pageWidth / 2, yPosition, { align: "center" });
+          yPosition += 8;
+
+          const tableData = omCurso.map(item => [
+            item.nome,
+            `${item.posto}, ${item.quadro || "-"}, ${item.especialidade || "-"}`,
+            item.cargo || "-",
+            item.anoPrevisto || "-",
+          ]);
+
+          autoTable(pdf, {
+            startY: yPosition,
+            head: [["NOME", "GRAD/ESP", "CARGO", "ANO PREVISTO"]],
+            body: tableData,
+            theme: "grid",
+            styles: { fontSize: 7, cellPadding: 1 },
+            headStyles: { fillColor: [5, 150, 105], textColor: 255 },
+            margin: { left: 14, right: 14 },
+          });
+        }
+      }
+
+      // Add page numbers to all pages
+      addPageNumbers();
+
+      pdf.save("dashboard-pracas-completo.pdf");
+      toast.success("PDF completo gerado com sucesso!");
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast.error("Erro ao gerar PDF");
