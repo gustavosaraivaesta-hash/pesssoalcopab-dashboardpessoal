@@ -396,7 +396,7 @@ const DashboardPracas = () => {
       // Helper function to add header with brasao for each OM section
       const addOMHeader = (omName: string, startY: number) => {
         let y = startY;
-        
+
         // Add brasao centered above OM name
         const brasaoWidth = 15;
         const brasaoHeight = 18;
@@ -437,7 +437,7 @@ const DashboardPracas = () => {
 
       // ====== FIRST PAGE - GENERAL INFO ======
       let yPosition = 15;
-      
+
       // Brasao and title
       pdf.addImage(brasaoImg, "PNG", (pageWidth - 20) / 2, yPosition, 20, 24);
       yPosition += 28;
@@ -469,12 +469,16 @@ const DashboardPracas = () => {
       pdf.text("RESUMO GERAL", 14, yPosition);
       yPosition += 6;
       pdf.setFont("helvetica", "normal");
-      pdf.text(`TMFT: ${metrics.totalTMFT} | Efetivo: ${metrics.totalEXI} | Vagos: ${Math.abs(metrics.totalDIF)} | Atendimento: ${metrics.percentualPreenchimento.toFixed(1)}% | Extra Lotação: ${metrics.totalExtraLotacao}`, 14, yPosition);
+      pdf.text(
+        `TMFT: ${metrics.totalTMFT} | Efetivo: ${metrics.totalEXI} | Vagos: ${Math.abs(metrics.totalDIF)} | Atendimento: ${metrics.percentualPreenchimento.toFixed(1)}% | Extra Lotação: ${metrics.totalExtraLotacao}`,
+        14,
+        yPosition,
+      );
       yPosition += 12;
 
       // ====== TABELA DE EFETIVO POR OM ======
       for (const om of activeOMs) {
-        const omData = filteredData.filter(item => item.om === om);
+        const omData = filteredData.filter((item) => item.om === om);
         if (omData.length === 0) continue;
 
         // New page for each OM
@@ -483,7 +487,7 @@ const DashboardPracas = () => {
 
         // Header with brasao above OM name
         yPosition = addOMHeader(om, yPosition);
-        
+
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.text("TABELA DE EFETIVO", pageWidth / 2, yPosition, { align: "center" });
@@ -491,20 +495,20 @@ const DashboardPracas = () => {
 
         // Group by setor
         const grouped: Record<string, PersonnelRecord[]> = {};
-        omData.forEach(item => {
+        omData.forEach((item) => {
           if (!grouped[item.setor]) grouped[item.setor] = [];
           grouped[item.setor].push(item);
         });
 
         for (const [setor, items] of Object.entries(grouped)) {
           yPosition = checkNewPage(yPosition, 30);
-          
+
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
           pdf.text(`${setor} (${items.length})`, 14, yPosition);
           yPosition += 4;
 
-          const tableData = items.map(item => [
+          const tableData = items.map((item) => [
             item.neo.toString(),
             item.cargo,
             item.postoTmft,
@@ -529,12 +533,13 @@ const DashboardPracas = () => {
       }
 
       // ====== PREVISÃO DE DESEMBARQUE ======
-      const filteredDesembarque = desembarqueData.filter(item => 
-        activeOMs.includes(item.om) && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro))
+      const filteredDesembarque = desembarqueData.filter(
+        (item) =>
+          activeOMs.includes(item.om) && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)),
       );
       if (filteredDesembarque.length > 0) {
         for (const om of activeOMs) {
-          const omDesembarque = filteredDesembarque.filter(item => item.om === om);
+          const omDesembarque = filteredDesembarque.filter((item) => item.om === om);
           if (omDesembarque.length === 0) continue;
 
           pdf.addPage();
@@ -546,7 +551,7 @@ const DashboardPracas = () => {
           pdf.text("PREVISÃO DE DESEMBARQUE", pageWidth / 2, yPosition, { align: "center" });
           yPosition += 8;
 
-          const tableData = omDesembarque.map(item => [
+          const tableData = omDesembarque.map((item) => [
             item.nome,
             `${item.posto}, ${item.quadro || "-"}, ${item.especialidade || "-"}`,
             item.cargo,
@@ -568,10 +573,10 @@ const DashboardPracas = () => {
       }
 
       // ====== PREVISÃO DE TRRM ======
-      const filteredTrrm = trrmData.filter(item => activeOMs.includes(item.om));
+      const filteredTrrm = trrmData.filter((item) => activeOMs.includes(item.om));
       if (filteredTrrm.length > 0) {
         for (const om of activeOMs) {
-          const omTrrm = filteredTrrm.filter(item => item.om === om);
+          const omTrrm = filteredTrrm.filter((item) => item.om === om);
           if (omTrrm.length === 0) continue;
 
           pdf.addPage();
@@ -583,7 +588,7 @@ const DashboardPracas = () => {
           pdf.text("PREVISÃO DE TRRM", pageWidth / 2, yPosition, { align: "center" });
           yPosition += 8;
 
-          const tableData = omTrrm.map(item => [
+          const tableData = omTrrm.map((item) => [
             item.nome,
             `${item.posto}, ${item.quadro || "-"}, ${item.especialidade || "-"}`,
             item.cargo,
@@ -603,10 +608,10 @@ const DashboardPracas = () => {
       }
 
       // ====== LICENÇAS ======
-      const filteredLicencas = licencasData.filter(item => activeOMs.includes(item.om));
+      const filteredLicencas = licencasData.filter((item) => activeOMs.includes(item.om));
       if (filteredLicencas.length > 0) {
         for (const om of activeOMs) {
-          const omLicencas = filteredLicencas.filter(item => item.om === om);
+          const omLicencas = filteredLicencas.filter((item) => item.om === om);
           if (omLicencas.length === 0) continue;
 
           pdf.addPage();
@@ -618,7 +623,7 @@ const DashboardPracas = () => {
           pdf.text("LICENÇAS", pageWidth / 2, yPosition, { align: "center" });
           yPosition += 8;
 
-          const tableData = omLicencas.map(item => [
+          const tableData = omLicencas.map((item) => [
             item.nome,
             `${item.posto}, ${item.quadro || "-"}, ${item.especialidade || "-"}`,
             item.cargo,
@@ -638,10 +643,10 @@ const DashboardPracas = () => {
       }
 
       // ====== DESTAQUES ======
-      const filteredDestaques = destaquesData.filter(item => activeOMs.includes(item.om));
+      const filteredDestaques = destaquesData.filter((item) => activeOMs.includes(item.om));
       if (filteredDestaques.length > 0) {
         for (const om of activeOMs) {
-          const omDestaques = filteredDestaques.filter(item => item.om === om);
+          const omDestaques = filteredDestaques.filter((item) => item.om === om);
           if (omDestaques.length === 0) continue;
 
           pdf.addPage();
@@ -653,7 +658,7 @@ const DashboardPracas = () => {
           pdf.text("DESTAQUES", pageWidth / 2, yPosition, { align: "center" });
           yPosition += 8;
 
-          const tableData = omDestaques.map(item => [
+          const tableData = omDestaques.map((item) => [
             item.nome,
             `${item.posto}, ${item.quadro || "-"}, ${item.especialidade || "-"}`,
             item.cargo,
@@ -675,10 +680,10 @@ const DashboardPracas = () => {
       }
 
       // ====== PREVISÃO DE CURSO ======
-      const filteredCurso = cursoData.filter(item => activeOMs.includes(item.om));
+      const filteredCurso = cursoData.filter((item) => activeOMs.includes(item.om));
       if (filteredCurso.length > 0) {
         for (const om of activeOMs) {
-          const omCurso = filteredCurso.filter(item => item.om === om);
+          const omCurso = filteredCurso.filter((item) => item.om === om);
           if (omCurso.length === 0) continue;
 
           pdf.addPage();
@@ -690,7 +695,7 @@ const DashboardPracas = () => {
           pdf.text("PREVISÃO DE CURSO", pageWidth / 2, yPosition, { align: "center" });
           yPosition += 8;
 
-          const tableData = omCurso.map(item => [
+          const tableData = omCurso.map((item) => [
             item.nome,
             `${item.posto}, ${item.quadro || "-"}, ${item.especialidade || "-"}`,
             item.cargo || "-",
@@ -739,7 +744,7 @@ const DashboardPracas = () => {
       <div className="border-b bg-card p-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Dashboard PRAÇAS NOVO</h1>
+            <h1 className="text-3xl font-bold mb-2">Dashboard PRAÇAS </h1>
             <p className="text-muted-foreground">Centro de Operações do Abastecimento - Praças</p>
           </div>
           <div className="flex gap-3">
