@@ -22,6 +22,7 @@ interface DesembarqueRecord {
   id: string;
   nome: string;
   posto: string;
+  quadro: string;
   especialidade: string;
   om: string;
   dataDesembarque: string;
@@ -33,6 +34,7 @@ interface TrrmRecord {
   id: string;
   nome: string;
   posto: string;
+  quadro: string;
   especialidade: string;
   om: string;
   dataTrrm: string;
@@ -42,6 +44,7 @@ interface LicencaRecord {
   id: string;
   nome: string;
   posto: string;
+  quadro: string;
   especialidade: string;
   om: string;
   tipoLicenca: string;
@@ -53,6 +56,7 @@ interface DestaqueRecord {
   id: string;
   nome: string;
   posto: string;
+  quadro: string;
   especialidade: string;
   om: string;
   local: string;
@@ -334,6 +338,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             id: `${omName}-DES-${desembarqueCounter}`,
             nome,
             posto,
+            quadro,
             especialidade,
             om: omName,
             dataDesembarque,
@@ -361,6 +366,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             id: `${omName}-TRRM-${trrmCounter}`,
             nome,
             posto,
+            quadro,
             especialidade,
             om: omName,
             dataTrrm,
@@ -384,6 +390,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             id: `${omName}-LIC-${licencaCounter}`,
             nome,
             posto,
+            quadro,
             especialidade,
             om: omName,
             tipoLicenca: cargo,
