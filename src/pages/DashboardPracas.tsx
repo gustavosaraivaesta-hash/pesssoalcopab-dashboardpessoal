@@ -1118,6 +1118,11 @@ const DashboardPracas = () => {
                       <Badge variant="outline" className="text-xs">
                         {item.postoEfe || item.postoTmft}
                       </Badge>
+                      {(item.quadroEfe || item.quadroTmft) && (
+                        <Badge variant="outline" className="text-xs bg-purple-100 border-purple-300">
+                          {item.quadroEfe || item.quadroTmft}
+                        </Badge>
+                      )}
                       <Badge variant="secondary" className="text-xs">
                         {item.om}
                       </Badge>
