@@ -46,6 +46,7 @@ interface LicencaRecord {
   posto: string;
   quadro: string;
   especialidade: string;
+  cargo: string;
   om: string;
   tipoLicenca: string;
   dataInicio: string;
@@ -58,10 +59,11 @@ interface DestaqueRecord {
   posto: string;
   quadro: string;
   especialidade: string;
+  cargo: string;
   om: string;
-  local: string;
-  dataInicio: string;
-  dataFim: string;
+  emOutraOm: string;
+  deOutraOm: string;
+  periodo: string;
 }
 
 interface CursoRecord {
@@ -196,8 +198,13 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       } else if (firstCell.includes('PREVISÃO DE TRRM') || firstCell === 'TRRM') {
         currentSection = 'TRRM';
         continue;
-      } else if (firstCell.includes('DESTAQUES') || firstCell.includes('LICENÇA') || firstCell.includes('LICENÇAS')) {
+      } else if (firstCell.includes('DESTAQUES/LICENÇAS') || firstCell.includes('DESTAQUES')) {
+        currentSection = 'DESTAQUES';
+        console.log(`${omName}: Detected DESTAQUES section`);
+        continue;
+      } else if (firstCell.includes('LICENÇA') || firstCell.includes('LICENÇAS')) {
         currentSection = 'LICENCAS';
+        console.log(`${omName}: Detected LICENÇAS section`);
         continue;
       } else if (firstCell.includes('OFICIAIS ADIDOS')) {
         currentSection = 'SKIP';
@@ -392,13 +399,46 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             posto,
             quadro,
             especialidade,
+            cargo,
             om: omName,
-            tipoLicenca: cargo,
-            dataInicio: getCell(row, 10) || getCell(row, 5),
-            dataFim: getCell(row, 11) || getCell(row, 6),
+            tipoLicenca: getCell(row, 9) || getCell(row, 5),
+            dataInicio: getCell(row, 10) || getCell(row, 6),
+            dataFim: getCell(row, 11) || getCell(row, 7),
           };
           licencas.push(record);
           console.log(`${omName} Licença: ${nome}`);
+        }
+      } else if (currentSection === 'DESTAQUES') {
+        // DESTAQUES columns: GRADUAÇÃO, QUADRO, ESPECIALIDADE, CARGO/INCUMBÊNCIA, NOME, ..., EM OUTRA OM, DE OUTRA OM, PERÍODO
+        const posto = getCell(row, 0);
+        const quadro = getCell(row, 1);
+        const especialidade = getCell(row, 2);
+        const cargo = getCell(row, 3);
+        const nome = getCell(row, 4);
+        
+        const headerWords = ['NOME', 'GRADUAÇÃO', 'POSTO', 'ESPECIALIDADE', 'DATA', 'EM OUTRA', 'DE OUTRA', 'PERÍODO', 'QUADRO', 'CARGO'];
+        const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw) || posto.toUpperCase().includes(hw));
+        
+        if (nome && nome.length > 2 && !isHeader && posto) {
+          destaqueCounter++;
+          const emOutraOm = getCell(row, 9) || getCell(row, 5);
+          const deOutraOm = getCell(row, 10) || getCell(row, 6);
+          const periodo = getCell(row, 11) || getCell(row, 7);
+          
+          const record: DestaqueRecord = {
+            id: `${omName}-DEST-${destaqueCounter}`,
+            nome,
+            posto,
+            quadro,
+            especialidade,
+            cargo,
+            om: omName,
+            emOutraOm,
+            deOutraOm,
+            periodo,
+          };
+          destaques.push(record);
+          console.log(`${omName} Destaque: ${nome}`);
         }
       } else if (currentSection === 'CURSO') {
         const posto = getCell(row, 0);
@@ -519,13 +559,78 @@ Deno.serve(async (req) => {
       isExtraLotacao: p.isExtraLotacao,
     }));
 
+    // Transform licencas to match frontend interface
+    const transformedLicencas = allLicencas.map(l => ({
+      posto: l.posto,
+      corpo: '',
+      quadro: l.quadro,
+      especialidade: l.especialidade,
+      cargo: l.cargo || '',
+      nome: l.nome,
+      emOutraOm: '',
+      deOutraOm: '',
+      periodo: l.tipoLicenca || '', // Map tipoLicenca to periodo for frontend
+      om: l.om,
+    }));
+
+    // Transform desembarque to match frontend interface
+    const transformedDesembarque = allDesembarque.map(d => ({
+      posto: d.posto,
+      corpo: '',
+      quadro: d.quadro,
+      especialidade: d.especialidade,
+      cargo: d.motivo || '',
+      nome: d.nome,
+      destino: d.destino,
+      mesAno: d.dataDesembarque,
+      documento: '',
+      om: d.om,
+    }));
+
+    // Transform trrm to match frontend interface  
+    const transformedTrrm = allTrrm.map(t => ({
+      posto: t.posto,
+      corpo: '',
+      quadro: t.quadro,
+      especialidade: t.especialidade,
+      cargo: '',
+      nome: t.nome,
+      epocaPrevista: t.dataTrrm,
+      om: t.om,
+    }));
+
+    // Transform destaques to match frontend interface
+    const transformedDestaques = allDestaques.map(d => ({
+      posto: d.posto,
+      corpo: '',
+      quadro: d.quadro,
+      especialidade: d.especialidade,
+      cargo: d.cargo || '',
+      nome: d.nome,
+      emOutraOm: d.emOutraOm || '',
+      deOutraOm: d.deOutraOm || '',
+      periodo: d.periodo || '',
+      om: d.om,
+    }));
+
+    // Transform curso to match frontend interface
+    const transformedCurso = allConcurso.map(c => ({
+      posto: c.posto,
+      quadro: c.quadro,
+      especialidade: c.especialidade,
+      cargo: c.cargo,
+      nome: c.nome,
+      anoPrevisto: c.anoPrevisto,
+      om: c.om,
+    }));
+
     const responseData = {
       data: transformedData,
-      desembarque: allDesembarque,
-      trrm: allTrrm,
-      licencas: allLicencas,
-      destaques: allDestaques,
-      concurso: allConcurso,
+      desembarque: transformedDesembarque,
+      trrm: transformedTrrm,
+      licencas: transformedLicencas,
+      destaques: transformedDestaques,
+      concurso: transformedCurso,
       setores: Array.from(allSetores).sort(),
       quadros: Array.from(allEspecialidades).sort(), // Return as quadros for frontend
       opcoes: Array.from(allOpcoes).sort(),
