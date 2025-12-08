@@ -1031,7 +1031,7 @@ const DashboardPracas = () => {
                     <p className="font-medium text-sm text-foreground">{item.cargo}</p>
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
                     <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
-                      <span>Quadro: {item.quadroTmft || "-"}</span>
+                      <span>Especialidade: {item.quadroTmft || "-"}</span>
                       <span>•</span>
                       <span>Opção: {item.opcaoTmft || "-"}</span>
                     </div>
