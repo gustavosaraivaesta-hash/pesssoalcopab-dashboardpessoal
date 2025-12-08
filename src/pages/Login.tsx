@@ -15,8 +15,8 @@ const Login = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (username === "COPAB" && password === "COPAB031" OR password === "COPAB01") {
+
+    if ((username === "COPAB" && password === "COPAB031") || password === "COPAB01") {
       localStorage.setItem("isAuthenticated", "true");
       toast.success("Login realizado com sucesso!");
       navigate("/");
@@ -28,23 +28,27 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       {/* Background Image */}
-      <div 
+      <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${backgroundImage})` }}
       />
-      
+
       <Card className="w-full max-w-md relative z-10 bg-blue-600/90 backdrop-blur-sm text-white border-blue-700">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <Shield size={48} className="text-white" />
           </div>
           <CardTitle className="text-2xl text-white">Dashboard COpAb</CardTitle>
-          <CardDescription className="text-white/90">Centro de Operações do Abastecimento - Análise de Militares</CardDescription>
+          <CardDescription className="text-white/90">
+            Centro de Operações do Abastecimento - Análise de Militares
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-white">Usuário</Label>
+              <Label htmlFor="username" className="text-white">
+                Usuário
+              </Label>
               <Input
                 id="username"
                 type="text"
@@ -56,7 +60,9 @@ const Login = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Senha</Label>
+              <Label htmlFor="password" className="text-white">
+                Senha
+              </Label>
               <Input
                 id="password"
                 type="password"
