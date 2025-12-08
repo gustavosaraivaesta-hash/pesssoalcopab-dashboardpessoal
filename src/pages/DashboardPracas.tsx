@@ -384,7 +384,6 @@ const DashboardPracas = () => {
       const pdf = new jsPDF("l", "mm", "a4");
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      let isFirstPage = true;
 
       // Load brasao image
       const brasaoImg = new Image();
@@ -393,30 +392,10 @@ const DashboardPracas = () => {
         brasaoImg.onload = resolve;
       });
 
-      // Helper function to add header with brasao for each OM section
-      const addOMHeader = (omName: string, startY: number) => {
-        let y = startY;
-
-        // Add brasao centered above OM name
-        const brasaoWidth = 15;
-        const brasaoHeight = 18;
-        const brasaoX = (pageWidth - brasaoWidth) / 2;
-        pdf.addImage(brasaoImg, "PNG", brasaoX, y, brasaoWidth, brasaoHeight);
-        y += brasaoHeight + 3;
-
-        pdf.setFontSize(12);
-        pdf.setFont("helvetica", "bold");
-        pdf.text(omName, pageWidth / 2, y, { align: "center" });
-        y += 8;
-
-        return y;
-      };
-
       // Helper to check and add new page if needed
       const checkNewPage = (currentY: number, neededHeight: number) => {
         if (currentY + neededHeight > pageHeight - 20) {
           pdf.addPage();
-          isFirstPage = false;
           return 20;
         }
         return currentY;
@@ -432,13 +411,23 @@ const DashboardPracas = () => {
         }
       };
 
+      // Helper to add OM title (without brasão, used on all pages except first)
+      const addOMTitle = (omName: string, startY: number) => {
+        let y = startY;
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(omName, pageWidth / 2, y, { align: "center" });
+        y += 8;
+        return y;
+      };
+
       // Get unique OMs from filtered data
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
-      // ====== FIRST PAGE - GENERAL INFO ======
+      // ====== FIRST PAGE - BRASÃO + GENERAL INFO + CHARTS ======
       let yPosition = 15;
 
-      // Brasao and title
+      // Brasao and title (ONLY ON FIRST PAGE)
       pdf.addImage(brasaoImg, "PNG", (pageWidth - 20) / 2, yPosition, 20, 24);
       yPosition += 28;
 
@@ -476,7 +465,50 @@ const DashboardPracas = () => {
       );
       yPosition += 12;
 
-      // ====== TABELA DE EFETIVO POR OM ======
+      // ====== CHARTS SECTION ======
+      // Capture Vagas por OM chart
+      const vagosChartElement = document.querySelector('[data-chart="vagas-om"]') as HTMLElement;
+      if (vagosChartElement) {
+        try {
+          const canvas = await html2canvas(vagosChartElement, { scale: 2, backgroundColor: "#ffffff" });
+          const imgData = canvas.toDataURL("image/png");
+          const imgWidth = 130;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          
+          yPosition = checkNewPage(yPosition, imgHeight + 15);
+          pdf.setFontSize(10);
+          pdf.setFont("helvetica", "bold");
+          pdf.text("GRÁFICO - VAGAS POR OM", 14, yPosition);
+          yPosition += 5;
+          pdf.addImage(imgData, "PNG", 14, yPosition, imgWidth, imgHeight);
+          yPosition += imgHeight + 10;
+        } catch (e) {
+          console.error("Error capturing vagas chart:", e);
+        }
+      }
+
+      // Capture Distribuição por Graduação chart
+      const graduacaoChartElement = document.querySelector('[data-chart="graduacao"]') as HTMLElement;
+      if (graduacaoChartElement) {
+        try {
+          const canvas = await html2canvas(graduacaoChartElement, { scale: 2, backgroundColor: "#ffffff" });
+          const imgData = canvas.toDataURL("image/png");
+          const imgWidth = 130;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          
+          yPosition = checkNewPage(yPosition, imgHeight + 15);
+          pdf.setFontSize(10);
+          pdf.setFont("helvetica", "bold");
+          pdf.text("GRÁFICO - DISTRIBUIÇÃO POR GRADUAÇÃO", 14, yPosition);
+          yPosition += 5;
+          pdf.addImage(imgData, "PNG", 14, yPosition, imgWidth, imgHeight);
+          yPosition += imgHeight + 10;
+        } catch (e) {
+          console.error("Error capturing graduacao chart:", e);
+        }
+      }
+
+      // ====== TABELA DE EFETIVO POR OM (NEOs agrupadas por OM) ======
       for (const om of activeOMs) {
         const omData = filteredData.filter((item) => item.om === om);
         if (omData.length === 0) continue;
@@ -485,8 +517,8 @@ const DashboardPracas = () => {
         pdf.addPage();
         yPosition = 15;
 
-        // Header with brasao above OM name
-        yPosition = addOMHeader(om, yPosition);
+        // OM title (no brasão on subsequent pages)
+        yPosition = addOMTitle(om, yPosition);
 
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
@@ -532,7 +564,7 @@ const DashboardPracas = () => {
         }
       }
 
-      // ====== PREVISÃO DE DESEMBARQUE ======
+      // ====== PREVISÃO DE DESEMBARQUE (grouped by OM) ======
       const filteredDesembarque = desembarqueData.filter(
         (item) =>
           activeOMs.includes(item.om) && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)),
@@ -544,7 +576,7 @@ const DashboardPracas = () => {
 
           pdf.addPage();
           yPosition = 15;
-          yPosition = addOMHeader(om, yPosition);
+          yPosition = addOMTitle(om, yPosition);
 
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
@@ -572,7 +604,7 @@ const DashboardPracas = () => {
         }
       }
 
-      // ====== PREVISÃO DE TRRM ======
+      // ====== PREVISÃO DE TRRM (grouped by OM) ======
       const filteredTrrm = trrmData.filter((item) => activeOMs.includes(item.om));
       if (filteredTrrm.length > 0) {
         for (const om of activeOMs) {
@@ -581,7 +613,7 @@ const DashboardPracas = () => {
 
           pdf.addPage();
           yPosition = 15;
-          yPosition = addOMHeader(om, yPosition);
+          yPosition = addOMTitle(om, yPosition);
 
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
@@ -607,7 +639,7 @@ const DashboardPracas = () => {
         }
       }
 
-      // ====== LICENÇAS ======
+      // ====== LICENÇAS (grouped by OM) ======
       const filteredLicencas = licencasData.filter((item) => activeOMs.includes(item.om));
       if (filteredLicencas.length > 0) {
         for (const om of activeOMs) {
@@ -616,7 +648,7 @@ const DashboardPracas = () => {
 
           pdf.addPage();
           yPosition = 15;
-          yPosition = addOMHeader(om, yPosition);
+          yPosition = addOMTitle(om, yPosition);
 
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
@@ -642,7 +674,7 @@ const DashboardPracas = () => {
         }
       }
 
-      // ====== DESTAQUES ======
+      // ====== DESTAQUES (grouped by OM) ======
       const filteredDestaques = destaquesData.filter((item) => activeOMs.includes(item.om));
       if (filteredDestaques.length > 0) {
         for (const om of activeOMs) {
@@ -651,7 +683,7 @@ const DashboardPracas = () => {
 
           pdf.addPage();
           yPosition = 15;
-          yPosition = addOMHeader(om, yPosition);
+          yPosition = addOMTitle(om, yPosition);
 
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
@@ -679,7 +711,7 @@ const DashboardPracas = () => {
         }
       }
 
-      // ====== PREVISÃO DE CURSO ======
+      // ====== PREVISÃO DE CURSO (grouped by OM) ======
       const filteredCurso = cursoData.filter((item) => activeOMs.includes(item.om));
       if (filteredCurso.length > 0) {
         for (const om of activeOMs) {
@@ -688,7 +720,7 @@ const DashboardPracas = () => {
 
           pdf.addPage();
           yPosition = 15;
-          yPosition = addOMHeader(om, yPosition);
+          yPosition = addOMTitle(om, yPosition);
 
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
@@ -952,7 +984,7 @@ const DashboardPracas = () => {
         </div>
 
         {/* Vagos por OM */}
-        <Card className="border-red-200 bg-gradient-to-br from-red-50/50 to-background">
+        <Card className="border-red-200 bg-gradient-to-br from-red-50/50 to-background" data-chart="vagas-om">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-700">
               <UserX className="h-5 w-5" />
@@ -1043,7 +1075,7 @@ const DashboardPracas = () => {
         )}
 
         {/* Chart Distribuição por Posto */}
-        <Card ref={chartRef}>
+        <Card ref={chartRef} data-chart="graduacao">
           <CardHeader>
             <CardTitle>Distribuição por Graduação</CardTitle>
             <p className="text-sm text-muted-foreground">Clique nas colunas para ver os militares</p>
