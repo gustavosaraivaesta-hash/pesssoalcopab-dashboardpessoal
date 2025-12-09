@@ -316,7 +316,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           };
           
           personnel.push(record);
-          console.log(`${omName} NEO=${neo}: ${nome || 'VAGO'} - ESP: ${especialidadeTmft}`);
+          console.log(`${omName} NEO=${neo}: ${nome || 'VAGO'} - ESP: ${especialidadeTmft} - OPCAO: ${opcaoTmft}`);
           
           if (setor) setoresSet.add(setor);
           if (especialidadeTmft) especialidadesSet.add(especialidadeTmft);
