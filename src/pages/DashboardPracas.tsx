@@ -50,6 +50,7 @@ interface DesembarqueRecord {
   corpo: string;
   quadro: string;
   especialidade: string;
+  opcao: string;
   cargo: string;
   nome: string;
   destino: string;
@@ -63,6 +64,7 @@ interface TrrmRecord {
   corpo: string;
   quadro: string;
   especialidade: string;
+  opcao: string;
   cargo: string;
   nome: string;
   epocaPrevista: string;
@@ -74,6 +76,7 @@ interface LicencaRecord {
   corpo: string;
   quadro: string;
   especialidade: string;
+  opcao: string;
   cargo: string;
   nome: string;
   emOutraOm: string;
@@ -87,6 +90,7 @@ interface DestaqueRecord {
   corpo: string;
   quadro: string;
   especialidade: string;
+  opcao: string;
   cargo: string;
   nome: string;
   emOutraOm: string;
@@ -99,6 +103,7 @@ interface CursoRecord {
   posto: string;
   quadro: string;
   especialidade: string;
+  opcao: string;
   cargo: string;
   nome: string;
   anoPrevisto: string;
@@ -1221,6 +1226,11 @@ const DashboardPracas = () => {
                           {item.quadroEfe || item.quadroTmft}
                         </Badge>
                       )}
+                      {(item.opcaoEfe || item.opcaoTmft) && (
+                        <Badge variant="outline" className="text-xs bg-green-100 border-green-300">
+                          {item.opcaoEfe || item.opcaoTmft}
+                        </Badge>
+                      )}
                       <Badge variant="secondary" className="text-xs">
                         {item.om}
                       </Badge>
@@ -1324,12 +1334,15 @@ const DashboardPracas = () => {
                               >
                                 {item.ocupado ? "Ocupado" : "Vago"}
                               </Badge>
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 flex-wrap">
                                 <Badge variant="outline" className="bg-background">
                                   {item.ocupado ? item.postoEfe : item.postoTmft}
                                 </Badge>
                                 <Badge variant="outline" className="bg-background">
                                   {item.ocupado ? item.quadroEfe : item.quadroTmft}
+                                </Badge>
+                                <Badge variant="outline" className="bg-green-100 border-green-300">
+                                  {item.ocupado ? item.opcaoEfe : item.opcaoTmft}
                                 </Badge>
                               </div>
                             </div>
@@ -1365,7 +1378,7 @@ const DashboardPracas = () => {
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
-                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
+                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}, {item.opcao || "-"}
                           </Badge>
                           <Badge variant="secondary">{item.om}</Badge>
                         </div>
@@ -1397,7 +1410,7 @@ const DashboardPracas = () => {
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
-                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
+                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}, {item.opcao || "-"}
                           </Badge>
                           <Badge variant="secondary">{item.om}</Badge>
                         </div>
@@ -1425,7 +1438,7 @@ const DashboardPracas = () => {
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
-                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
+                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}, {item.opcao || "-"}
                           </Badge>
                           <Badge variant="secondary">{item.om}</Badge>
                         </div>
@@ -1457,7 +1470,7 @@ const DashboardPracas = () => {
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
-                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
+                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}, {item.opcao || "-"}
                           </Badge>
                           <Badge variant="secondary">{item.om}</Badge>
                         </div>
@@ -1490,7 +1503,7 @@ const DashboardPracas = () => {
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
-                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
+                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}, {item.opcao || "-"}
                           </Badge>
                           <Badge variant="secondary">{item.om}</Badge>
                         </div>

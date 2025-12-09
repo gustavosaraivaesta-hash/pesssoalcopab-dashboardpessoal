@@ -24,6 +24,7 @@ interface DesembarqueRecord {
   posto: string;
   quadro: string;
   especialidade: string;
+  opcao: string;
   om: string;
   dataDesembarque: string;
   destino: string;
@@ -36,6 +37,7 @@ interface TrrmRecord {
   posto: string;
   quadro: string;
   especialidade: string;
+  opcao: string;
   om: string;
   dataTrrm: string;
 }
@@ -46,6 +48,7 @@ interface LicencaRecord {
   posto: string;
   quadro: string;
   especialidade: string;
+  opcao: string;
   cargo: string;
   om: string;
   tipoLicenca: string;
@@ -59,6 +62,7 @@ interface DestaqueRecord {
   posto: string;
   quadro: string;
   especialidade: string;
+  opcao: string;
   cargo: string;
   om: string;
   emOutraOm: string;
@@ -72,6 +76,7 @@ interface CursoRecord {
   posto: string;
   quadro: string;
   especialidade: string;
+  opcao: string;
   cargo: string;
   om: string;
   anoPrevisto: string;
@@ -347,6 +352,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             posto,
             quadro,
             especialidade,
+            opcao: getCell(row, 7) || getCell(row, 3) || '',
             om: omName,
             dataDesembarque,
             destino,
@@ -375,6 +381,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             posto,
             quadro,
             especialidade,
+            opcao: getCell(row, 7) || getCell(row, 3) || '',
             om: omName,
             dataTrrm,
           };
@@ -399,6 +406,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             posto,
             quadro,
             especialidade,
+            opcao: getCell(row, 7) || getCell(row, 3) || '',
             cargo,
             om: omName,
             tipoLicenca: getCell(row, 9) || getCell(row, 5),
@@ -431,6 +439,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             posto,
             quadro,
             especialidade,
+            opcao: getCell(row, 7) || getCell(row, 3) || '',
             cargo,
             om: omName,
             emOutraOm,
@@ -460,6 +469,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             posto,
             quadro,
             especialidade,
+            opcao: getCell(row, 7) || getCell(row, 3) || '',
             cargo,
             om: omName,
             anoPrevisto,
@@ -565,6 +575,7 @@ Deno.serve(async (req) => {
       corpo: '',
       quadro: l.quadro,
       especialidade: l.especialidade,
+      opcao: l.opcao || '',
       cargo: l.cargo || '',
       nome: l.nome,
       emOutraOm: '',
@@ -579,6 +590,7 @@ Deno.serve(async (req) => {
       corpo: '',
       quadro: d.quadro,
       especialidade: d.especialidade,
+      opcao: d.opcao || '',
       cargo: d.motivo || '',
       nome: d.nome,
       destino: d.destino,
@@ -593,6 +605,7 @@ Deno.serve(async (req) => {
       corpo: '',
       quadro: t.quadro,
       especialidade: t.especialidade,
+      opcao: t.opcao || '',
       cargo: '',
       nome: t.nome,
       epocaPrevista: t.dataTrrm,
@@ -605,6 +618,7 @@ Deno.serve(async (req) => {
       corpo: '',
       quadro: d.quadro,
       especialidade: d.especialidade,
+      opcao: d.opcao || '',
       cargo: d.cargo || '',
       nome: d.nome,
       emOutraOm: d.emOutraOm || '',
@@ -618,6 +632,7 @@ Deno.serve(async (req) => {
       posto: c.posto,
       quadro: c.quadro,
       especialidade: c.especialidade,
+      opcao: c.opcao || '',
       cargo: c.cargo,
       nome: c.nome,
       anoPrevisto: c.anoPrevisto,
