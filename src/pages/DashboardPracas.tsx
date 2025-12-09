@@ -273,11 +273,67 @@ const DashboardPracas = () => {
     }
 
     if (selectedQuadros.length > 0) {
-      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro));
+      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade));
     }
 
     return filtered;
   }, [desembarqueData, selectedOMs, selectedQuadros]);
+
+  const filteredTrrmData = useMemo(() => {
+    let filtered = trrmData;
+
+    if (selectedOMs.length > 0) {
+      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
+    }
+
+    if (selectedQuadros.length > 0) {
+      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade));
+    }
+
+    return filtered;
+  }, [trrmData, selectedOMs, selectedQuadros]);
+
+  const filteredLicencasData = useMemo(() => {
+    let filtered = licencasData;
+
+    if (selectedOMs.length > 0) {
+      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
+    }
+
+    if (selectedQuadros.length > 0) {
+      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade));
+    }
+
+    return filtered;
+  }, [licencasData, selectedOMs, selectedQuadros]);
+
+  const filteredDestaquesData = useMemo(() => {
+    let filtered = destaquesData;
+
+    if (selectedOMs.length > 0) {
+      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
+    }
+
+    if (selectedQuadros.length > 0) {
+      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade));
+    }
+
+    return filtered;
+  }, [destaquesData, selectedOMs, selectedQuadros]);
+
+  const filteredCursoData = useMemo(() => {
+    let filtered = cursoData;
+
+    if (selectedOMs.length > 0) {
+      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
+    }
+
+    if (selectedQuadros.length > 0) {
+      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade));
+    }
+
+    return filtered;
+  }, [cursoData, selectedOMs, selectedQuadros]);
 
   const chartDataByPosto = useMemo(() => {
     const POSTO_ORDER = ["SO", "1SG", "2SG", "3SG", "CB", "MN"];
@@ -1316,10 +1372,8 @@ const DashboardPracas = () => {
 
             {activeTab === "trrm" && (
               <div className="space-y-4">
-                {trrmData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
-                  trrmData
-                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
-                    .map((item, index) => (
+                {filteredTrrmData.length > 0 ? (
+                  filteredTrrmData.map((item, index) => (
                       <div key={index} className="border-l-4 border-l-purple-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -1348,10 +1402,8 @@ const DashboardPracas = () => {
 
             {activeTab === "licencas" && (
               <div className="space-y-4">
-                {licencasData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
-                  licencasData
-                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
-                    .map((item, index) => (
+                {filteredLicencasData.length > 0 ? (
+                  filteredLicencasData.map((item, index) => (
                       <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -1378,11 +1430,8 @@ const DashboardPracas = () => {
 
             {activeTab === "destaques" && (
               <div className="space-y-4">
-                {destaquesData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length >
-                0 ? (
-                  destaquesData
-                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
-                    .map((item, index) => (
+                {filteredDestaquesData.length > 0 ? (
+                  filteredDestaquesData.map((item, index) => (
                       <div
                         key={index}
                         className="border-l-4 border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/20 rounded-lg p-4 shadow-sm"
@@ -1413,10 +1462,8 @@ const DashboardPracas = () => {
 
             {activeTab === "concurso" && (
               <div className="space-y-4">
-                {cursoData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
-                  cursoData
-                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
-                    .map((item, index) => (
+                {filteredCursoData.length > 0 ? (
+                  filteredCursoData.map((item, index) => (
                       <div
                         key={index}
                         className="border-l-4 border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-lg p-4 shadow-sm"
