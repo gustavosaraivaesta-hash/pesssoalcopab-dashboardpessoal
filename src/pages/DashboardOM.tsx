@@ -562,7 +562,7 @@ const DashboardOM = () => {
       <div className="border-b bg-card p-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Dashboard por Organização Militar</h1>
+            <h1 className="text-3xl font-bold mb-2">Dashboard OFICIAIS </h1>
             <p className="text-muted-foreground">Centro de Operações do Abastecimento</p>
           </div>
           <div className="flex gap-3">
@@ -1174,121 +1174,120 @@ const DashboardOM = () => {
 
             {activeTab === "trrm" && (
               <div className="space-y-4">
-                {trrmData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                {trrmData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
                   trrmData
-                    .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
                     .map((item, index) => (
-                    <div key={index} className="border-l-4 border-l-purple-500 bg-card rounded-lg p-4 shadow-sm">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
-                          <div className="flex items-center gap-4 mt-2 text-sm">
-                            <span className="text-purple-600">Época Prevista: {item.epocaPrevista || "Não informado"}</span>
-                            <Badge variant="secondary">{item.om}</Badge>
+                      <div key={index} className="border-l-4 border-l-purple-500 bg-card rounded-lg p-4 shadow-sm">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm">
+                              <span className="text-purple-600">
+                                Época Prevista: {item.epocaPrevista || "Não informado"}
+                              </span>
+                              <Badge variant="secondary">{item.om}</Badge>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge variant="outline">{item.posto}</Badge>
+                            <Badge variant="outline">{item.quadro}</Badge>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{item.posto}</Badge>
-                          <Badge variant="outline">{item.quadro}</Badge>
-                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhuma previsão de TRRM encontrada.
-                  </div>
+                  <div className="text-center py-8 text-muted-foreground">Nenhuma previsão de TRRM encontrada.</div>
                 )}
               </div>
             )}
 
             {activeTab === "licencas" && (
               <div className="space-y-4">
-                {licencasData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                {licencasData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
                   licencasData
-                    .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
                     .map((item, index) => (
-                    <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
-                          <div className="flex items-center gap-4 mt-2 text-sm">
-                            <span className="text-orange-600">Período: {item.periodo || "Não informado"}</span>
-                            <Badge variant="secondary">{item.om}</Badge>
+                      <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm">
+                              <span className="text-orange-600">Período: {item.periodo || "Não informado"}</span>
+                              <Badge variant="secondary">{item.om}</Badge>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge variant="outline">{item.posto}</Badge>
+                            <Badge variant="outline">{item.quadro}</Badge>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{item.posto}</Badge>
-                          <Badge variant="outline">{item.quadro}</Badge>
-                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhuma licença encontrada.
-                  </div>
+                  <div className="text-center py-8 text-muted-foreground">Nenhuma licença encontrada.</div>
                 )}
               </div>
             )}
 
             {activeTab === "destaques" && (
               <div className="space-y-4">
-                {destaquesData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                {destaquesData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length >
+                0 ? (
                   destaquesData
-                    .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
                     .map((item, index) => (
-                    <div key={index} className="border-l-4 border-l-cyan-500 bg-card rounded-lg p-4 shadow-sm">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
-                          <div className="flex items-center gap-4 mt-2 text-sm">
-                            {item.emOutraOm && <span className="text-cyan-600">Em: {item.emOutraOm}</span>}
-                            {item.deOutraOm && <span className="text-cyan-600">De: {item.deOutraOm}</span>}
-                            <Badge variant="secondary">{item.om}</Badge>
+                      <div key={index} className="border-l-4 border-l-cyan-500 bg-card rounded-lg p-4 shadow-sm">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm">
+                              {item.emOutraOm && <span className="text-cyan-600">Em: {item.emOutraOm}</span>}
+                              {item.deOutraOm && <span className="text-cyan-600">De: {item.deOutraOm}</span>}
+                              <Badge variant="secondary">{item.om}</Badge>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge variant="outline">{item.posto}</Badge>
+                            <Badge variant="outline">{item.quadro}</Badge>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{item.posto}</Badge>
-                          <Badge variant="outline">{item.quadro}</Badge>
-                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhum destaque encontrado.
-                  </div>
+                  <div className="text-center py-8 text-muted-foreground">Nenhum destaque encontrado.</div>
                 )}
               </div>
             )}
 
             {activeTab === "concurso" && (
               <div className="space-y-4">
-                {concursoData.filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                {concursoData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
                   concursoData
-                    .filter(item => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
                     .map((item, index) => (
-                    <div key={index} className="border-l-4 border-l-emerald-500 bg-card rounded-lg p-4 shadow-sm">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
-                          <div className="flex items-center gap-4 mt-2 text-sm">
-                            <span className="text-emerald-600">Ano Previsto: {item.anoPrevisto || "Não informado"}</span>
-                            <Badge variant="secondary">{item.om}</Badge>
+                      <div key={index} className="border-l-4 border-l-emerald-500 bg-card rounded-lg p-4 shadow-sm">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                            <div className="flex items-center gap-4 mt-2 text-sm">
+                              <span className="text-emerald-600">
+                                Ano Previsto: {item.anoPrevisto || "Não informado"}
+                              </span>
+                              <Badge variant="secondary">{item.om}</Badge>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge variant="outline">{item.posto}</Badge>
+                            <Badge variant="outline">{item.quadro}</Badge>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{item.posto}</Badge>
-                          <Badge variant="outline">{item.quadro}</Badge>
-                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     Nenhum registro de Concurso C-EMOS encontrado.
