@@ -233,7 +233,7 @@ const DashboardPracas = () => {
     setStatusFilter((prev) => (prev === status ? "all" : status));
   };
 
-  const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TCC"];
+  const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TTC"];
 
   const metrics = useMemo(() => {
     const regularData = filteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
@@ -273,7 +273,9 @@ const DashboardPracas = () => {
     }
 
     if (selectedQuadros.length > 0) {
-      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade));
+      filtered = filtered.filter(
+        (item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade),
+      );
     }
 
     return filtered;
@@ -287,7 +289,9 @@ const DashboardPracas = () => {
     }
 
     if (selectedQuadros.length > 0) {
-      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade));
+      filtered = filtered.filter(
+        (item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade),
+      );
     }
 
     return filtered;
@@ -301,7 +305,9 @@ const DashboardPracas = () => {
     }
 
     if (selectedQuadros.length > 0) {
-      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade));
+      filtered = filtered.filter(
+        (item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade),
+      );
     }
 
     return filtered;
@@ -315,7 +321,9 @@ const DashboardPracas = () => {
     }
 
     if (selectedQuadros.length > 0) {
-      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade));
+      filtered = filtered.filter(
+        (item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade),
+      );
     }
 
     return filtered;
@@ -329,7 +337,9 @@ const DashboardPracas = () => {
     }
 
     if (selectedQuadros.length > 0) {
-      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade));
+      filtered = filtered.filter(
+        (item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade),
+      );
     }
 
     return filtered;
@@ -530,7 +540,7 @@ const DashboardPracas = () => {
           const imgData = canvas.toDataURL("image/png");
           const imgWidth = 130;
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
-          
+
           yPosition = checkNewPage(yPosition, imgHeight + 15);
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
@@ -551,7 +561,7 @@ const DashboardPracas = () => {
           const imgData = canvas.toDataURL("image/png");
           const imgWidth = 130;
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
-          
+
           yPosition = checkNewPage(yPosition, imgHeight + 15);
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
@@ -1374,26 +1384,26 @@ const DashboardPracas = () => {
               <div className="space-y-4">
                 {filteredTrrmData.length > 0 ? (
                   filteredTrrmData.map((item, index) => (
-                      <div key={index} className="border-l-4 border-l-purple-500 bg-card rounded-lg p-4 shadow-sm">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                            <p className="text-sm text-muted-foreground">{item.cargo}</p>
-                            <div className="flex items-center gap-4 mt-2 text-sm">
-                              <span className="text-purple-600">
-                                Época Prevista: {item.epocaPrevista || "Não informado"}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
-                              {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
-                            </Badge>
-                            <Badge variant="secondary">{item.om}</Badge>
+                    <div key={index} className="border-l-4 border-l-purple-500 bg-card rounded-lg p-4 shadow-sm">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm">
+                            <span className="text-purple-600">
+                              Época Prevista: {item.epocaPrevista || "Não informado"}
+                            </span>
                           </div>
                         </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
+                          </Badge>
+                          <Badge variant="secondary">{item.om}</Badge>
+                        </div>
                       </div>
-                    ))
+                    </div>
+                  ))
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">Nenhuma previsão de TRRM encontrada.</div>
                 )}
@@ -1404,24 +1414,24 @@ const DashboardPracas = () => {
               <div className="space-y-4">
                 {filteredLicencasData.length > 0 ? (
                   filteredLicencasData.map((item, index) => (
-                      <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                            <p className="text-sm text-muted-foreground">{item.cargo}</p>
-                            <div className="flex items-center gap-4 mt-2 text-sm">
-                              <span className="text-orange-600">Motivo: {item.periodo || "Não informado"}</span>
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
-                              {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
-                            </Badge>
-                            <Badge variant="secondary">{item.om}</Badge>
+                    <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm">
+                            <span className="text-orange-600">Motivo: {item.periodo || "Não informado"}</span>
                           </div>
                         </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
+                          </Badge>
+                          <Badge variant="secondary">{item.om}</Badge>
+                        </div>
                       </div>
-                    ))
+                    </div>
+                  ))
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">Nenhuma licença encontrada.</div>
                 )}
@@ -1432,28 +1442,28 @@ const DashboardPracas = () => {
               <div className="space-y-4">
                 {filteredDestaquesData.length > 0 ? (
                   filteredDestaquesData.map((item, index) => (
-                      <div
-                        key={index}
-                        className="border-l-4 border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/20 rounded-lg p-4 shadow-sm"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                            <p className="text-sm text-muted-foreground">{item.cargo}</p>
-                            <div className="flex items-center gap-4 mt-2 text-sm">
-                              {item.emOutraOm && <span className="text-cyan-600">Em: {item.emOutraOm}</span>}
-                              {item.deOutraOm && <span className="text-cyan-600">De: {item.deOutraOm}</span>}
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
-                              {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
-                            </Badge>
-                            <Badge variant="secondary">{item.om}</Badge>
+                    <div
+                      key={index}
+                      className="border-l-4 border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/20 rounded-lg p-4 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm">
+                            {item.emOutraOm && <span className="text-cyan-600">Em: {item.emOutraOm}</span>}
+                            {item.deOutraOm && <span className="text-cyan-600">De: {item.deOutraOm}</span>}
                           </div>
                         </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
+                          </Badge>
+                          <Badge variant="secondary">{item.om}</Badge>
+                        </div>
                       </div>
-                    ))
+                    </div>
+                  ))
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">Nenhum destaque encontrado.</div>
                 )}
@@ -1464,29 +1474,29 @@ const DashboardPracas = () => {
               <div className="space-y-4">
                 {filteredCursoData.length > 0 ? (
                   filteredCursoData.map((item, index) => (
-                      <div
-                        key={index}
-                        className="border-l-4 border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-lg p-4 shadow-sm"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                            <p className="text-sm text-muted-foreground">{item.cargo || "-"}</p>
-                            <div className="flex items-center gap-4 mt-2 text-sm">
-                              <span className="text-emerald-600 font-medium">
-                                Ano Previsto: {item.anoPrevisto || "Não informado"}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
-                              {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
-                            </Badge>
-                            <Badge variant="secondary">{item.om}</Badge>
+                    <div
+                      key={index}
+                      className="border-l-4 border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-lg p-4 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                          <p className="text-sm text-muted-foreground">{item.cargo || "-"}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm">
+                            <span className="text-emerald-600 font-medium">
+                              Ano Previsto: {item.anoPrevisto || "Não informado"}
+                            </span>
                           </div>
                         </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}
+                          </Badge>
+                          <Badge variant="secondary">{item.om}</Badge>
+                        </div>
                       </div>
-                    ))
+                    </div>
+                  ))
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     Nenhum registro de Previsão de Curso encontrado.
