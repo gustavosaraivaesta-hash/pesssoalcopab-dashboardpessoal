@@ -873,16 +873,16 @@ const DashboardPracas = () => {
                 <Filter className="h-4 w-4" />
                 Filtros
               </h3>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0) && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     Limpar Filtros
                   </Button>
                 )}
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <RefreshCw className="h-4 w-4" />
-                  <span>Atualização: {lastUpdate}</span>
-                </div>
+                <Button onClick={fetchData} variant="outline" size="sm">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Atualizar
+                </Button>
                 <Button onClick={exportToPDF} variant="outline">
                   <Download className="mr-2 h-4 w-4" />
                   Exportar PDF
