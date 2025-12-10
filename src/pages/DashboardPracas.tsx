@@ -536,14 +536,14 @@ const DashboardPracas = () => {
       );
       yPosition += 12;
 
-      // ====== CHARTS SECTION (larger charts) ======
+      // ====== CHARTS SECTION (larger charts - full width) ======
       // Capture Vagas por OM chart
       const vagosChartElement = document.querySelector('[data-chart="vagas-om"]') as HTMLElement;
       if (vagosChartElement) {
         try {
           const canvas = await html2canvas(vagosChartElement, { scale: 2, backgroundColor: "#ffffff" });
           const imgData = canvas.toDataURL("image/png");
-          const imgWidth = 180;
+          const imgWidth = pageWidth - 28; // Full page width minus margins
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
           yPosition = checkNewPage(yPosition, imgHeight + 10);
@@ -564,7 +564,7 @@ const DashboardPracas = () => {
         try {
           const canvas = await html2canvas(graduacaoChartElement, { scale: 2, backgroundColor: "#ffffff" });
           const imgData = canvas.toDataURL("image/png");
-          const imgWidth = 180;
+          const imgWidth = pageWidth - 28; // Full page width minus margins
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
           yPosition = checkNewPage(yPosition, imgHeight + 10);
