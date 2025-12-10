@@ -451,6 +451,8 @@ const DashboardOM = () => {
   const exportToPDF = async () => {
     try {
       const pdf = new jsPDF("l", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
       let yPosition = 20;
 
       const brasaoImg = new Image();
@@ -458,16 +460,41 @@ const DashboardOM = () => {
       await new Promise((resolve) => {
         brasaoImg.onload = resolve;
       });
-      pdf.addImage(brasaoImg, "PNG", 10, 10, 20, 25);
+
+      // Helper to check and add new page if needed
+      const checkNewPage = (currentY: number, neededHeight: number) => {
+        if (currentY + neededHeight > pageHeight - 20) {
+          pdf.addPage();
+          return 20;
+        }
+        return currentY;
+      };
+
+      // Helper to add OM title with brasão
+      const addOMTitle = (omName: string, startY: number) => {
+        let y = startY;
+        // Add brasão centered above OM name
+        pdf.addImage(brasaoImg, "PNG", (pageWidth - 15) / 2, y, 15, 18);
+        y += 20;
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(omName, pageWidth / 2, y, { align: "center" });
+        y += 8;
+        return y;
+      };
+
+      // First page with brasão and general info
+      pdf.addImage(brasaoImg, "PNG", (pageWidth - 20) / 2, yPosition, 20, 24);
+      yPosition += 28;
 
       pdf.setFontSize(16);
-      pdf.text("CENTRO DE OPERAÇÕES DO ABASTECIMENTO", pdf.internal.pageSize.getWidth() / 2, yPosition, {
+      pdf.text("CENTRO DE OPERAÇÕES DO ABASTECIMENTO", pageWidth / 2, yPosition, {
         align: "center",
       });
       yPosition += 10;
 
       pdf.setFontSize(14);
-      pdf.text("Tabela Mestra de Força de Trabalho", pdf.internal.pageSize.getWidth() / 2, yPosition, {
+      pdf.text("Tabela Mestra de Força de Trabalho - OFICIAIS", pageWidth / 2, yPosition, {
         align: "center",
       });
       yPosition += 15;
@@ -488,52 +515,77 @@ const DashboardOM = () => {
       pdf.text(`Preenchimento: ${metrics.percentualPreenchimento.toFixed(1)}%`, 212, yPosition);
       yPosition += 10;
 
+      // Chart
       if (chartRef.current) {
         const canvas = await html2canvas(chartRef.current, { scale: 2 });
         const imgData = canvas.toDataURL("image/png");
-        const imgWidth = 260;
+        const imgWidth = pageWidth - 28;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-        if (yPosition + imgHeight > pdf.internal.pageSize.getHeight() - 20) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-
+        yPosition = checkNewPage(yPosition, imgHeight + 10);
         pdf.addImage(imgData, "PNG", 14, yPosition, imgWidth, imgHeight);
         yPosition += imgHeight + 10;
       }
 
-      const tableData = filteredData.map((item) => [
-        item.neo.toString(),
-        item.setor,
-        item.cargo,
-        item.postoTmft,
-        item.quadroTmft,
-        item.nome || "-",
-        item.postoEfe || "-",
-        item.quadroEfe || "-",
-        item.ocupado ? "Ocupado" : "Vago",
-      ]);
+      // Get unique OMs
+      const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
-      autoTable(pdf, {
-        startY: yPosition,
-        head: [["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "NOME", "POSTO REAL", "QUADRO REAL", "STATUS"]],
-        body: tableData,
-        theme: "grid",
-        styles: { fontSize: 7 },
-        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-        didDrawPage: (data) => {
-          const pageCount = pdf.getNumberOfPages();
-          const currentPage = (pdf as any).internal.getCurrentPageInfo().pageNumber;
-          pdf.setFontSize(10);
-          pdf.text(
-            `${currentPage} - ${pageCount}`,
-            pdf.internal.pageSize.getWidth() / 2,
-            pdf.internal.pageSize.getHeight() - 10,
-            { align: "center" },
-          );
-        },
-      });
+      // Tables by OM with brasão above each OM name
+      let isFirstOM = true;
+      for (const om of activeOMs) {
+        const omData = filteredData.filter((item) => item.om === om);
+        if (omData.length === 0) continue;
+
+        const estimatedHeight = 40 + (omData.length * 5);
+
+        if (isFirstOM) {
+          pdf.addPage();
+          yPosition = 15;
+          isFirstOM = false;
+        } else {
+          yPosition += 16;
+          yPosition = checkNewPage(yPosition, estimatedHeight);
+        }
+
+        // OM title with brasão
+        yPosition = addOMTitle(om, yPosition);
+
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("TABELA DE EFETIVO", pageWidth / 2, yPosition, { align: "center" });
+        yPosition += 6;
+
+        const tableData = omData.map((item) => [
+          item.neo.toString(),
+          item.setor,
+          item.cargo,
+          item.postoTmft,
+          item.quadroTmft,
+          item.nome || "-",
+          item.postoEfe || "-",
+          item.quadroEfe || "-",
+          item.ocupado ? "Ocupado" : "Vago",
+        ]);
+
+        autoTable(pdf, {
+          startY: yPosition,
+          head: [["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "NOME", "POSTO REAL", "QUADRO REAL", "STATUS"]],
+          body: tableData,
+          theme: "grid",
+          styles: { fontSize: 7, cellPadding: 1 },
+          headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+          margin: { left: 14, right: 14 },
+        });
+        yPosition = (pdf as any).lastAutoTable.finalY;
+      }
+
+      // Add page numbers
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(10);
+        pdf.text(`${i} - ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+      }
 
       pdf.save("tabela-mestra-forca-trabalho.pdf");
       toast.success("PDF gerado com sucesso!");
@@ -586,16 +638,16 @@ const DashboardOM = () => {
                 <Filter className="h-4 w-4" />
                 Filtros
               </h3>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0) && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     Limpar Filtros
                   </Button>
                 )}
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <RefreshCw className="h-4 w-4" />
-                  <span>Atualização: {lastUpdate}</span>
-                </div>
+                <Button onClick={fetchData} variant="outline" size="sm">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Atualizar
+                </Button>
                 <Button onClick={exportToPDF} variant="outline">
                   <Download className="mr-2 h-4 w-4" />
                   Exportar PDF
