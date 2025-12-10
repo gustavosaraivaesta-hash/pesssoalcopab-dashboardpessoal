@@ -579,7 +579,7 @@ const DashboardPracas = () => {
         }
       }
 
-      // ====== TABELA DE EFETIVO POR OM (NEOs agrupadas por OM) ======
+      // ====== TABELA DE EFETIVO POR OM (todas NEOs juntas em tabela única) ======
       for (const om of activeOMs) {
         const omData = filteredData.filter((item) => item.om === om);
         if (omData.length === 0) continue;
@@ -596,43 +596,35 @@ const DashboardPracas = () => {
         pdf.text("TABELA DE EFETIVO", pageWidth / 2, yPosition, { align: "center" });
         yPosition += 8;
 
-        // Group by setor
-        const grouped: Record<string, PersonnelRecord[]> = {};
-        omData.forEach((item) => {
-          if (!grouped[item.setor]) grouped[item.setor] = [];
-          grouped[item.setor].push(item);
+        // All NEOs in single table, sorted by NEO
+        const sortedData = [...omData].sort((a, b) => {
+          const neoA = typeof a.neo === 'number' ? a.neo : parseFloat(a.neo.toString()) || 0;
+          const neoB = typeof b.neo === 'number' ? b.neo : parseFloat(b.neo.toString()) || 0;
+          return neoA - neoB;
         });
 
-        for (const [setor, items] of Object.entries(grouped)) {
-          yPosition = checkNewPage(yPosition, 30);
+        const tableData = sortedData.map((item) => [
+          item.neo.toString(),
+          item.setor,
+          item.cargo,
+          item.postoTmft,
+          item.quadroTmft,
+          item.nome || "VAGO",
+          item.postoEfe || "-",
+          item.quadroEfe || "-",
+          item.ocupado ? "Ocupado" : "Vago",
+        ]);
 
-          pdf.setFontSize(9);
-          pdf.setFont("helvetica", "bold");
-          pdf.text(`${setor} (${items.length})`, 14, yPosition);
-          yPosition += 4;
-
-          const tableData = items.map((item) => [
-            item.neo.toString(),
-            item.cargo,
-            item.postoTmft,
-            item.quadroTmft,
-            item.nome || "VAGO",
-            item.postoEfe || "-",
-            item.quadroEfe || "-",
-            item.ocupado ? "Ocupado" : "Vago",
-          ]);
-
-          autoTable(pdf, {
-            startY: yPosition,
-            head: [["NEO", "CARGO", "GRAD TMFT", "ESP TMFT", "NOME", "GRAD REAL", "ESP REAL", "STATUS"]],
-            body: tableData,
-            theme: "grid",
-            styles: { fontSize: 7, cellPadding: 1 },
-            headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-            margin: { left: 14, right: 14 },
-          });
-          yPosition = (pdf as any).lastAutoTable.finalY + 6;
-        }
+        autoTable(pdf, {
+          startY: yPosition,
+          head: [["NEO", "SETOR", "CARGO", "GRAD TMFT", "ESP TMFT", "NOME", "GRAD REAL", "ESP REAL", "STATUS"]],
+          body: tableData,
+          theme: "grid",
+          styles: { fontSize: 7, cellPadding: 1 },
+          headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+          margin: { left: 14, right: 14 },
+        });
+        yPosition = (pdf as any).lastAutoTable.finalY + 6;
       }
 
       // ====== PREVISÃO DE DESEMBARQUE (grouped by OM) ======
