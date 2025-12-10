@@ -536,23 +536,23 @@ const DashboardPracas = () => {
       );
       yPosition += 12;
 
-      // ====== CHARTS SECTION ======
+      // ====== CHARTS SECTION (larger charts) ======
       // Capture Vagas por OM chart
       const vagosChartElement = document.querySelector('[data-chart="vagas-om"]') as HTMLElement;
       if (vagosChartElement) {
         try {
           const canvas = await html2canvas(vagosChartElement, { scale: 2, backgroundColor: "#ffffff" });
           const imgData = canvas.toDataURL("image/png");
-          const imgWidth = 130;
+          const imgWidth = 180;
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-          yPosition = checkNewPage(yPosition, imgHeight + 15);
+          yPosition = checkNewPage(yPosition, imgHeight + 10);
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
           pdf.text("GRÁFICO - VAGAS POR OM", 14, yPosition);
-          yPosition += 5;
+          yPosition += 4;
           pdf.addImage(imgData, "PNG", 14, yPosition, imgWidth, imgHeight);
-          yPosition += imgHeight + 10;
+          yPosition += imgHeight + 6;
         } catch (e) {
           console.error("Error capturing vagas chart:", e);
         }
@@ -564,37 +564,47 @@ const DashboardPracas = () => {
         try {
           const canvas = await html2canvas(graduacaoChartElement, { scale: 2, backgroundColor: "#ffffff" });
           const imgData = canvas.toDataURL("image/png");
-          const imgWidth = 130;
+          const imgWidth = 180;
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-          yPosition = checkNewPage(yPosition, imgHeight + 15);
+          yPosition = checkNewPage(yPosition, imgHeight + 10);
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
           pdf.text("GRÁFICO - DISTRIBUIÇÃO POR GRADUAÇÃO", 14, yPosition);
-          yPosition += 5;
+          yPosition += 4;
           pdf.addImage(imgData, "PNG", 14, yPosition, imgWidth, imgHeight);
-          yPosition += imgHeight + 10;
+          yPosition += imgHeight + 6;
         } catch (e) {
           console.error("Error capturing graduacao chart:", e);
         }
       }
 
-      // ====== TABELA DE EFETIVO POR OM (todas NEOs juntas em tabela única) ======
+      // ====== TABELA DE EFETIVO POR OM (todas OMs na mesma página, 4 linhas entre cada) ======
+      let isFirstOM = true;
       for (const om of activeOMs) {
         const omData = filteredData.filter((item) => item.om === om);
         if (omData.length === 0) continue;
 
-        // New page for each OM
-        pdf.addPage();
-        yPosition = 15;
+        // Estimate table height to check if we need a new page
+        const estimatedHeight = 20 + (omData.length * 5);
+        
+        if (isFirstOM) {
+          pdf.addPage();
+          yPosition = 15;
+          isFirstOM = false;
+        } else {
+          // 4 lines spacing between OMs
+          yPosition += 16;
+          yPosition = checkNewPage(yPosition, estimatedHeight);
+        }
 
-        // OM title (no brasão on subsequent pages)
+        // OM title
         yPosition = addOMTitle(om, yPosition);
 
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.text("TABELA DE EFETIVO", pageWidth / 2, yPosition, { align: "center" });
-        yPosition += 8;
+        yPosition += 6;
 
         // All NEOs in single table, sorted by NEO
         const sortedData = [...omData].sort((a, b) => {
@@ -624,7 +634,7 @@ const DashboardPracas = () => {
           headStyles: { fillColor: [41, 128, 185], textColor: 255 },
           margin: { left: 14, right: 14 },
         });
-        yPosition = (pdf as any).lastAutoTable.finalY + 6;
+        yPosition = (pdf as any).lastAutoTable.finalY;
       }
 
       // ====== PREVISÃO DE DESEMBARQUE (grouped by OM) ======
