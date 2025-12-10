@@ -576,8 +576,7 @@ const DashboardOM = () => {
           theme: "grid",
           styles: { fontSize: 7, cellPadding: 1 },
           headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-          halign: "center",
-          tableWidth: "auto",
+          margin: { left: 14, right: 14 },
         });
         yPosition = (pdf as any).lastAutoTable.finalY;
       }
