@@ -570,7 +570,7 @@ const DashboardOM = () => {
         autoTable(pdf, {
           startY: yPosition,
           head: [
-            ["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "NOME", "POSTO EFETIVO", "POSTO EFETIVO", "STATUS"],
+            ["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "NOME", "POSTO EFETIVO", "QUADRO EFETIVO", "STATUS"],
           ],
           body: tableData,
           theme: "grid",
