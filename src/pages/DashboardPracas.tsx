@@ -586,8 +586,8 @@ const DashboardPracas = () => {
         if (omData.length === 0) continue;
 
         // Estimate table height to check if we need a new page
-        const estimatedHeight = 20 + (omData.length * 5);
-        
+        const estimatedHeight = 20 + omData.length * 5;
+
         if (isFirstOM) {
           pdf.addPage();
           yPosition = 15;
@@ -608,8 +608,8 @@ const DashboardPracas = () => {
 
         // All NEOs in single table, sorted by NEO
         const sortedData = [...omData].sort((a, b) => {
-          const neoA = typeof a.neo === 'number' ? a.neo : parseFloat(a.neo.toString()) || 0;
-          const neoB = typeof b.neo === 'number' ? b.neo : parseFloat(b.neo.toString()) || 0;
+          const neoA = typeof a.neo === "number" ? a.neo : parseFloat(a.neo.toString()) || 0;
+          const neoB = typeof b.neo === "number" ? b.neo : parseFloat(b.neo.toString()) || 0;
           return neoA - neoB;
         });
 
@@ -627,7 +627,7 @@ const DashboardPracas = () => {
 
         autoTable(pdf, {
           startY: yPosition,
-          head: [["NEO", "SETOR", "CARGO", "GRAD TMFT", "ESP TMFT", "NOME", "GRAD REAL", "ESP REAL", "STATUS"]],
+          head: [["NEO", "SETOR", "CARGO", "GRAD TMFT", "ESP TMFT", "NOME", "GRAD EFETIVO", "ESP EFETIVO", "STATUS"]],
           body: tableData,
           theme: "grid",
           styles: { fontSize: 7, cellPadding: 1 },

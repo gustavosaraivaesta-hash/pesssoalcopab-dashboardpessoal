@@ -536,7 +536,7 @@ const DashboardOM = () => {
         const omData = filteredData.filter((item) => item.om === om);
         if (omData.length === 0) continue;
 
-        const estimatedHeight = 40 + (omData.length * 5);
+        const estimatedHeight = 40 + omData.length * 5;
 
         if (isFirstOM) {
           pdf.addPage();
@@ -569,7 +569,9 @@ const DashboardOM = () => {
 
         autoTable(pdf, {
           startY: yPosition,
-          head: [["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "NOME", "POSTO REAL", "QUADRO REAL", "STATUS"]],
+          head: [
+            ["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "NOME", "POSTO EFETIVO", "POSTO EFETIVO", "STATUS"],
+          ],
           body: tableData,
           theme: "grid",
           styles: { fontSize: 7, cellPadding: 1 },
