@@ -573,19 +573,20 @@ const DashboardOM = () => {
           theme: "grid",
           styles: { fontSize: 7, cellPadding: 1 },
           headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-          margin: { left: 14, right: 14 },
+          margin: { left: 15, right: 15 },
         });
         yPosition = (pdf as any).lastAutoTable.finalY + 4;
       }
 
       // ====== PREVISÃO DE DESEMBARQUE (consolidated) ======
       const filteredDesembarque = desembarqueData.filter(
-        (item) => activeOMs.includes(item.om) && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)),
+        (item) =>
+          activeOMs.includes(item.om) && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)),
       );
       if (filteredDesembarque.length > 0) {
         yPosition += 8;
         yPosition = checkNewPage(yPosition, 30);
-        
+
         pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("PREVISÃO DE DESEMBARQUE", pageWidth / 2, yPosition, { align: "center" });
@@ -597,7 +598,7 @@ const DashboardOM = () => {
 
           const estimatedHeight = 15 + omDesembarque.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
-          
+
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
           pdf.text(om, 14, yPosition);
@@ -630,7 +631,7 @@ const DashboardOM = () => {
       if (filteredTrrm.length > 0) {
         yPosition += 8;
         yPosition = checkNewPage(yPosition, 30);
-        
+
         pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("PREVISÃO DE TRRM", pageWidth / 2, yPosition, { align: "center" });
@@ -642,7 +643,7 @@ const DashboardOM = () => {
 
           const estimatedHeight = 15 + omTrrm.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
-          
+
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
           pdf.text(om, 14, yPosition);
@@ -673,7 +674,7 @@ const DashboardOM = () => {
       if (filteredLicencas.length > 0) {
         yPosition += 8;
         yPosition = checkNewPage(yPosition, 30);
-        
+
         pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("LICENÇAS", pageWidth / 2, yPosition, { align: "center" });
@@ -685,7 +686,7 @@ const DashboardOM = () => {
 
           const estimatedHeight = 15 + omLicencas.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
-          
+
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
           pdf.text(om, 14, yPosition);
@@ -716,7 +717,7 @@ const DashboardOM = () => {
       if (filteredDestaques.length > 0) {
         yPosition += 8;
         yPosition = checkNewPage(yPosition, 30);
-        
+
         pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("DESTAQUES", pageWidth / 2, yPosition, { align: "center" });
@@ -728,7 +729,7 @@ const DashboardOM = () => {
 
           const estimatedHeight = 15 + omDestaques.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
-          
+
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
           pdf.text(om, 14, yPosition);
@@ -761,7 +762,7 @@ const DashboardOM = () => {
       if (filteredConcurso.length > 0) {
         yPosition += 8;
         yPosition = checkNewPage(yPosition, 30);
-        
+
         pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("CONCURSO C-EMOS", pageWidth / 2, yPosition, { align: "center" });
@@ -773,7 +774,7 @@ const DashboardOM = () => {
 
           const estimatedHeight = 15 + omConcurso.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
-          
+
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
           pdf.text(om, 14, yPosition);
@@ -1061,7 +1062,11 @@ const DashboardOM = () => {
                   onClick={(e) => e && e.activePayload && handleVagosBarClick(e.activePayload[0]?.payload)}
                 >
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis type="number" className="text-xs" domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]} />
+                  <XAxis
+                    type="number"
+                    className="text-xs"
+                    domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]}
+                  />
                   <YAxis dataKey="om" type="category" className="text-xs" width={120} />
                   <Tooltip
                     formatter={(value: number, name: string) => [value, name === "vagos" ? "Vagos" : name]}
