@@ -1116,7 +1116,7 @@ const DashboardPracas = () => {
                   onClick={(e) => e && e.activePayload && handleVagosBarClick(e.activePayload[0]?.payload)}
                 >
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis type="number" className="text-xs" />
+                  <XAxis type="number" className="text-xs" domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]} />
                   <YAxis dataKey="om" type="category" className="text-xs" width={120} />
                   <Tooltip
                     formatter={(value: number, name: string) => [value, name === "vagos" ? "Vagos" : name]}
