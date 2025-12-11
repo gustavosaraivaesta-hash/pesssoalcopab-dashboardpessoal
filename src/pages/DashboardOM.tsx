@@ -470,12 +470,9 @@ const DashboardOM = () => {
         return currentY;
       };
 
-      // Helper to add OM title with brasão
+      // Helper to add OM title (without brasão - brasão only on first page)
       const addOMTitle = (omName: string, startY: number) => {
         let y = startY;
-        // Add brasão centered above OM name
-        pdf.addImage(brasaoImg, "PNG", (pageWidth - 15) / 2, y, 15, 18);
-        y += 20;
         pdf.setFontSize(12);
         pdf.setFont("helvetica", "bold");
         pdf.text(omName, pageWidth / 2, y, { align: "center" });
