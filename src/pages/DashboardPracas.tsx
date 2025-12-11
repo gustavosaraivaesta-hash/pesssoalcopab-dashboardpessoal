@@ -593,8 +593,8 @@ const DashboardPracas = () => {
           yPosition = 15;
           isFirstOM = false;
         } else {
-          // 4 lines spacing between OMs
-          yPosition += 16;
+          // Reduced spacing between OMs
+          yPosition += 8;
           yPosition = checkNewPage(yPosition, estimatedHeight);
         }
 
@@ -630,31 +630,38 @@ const DashboardPracas = () => {
           head: [["NEO", "SETOR", "CARGO", "GRAD TMFT", "ESP TMFT", "NOME", "GRAD EFETIVO", "ESP EFETIVO", "STATUS"]],
           body: tableData,
           theme: "grid",
-          styles: { fontSize: 7, cellPadding: 1 },
+          styles: { fontSize: 6, cellPadding: 0.5 },
           headStyles: { fillColor: [41, 128, 185], textColor: 255 },
           margin: { left: 14, right: 14 },
         });
-        yPosition = (pdf as any).lastAutoTable.finalY;
+        yPosition = (pdf as any).lastAutoTable.finalY + 4;
       }
 
-      // ====== PREVISÃO DE DESEMBARQUE (grouped by OM) ======
+      // ====== PREVISÃO DE DESEMBARQUE (consolidated - all OMs sequentially) ======
       const filteredDesembarque = desembarqueData.filter(
         (item) =>
           activeOMs.includes(item.om) && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)),
       );
       if (filteredDesembarque.length > 0) {
+        yPosition += 8;
+        yPosition = checkNewPage(yPosition, 30);
+        
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("PREVISÃO DE DESEMBARQUE", pageWidth / 2, yPosition, { align: "center" });
+        yPosition += 6;
+
         for (const om of activeOMs) {
           const omDesembarque = filteredDesembarque.filter((item) => item.om === om);
           if (omDesembarque.length === 0) continue;
 
-          pdf.addPage();
-          yPosition = 15;
-          yPosition = addOMTitle(om, yPosition);
-
-          pdf.setFontSize(10);
+          const estimatedHeight = 15 + omDesembarque.length * 4;
+          yPosition = checkNewPage(yPosition, estimatedHeight);
+          
+          pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
-          pdf.text("PREVISÃO DE DESEMBARQUE", pageWidth / 2, yPosition, { align: "center" });
-          yPosition += 8;
+          pdf.text(om, 14, yPosition);
+          yPosition += 4;
 
           const tableData = omDesembarque.map((item) => [
             item.nome,
@@ -670,28 +677,36 @@ const DashboardPracas = () => {
             head: [["NOME", "GRAD/ESP", "CARGO", "DESTINO", "MÊS/ANO", "DOCUMENTO"]],
             body: tableData,
             theme: "grid",
-            styles: { fontSize: 7, cellPadding: 1 },
+            styles: { fontSize: 6, cellPadding: 0.5 },
             headStyles: { fillColor: [217, 119, 6], textColor: 255 },
             margin: { left: 14, right: 14 },
           });
+          yPosition = (pdf as any).lastAutoTable.finalY + 4;
         }
       }
 
-      // ====== PREVISÃO DE TRRM (grouped by OM) ======
+      // ====== PREVISÃO DE TRRM (consolidated) ======
       const filteredTrrm = trrmData.filter((item) => activeOMs.includes(item.om));
       if (filteredTrrm.length > 0) {
+        yPosition += 8;
+        yPosition = checkNewPage(yPosition, 30);
+        
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("PREVISÃO DE TRRM", pageWidth / 2, yPosition, { align: "center" });
+        yPosition += 6;
+
         for (const om of activeOMs) {
           const omTrrm = filteredTrrm.filter((item) => item.om === om);
           if (omTrrm.length === 0) continue;
 
-          pdf.addPage();
-          yPosition = 15;
-          yPosition = addOMTitle(om, yPosition);
-
-          pdf.setFontSize(10);
+          const estimatedHeight = 15 + omTrrm.length * 4;
+          yPosition = checkNewPage(yPosition, estimatedHeight);
+          
+          pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
-          pdf.text("PREVISÃO DE TRRM", pageWidth / 2, yPosition, { align: "center" });
-          yPosition += 8;
+          pdf.text(om, 14, yPosition);
+          yPosition += 4;
 
           const tableData = omTrrm.map((item) => [
             item.nome,
@@ -705,28 +720,36 @@ const DashboardPracas = () => {
             head: [["NOME", "GRAD/ESP", "CARGO", "ÉPOCA PREVISTA"]],
             body: tableData,
             theme: "grid",
-            styles: { fontSize: 7, cellPadding: 1 },
+            styles: { fontSize: 6, cellPadding: 0.5 },
             headStyles: { fillColor: [147, 51, 234], textColor: 255 },
             margin: { left: 14, right: 14 },
           });
+          yPosition = (pdf as any).lastAutoTable.finalY + 4;
         }
       }
 
-      // ====== LICENÇAS (grouped by OM) ======
+      // ====== LICENÇAS (consolidated) ======
       const filteredLicencas = licencasData.filter((item) => activeOMs.includes(item.om));
       if (filteredLicencas.length > 0) {
+        yPosition += 8;
+        yPosition = checkNewPage(yPosition, 30);
+        
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("LICENÇAS", pageWidth / 2, yPosition, { align: "center" });
+        yPosition += 6;
+
         for (const om of activeOMs) {
           const omLicencas = filteredLicencas.filter((item) => item.om === om);
           if (omLicencas.length === 0) continue;
 
-          pdf.addPage();
-          yPosition = 15;
-          yPosition = addOMTitle(om, yPosition);
-
-          pdf.setFontSize(10);
+          const estimatedHeight = 15 + omLicencas.length * 4;
+          yPosition = checkNewPage(yPosition, estimatedHeight);
+          
+          pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
-          pdf.text("LICENÇAS", pageWidth / 2, yPosition, { align: "center" });
-          yPosition += 8;
+          pdf.text(om, 14, yPosition);
+          yPosition += 4;
 
           const tableData = omLicencas.map((item) => [
             item.nome,
@@ -740,28 +763,36 @@ const DashboardPracas = () => {
             head: [["NOME", "GRAD/ESP", "CARGO", "MOTIVO"]],
             body: tableData,
             theme: "grid",
-            styles: { fontSize: 7, cellPadding: 1 },
+            styles: { fontSize: 6, cellPadding: 0.5 },
             headStyles: { fillColor: [234, 88, 12], textColor: 255 },
             margin: { left: 14, right: 14 },
           });
+          yPosition = (pdf as any).lastAutoTable.finalY + 4;
         }
       }
 
-      // ====== DESTAQUES (grouped by OM) ======
+      // ====== DESTAQUES (consolidated) ======
       const filteredDestaques = destaquesData.filter((item) => activeOMs.includes(item.om));
       if (filteredDestaques.length > 0) {
+        yPosition += 8;
+        yPosition = checkNewPage(yPosition, 30);
+        
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("DESTAQUES", pageWidth / 2, yPosition, { align: "center" });
+        yPosition += 6;
+
         for (const om of activeOMs) {
           const omDestaques = filteredDestaques.filter((item) => item.om === om);
           if (omDestaques.length === 0) continue;
 
-          pdf.addPage();
-          yPosition = 15;
-          yPosition = addOMTitle(om, yPosition);
-
-          pdf.setFontSize(10);
+          const estimatedHeight = 15 + omDestaques.length * 4;
+          yPosition = checkNewPage(yPosition, estimatedHeight);
+          
+          pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
-          pdf.text("DESTAQUES", pageWidth / 2, yPosition, { align: "center" });
-          yPosition += 8;
+          pdf.text(om, 14, yPosition);
+          yPosition += 4;
 
           const tableData = omDestaques.map((item) => [
             item.nome,
@@ -777,28 +808,36 @@ const DashboardPracas = () => {
             head: [["NOME", "GRAD/ESP", "CARGO", "EM OUTRA OM", "DE OUTRA OM", "PERÍODO"]],
             body: tableData,
             theme: "grid",
-            styles: { fontSize: 7, cellPadding: 1 },
+            styles: { fontSize: 6, cellPadding: 0.5 },
             headStyles: { fillColor: [202, 138, 4], textColor: 255 },
             margin: { left: 14, right: 14 },
           });
+          yPosition = (pdf as any).lastAutoTable.finalY + 4;
         }
       }
 
-      // ====== PREVISÃO DE CURSO (grouped by OM) ======
+      // ====== PREVISÃO DE CURSO (consolidated) ======
       const filteredCurso = cursoData.filter((item) => activeOMs.includes(item.om));
       if (filteredCurso.length > 0) {
+        yPosition += 8;
+        yPosition = checkNewPage(yPosition, 30);
+        
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("PREVISÃO DE CURSO", pageWidth / 2, yPosition, { align: "center" });
+        yPosition += 6;
+
         for (const om of activeOMs) {
           const omCurso = filteredCurso.filter((item) => item.om === om);
           if (omCurso.length === 0) continue;
 
-          pdf.addPage();
-          yPosition = 15;
-          yPosition = addOMTitle(om, yPosition);
-
-          pdf.setFontSize(10);
+          const estimatedHeight = 15 + omCurso.length * 4;
+          yPosition = checkNewPage(yPosition, estimatedHeight);
+          
+          pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
-          pdf.text("PREVISÃO DE CURSO", pageWidth / 2, yPosition, { align: "center" });
-          yPosition += 8;
+          pdf.text(om, 14, yPosition);
+          yPosition += 4;
 
           const tableData = omCurso.map((item) => [
             item.nome,
@@ -812,10 +851,11 @@ const DashboardPracas = () => {
             head: [["NOME", "GRAD/ESP", "CARGO", "ANO PREVISTO"]],
             body: tableData,
             theme: "grid",
-            styles: { fontSize: 7, cellPadding: 1 },
+            styles: { fontSize: 6, cellPadding: 0.5 },
             headStyles: { fillColor: [5, 150, 105], textColor: 255 },
             margin: { left: 14, right: 14 },
           });
+          yPosition = (pdf as any).lastAutoTable.finalY + 4;
         }
       }
 
