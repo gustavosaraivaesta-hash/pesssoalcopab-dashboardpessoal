@@ -577,7 +577,8 @@ const DashboardOM = () => {
           didParseCell: (data) => {
             if (data.section === 'body') {
               const nome = data.row.raw?.[5];
-              if (!nome || nome === "-" || nome.toString().trim() === "") {
+              const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
+              if (!nome || nome === "-" || nomeStr === "" || nomeStr === "VAGO" || nomeStr === "VAZIO") {
                 data.cell.styles.fillColor = [254, 202, 202];
                 data.cell.styles.textColor = [127, 29, 29];
               }
