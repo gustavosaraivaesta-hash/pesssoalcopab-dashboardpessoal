@@ -633,6 +633,15 @@ const DashboardPracas = () => {
           styles: { fontSize: 6, cellPadding: 0.5 },
           headStyles: { fillColor: [41, 128, 185], textColor: 255 },
           margin: { left: 14, right: 14 },
+          didParseCell: (data) => {
+            if (data.section === 'body') {
+              const nome = data.row.raw?.[5];
+              if (!nome || nome === "VAGO" || nome === "-" || nome.toString().trim() === "") {
+                data.cell.styles.fillColor = [254, 202, 202];
+                data.cell.styles.textColor = [127, 29, 29];
+              }
+            }
+          },
         });
         yPosition = (pdf as any).lastAutoTable.finalY + 4;
       }
