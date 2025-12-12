@@ -577,8 +577,17 @@ const DashboardOM = () => {
           didParseCell: (data) => {
             if (data.section === 'body') {
               const nome = data.row.raw?.[5];
+              const setor = data.row.raw?.[1];
               const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
-              if (!nome || nome === "-" || nomeStr === "" || nomeStr === "VAGO" || nomeStr === "VAZIO") {
+              const setorStr = setor ? setor.toString().trim().toUpperCase() : "";
+              
+              // Destaque amarelo para EXTRA LOTAÇÃO
+              if (setorStr.includes("EXTRA LOTA") || setorStr === "EXTRA LOTAÇÃO") {
+                data.cell.styles.fillColor = [254, 240, 138];
+                data.cell.styles.textColor = [113, 63, 18];
+              }
+              // Destaque vermelho para NOME vazio/vago
+              else if (!nome || nome === "-" || nomeStr === "" || nomeStr === "VAGO" || nomeStr === "VAZIO") {
                 data.cell.styles.fillColor = [254, 202, 202];
                 data.cell.styles.textColor = [127, 29, 29];
               }
