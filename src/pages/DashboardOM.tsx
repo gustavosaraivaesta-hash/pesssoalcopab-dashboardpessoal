@@ -1238,8 +1238,10 @@ const DashboardOM = () => {
                     <p className="font-medium text-sm text-foreground">{item.nome || "VAGO"}</p>
                     <p className="text-xs text-muted-foreground">{item.cargo}</p>
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
-                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
+                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
                       <span>Quadro: {item.quadroEfe || item.quadroTmft || "-"}</span>
+                      <span>•</span>
+                      <span>Opção: {item.opcaoEfe || item.opcaoTmft || "-"}</span>
                     </div>
                   </div>
                 ))}
@@ -1334,10 +1336,12 @@ const DashboardOM = () => {
                     <p className="font-medium text-sm text-foreground">{item.nome || "VAGO"}</p>
                     <p className="text-xs text-muted-foreground">{item.cargo}</p>
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
-                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
+                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
                       <span>Corpo: {item.corpoEfe || item.corpoTmft || "-"}</span>
                       <span>•</span>
                       <span>Quadro: {item.quadroEfe || item.quadroTmft || "-"}</span>
+                      <span>•</span>
+                      <span>Opção: {item.opcaoEfe || item.opcaoTmft || "-"}</span>
                     </div>
                   </div>
                 ))}
@@ -1414,12 +1418,15 @@ const DashboardOM = () => {
                               >
                                 {item.ocupado ? "Ocupado" : "Vago"}
                               </Badge>
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 flex-wrap">
                                 <Badge variant="outline" className="bg-background">
                                   {item.ocupado ? item.postoEfe : item.postoTmft}
                                 </Badge>
                                 <Badge variant="outline" className="bg-background">
                                   {item.ocupado ? item.quadroEfe : item.quadroTmft}
+                                </Badge>
+                                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                                  {item.ocupado ? item.opcaoEfe : item.opcaoTmft || "-"}
                                 </Badge>
                               </div>
                             </div>
