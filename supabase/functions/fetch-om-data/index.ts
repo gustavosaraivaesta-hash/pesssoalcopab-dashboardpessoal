@@ -80,19 +80,19 @@ interface ConcursoRecord {
   om: string;
 }
 
-// Sheet configurations - each GID represents an OM
+// Sheet configurations - each GID represents an OM (alphabetical order)
 const SHEET_CONFIGS = [
+  { gid: '1175318745', omName: 'BAMRJ' },
+  { gid: '1868624840', omName: 'CDU-1DN' },
   { gid: '1926090655', omName: 'CDU-BAMRJ' },
   { gid: '1894966712', omName: 'CDAM' },
-  { gid: '1868624840', omName: 'CDU-1DN' },
   { gid: '1324793191', omName: 'CMM' },
+  { gid: '581706093', omName: 'COpAb' },
   { gid: '1363629973', omName: 'CSUPAB' },
   { gid: '2111647795', omName: 'DEPCMRJ' },
   { gid: '84203546', omName: 'DEPFMRJ' },
   { gid: '122801537', omName: 'DEPMSMRJ' },
   { gid: '2140319620', omName: 'DEPSIMRJ' },
-  { gid: '581706093', omName: 'COpAb' },
-  { gid: '1175318745', omName: 'BAMRJ' },
   { gid: '1727648610', omName: 'DepSMRJ' },
 ];
 

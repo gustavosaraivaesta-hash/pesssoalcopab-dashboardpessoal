@@ -82,20 +82,20 @@ interface CursoRecord {
   anoPrevisto: string;
 }
 
-// Sheet configurations for all OMs
+// Sheet configurations for all OMs (alphabetical order)
 const SHEET_CONFIGS = [
-  { gid: '0', omName: 'DEPMSMRJ' },
-  { gid: '527671707', omName: 'COPAB' },
   { gid: '280177623', omName: 'BAMRJ' },
+  { gid: '957180492', omName: 'CDU-1DN' },
   { gid: '1658824367', omName: 'CDU-BAMRJ' },
   { gid: '1650749150', omName: 'CDAM' },
-  { gid: '957180492', omName: 'CDU-1DN' },
-  { gid: '1495647476', omName: 'CMM' },
+  { gid: '1324793191', omName: 'CMM' },
+  { gid: '527671707', omName: 'COPAB' },
   { gid: '469479928', omName: 'CSUPAB' },
-  { gid: '1610199360', omName: 'DEPSMRJ' },
   { gid: '567760228', omName: 'DEPCMRJ' },
   { gid: '1373834755', omName: 'DEPFMRJ' },
+  { gid: '0', omName: 'DEPMSMRJ' },
   { gid: '295069813', omName: 'DEPSIMRJ' },
+  { gid: '1610199360', omName: 'DEPSMRJ' },
 ];
 
 async function fetchSheetData(spreadsheetId: string, gid: string, omName: string): Promise<{
