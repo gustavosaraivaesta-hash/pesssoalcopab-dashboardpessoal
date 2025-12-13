@@ -1282,16 +1282,6 @@ const DashboardPracas = () => {
                       <Badge variant="outline" className="text-xs">
                         {item.postoEfe || item.postoTmft}
                       </Badge>
-                      {(item.quadroEfe || item.quadroTmft) && (
-                        <Badge variant="outline" className="text-xs bg-purple-100 border-purple-300">
-                          {item.quadroEfe || item.quadroTmft}
-                        </Badge>
-                      )}
-                      {(item.opcaoEfe || item.opcaoTmft) && (
-                        <Badge variant="outline" className="text-xs bg-green-100 border-green-300">
-                          {item.opcaoEfe || item.opcaoTmft}
-                        </Badge>
-                      )}
                       <Badge variant="secondary" className="text-xs">
                         {item.om}
                       </Badge>
@@ -1302,6 +1292,11 @@ const DashboardPracas = () => {
                     <p className="font-medium text-sm text-foreground">{item.nome || "VAGO"}</p>
                     <p className="text-xs text-muted-foreground">{item.cargo}</p>
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
+                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
+                      <span>Especialidade: {item.quadroEfe || item.quadroTmft || "-"}</span>
+                      <span>•</span>
+                      <span>Opção: {item.opcaoEfe || item.opcaoTmft || "-"}</span>
+                    </div>
                   </div>
                 ))}
               </div>
