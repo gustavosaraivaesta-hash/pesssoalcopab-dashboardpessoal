@@ -465,9 +465,9 @@ const DashboardPracas = () => {
 
       // Helper to check and add new page if needed
       const checkNewPage = (currentY: number, neededHeight: number) => {
-        if (currentY + neededHeight > pageHeight - 15) {
+        if (currentY + neededHeight > pageHeight - 20) {
           pdf.addPage();
-          return 12;
+          return 20;
         }
         return currentY;
       };
@@ -477,18 +477,18 @@ const DashboardPracas = () => {
         const totalPages = pdf.getNumberOfPages();
         for (let i = 1; i <= totalPages; i++) {
           pdf.setPage(i);
-          pdf.setFontSize(8);
-          pdf.text(`${i} - ${totalPages}`, pageWidth / 2, pageHeight - 6, { align: "center" });
+          pdf.setFontSize(10);
+          pdf.text(`${i} - ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: "center" });
         }
       };
 
       // Helper to add OM title (without brasão, used on all pages except first)
       const addOMTitle = (omName: string, startY: number) => {
         let y = startY;
-        pdf.setFontSize(10);
+        pdf.setFontSize(12);
         pdf.setFont("helvetica", "bold");
         pdf.text(omName, pageWidth / 2, y, { align: "center" });
-        y += 5;
+        y += 8;
         return y;
       };
 
@@ -496,115 +496,115 @@ const DashboardPracas = () => {
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
       // ====== FIRST PAGE - BRASÃO + GENERAL INFO + CHARTS ======
-      let yPosition = 10;
+      let yPosition = 15;
 
       // Brasao and title (ONLY ON FIRST PAGE)
-      pdf.addImage(brasaoImg, "PNG", (pageWidth - 18) / 2, yPosition, 18, 22);
-      yPosition += 24;
+      pdf.addImage(brasaoImg, "PNG", (pageWidth - 20) / 2, yPosition, 20, 24);
+      yPosition += 28;
 
-      pdf.setFontSize(12);
+      pdf.setFontSize(14);
       pdf.setFont("helvetica", "bold");
       pdf.text("CENTRO DE OPERAÇÕES DO ABASTECIMENTO", pageWidth / 2, yPosition, { align: "center" });
-      yPosition += 6;
-
-      pdf.setFontSize(10);
-      pdf.text("DASHBOARD PRAÇAS - RELATÓRIO COMPLETO", pageWidth / 2, yPosition, { align: "center" });
       yPosition += 8;
+
+      pdf.setFontSize(12);
+      pdf.text("DASHBOARD PRAÇAS - RELATÓRIO COMPLETO", pageWidth / 2, yPosition, { align: "center" });
+      yPosition += 10;
 
       // Filters
       if (selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0) {
-        pdf.setFontSize(8);
+        pdf.setFontSize(9);
         pdf.setFont("helvetica", "normal");
         let filterText = "Filtros: ";
         if (selectedOMs.length > 0) filterText += `OM: ${selectedOMs.join(", ")} | `;
         if (selectedQuadros.length > 0) filterText += `Especialidade: ${selectedQuadros.join(", ")} | `;
         if (selectedOpcoes.length > 0) filterText += `Opção: ${selectedOpcoes.join(", ")}`;
         pdf.text(filterText, 14, yPosition);
-        yPosition += 5;
+        yPosition += 8;
       }
 
-      // Metrics summary - compact
-      pdf.setFontSize(9);
+      // Metrics summary
+      pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
+      pdf.text("RESUMO GERAL", 14, yPosition);
+      yPosition += 6;
+      pdf.setFont("helvetica", "normal");
       pdf.text(
-        `RESUMO: TMFT: ${metrics.totalTMFT} | Efetivo: ${metrics.totalEXI} | Vagos: ${Math.abs(metrics.totalDIF)} | Atendimento: ${metrics.percentualPreenchimento.toFixed(1)}% | Extra Lotação: ${metrics.totalExtraLotacao}`,
+        `TMFT: ${metrics.totalTMFT} | Efetivo: ${metrics.totalEXI} | Vagos: ${Math.abs(metrics.totalDIF)} | Atendimento: ${metrics.percentualPreenchimento.toFixed(1)}% | Extra Lotação: ${metrics.totalExtraLotacao}`,
         14,
         yPosition,
       );
-      yPosition += 8;
+      yPosition += 12;
 
-      // ====== CHARTS SECTION - Side by side ======
-      const chartWidth = (pageWidth - 35) / 2;
-      let chartsY = yPosition;
-
-      // Capture both charts
+      // ====== CHARTS SECTION (larger charts - full width) ======
+      // Capture Vagas por OM chart
       const vagosChartElement = document.querySelector('[data-chart="vagas-om"]') as HTMLElement;
-      const graduacaoChartElement = document.querySelector('[data-chart="graduacao"]') as HTMLElement;
-      
-      let maxChartHeight = 0;
-
-      // Vagas por OM chart (left side)
       if (vagosChartElement) {
         try {
           const canvas = await html2canvas(vagosChartElement, { scale: 2, backgroundColor: "#ffffff" });
           const imgData = canvas.toDataURL("image/png");
-          const imgHeight = Math.min((canvas.height * chartWidth) / canvas.width, 80);
+          const imgWidth = pageWidth - 28; // Full page width minus margins
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-          pdf.setFontSize(8);
+          yPosition = checkNewPage(yPosition, imgHeight + 10);
+          pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
-          pdf.text("VAGAS POR OM", 14, chartsY);
-          pdf.addImage(imgData, "PNG", 14, chartsY + 2, chartWidth, imgHeight);
-          maxChartHeight = Math.max(maxChartHeight, imgHeight);
+          pdf.text("GRÁFICO - VAGAS POR OM", 14, yPosition);
+          yPosition += 4;
+          pdf.addImage(imgData, "PNG", 14, yPosition, imgWidth, imgHeight);
+          yPosition += imgHeight + 6;
         } catch (e) {
           console.error("Error capturing vagas chart:", e);
         }
       }
 
-      // Distribuição por Graduação chart (right side)
+      // Capture Distribuição por Graduação chart
+      const graduacaoChartElement = document.querySelector('[data-chart="graduacao"]') as HTMLElement;
       if (graduacaoChartElement) {
         try {
           const canvas = await html2canvas(graduacaoChartElement, { scale: 2, backgroundColor: "#ffffff" });
           const imgData = canvas.toDataURL("image/png");
-          const imgHeight = Math.min((canvas.height * chartWidth) / canvas.width, 80);
+          const imgWidth = pageWidth - 28; // Full page width minus margins
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-          pdf.setFontSize(8);
+          yPosition = checkNewPage(yPosition, imgHeight + 10);
+          pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
-          pdf.text("DISTRIBUIÇÃO POR GRADUAÇÃO", 14 + chartWidth + 7, chartsY);
-          pdf.addImage(imgData, "PNG", 14 + chartWidth + 7, chartsY + 2, chartWidth, imgHeight);
-          maxChartHeight = Math.max(maxChartHeight, imgHeight);
+          pdf.text("GRÁFICO - DISTRIBUIÇÃO POR GRADUAÇÃO", 14, yPosition);
+          yPosition += 4;
+          pdf.addImage(imgData, "PNG", 14, yPosition, imgWidth, imgHeight);
+          yPosition += imgHeight + 6;
         } catch (e) {
           console.error("Error capturing graduacao chart:", e);
         }
       }
 
-      yPosition = chartsY + maxChartHeight + 8;
-
-      // ====== TABELA DE EFETIVO POR OM (todas OMs na mesma página, espaçamento otimizado) ======
+      // ====== TABELA DE EFETIVO POR OM (todas OMs na mesma página, 4 linhas entre cada) ======
       let isFirstOM = true;
       for (const om of activeOMs) {
         const omData = filteredData.filter((item) => item.om === om);
         if (omData.length === 0) continue;
 
         // Estimate table height to check if we need a new page
-        const estimatedHeight = 12 + omData.length * 4;
+        const estimatedHeight = 20 + omData.length * 5;
 
         if (isFirstOM) {
           pdf.addPage();
-          yPosition = 10;
+          yPosition = 15;
           isFirstOM = false;
         } else {
           // Reduced spacing between OMs
-          yPosition += 5;
+          yPosition += 8;
           yPosition = checkNewPage(yPosition, estimatedHeight);
         }
 
         // OM title
         yPosition = addOMTitle(om, yPosition);
 
-        pdf.setFontSize(8);
+        pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.text("TABELA DE EFETIVO", pageWidth / 2, yPosition, { align: "center" });
-        yPosition += 4;
+        yPosition += 6;
 
         // All NEOs in single table, sorted by NEO
         const sortedData = [...omData].sort((a, b) => {
@@ -627,12 +627,12 @@ const DashboardPracas = () => {
 
         autoTable(pdf, {
           startY: yPosition,
-          head: [["NEO", "SETOR", "CARGO", "GRAD TMFT", "ESP TMFT", "NOME", "GRAD EFE", "ESP EFE", "STATUS"]],
+          head: [["NEO", "SETOR", "CARGO", "GRAD TMFT", "ESP TMFT", "NOME", "GRAD EFETIVO", "ESP EFETIVO", "STATUS"]],
           body: tableData,
           theme: "grid",
-          styles: { fontSize: 5.5, cellPadding: 0.3 },
-          headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 5.5 },
-          margin: { left: 10, right: 10 },
+          styles: { fontSize: 6, cellPadding: 0.5 },
+          headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+          margin: { left: 14, right: 14 },
           didParseCell: (data) => {
             if (data.section === 'body') {
               const nome = data.row.raw?.[5];
@@ -653,7 +653,7 @@ const DashboardPracas = () => {
             }
           },
         });
-        yPosition = (pdf as any).lastAutoTable.finalY + 2;
+        yPosition = (pdf as any).lastAutoTable.finalY + 4;
       }
 
       // ====== PREVISÃO DE DESEMBARQUE (consolidated - all OMs sequentially) ======
@@ -662,25 +662,25 @@ const DashboardPracas = () => {
           activeOMs.includes(item.om) && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)),
       );
       if (filteredDesembarque.length > 0) {
-        yPosition += 5;
-        yPosition = checkNewPage(yPosition, 20);
+        yPosition += 8;
+        yPosition = checkNewPage(yPosition, 30);
         
-        pdf.setFontSize(9);
+        pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("PREVISÃO DE DESEMBARQUE", pageWidth / 2, yPosition, { align: "center" });
-        yPosition += 4;
+        yPosition += 6;
 
         for (const om of activeOMs) {
           const omDesembarque = filteredDesembarque.filter((item) => item.om === om);
           if (omDesembarque.length === 0) continue;
 
-          const estimatedHeight = 10 + omDesembarque.length * 3;
+          const estimatedHeight = 15 + omDesembarque.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
           
-          pdf.setFontSize(7);
+          pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
-          pdf.text(om, 10, yPosition);
-          yPosition += 3;
+          pdf.text(om, 14, yPosition);
+          yPosition += 4;
 
           const tableData = omDesembarque.map((item) => [
             item.nome,
@@ -696,36 +696,36 @@ const DashboardPracas = () => {
             head: [["NOME", "GRAD/ESP", "CARGO", "DESTINO", "MÊS/ANO", "DOCUMENTO"]],
             body: tableData,
             theme: "grid",
-            styles: { fontSize: 5.5, cellPadding: 0.3 },
-            headStyles: { fillColor: [217, 119, 6], textColor: 255, fontSize: 5.5 },
-            margin: { left: 10, right: 10 },
+            styles: { fontSize: 6, cellPadding: 0.5 },
+            headStyles: { fillColor: [217, 119, 6], textColor: 255 },
+            margin: { left: 14, right: 14 },
           });
-          yPosition = (pdf as any).lastAutoTable.finalY + 2;
+          yPosition = (pdf as any).lastAutoTable.finalY + 4;
         }
       }
 
       // ====== PREVISÃO DE TRRM (consolidated) ======
       const filteredTrrm = trrmData.filter((item) => activeOMs.includes(item.om));
       if (filteredTrrm.length > 0) {
-        yPosition += 5;
-        yPosition = checkNewPage(yPosition, 20);
+        yPosition += 8;
+        yPosition = checkNewPage(yPosition, 30);
         
-        pdf.setFontSize(9);
+        pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("PREVISÃO DE TRRM", pageWidth / 2, yPosition, { align: "center" });
-        yPosition += 4;
+        yPosition += 6;
 
         for (const om of activeOMs) {
           const omTrrm = filteredTrrm.filter((item) => item.om === om);
           if (omTrrm.length === 0) continue;
 
-          const estimatedHeight = 10 + omTrrm.length * 3;
+          const estimatedHeight = 15 + omTrrm.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
           
-          pdf.setFontSize(7);
+          pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
-          pdf.text(om, 10, yPosition);
-          yPosition += 3;
+          pdf.text(om, 14, yPosition);
+          yPosition += 4;
 
           const tableData = omTrrm.map((item) => [
             item.nome,
@@ -739,36 +739,36 @@ const DashboardPracas = () => {
             head: [["NOME", "GRAD/ESP", "CARGO", "ÉPOCA PREVISTA"]],
             body: tableData,
             theme: "grid",
-            styles: { fontSize: 5.5, cellPadding: 0.3 },
-            headStyles: { fillColor: [147, 51, 234], textColor: 255, fontSize: 5.5 },
-            margin: { left: 10, right: 10 },
+            styles: { fontSize: 6, cellPadding: 0.5 },
+            headStyles: { fillColor: [147, 51, 234], textColor: 255 },
+            margin: { left: 14, right: 14 },
           });
-          yPosition = (pdf as any).lastAutoTable.finalY + 2;
+          yPosition = (pdf as any).lastAutoTable.finalY + 4;
         }
       }
 
       // ====== LICENÇAS (consolidated) ======
       const filteredLicencas = licencasData.filter((item) => activeOMs.includes(item.om));
       if (filteredLicencas.length > 0) {
-        yPosition += 5;
-        yPosition = checkNewPage(yPosition, 20);
+        yPosition += 8;
+        yPosition = checkNewPage(yPosition, 30);
         
-        pdf.setFontSize(9);
+        pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("LICENÇAS", pageWidth / 2, yPosition, { align: "center" });
-        yPosition += 4;
+        yPosition += 6;
 
         for (const om of activeOMs) {
           const omLicencas = filteredLicencas.filter((item) => item.om === om);
           if (omLicencas.length === 0) continue;
 
-          const estimatedHeight = 10 + omLicencas.length * 3;
+          const estimatedHeight = 15 + omLicencas.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
           
-          pdf.setFontSize(7);
+          pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
-          pdf.text(om, 10, yPosition);
-          yPosition += 3;
+          pdf.text(om, 14, yPosition);
+          yPosition += 4;
 
           const tableData = omLicencas.map((item) => [
             item.nome,
@@ -782,36 +782,36 @@ const DashboardPracas = () => {
             head: [["NOME", "GRAD/ESP", "CARGO", "MOTIVO"]],
             body: tableData,
             theme: "grid",
-            styles: { fontSize: 5.5, cellPadding: 0.3 },
-            headStyles: { fillColor: [234, 88, 12], textColor: 255, fontSize: 5.5 },
-            margin: { left: 10, right: 10 },
+            styles: { fontSize: 6, cellPadding: 0.5 },
+            headStyles: { fillColor: [234, 88, 12], textColor: 255 },
+            margin: { left: 14, right: 14 },
           });
-          yPosition = (pdf as any).lastAutoTable.finalY + 2;
+          yPosition = (pdf as any).lastAutoTable.finalY + 4;
         }
       }
 
       // ====== DESTAQUES (consolidated) ======
       const filteredDestaques = destaquesData.filter((item) => activeOMs.includes(item.om));
       if (filteredDestaques.length > 0) {
-        yPosition += 5;
-        yPosition = checkNewPage(yPosition, 20);
+        yPosition += 8;
+        yPosition = checkNewPage(yPosition, 30);
         
-        pdf.setFontSize(9);
+        pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("DESTAQUES", pageWidth / 2, yPosition, { align: "center" });
-        yPosition += 4;
+        yPosition += 6;
 
         for (const om of activeOMs) {
           const omDestaques = filteredDestaques.filter((item) => item.om === om);
           if (omDestaques.length === 0) continue;
 
-          const estimatedHeight = 10 + omDestaques.length * 3;
+          const estimatedHeight = 15 + omDestaques.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
           
-          pdf.setFontSize(7);
+          pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
-          pdf.text(om, 10, yPosition);
-          yPosition += 3;
+          pdf.text(om, 14, yPosition);
+          yPosition += 4;
 
           const tableData = omDestaques.map((item) => [
             item.nome,
@@ -827,36 +827,36 @@ const DashboardPracas = () => {
             head: [["NOME", "GRAD/ESP", "CARGO", "EM OUTRA OM", "DE OUTRA OM", "PERÍODO"]],
             body: tableData,
             theme: "grid",
-            styles: { fontSize: 5.5, cellPadding: 0.3 },
-            headStyles: { fillColor: [202, 138, 4], textColor: 255, fontSize: 5.5 },
-            margin: { left: 10, right: 10 },
+            styles: { fontSize: 6, cellPadding: 0.5 },
+            headStyles: { fillColor: [202, 138, 4], textColor: 255 },
+            margin: { left: 14, right: 14 },
           });
-          yPosition = (pdf as any).lastAutoTable.finalY + 2;
+          yPosition = (pdf as any).lastAutoTable.finalY + 4;
         }
       }
 
       // ====== PREVISÃO DE CURSO (consolidated) ======
       const filteredCurso = cursoData.filter((item) => activeOMs.includes(item.om));
       if (filteredCurso.length > 0) {
-        yPosition += 5;
-        yPosition = checkNewPage(yPosition, 20);
+        yPosition += 8;
+        yPosition = checkNewPage(yPosition, 30);
         
-        pdf.setFontSize(9);
+        pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("PREVISÃO DE CURSO", pageWidth / 2, yPosition, { align: "center" });
-        yPosition += 4;
+        yPosition += 6;
 
         for (const om of activeOMs) {
           const omCurso = filteredCurso.filter((item) => item.om === om);
           if (omCurso.length === 0) continue;
 
-          const estimatedHeight = 10 + omCurso.length * 3;
+          const estimatedHeight = 15 + omCurso.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
           
-          pdf.setFontSize(7);
+          pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
-          pdf.text(om, 10, yPosition);
-          yPosition += 3;
+          pdf.text(om, 14, yPosition);
+          yPosition += 4;
 
           const tableData = omCurso.map((item) => [
             item.nome,
@@ -870,14 +870,13 @@ const DashboardPracas = () => {
             head: [["NOME", "GRAD/ESP", "CARGO", "ANO PREVISTO"]],
             body: tableData,
             theme: "grid",
-            styles: { fontSize: 5.5, cellPadding: 0.3 },
-            headStyles: { fillColor: [5, 150, 105], textColor: 255, fontSize: 5.5 },
-            margin: { left: 10, right: 10 },
+            styles: { fontSize: 6, cellPadding: 0.5 },
+            headStyles: { fillColor: [5, 150, 105], textColor: 255 },
+            margin: { left: 14, right: 14 },
           });
-          yPosition = (pdf as any).lastAutoTable.finalY + 2;
+          yPosition = (pdf as any).lastAutoTable.finalY + 4;
         }
       }
-
 
       // Add page numbers to all pages
       addPageNumbers();
@@ -1283,6 +1282,16 @@ const DashboardPracas = () => {
                       <Badge variant="outline" className="text-xs">
                         {item.postoEfe || item.postoTmft}
                       </Badge>
+                      {(item.quadroEfe || item.quadroTmft) && (
+                        <Badge variant="outline" className="text-xs bg-purple-100 border-purple-300">
+                          {item.quadroEfe || item.quadroTmft}
+                        </Badge>
+                      )}
+                      {(item.opcaoEfe || item.opcaoTmft) && (
+                        <Badge variant="outline" className="text-xs bg-green-100 border-green-300">
+                          {item.opcaoEfe || item.opcaoTmft}
+                        </Badge>
+                      )}
                       <Badge variant="secondary" className="text-xs">
                         {item.om}
                       </Badge>
@@ -1293,11 +1302,6 @@ const DashboardPracas = () => {
                     <p className="font-medium text-sm text-foreground">{item.nome || "VAGO"}</p>
                     <p className="text-xs text-muted-foreground">{item.cargo}</p>
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
-                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
-                      <span>Especialidade: {item.quadroEfe || item.quadroTmft || "-"}</span>
-                      <span>•</span>
-                      <span>Opção: {item.opcaoEfe || item.opcaoTmft || "-"}</span>
-                    </div>
                   </div>
                 ))}
               </div>
