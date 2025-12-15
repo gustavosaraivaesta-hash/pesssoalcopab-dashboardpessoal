@@ -1273,7 +1273,7 @@ const DashboardPracas = () => {
                           : "bg-red-100/50 border-red-200"
                     }`}
                   >
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
                       {Number(item.neo) > 0 && (
                         <Badge variant="outline" className="bg-blue-500 text-white border-blue-500 text-xs">
                           NEO {item.neo}
@@ -1283,23 +1283,23 @@ const DashboardPracas = () => {
                         {item.postoEfe || item.postoTmft}
                       </Badge>
                       {(item.quadroEfe || item.quadroTmft) && (
-                        <Badge variant="outline" className="text-xs bg-purple-100 border-purple-300">
+                        <Badge variant="outline" className="text-xs">
                           {item.quadroEfe || item.quadroTmft}
                         </Badge>
                       )}
                       {(item.opcaoEfe || item.opcaoTmft) && (
-                        <Badge variant="outline" className="text-xs bg-green-100 border-green-300">
+                        <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
                           {item.opcaoEfe || item.opcaoTmft}
                         </Badge>
                       )}
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="outline" className="text-xs">
                         {item.om}
                       </Badge>
                       {item.tipoSetor === "EXTRA LOTAÇÃO" && (
                         <Badge className="bg-orange-500 text-white text-xs">EXTRA</Badge>
                       )}
                     </div>
-                    <p className="font-medium text-sm text-foreground">{item.nome || "VAGO"}</p>
+                    <p className="font-semibold text-sm text-foreground uppercase">{item.nome || "VAGO"}</p>
                     <p className="text-xs text-muted-foreground">{item.cargo}</p>
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
                   </div>
