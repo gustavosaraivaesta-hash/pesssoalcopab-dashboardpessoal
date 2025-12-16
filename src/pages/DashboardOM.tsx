@@ -72,6 +72,7 @@ interface TrrmRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  opcao: string;
   cargo: string;
   nome: string;
   epocaPrevista: string;
@@ -671,13 +672,14 @@ const DashboardOM = () => {
           const tableData = omTrrm.map((item) => [
             item.nome,
             `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
+            item.opcao || "-",
             item.cargo,
             item.epocaPrevista || "-",
           ]);
 
           autoTable(pdf, {
             startY: yPosition,
-            head: [["NOME", "POSTO/CORPO/QUADRO", "CARGO", "ÉPOCA PREVISTA"]],
+            head: [["NOME", "POSTO/CORPO/QUADRO", "OPÇÃO", "CARGO", "ÉPOCA PREVISTA"]],
             body: tableData,
             theme: "grid",
             styles: { fontSize: 6, cellPadding: 0.5 },
@@ -1496,6 +1498,11 @@ const DashboardOM = () => {
                           <div className="flex gap-2">
                             <Badge variant="outline">{item.posto}</Badge>
                             <Badge variant="outline">{item.quadro}</Badge>
+                            {item.opcao && (
+                              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                                {item.opcao}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>

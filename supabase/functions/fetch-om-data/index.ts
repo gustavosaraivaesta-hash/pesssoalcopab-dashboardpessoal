@@ -40,6 +40,7 @@ interface TrrmRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  opcao: string;
   cargo: string;
   nome: string;
   epocaPrevista: string;
@@ -227,15 +228,16 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         const posto = firstCell;
         const corpo = String(cells[1]?.v || '').trim();
         const quadro = String(cells[2]?.v || '').trim();
+        const opcao = String(cells[5]?.v || '').trim();
         const cargo = String(cells[3]?.v || '').trim();
         const nome = String(cells[4]?.v || '').trim();
         const epocaPrevista = String(cells[9]?.v || '').trim();
         
         if (nome) {
           trrmData.push({
-            posto, corpo, quadro, cargo, nome, epocaPrevista, om: omName
+            posto, corpo, quadro, opcao, cargo, nome, epocaPrevista, om: omName
           });
-          console.log(`${omName} TRRM: ${nome} - ${epocaPrevista}`);
+          console.log(`${omName} TRRM: ${nome} - ${epocaPrevista} - Opção: ${opcao}`);
         }
       }
       
