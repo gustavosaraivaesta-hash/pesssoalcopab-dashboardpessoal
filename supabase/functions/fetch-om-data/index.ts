@@ -28,6 +28,7 @@ interface DesembarqueRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  opcao: string;
   cargo: string;
   nome: string;
   destino: string;
@@ -51,6 +52,7 @@ interface LicencaRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  opcao: string;
   cargo: string;
   nome: string;
   emOutraOm: string;
@@ -63,6 +65,7 @@ interface DestaqueRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  opcao: string;
   cargo: string;
   nome: string;
   emOutraOm: string;
@@ -75,6 +78,7 @@ interface ConcursoRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  opcao: string;
   cargo: string;
   nome: string;
   anoPrevisto: string;
@@ -209,6 +213,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         const posto = firstCell;
         const corpo = String(cells[1]?.v || '').trim();
         const quadro = String(cells[2]?.v || '').trim();
+        const opcao = String(cells[5]?.v || '').trim();
         const cargo = String(cells[3]?.v || '').trim();
         const nome = String(cells[4]?.v || '').trim();
         const destino = String(cells[9]?.v || '').trim();
@@ -217,9 +222,9 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         
         if (nome && currentSection === 'DESEMBARQUE') {
           desembarqueData.push({
-            posto, corpo, quadro, cargo, nome, destino, mesAno, documento, om: omName
+            posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName
           });
-          console.log(`${omName} Desembarque: ${nome}`);
+          console.log(`${omName} Desembarque: ${nome} - Opção: ${opcao}`);
         }
       }
       
@@ -246,15 +251,16 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         const posto = firstCell;
         const corpo = String(cells[1]?.v || '').trim();
         const quadro = String(cells[2]?.v || '').trim();
+        const opcao = String(cells[5]?.v || '').trim();
         const cargo = String(cells[3]?.v || '').trim();
         const nome = String(cells[4]?.v || '').trim();
         const anoPrevisto = String(cells[9]?.v || '').trim();
         
         if (nome) {
           concursoData.push({
-            posto, corpo, quadro, cargo, nome, anoPrevisto, om: omName
+            posto, corpo, quadro, opcao, cargo, nome, anoPrevisto, om: omName
           });
-          console.log(`${omName} Concurso C-EMOS: ${nome} - ${anoPrevisto}`);
+          console.log(`${omName} Concurso C-EMOS: ${nome} - ${anoPrevisto} - Opção: ${opcao}`);
         }
       }
       
@@ -263,6 +269,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         const posto = firstCell;
         const corpo = String(cells[1]?.v || '').trim();
         const quadro = String(cells[2]?.v || '').trim();
+        const opcao = String(cells[5]?.v || '').trim();
         const cargo = String(cells[3]?.v || '').trim();
         const nome = String(cells[4]?.v || '').trim();
         const emOutraOm = String(cells[9]?.v || '').trim();
@@ -271,9 +278,9 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         
         if (nome) {
           destaquesData.push({
-            posto, corpo, quadro, cargo, nome, emOutraOm, deOutraOm, periodo, om: omName
+            posto, corpo, quadro, opcao, cargo, nome, emOutraOm, deOutraOm, periodo, om: omName
           });
-          console.log(`${omName} Destaque: ${nome} - Em: ${emOutraOm}, De: ${deOutraOm}, Período: ${periodo}`);
+          console.log(`${omName} Destaque: ${nome} - Opção: ${opcao}`);
         }
       }
       
@@ -282,15 +289,16 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         const posto = firstCell;
         const corpo = String(cells[1]?.v || '').trim();
         const quadro = String(cells[2]?.v || '').trim();
+        const opcao = String(cells[5]?.v || '').trim();
         const cargo = String(cells[3]?.v || '').trim();
         const nome = String(cells[4]?.v || '').trim();
         const motivo = String(cells[9]?.v || '').trim();
         
         if (nome) {
           licencasData.push({
-            posto, corpo, quadro, cargo, nome, emOutraOm: '', deOutraOm: '', periodo: motivo, om: omName
+            posto, corpo, quadro, opcao, cargo, nome, emOutraOm: '', deOutraOm: '', periodo: motivo, om: omName
           });
-          console.log(`${omName} Licença: ${nome} - Motivo: ${motivo}`);
+          console.log(`${omName} Licença: ${nome} - Opção: ${opcao}`);
         }
       }
       

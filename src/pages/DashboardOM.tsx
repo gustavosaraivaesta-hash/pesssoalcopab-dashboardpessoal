@@ -60,6 +60,7 @@ interface DesembarqueRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  opcao: string;
   cargo: string;
   nome: string;
   destino: string;
@@ -83,6 +84,7 @@ interface LicencaRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  opcao: string;
   cargo: string;
   nome: string;
   emOutraOm: string;
@@ -95,6 +97,7 @@ interface DestaqueRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  opcao: string;
   cargo: string;
   nome: string;
   emOutraOm: string;
@@ -107,6 +110,7 @@ interface ConcursoRecord {
   posto: string;
   corpo: string;
   quadro: string;
+  opcao: string;
   cargo: string;
   nome: string;
   anoPrevisto: string;
@@ -1465,6 +1469,11 @@ const DashboardOM = () => {
                         <div className="flex gap-2">
                           <Badge variant="outline">{item.posto}</Badge>
                           <Badge variant="outline">{item.quadro}</Badge>
+                          {item.opcao && (
+                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                              {item.opcao}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1532,6 +1541,11 @@ const DashboardOM = () => {
                           <div className="flex gap-2">
                             <Badge variant="outline">{item.posto}</Badge>
                             <Badge variant="outline">{item.quadro}</Badge>
+                            {item.opcao && (
+                              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                                {item.opcao}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1563,6 +1577,11 @@ const DashboardOM = () => {
                           <div className="flex gap-2">
                             <Badge variant="outline">{item.posto}</Badge>
                             <Badge variant="outline">{item.quadro}</Badge>
+                            {item.opcao && (
+                              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                                {item.opcao}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1594,6 +1613,11 @@ const DashboardOM = () => {
                           <div className="flex gap-2">
                             <Badge variant="outline">{item.posto}</Badge>
                             <Badge variant="outline">{item.quadro}</Badge>
+                            {item.opcao && (
+                              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                                {item.opcao}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
