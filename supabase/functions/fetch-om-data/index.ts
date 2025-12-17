@@ -208,17 +208,18 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     // Handle rows with empty/invalid NEO
     if (!firstCell || !isValidNeo) {
       // Check if it's a desembarque/embarque data row
+      // Columns: GRADUAÇÃO | QUADRO | CARGO | NOME | OPÇÃO | DESTINO | MÊS/ANO | DOCUMENTO
       if ((currentSection === 'DESEMBARQUE' || currentSection === 'EMBARQUE') && 
           validPostos.includes(firstCell)) {
         const posto = firstCell;
-        const corpo = String(cells[1]?.v || '').trim();
-        const quadro = String(cells[2]?.v || '').trim();
-        const opcao = String(cells[5]?.v || '').trim();
-        const cargo = String(cells[3]?.v || '').trim();
-        const nome = String(cells[4]?.v || '').trim();
-        const destino = String(cells[9]?.v || '').trim();
-        const mesAno = String(cells[10]?.v || '').trim();
-        const documento = String(cells[11]?.v || '').trim();
+        const quadro = String(cells[1]?.v || '').trim();
+        const cargo = String(cells[2]?.v || '').trim();
+        const nome = String(cells[3]?.v || '').trim();
+        const opcao = String(cells[4]?.v || '').trim();
+        const destino = String(cells[5]?.v || '').trim();
+        const mesAno = String(cells[6]?.v || '').trim();
+        const documento = String(cells[7]?.v || '').trim();
+        const corpo = ''; // Not present in DESEMBARQUE section
         
         if (nome && currentSection === 'DESEMBARQUE') {
           desembarqueData.push({
