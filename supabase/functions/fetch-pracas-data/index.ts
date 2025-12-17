@@ -101,6 +101,7 @@ const SHEET_CONFIGS = [
 async function fetchSheetData(spreadsheetId: string, gid: string, omName: string): Promise<{
   personnel: PersonnelRecord[];
   desembarque: DesembarqueRecord[];
+  embarque: DesembarqueRecord[];
   trrm: TrrmRecord[];
   licencas: LicencaRecord[];
   destaques: DestaqueRecord[];
@@ -111,6 +112,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
 }> {
   const personnel: PersonnelRecord[] = [];
   const desembarque: DesembarqueRecord[] = [];
+  const embarque: DesembarqueRecord[] = [];
   const trrm: TrrmRecord[] = [];
   const licencas: LicencaRecord[] = [];
   const destaques: DestaqueRecord[] = [];
@@ -127,7 +129,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     
     if (!response.ok) {
       console.error(`Failed to fetch GID ${gid}: ${response.status}`);
-      return { personnel, desembarque, trrm, licencas, destaques, concurso, setores: [], especialidades: [], opcoes: [] };
+      return { personnel, desembarque, embarque, trrm, licencas, destaques, concurso, setores: [], especialidades: [], opcoes: [] };
     }
 
     const csvText = await response.text();
@@ -181,6 +183,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     let currentSection = '';
     let personnelCounter = 0;
     let desembarqueCounter = 0;
+    let embarqueCounter = 0;
     let trrmCounter = 0;
     let licencaCounter = 0;
     let destaqueCounter = 0;
@@ -215,7 +218,8 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         currentSection = 'SKIP';
         continue;
       } else if (firstCell.includes('PREVISÃO DE EMBARQUE')) {
-        currentSection = 'SKIP';
+        currentSection = 'EMBARQUE';
+        console.log(`${omName}: Detected EMBARQUE section`);
         continue;
       } else if (firstCell.includes('PREVISÃO DE CURSO') || firstCell.includes('CURSO') && !firstCell.includes('INCUMBÊNCIA')) {
         currentSection = 'CURSO';
@@ -329,8 +333,8 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           if (opcaoTmft) opcoesSet.add(opcaoTmft);
           if (opcaoEfe) opcoesSet.add(opcaoEfe);
         }
-      } else if (currentSection === 'DESEMBARQUE') {
-        // DESEMBARQUE columns: GRADUAÇÃO, QUADRO, ESPECIALIDADE, CARGO/INCUMBÊNCIA, NOME, ..., DESTINO, MÊS/ANO
+      } else if (currentSection === 'DESEMBARQUE' || currentSection === 'EMBARQUE') {
+        // DESEMBARQUE/EMBARQUE columns: GRADUAÇÃO, QUADRO, ESPECIALIDADE, CARGO/INCUMBÊNCIA, NOME, ..., DESTINO, MÊS/ANO
         const posto = getCell(row, 0);
         const quadro = getCell(row, 1);
         const especialidade = getCell(row, 2);
@@ -342,24 +346,29 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         const isHeader = headerWords.some(hw => nome.toUpperCase().includes(hw) || posto.toUpperCase().includes(hw));
         
         if (nome && nome.length > 2 && !isHeader && posto) {
-          desembarqueCounter++;
           const destino = getCell(row, 9) || getCell(row, 5);
-          const dataDesembarque = getCell(row, 10) || getCell(row, 6);
+          const dataRecord = getCell(row, 10) || getCell(row, 6);
           
           const record: DesembarqueRecord = {
-            id: `${omName}-DES-${desembarqueCounter}`,
+            id: `${omName}-${currentSection === 'EMBARQUE' ? 'EMB' : 'DES'}-${currentSection === 'EMBARQUE' ? ++embarqueCounter : ++desembarqueCounter}`,
             nome,
             posto,
             quadro,
             especialidade,
-            opcao: getCell(row, 7) || getCell(row, 3) || '',
+            opcao: getCell(row, 7) || getCell(row, 5) || '',
             om: omName,
-            dataDesembarque,
+            dataDesembarque: dataRecord,
             destino,
             motivo: cargo,
           };
-          desembarque.push(record);
-          console.log(`${omName} Desembarque: ${nome} - ${posto}`);
+          
+          if (currentSection === 'EMBARQUE') {
+            embarque.push(record);
+            console.log(`${omName} Embarque: ${nome} - ${posto}`);
+          } else {
+            desembarque.push(record);
+            console.log(`${omName} Desembarque: ${nome} - ${posto}`);
+          }
         }
       } else if (currentSection === 'TRRM') {
         const posto = getCell(row, 0);
@@ -480,7 +489,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       }
     }
 
-    console.log(`${omName}: ${personnel.length} personnel, ${desembarque.length} desembarque, ${trrm.length} trrm, ${licencas.length} licencas`);
+    console.log(`${omName}: ${personnel.length} personnel, ${desembarque.length} desembarque, ${embarque.length} embarque, ${trrm.length} trrm, ${licencas.length} licencas`);
 
   } catch (error) {
     console.error(`Error fetching GID ${gid} (${omName}):`, error);
@@ -489,6 +498,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
   return {
     personnel,
     desembarque,
+    embarque,
     trrm,
     licencas,
     destaques,
@@ -524,6 +534,7 @@ Deno.serve(async (req) => {
     // Aggregate all results
     const allPersonnel: PersonnelRecord[] = [];
     const allDesembarque: DesembarqueRecord[] = [];
+    const allEmbarque: DesembarqueRecord[] = [];
     const allTrrm: TrrmRecord[] = [];
     const allLicencas: LicencaRecord[] = [];
     const allDestaques: DestaqueRecord[] = [];
@@ -536,6 +547,7 @@ Deno.serve(async (req) => {
     for (const result of results) {
       allPersonnel.push(...result.personnel);
       allDesembarque.push(...result.desembarque);
+      allEmbarque.push(...result.embarque);
       allTrrm.push(...result.trrm);
       allLicencas.push(...result.licencas);
       allDestaques.push(...result.destaques);
@@ -599,6 +611,21 @@ Deno.serve(async (req) => {
       om: d.om,
     }));
 
+    // Transform embarque to match frontend interface
+    const transformedEmbarque = allEmbarque.map(d => ({
+      posto: d.posto,
+      corpo: '',
+      quadro: d.quadro,
+      especialidade: d.especialidade,
+      opcao: d.opcao || '',
+      cargo: d.motivo || '',
+      nome: d.nome,
+      destino: d.destino,
+      mesAno: d.dataDesembarque,
+      documento: '',
+      om: d.om,
+    }));
+
     // Transform trrm to match frontend interface  
     const transformedTrrm = allTrrm.map(t => ({
       posto: t.posto,
@@ -642,6 +669,7 @@ Deno.serve(async (req) => {
     const responseData = {
       data: transformedData,
       desembarque: transformedDesembarque,
+      embarque: transformedEmbarque,
       trrm: transformedTrrm,
       licencas: transformedLicencas,
       destaques: transformedDestaques,
