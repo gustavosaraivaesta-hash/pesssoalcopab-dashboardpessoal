@@ -104,6 +104,7 @@ const SHEET_CONFIGS = [
 async function fetchSheetData(spreadsheetId: string, gid: string, omName: string): Promise<{
   personnel: PersonnelRecord[];
   desembarque: DesembarqueRecord[];
+  embarque: DesembarqueRecord[];
   trrm: TrrmRecord[];
   licencas: LicencaRecord[];
   destaques: DestaqueRecord[];
@@ -127,7 +128,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
   
   if (!response.ok) {
     console.error(`Failed to fetch ${omName}: ${response.status}`);
-    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [] };
+    return { personnel: [], desembarque: [], embarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [] };
   }
 
   const text = await response.text();
@@ -137,13 +138,14 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
 
   if (!rows || rows.length === 0) {
     console.log(`No data found for ${omName}`);
-    return { personnel: [], desembarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [] };
+    return { personnel: [], desembarque: [], embarque: [], trrm: [], licencas: [], destaques: [], concurso: [], setores: [], quadros: [], opcoes: [] };
   }
 
   console.log(`${omName}: Total rows = ${rows.length}`);
   
   const personnelData: PersonnelRecord[] = [];
   const desembarqueData: DesembarqueRecord[] = [];
+  const embarqueData: DesembarqueRecord[] = [];
   const trrmData: TrrmRecord[] = [];
   const licencasData: LicencaRecord[] = [];
   const destaquesData: DestaqueRecord[] = [];
@@ -226,6 +228,12 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName
           });
           console.log(`${omName} Desembarque: ${nome} - Opção: ${opcao}`);
+        }
+        if (nome && currentSection === 'EMBARQUE') {
+          embarqueData.push({
+            posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName
+          });
+          console.log(`${omName} Embarque: ${nome} - Opção: ${opcao}`);
         }
       }
       
@@ -434,11 +442,12 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     console.log(`${omName} Personnel NEO=${neoString}: ${nome || 'VAGO'} - ${tipoSetor}/${setor} - ${cargo}`);
   }
 
-  console.log(`${omName}: Processed ${personnelData.length} personnel, ${desembarqueData.length} desembarque, ${trrmData.length} TRRM, ${licencasData.length} licenças, ${destaquesData.length} destaques, ${concursoData.length} concurso`);
+  console.log(`${omName}: Processed ${personnelData.length} personnel, ${desembarqueData.length} desembarque, ${embarqueData.length} embarque, ${trrmData.length} TRRM, ${licencasData.length} licenças, ${destaquesData.length} destaques, ${concursoData.length} concurso`);
   
   return {
     personnel: personnelData,
     desembarque: desembarqueData,
+    embarque: embarqueData,
     trrm: trrmData,
     licencas: licencasData,
     destaques: destaquesData,
@@ -469,6 +478,7 @@ serve(async (req) => {
     // Combine all results
     const allPersonnel: PersonnelRecord[] = [];
     const allDesembarque: DesembarqueRecord[] = [];
+    const allEmbarque: DesembarqueRecord[] = [];
     const allTrrm: TrrmRecord[] = [];
     const allLicencas: LicencaRecord[] = [];
     const allDestaques: DestaqueRecord[] = [];
@@ -481,6 +491,7 @@ serve(async (req) => {
     for (const result of results) {
       allPersonnel.push(...result.personnel);
       allDesembarque.push(...result.desembarque);
+      allEmbarque.push(...result.embarque);
       allTrrm.push(...result.trrm);
       allLicencas.push(...result.licencas);
       allDestaques.push(...result.destaques);
@@ -493,12 +504,13 @@ serve(async (req) => {
     // Get unique OMs from data
     allPersonnel.forEach(p => allOMs.add(p.om));
     
-    console.log(`Total: ${allPersonnel.length} personnel, ${allDesembarque.length} desembarque, ${allTrrm.length} TRRM, ${allLicencas.length} licenças, ${allDestaques.length} destaques, ${allConcurso.length} concurso from ${allOMs.size} OMs`);
+    console.log(`Total: ${allPersonnel.length} personnel, ${allDesembarque.length} desembarque, ${allEmbarque.length} embarque, ${allTrrm.length} TRRM, ${allLicencas.length} licenças, ${allDestaques.length} destaques, ${allConcurso.length} concurso from ${allOMs.size} OMs`);
 
     return new Response(
       JSON.stringify({ 
         data: allPersonnel,
         desembarque: allDesembarque,
+        embarque: allEmbarque,
         trrm: allTrrm,
         licencas: allLicencas,
         destaques: allDestaques,

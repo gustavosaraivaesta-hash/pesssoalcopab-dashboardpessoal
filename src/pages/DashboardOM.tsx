@@ -121,6 +121,7 @@ const DashboardOM = () => {
   const navigate = useNavigate();
   const [personnelData, setPersonnelData] = useState<PersonnelRecord[]>([]);
   const [desembarqueData, setDesembarqueData] = useState<DesembarqueRecord[]>([]);
+  const [embarqueData, setEmbarqueData] = useState<DesembarqueRecord[]>([]);
   const [trrmData, setTrrmData] = useState<TrrmRecord[]>([]);
   const [licencasData, setLicencasData] = useState<LicencaRecord[]>([]);
   const [destaquesData, setDestaquesData] = useState<DestaqueRecord[]>([]);
@@ -161,6 +162,7 @@ const DashboardOM = () => {
         const data = result.data || [];
         setPersonnelData(data);
         setDesembarqueData(result.desembarque || []);
+        setEmbarqueData(result.embarque || []);
         setTrrmData(result.trrm || []);
         setLicencasData(result.licencas || []);
         setDestaquesData(result.destaques || []);
@@ -298,6 +300,20 @@ const DashboardOM = () => {
 
     return filtered;
   }, [desembarqueData, selectedOMs, selectedQuadros]);
+
+  const filteredEmbarqueData = useMemo(() => {
+    let filtered = embarqueData;
+
+    if (selectedOMs.length > 0) {
+      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
+    }
+
+    if (selectedQuadros.length > 0) {
+      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro));
+    }
+
+    return filtered;
+  }, [embarqueData, selectedOMs, selectedQuadros]);
 
   const chartDataByPosto = useMemo(() => {
     const POSTO_ORDER = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM"];
@@ -1367,6 +1383,9 @@ const DashboardOM = () => {
                 <TabsTrigger value="previsao" className="data-[state=active]:bg-background">
                   Previsão de Desembarque
                 </TabsTrigger>
+                <TabsTrigger value="embarque" className="data-[state=active]:bg-background">
+                  Previsão de Embarque
+                </TabsTrigger>
                 <TabsTrigger value="trrm" className="data-[state=active]:bg-background">
                   Previsão de TRRM
                 </TabsTrigger>
@@ -1481,6 +1500,41 @@ const DashboardOM = () => {
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     Nenhuma previsão de desembarque encontrada.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "embarque" && (
+              <div className="space-y-4">
+                {filteredEmbarqueData.length > 0 ? (
+                  filteredEmbarqueData.map((item, index) => (
+                    <div key={index} className="border-l-4 border-l-green-500 bg-card rounded-lg p-4 shadow-sm">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm">
+                            <span className="text-green-600">Destino: {item.destino}</span>
+                            <span className="text-muted-foreground">{item.mesAno}</span>
+                          </div>
+                          {item.documento && <p className="text-xs text-muted-foreground mt-1">{item.documento}</p>}
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge variant="outline">{item.posto}</Badge>
+                          <Badge variant="outline">{item.quadro}</Badge>
+                          {item.opcao && (
+                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                              {item.opcao}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhuma previsão de embarque encontrada.
                   </div>
                 )}
               </div>
