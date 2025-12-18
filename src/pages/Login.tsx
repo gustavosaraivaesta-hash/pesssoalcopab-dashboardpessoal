@@ -16,21 +16,34 @@ const Login = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      (username === "COPAB" && password === "COPAB031") ||
-      username === "copab" ||
-      password === "COPAB01" ||
-      password === "COPAB02" ||
-      password === "copab01" ||
-      password === "copab02" ||
-      password === "copab031"
-    ) {
+    const upperUsername = username.toUpperCase();
+    const upperPassword = password.toUpperCase();
+
+    // CSUPAB user - restricted access to specific OMs
+    if (upperUsername === "CSUPAB" && upperPassword === "CSUPAB01") {
       localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("currentUser", "CSUPAB");
       toast.success("Login realizado com sucesso!");
       navigate("/");
-    } else {
-      toast.error("Usuário ou senha incorretos");
+      return;
     }
+
+    // COPAB user - full access
+    if (
+      (upperUsername === "COPAB" && upperPassword === "COPAB031") ||
+      upperUsername === "COPAB" ||
+      upperPassword === "COPAB01" ||
+      upperPassword === "COPAB02" ||
+      upperPassword === "COPAB031"
+    ) {
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("currentUser", "COPAB");
+      toast.success("Login realizado com sucesso!");
+      navigate("/");
+      return;
+    }
+
+    toast.error("Usuário ou senha incorretos");
   };
 
   return (
