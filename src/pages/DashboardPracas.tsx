@@ -154,13 +154,20 @@ const DashboardPracas = () => {
         
         // Apply user access filtering
         const allowedOMs = getAllowedOMs();
+        console.log("DashboardPracas - allowedOMs:", allowedOMs);
+        
+        const rawData = result.data || [];
+        console.log("DashboardPracas - rawData count:", rawData.length);
+        console.log("DashboardPracas - unique OMs in data:", [...new Set(rawData.map((item: any) => item.om))]);
+        
         const filterByOM = (arr: any[]): any[] => {
           if (allowedOMs === "all") return arr;
           return arr.filter((item: any) => allowedOMs.includes(item.om));
         };
         
-        const rawData = result.data || [];
         const data = filterByOM(rawData) as PersonnelRecord[];
+        console.log("DashboardPracas - filtered data count:", data.length);
+        
         const desembarque = filterByOM(result.desembarque || []) as DesembarqueRecord[];
         const embarque = filterByOM(result.embarque || []) as DesembarqueRecord[];
         const trrm = filterByOM(result.trrm || []) as TrrmRecord[];
@@ -927,6 +934,7 @@ const DashboardPracas = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("currentUser");
     navigate("/login");
   };
 
