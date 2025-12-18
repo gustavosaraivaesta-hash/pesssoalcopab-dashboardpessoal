@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -159,20 +160,36 @@ const DashboardOM = () => {
 
       if (result) {
         console.log("Received OM data:", result);
-        const data = result.data || [];
+        
+        // Apply user access filtering
+        const allowedOMs = getAllowedOMs();
+        const filterByOM = (arr: any[]): any[] => {
+          if (allowedOMs === "all") return arr;
+          return arr.filter((item: any) => allowedOMs.includes(item.om));
+        };
+        
+        const rawData = result.data || [];
+        const data = filterByOM(rawData) as PersonnelRecord[];
+        const desembarque = filterByOM(result.desembarque || []) as DesembarqueRecord[];
+        const embarque = filterByOM(result.embarque || []) as DesembarqueRecord[];
+        const trrm = filterByOM(result.trrm || []) as TrrmRecord[];
+        const licencas = filterByOM(result.licencas || []) as LicencaRecord[];
+        const destaques = filterByOM(result.destaques || []) as DestaqueRecord[];
+        const concurso = filterByOM(result.concurso || []) as ConcursoRecord[];
+        
         setPersonnelData(data);
-        setDesembarqueData(result.desembarque || []);
-        setEmbarqueData(result.embarque || []);
-        setTrrmData(result.trrm || []);
-        setLicencasData(result.licencas || []);
-        setDestaquesData(result.destaques || []);
-        setConcursoData(result.concurso || []);
+        setDesembarqueData(desembarque);
+        setEmbarqueData(embarque);
+        setTrrmData(trrm);
+        setLicencasData(licencas);
+        setDestaquesData(destaques);
+        setConcursoData(concurso);
 
-        // Extract unique OMs and Opcoes from data
+        // Extract unique OMs and Opcoes from filtered data
         const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
         const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
 
-        setAvailableOMs(oms as string[]);
+        setAvailableOMs(getAvailableOMsForUser(oms as string[]));
         setAvailableQuadros(result.quadros || []);
         setAvailableOpcoes(opcoes as string[]);
         setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
