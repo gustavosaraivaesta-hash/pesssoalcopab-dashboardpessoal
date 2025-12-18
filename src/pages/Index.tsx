@@ -13,6 +13,7 @@ import { getUniqueValues, mockMilitaryData } from "@/data/mockData";
 import militaryBg from "@/assets/military-background.png";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
 
 // Função para detectar mudanças nos dados
 const detectChanges = (oldData: MilitaryData[], newData: MilitaryData[]): string[] => {
@@ -88,9 +89,17 @@ const Index = () => {
       if (data?.data && data.data.length > 0) {
         console.log(`Loaded ${data.data.length} records from sheets`);
 
+        // Apply user access filtering
+        const allowedOMs = getAllowedOMs();
+        const filteredByAccess = allowedOMs === "all" 
+          ? data.data 
+          : data.data.filter((item: MilitaryData) => allowedOMs.includes(item.om));
+
+        console.log(`After access filter: ${filteredByAccess.length} records`);
+
         // Detectar alterações nos valores
         if (previousData.length > 0 && showToast) {
-          const changes = detectChanges(previousData, data.data);
+          const changes = detectChanges(previousData, filteredByAccess);
           if (changes.length > 0) {
             changes.forEach((change) => {
               toast.success(change, {
@@ -101,17 +110,23 @@ const Index = () => {
         }
 
         setPreviousData(militaryData);
-        setMilitaryData(data.data);
+        setMilitaryData(filteredByAccess);
 
         if (showToast) {
-          toast.success(`Dados atualizados! ${data.data.length} registros da planilha.`);
+          toast.success(`Dados atualizados! ${filteredByAccess.length} registros da planilha.`);
         }
       } else {
         console.log("No data from sheets, using mock data");
         toast("Usando dados de exemplo", {
           description: "Adicione dados na planilha para ver informações reais.",
         });
-        setMilitaryData(mockMilitaryData);
+        
+        // Also filter mock data by access
+        const allowedOMs = getAllowedOMs();
+        const filteredMock = allowedOMs === "all" 
+          ? mockMilitaryData 
+          : mockMilitaryData.filter((item) => allowedOMs.includes(item.om));
+        setMilitaryData(filteredMock);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -148,6 +163,7 @@ const Index = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("currentUser");
     toast.success("Logout realizado com sucesso!");
     navigate("/login");
   };
@@ -157,7 +173,9 @@ const Index = () => {
     const dataByCategory = militaryData.filter((item) => item.categoria === filters.categoria);
 
     // Obter valores únicos apenas da categoria selecionada
-    const filteredOMs = Array.from(new Set(dataByCategory.map((item) => item.om))).sort();
+    const filteredOMs = getAvailableOMsForUser(
+      Array.from(new Set(dataByCategory.map((item) => item.om))).sort()
+    );
 
     const filteredEspecialidades = Array.from(new Set(dataByCategory.map((item) => item.especialidade))).sort();
 
