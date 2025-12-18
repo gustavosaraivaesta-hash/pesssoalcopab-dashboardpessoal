@@ -14,10 +14,19 @@ export const USER_ACCESS_CONFIG: Record<string, UserAccess> = {
 
 export const getAllowedOMs = (): string[] | "all" => {
   const currentUser = localStorage.getItem("currentUser");
-  if (!currentUser) return "all";
+  console.log("Auth - currentUser from localStorage:", currentUser);
+  
+  if (!currentUser) {
+    console.log("Auth - No currentUser, returning 'all'");
+    return "all";
+  }
   
   const userConfig = USER_ACCESS_CONFIG[currentUser];
-  return userConfig?.allowedOMs || "all";
+  console.log("Auth - userConfig:", userConfig);
+  
+  const result = userConfig?.allowedOMs || "all";
+  console.log("Auth - getAllowedOMs result:", result);
+  return result;
 };
 
 export const getAvailableOMsForUser = (allOMs: string[]): string[] => {

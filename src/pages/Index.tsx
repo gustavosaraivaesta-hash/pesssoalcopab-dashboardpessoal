@@ -88,14 +88,17 @@ const Index = () => {
 
       if (data?.data && data.data.length > 0) {
         console.log(`Loaded ${data.data.length} records from sheets`);
+        console.log("Index - unique OMs in data:", [...new Set(data.data.map((item: MilitaryData) => item.om))]);
 
         // Apply user access filtering
         const allowedOMs = getAllowedOMs();
+        console.log("Index - allowedOMs:", allowedOMs);
+        
         const filteredByAccess = allowedOMs === "all" 
           ? data.data 
           : data.data.filter((item: MilitaryData) => allowedOMs.includes(item.om));
 
-        console.log(`After access filter: ${filteredByAccess.length} records`);
+        console.log(`Index - After access filter: ${filteredByAccess.length} records`);
 
         // Detectar alterações nos valores
         if (previousData.length > 0 && showToast) {
