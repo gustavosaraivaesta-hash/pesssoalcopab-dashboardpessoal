@@ -32,5 +32,7 @@ export const getAllowedOMs = (): string[] | "all" => {
 export const getAvailableOMsForUser = (allOMs: string[]): string[] => {
   const allowedOMs = getAllowedOMs();
   if (allowedOMs === "all") return allOMs;
-  return allOMs.filter(om => allowedOMs.includes(om));
+
+  const allowedUpper = new Set(allowedOMs.map((o) => o.toUpperCase()));
+  return allOMs.filter((om) => allowedUpper.has(om.toUpperCase()));
 };
