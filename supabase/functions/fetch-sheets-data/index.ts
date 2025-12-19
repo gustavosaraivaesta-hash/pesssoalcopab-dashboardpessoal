@@ -80,6 +80,28 @@ serve(async (req) => {
     const jsonString3 = text3.substring(47).slice(0, -2);
     const sheet3Data = JSON.parse(jsonString3);
     
+    // Fetch Page 4 (CSUPAB OMs data) - gid=1141691969
+    const sheet4Url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=1141691969&tqx=out:json&timestamp=${timestamp}`;
+    
+    console.log('Calling Google Sheets API for Page 4 (CSUPAB OMs)...');
+    const response4 = await fetch(sheet4Url, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+    
+    let csupabOmsData: any = null;
+    if (response4.ok) {
+      const text4 = await response4.text();
+      const jsonString4 = text4.substring(47).slice(0, -2);
+      csupabOmsData = JSON.parse(jsonString4);
+      console.log('CSUPAB OMs data loaded successfully');
+    } else {
+      console.log('Could not load CSUPAB OMs data, continuing without it');
+    }
+    
     // Build especialidade mapping from Page 3 AND extract direct especialidades data
     const especialidadeMap: { [key: string]: string } = {};
     const especialidadesData: any[] = [];
@@ -206,6 +228,63 @@ serve(async (req) => {
     
     // Process PRAÇAS data (Page 2)
     processSheetData(sheetsDataPracas, "PRAÇAS");
+    
+    // Process CSUPAB OMs data (Page 4 - gid=1141691969)
+    // OMs: CSUPAB, DEPCMRJ, DEPFMRJ, DEPMSMRJ, DEPSIMRJ, DEPSMRJ
+    if (csupabOmsData && csupabOmsData.table && csupabOmsData.table.rows) {
+      console.log('Processing CSUPAB OMs data from GID 1141691969...');
+      const csupabRows = csupabOmsData.table.rows;
+      
+      // Try to detect column structure from header row
+      // Expected columns: OM, Graduação/Posto, Especialidade, TMFT, EXI, DIF, Categoria or similar
+      for (let i = 1; i < csupabRows.length; i++) {
+        const cells = csupabRows[i].c || [];
+        
+        // Try to extract data based on column positions
+        const om = cells[0]?.v?.toString().trim() || '';
+        const graduacao = cells[1]?.v?.toString().trim() || '';
+        const especialidade = cells[2]?.v?.toString().trim() || graduacao;
+        const tmft = Number(cells[3]?.v || 0);
+        const exi = Number(cells[4]?.v || 0);
+        const dif = Number(cells[5]?.v || 0);
+        const categoriaRaw = cells[6]?.v?.toString().toUpperCase() || '';
+        
+        // Only process if OM is one of the allowed ones for CSUPAB
+        const allowedOMs = ['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ'];
+        const normalizedOM = om.toUpperCase().replace(/\s+/g, '');
+        
+        if (!allowedOMs.some(allowed => normalizedOM.includes(allowed.replace(/\s+/g, '')))) {
+          continue;
+        }
+        
+        if (!graduacao) continue;
+        
+        // Determine categoria
+        let categoria: "PRAÇAS" | "OFICIAIS" = "OFICIAIS";
+        if (categoriaRaw.includes('PRAÇA') || categoriaRaw.includes('PRACA')) {
+          categoria = "PRAÇAS";
+        }
+        
+        transformedData.push({
+          id: `CSUPAB-${graduacao}-${om}-${i}`,
+          nome: `${graduacao} - ${om}`,
+          especialidade: especialidade,
+          graduacao: graduacao,
+          om: om,
+          sdp: '',
+          tmft: tmft,
+          exi: exi,
+          dif: dif,
+          previsaoEmbarque: '',
+          pracasTTC: 0,
+          servidoresCivis: 0,
+          percentualPracasAtiva: 0,
+          percentualForcaTrabalho: 0,
+          categoria: categoria,
+        });
+      }
+      console.log(`Added CSUPAB OMs data, total records now: ${transformedData.length}`);
+    }
     
     console.log(`Transformed ${transformedData.length} records`);
     
