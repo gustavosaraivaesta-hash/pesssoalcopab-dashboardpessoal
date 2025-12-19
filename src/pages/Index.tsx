@@ -180,7 +180,7 @@ const Index = () => {
       Array.from(new Set(dataByCategory.map((item) => item.om))).sort()
     );
 
-    const filteredEspecialidades = Array.from(new Set(dataByCategory.map((item) => item.especialidade))).sort();
+    const filteredEspecialidades = Array.from(new Set(dataByCategory.map((item) => item.especialidade).filter((e) => e && e.trim() !== "" && e !== "-"))).sort();
 
     const filteredGraduacoes = Array.from(new Set(dataByCategory.map((item) => item.graduacao))).sort();
 
