@@ -229,63 +229,62 @@ serve(async (req) => {
     // Process PRAÇAS data (Page 2)
     processSheetData(sheetsDataPracas, "PRAÇAS");
     
-    // Process CSUPAB OMs data (Page 4 - gid=1141691969)
+    // Override PRAÇAS values for CSUPAB OMs using Page 4 (gid=1141691969)
     // OMs: CSUPAB, DEPCMRJ, DEPFMRJ, DEPMSMRJ, DEPSIMRJ, DEPSMRJ
+    const csupabOms = ["CSupAb", "DepCMRJ", "DepFMRJ", "DepMSMRJ", "DepSIMRJ", "DepSMRJ"];
+    const csupabOmsSet = new Set(csupabOms);
+
     if (csupabOmsData && csupabOmsData.table && csupabOmsData.table.rows) {
-      console.log('Processing CSUPAB OMs data from GID 1141691969...');
-      const csupabRows = csupabOmsData.table.rows;
-      
-      // Try to detect column structure from header row
-      // Expected columns: OM, Graduação/Posto, Especialidade, TMFT, EXI, DIF, Categoria or similar
-      for (let i = 1; i < csupabRows.length; i++) {
-        const cells = csupabRows[i].c || [];
-        
-        // Try to extract data based on column positions
-        const om = cells[0]?.v?.toString().trim() || '';
-        const graduacao = cells[1]?.v?.toString().trim() || '';
-        const especialidade = cells[2]?.v?.toString().trim() || graduacao;
-        const tmft = Number(cells[3]?.v || 0);
-        const exi = Number(cells[4]?.v || 0);
-        const dif = Number(cells[5]?.v || 0);
-        const categoriaRaw = cells[6]?.v?.toString().toUpperCase() || '';
-        
-        // Only process if OM is one of the allowed ones for CSUPAB
-        const allowedOMs = ['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ'];
-        const normalizedOM = om.toUpperCase().replace(/\s+/g, '');
-        
-        if (!allowedOMs.some(allowed => normalizedOM.includes(allowed.replace(/\s+/g, '')))) {
-          continue;
-        }
-        
-        if (!graduacao) continue;
-        
-        // Determine categoria
-        let categoria: "PRAÇAS" | "OFICIAIS" = "OFICIAIS";
-        if (categoriaRaw.includes('PRAÇA') || categoriaRaw.includes('PRACA')) {
-          categoria = "PRAÇAS";
-        }
-        
-        transformedData.push({
-          id: `CSUPAB-${graduacao}-${om}-${i}`,
-          nome: `${graduacao} - ${om}`,
-          especialidade: especialidade,
-          graduacao: graduacao,
-          om: om,
-          sdp: '',
-          tmft: tmft,
-          exi: exi,
-          dif: dif,
-          previsaoEmbarque: '',
-          pracasTTC: 0,
-          servidoresCivis: 0,
-          percentualPracasAtiva: 0,
-          percentualForcaTrabalho: 0,
-          categoria: categoria,
+      console.log("Overriding PRAÇAS data for CSUPAB OMs from GID 1141691969...");
+
+      const before = transformedData.length;
+      const kept = transformedData.filter(
+        (r) => !(r.categoria === "PRAÇAS" && csupabOmsSet.has(r.om)),
+      );
+      transformedData.length = 0;
+      transformedData.push(...kept);
+
+      const rows = csupabOmsData.table.rows;
+      console.log(`CSUPAB GID rows: ${rows.length}`);
+
+      for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].c || [];
+        const graduacao = cells[0]?.v || "";
+
+        if (!graduacao || graduacao === "FORÇA DE TRABALHO") continue;
+
+        // Same mapping logic as main sheets
+        const especialidade = especialidadeMap[graduacao] || graduacao;
+
+        oms.forEach((om) => {
+          if (!csupabOmsSet.has(om.name)) return;
+
+          const tmft = Number(cells[om.startCol]?.v || 0);
+          const exi = Number(cells[om.startCol + 1]?.v || 0);
+          const dif = Number(cells[om.startCol + 2]?.v || 0);
+
+          transformedData.push({
+            id: `PRAÇAS-${graduacao}-${om.name}`,
+            nome: `${graduacao} - ${om.name}`,
+            especialidade,
+            graduacao,
+            om: om.name,
+            sdp: "",
+            tmft,
+            exi,
+            dif,
+            previsaoEmbarque: "",
+            pracasTTC: 0,
+            servidoresCivis: 0,
+            percentualPracasAtiva: 0,
+            percentualForcaTrabalho: 0,
+            categoria: "PRAÇAS",
+          });
         });
       }
-      console.log(`Added CSUPAB OMs data, total records now: ${transformedData.length}`);
+
+      console.log(`CSUPAB override done. Before=${before}, After=${transformedData.length}`);
     }
-    
     console.log(`Transformed ${transformedData.length} records`);
     
     return new Response(
