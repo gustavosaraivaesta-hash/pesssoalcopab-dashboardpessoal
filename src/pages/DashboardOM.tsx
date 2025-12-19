@@ -197,7 +197,7 @@ const DashboardOM = () => {
         const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
 
         setAvailableOMs(getAvailableOMsForUser(oms as string[]));
-        setAvailableQuadros(result.quadros || []);
+        setAvailableQuadros((result.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
         setAvailableOpcoes(opcoes as string[]);
         setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
       }
