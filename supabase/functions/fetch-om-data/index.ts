@@ -101,6 +101,12 @@ const SHEET_CONFIGS = [
   { gid: '1727648610', omName: 'DepSMRJ' },
 ];
 
+// Helper function to convert "-" to "NEO VAGO"
+const normalizeValue = (val: string): string => {
+  const str = val.trim();
+  return str === '-' ? 'NEO VAGO' : str;
+};
+
 async function fetchSheetData(spreadsheetId: string, gid: string, omName: string): Promise<{
   personnel: PersonnelRecord[];
   desembarque: DesembarqueRecord[];
@@ -391,18 +397,18 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     // Parse TABELA MESTRA rows (personnel data)
     currentSection = 'TABELA_MESTRA';
     
-    const tipoSetor = String(cells[1]?.v || '').trim();
-    const setor = String(cells[2]?.v || '').trim();
-    const cargo = String(cells[3]?.v || '').trim();
-    const postoTmft = String(cells[4]?.v || '').trim();
-    const corpoTmft = String(cells[5]?.v || '').trim();
-    const quadroTmft = String(cells[6]?.v || '').trim();
-    const opcaoTmft = String(cells[7]?.v || '').trim();
-    const postoEfe = String(cells[8]?.v || '').trim();
-    const corpoEfe = String(cells[9]?.v || '').trim();
-    const quadroEfe = String(cells[10]?.v || '').trim();
-    const opcaoEfe = String(cells[11]?.v || '').trim();
-    const nome = String(cells[12]?.v || '').trim();
+    const tipoSetor = normalizeValue(String(cells[1]?.v || ''));
+    const setor = normalizeValue(String(cells[2]?.v || ''));
+    const cargo = normalizeValue(String(cells[3]?.v || ''));
+    const postoTmft = normalizeValue(String(cells[4]?.v || ''));
+    const corpoTmft = normalizeValue(String(cells[5]?.v || ''));
+    const quadroTmft = normalizeValue(String(cells[6]?.v || ''));
+    const opcaoTmft = normalizeValue(String(cells[7]?.v || ''));
+    const postoEfe = normalizeValue(String(cells[8]?.v || ''));
+    const corpoEfe = normalizeValue(String(cells[9]?.v || ''));
+    const quadroEfe = normalizeValue(String(cells[10]?.v || ''));
+    const opcaoEfe = normalizeValue(String(cells[11]?.v || ''));
+    const nome = normalizeValue(String(cells[12]?.v || ''));
     
     // Skip summary rows (contain percentages like "100%", "71%", etc.)
     if (tipoSetor.includes('%') || setor.includes('%') || cargo.includes('%')) {
