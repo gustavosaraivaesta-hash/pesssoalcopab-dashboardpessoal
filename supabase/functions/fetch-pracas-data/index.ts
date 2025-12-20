@@ -98,6 +98,12 @@ const SHEET_CONFIGS = [
   { gid: '1610199360', omName: 'DEPSMRJ' },
 ];
 
+// Helper function to convert "-" to "NEO VAGO"
+const normalizeValue = (val: string): string => {
+  const str = val.trim();
+  return str === '-' ? 'NEO VAGO' : str;
+};
+
 async function fetchSheetData(spreadsheetId: string, gid: string, omName: string): Promise<{
   personnel: PersonnelRecord[];
   desembarque: DesembarqueRecord[];
@@ -177,7 +183,8 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     console.log(`GID ${gid} (${omName}): Total rows = ${rows.length}`);
 
     const getCell = (row: string[], index: number): string => {
-      return row && row[index] ? row[index].trim() : '';
+      const val = row && row[index] ? row[index].trim() : '';
+      return normalizeValue(val);
     };
 
     let currentSection = '';
