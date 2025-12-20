@@ -153,10 +153,10 @@ serve(async (req) => {
     
     console.log('Raw sheets data received');
     
-    // Helper function to convert "-" to "NÃO VAGO"
+    // Helper function to convert "-" to "NEO VAGO"
     const normalizeValue = (val: any): string => {
       const str = String(val || '').trim();
-      return str === '-' ? 'NÃO VAGO' : str;
+      return str === '-' ? 'NEO VAGO' : str;
     };
     
     const transformedData: any[] = [];
