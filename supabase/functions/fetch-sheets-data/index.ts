@@ -153,6 +153,12 @@ serve(async (req) => {
     
     console.log('Raw sheets data received');
     
+    // Helper function to convert "-" to "NÃO VAGO"
+    const normalizeValue = (val: any): string => {
+      const str = String(val || '').trim();
+      return str === '-' ? 'NÃO VAGO' : str;
+    };
+    
     const transformedData: any[] = [];
     
     // Define OMs and their column positions (TMFT, EXI, DIF)
@@ -200,13 +206,14 @@ serve(async (req) => {
           const dif = Number(cells[om.startCol + 2]?.v || 0);
           
           // Get especialidade from mapping, fallback to graduacao if not found
-          const especialidade = especialidadeMap[graduacao] || graduacao;
+          const especialidade = normalizeValue(especialidadeMap[graduacao] || graduacao);
+          const graduacaoNorm = normalizeValue(graduacao);
           
           transformedData.push({
-            id: `${categoria}-${graduacao}-${om.name}`,
-            nome: `${graduacao} - ${om.name}`,
+            id: `${categoria}-${graduacaoNorm}-${om.name}`,
+            nome: `${graduacaoNorm} - ${om.name}`,
             especialidade: especialidade,
-            graduacao: graduacao,
+            graduacao: graduacaoNorm,
             om: om.name,
             sdp: '',
             tmft: tmft,
@@ -254,7 +261,8 @@ serve(async (req) => {
         if (!graduacao || graduacao === "FORÇA DE TRABALHO") continue;
 
         // Same mapping logic as main sheets
-        const especialidade = especialidadeMap[graduacao] || graduacao;
+        const especialidade = normalizeValue(especialidadeMap[graduacao] || graduacao);
+        const graduacaoNorm = normalizeValue(graduacao);
 
         oms.forEach((om) => {
           if (!csupabOmsSet.has(om.name)) return;
@@ -264,10 +272,10 @@ serve(async (req) => {
           const dif = Number(cells[om.startCol + 2]?.v || 0);
 
           transformedData.push({
-            id: `PRAÇAS-${graduacao}-${om.name}`,
-            nome: `${graduacao} - ${om.name}`,
+            id: `PRAÇAS-${graduacaoNorm}-${om.name}`,
+            nome: `${graduacaoNorm} - ${om.name}`,
             especialidade,
-            graduacao,
+            graduacao: graduacaoNorm,
             om: om.name,
             sdp: "",
             tmft,
