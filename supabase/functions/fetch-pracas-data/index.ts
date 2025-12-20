@@ -98,10 +98,10 @@ const SHEET_CONFIGS = [
   { gid: '1610199360', omName: 'DEPSMRJ' },
 ];
 
-// Helper function to convert "-" to "NEO VAGO"
+// Helper function to convert "-" to "VAGO"
 const normalizeValue = (val: string): string => {
   const str = val.trim();
-  return str === '-' ? 'NEO VAGO' : str;
+  return str === '-' ? 'VAGO' : str;
 };
 
 async function fetchSheetData(spreadsheetId: string, gid: string, omName: string): Promise<{
