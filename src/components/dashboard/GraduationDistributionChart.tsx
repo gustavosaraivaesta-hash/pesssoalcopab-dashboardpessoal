@@ -22,7 +22,7 @@ export const GraduationDistributionChart = ({
   selectedEspecialidades = [],
   selectedGraduacoes = []
 }: GraduationDistributionChartProps) => {
-  const [chartData, setChartData] = useState<{ graduacao: string; quantidade: number; percentual: number }[]>([]);
+  const [chartData, setChartData] = useState<{ graduacao: string; tmft: number; efe: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,25 +42,25 @@ export const GraduationDistributionChart = ({
           return omMatch && espMatch && gradMatch;
         });
         
-        // Agrupar por graduação e somar o efe_sum
-        const graduationCount = new Map<string, number>();
+        // Agrupar por graduação e somar tmft_sum e efe_sum
+        const graduationData = new Map<string, { tmft: number; efe: number }>();
         
         filteredData.forEach((item: EspecialidadeData) => {
-          const currentCount = graduationCount.get(item.graduacao) || 0;
-          graduationCount.set(item.graduacao, currentCount + item.efe_sum);
+          const current = graduationData.get(item.graduacao) || { tmft: 0, efe: 0 };
+          graduationData.set(item.graduacao, {
+            tmft: current.tmft + item.tmft_sum,
+            efe: current.efe + item.efe_sum
+          });
         });
-        
-        // Calcular total para percentuais
-        const total = Array.from(graduationCount.values()).reduce((sum, val) => sum + val, 0);
         
         // Ordenar por ordem de graduação (SO, 1SG, 2SG, 3SG, CB, MN)
         const ordenacao = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
         
-        const data = Array.from(graduationCount.entries())
-          .map(([graduacao, quantidade]) => ({
+        const data = Array.from(graduationData.entries())
+          .map(([graduacao, values]) => ({
             graduacao,
-            quantidade,
-            percentual: total > 0 ? Number(((quantidade / total) * 100).toFixed(1)) : 0
+            tmft: values.tmft,
+            efe: values.efe
           }))
           .sort((a, b) => ordenacao.indexOf(a.graduacao) - ordenacao.indexOf(b.graduacao));
         
@@ -74,16 +74,6 @@ export const GraduationDistributionChart = ({
 
     fetchData();
   }, [selectedOMs, selectedEspecialidades, selectedGraduacoes]);
-
-  // Cores para cada graduação
-  const colors = [
-    "#1e40af", // SO - azul escuro
-    "#3b82f6", // 1SG - azul médio
-    "#60a5fa", // 2SG - azul claro
-    "#93c5fd", // 3SG - azul mais claro
-    "#bfdbfe", // CB - azul muito claro
-    "#dbeafe", // MN - azul ultra claro
-  ];
 
   if (loading) {
     return (
@@ -152,9 +142,9 @@ export const GraduationDistributionChart = ({
               label={{ value: 'Quantidade de Militares', angle: -90, position: 'insideLeft' }}
             />
             <Tooltip 
-              formatter={(value: number, name: string, props: any) => [
-                `${value} militares (${props.payload.percentual}%)`,
-                'Quantidade'
+              formatter={(value: number, name: string) => [
+                `${value} militares`,
+                name
               ]}
               contentStyle={{ 
                 backgroundColor: 'hsl(var(--card))',
@@ -162,22 +152,29 @@ export const GraduationDistributionChart = ({
                 borderRadius: '8px'
               }}
             />
-            <Legend 
-              formatter={() => 'Graduação'}
-            />
+            <Legend />
             <Bar 
-              dataKey="quantidade" 
-              name="Quantidade"
+              dataKey="tmft" 
+              name="TMFT"
+              fill="#93c5fd"
               radius={[8, 8, 0, 0]}
             >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-              ))}
               <LabelList 
-                dataKey="percentual" 
+                dataKey="tmft" 
                 position="top" 
-                formatter={(value: number) => `${value}%`}
-                style={{ fill: 'hsl(var(--foreground))', fontSize: '12px', fontWeight: 'bold' }}
+                style={{ fill: 'hsl(var(--foreground))', fontSize: '11px', fontWeight: 'bold' }}
+              />
+            </Bar>
+            <Bar 
+              dataKey="efe" 
+              name="EFE"
+              fill="#ef4444"
+              radius={[8, 8, 0, 0]}
+            >
+              <LabelList 
+                dataKey="efe" 
+                position="top" 
+                style={{ fill: 'hsl(var(--foreground))', fontSize: '11px', fontWeight: 'bold' }}
               />
             </Bar>
           </BarChart>
