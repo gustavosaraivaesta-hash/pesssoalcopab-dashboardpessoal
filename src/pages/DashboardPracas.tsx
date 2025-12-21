@@ -20,7 +20,7 @@ import {
   Filter,
 } from "lucide-react";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList, Legend } from "recharts";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
@@ -398,20 +398,30 @@ const DashboardPracas = () => {
 
     const grouped = filteredData.reduce(
       (acc, item) => {
-        let posto = item.ocupado ? item.postoEfe : item.postoTmft;
+        // Contar TMFT por posto
+        const postoTmft = item.postoTmft;
+        if (postoTmft) {
+          if (!acc[postoTmft]) {
+            acc[postoTmft] = { name: postoTmft, tmft: 0, efe: 0 };
+          }
+          acc[postoTmft].tmft += 1;
+        }
 
-        if (posto && !acc[posto]) {
-          acc[posto] = { name: posto, value: 0 };
+        // Contar EFE apenas se ocupado
+        if (item.ocupado && item.postoEfe) {
+          const postoEfe = item.postoEfe;
+          if (!acc[postoEfe]) {
+            acc[postoEfe] = { name: postoEfe, tmft: 0, efe: 0 };
+          }
+          acc[postoEfe].efe += 1;
         }
-        if (posto) {
-          acc[posto].value += 1;
-        }
+
         return acc;
       },
-      {} as Record<string, { name: string; value: number }>,
+      {} as Record<string, { name: string; tmft: number; efe: number }>,
     );
 
-    const values = Object.values(grouped).filter((item) => item.value > 0);
+    const values = Object.values(grouped).filter((item) => item.tmft > 0 || item.efe > 0);
 
     return values.sort((a, b) => {
       const indexA = POSTO_ORDER.indexOf(a.name);
@@ -1267,19 +1277,19 @@ const DashboardPracas = () => {
                   allowDecimals={false}
                 />
                 <Tooltip />
-                <Bar dataKey="value" name="Quantidade" cursor="pointer" onClick={handlePostoBarClick}>
-                  {chartDataByPosto.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={selectedPostos.includes(entry.name) ? "#3b82f6" : "#93c5fd"}
-                      stroke={selectedPostos.includes(entry.name) ? "#1d4ed8" : "none"}
-                      strokeWidth={selectedPostos.includes(entry.name) ? 2 : 0}
-                    />
-                  ))}
+                <Legend />
+                <Bar dataKey="tmft" name="TMFT" fill="#93c5fd" cursor="pointer" onClick={handlePostoBarClick}>
                   <LabelList
-                    dataKey="value"
+                    dataKey="tmft"
                     position="top"
-                    style={{ fontWeight: "bold", fontSize: "12px", fill: "#1e40af" }}
+                    style={{ fontWeight: "bold", fontSize: "11px", fill: "#1e40af" }}
+                  />
+                </Bar>
+                <Bar dataKey="efe" name="EFE" fill="#ef4444" cursor="pointer" onClick={handlePostoBarClick}>
+                  <LabelList
+                    dataKey="efe"
+                    position="top"
+                    style={{ fontWeight: "bold", fontSize: "11px", fill: "#b91c1c" }}
                   />
                 </Bar>
               </BarChart>
