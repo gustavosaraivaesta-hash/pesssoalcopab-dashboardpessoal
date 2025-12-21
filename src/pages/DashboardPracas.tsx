@@ -133,6 +133,7 @@ const DashboardPracas = () => {
   const [selectedOMsForVagos, setSelectedOMsForVagos] = useState<string[]>([]);
   const [showOnlyExtraLotacao, setShowOnlyExtraLotacao] = useState(false);
   const [selectedPostos, setSelectedPostos] = useState<string[]>([]);
+  const [selectedOMForTopEspecialidades, setSelectedOMForTopEspecialidades] = useState<string | null>(null);
 
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -483,8 +484,37 @@ const DashboardPracas = () => {
       setSelectedOMsForVagos((prev) =>
         prev.includes(data.om) ? prev.filter((om) => om !== data.om) : [...prev, data.om],
       );
+      // Toggle top especialidades chart
+      setSelectedOMForTopEspecialidades((prev) => (prev === data.om ? null : data.om));
     }
   };
+
+  // Top 5 especialidades com vagos para a OM selecionada
+  const topEspecialidadesVagos = useMemo(() => {
+    if (!selectedOMForTopEspecialidades) return [];
+
+    const vagosData = baseFilteredForVagos.filter(
+      (item) => item.om === selectedOMForTopEspecialidades && !item.ocupado
+    );
+
+    // Agrupar por especialidade (quadroTmft)
+    const grouped = vagosData.reduce(
+      (acc, item) => {
+        const especialidade = item.quadroTmft || "Sem Especialidade";
+        if (!acc[especialidade]) {
+          acc[especialidade] = { especialidade, vagos: 0 };
+        }
+        acc[especialidade].vagos += 1;
+        return acc;
+      },
+      {} as Record<string, { especialidade: string; vagos: number }>
+    );
+
+    // Ordenar por quantidade de vagos e pegar top 5
+    return Object.values(grouped)
+      .sort((a, b) => b.vagos - a.vagos)
+      .slice(0, 5);
+  }, [baseFilteredForVagos, selectedOMForTopEspecialidades]);
 
   const handlePostoBarClick = (data: any) => {
     if (data && data.name) {
@@ -1256,6 +1286,42 @@ const DashboardPracas = () => {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Top 5 Especialidades com NEO Vagos */}
+        {selectedOMForTopEspecialidades && topEspecialidadesVagos.length > 0 && (
+          <Card className="border-orange-300 bg-gradient-to-br from-orange-50/50 to-background">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-orange-700">
+                  <BarChart3 className="h-5 w-5" />
+                  Top 5 Especialidades com Vagas - {selectedOMForTopEspecialidades}
+                  <Badge variant="outline" className="ml-2">
+                    {topEspecialidadesVagos.reduce((sum, item) => sum + item.vagos, 0)} vagas
+                  </Badge>
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedOMForTopEspecialidades(null)}>
+                  Fechar
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={topEspecialidadesVagos} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis type="number" domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]} />
+                  <YAxis dataKey="especialidade" type="category" className="text-xs" width={120} />
+                  <Tooltip
+                    formatter={(value: number) => [value, "NEO Vagos"]}
+                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                  />
+                  <Bar dataKey="vagos" name="NEO Vagos" fill="#f97316" radius={[0, 4, 4, 0]}>
+                    <LabelList dataKey="vagos" position="right" style={{ fontWeight: "bold", fontSize: "12px", fill: "#c2410c" }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         )}
