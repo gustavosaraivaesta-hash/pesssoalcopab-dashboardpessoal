@@ -1559,6 +1559,9 @@ const DashboardPracas = () => {
                                 <Badge variant="outline" className="bg-green-100 border-green-300">
                                   {item.ocupado ? item.opcaoEfe : item.opcaoTmft}
                                 </Badge>
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-300">
+                                  {item.om}
+                                </Badge>
                               </div>
                             </div>
                           </div>
