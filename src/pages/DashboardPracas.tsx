@@ -516,22 +516,50 @@ const DashboardPracas = () => {
       .slice(0, 5);
   }, [baseFilteredForVagos, selectedOMForTopEspecialidades]);
 
-  const handlePostoBarClick = (data: any) => {
+  // Track which bar type was clicked (tmft or efe)
+  const [selectedPostoType, setSelectedPostoType] = useState<"tmft" | "efe" | null>(null);
+
+  const handlePostoTmftClick = (data: any) => {
     if (data && data.name) {
-      setSelectedPostos((prev) =>
-        prev.includes(data.name) ? prev.filter((p) => p !== data.name) : [...prev, data.name],
-      );
+      const isAlreadySelected = selectedPostos.includes(data.name) && selectedPostoType === "tmft";
+      
+      if (isAlreadySelected) {
+        setSelectedPostos((prev) => prev.filter((p) => p !== data.name));
+        setSelectedPostoType(null);
+      } else {
+        setSelectedPostos([data.name]);
+        setSelectedPostoType("tmft");
+      }
+    }
+  };
+
+  const handlePostoEfeClick = (data: any) => {
+    if (data && data.name) {
+      const isAlreadySelected = selectedPostos.includes(data.name) && selectedPostoType === "efe";
+      
+      if (isAlreadySelected) {
+        setSelectedPostos((prev) => prev.filter((p) => p !== data.name));
+        setSelectedPostoType(null);
+      } else {
+        setSelectedPostos([data.name]);
+        setSelectedPostoType("efe");
+      }
     }
   };
 
   const personnelForSelectedPostos = useMemo(() => {
-    if (selectedPostos.length === 0) return [];
+    if (selectedPostos.length === 0 || !selectedPostoType) return [];
 
     return filteredData.filter((item) => {
-      const posto = item.ocupado ? item.postoEfe : item.postoTmft;
-      return selectedPostos.includes(posto);
+      if (selectedPostoType === "tmft") {
+        // TMFT: mostrar todos os NEOs daquele posto (postoTmft)
+        return selectedPostos.includes(item.postoTmft);
+      } else {
+        // EFE: mostrar apenas os ocupados daquele posto (postoEfe)
+        return item.ocupado && selectedPostos.includes(item.postoEfe);
+      }
     });
-  }, [filteredData, selectedPostos]);
+  }, [filteredData, selectedPostos, selectedPostoType]);
 
   const exportToPDF = async () => {
     try {
@@ -1344,14 +1372,14 @@ const DashboardPracas = () => {
                 />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="tmft" name="TMFT" fill="#93c5fd" cursor="pointer" onClick={handlePostoBarClick}>
+                <Bar dataKey="tmft" name="TMFT" fill="#93c5fd" cursor="pointer" onClick={handlePostoTmftClick}>
                   <LabelList
                     dataKey="tmft"
                     position="top"
                     style={{ fontWeight: "bold", fontSize: "11px", fill: "#1e40af" }}
                   />
                 </Bar>
-                <Bar dataKey="efe" name="EFE" fill="#ef4444" cursor="pointer" onClick={handlePostoBarClick}>
+                <Bar dataKey="efe" name="EFE" fill="#ef4444" cursor="pointer" onClick={handlePostoEfeClick}>
                   <LabelList
                     dataKey="efe"
                     position="top"
