@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeFunctionWithCache } from "@/lib/offline-cache";
 import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -136,63 +137,72 @@ const DashboardPracas = () => {
   const [selectedOMForTopEspecialidades, setSelectedOMForTopEspecialidades] = useState<string | null>(null);
 
   const chartRef = useRef<HTMLDivElement>(null);
+  const offlineToastShownRef = useRef(false);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      console.log("Fetching PRAÇAS data...");
+      console.log("Fetching PRAÇAS data (with offline cache)...");
 
-      const { data: result, error } = await supabase.functions.invoke("fetch-pracas-data");
+      const { data: result, error, source } = await invokeFunctionWithCache<any>("fetch-pracas-data", {
+        timeoutMs: 8000,
+        cacheVersion: "v2",
+      });
 
-      if (error) {
+      if (source === "cache" && !offlineToastShownRef.current) {
+        offlineToastShownRef.current = true;
+        toast("Modo offline", {
+          description: "Exibindo os últimos dados salvos no dispositivo.",
+        });
+      }
+
+      if (error || !result) {
         console.error("Error fetching PRAÇAS data:", error);
         toast.error("Erro ao carregar dados de PRAÇAS");
         return;
       }
 
-      if (result) {
-        console.log("Received PRAÇAS data:", result);
-        
-        // Apply user access filtering
-        const allowedOMs = getAllowedOMs();
-        console.log("DashboardPracas - allowedOMs:", allowedOMs);
-        
-        const rawData = result.data || [];
-        console.log("DashboardPracas - rawData count:", rawData.length);
-        console.log("DashboardPracas - unique OMs in data:", [...new Set(rawData.map((item: any) => item.om))]);
-        
-        const filterByOM = (arr: any[]): any[] => {
-          if (allowedOMs === "all") return arr;
-          return arr.filter((item: any) => allowedOMs.includes(item.om));
-        };
-        
-        const data = filterByOM(rawData) as PersonnelRecord[];
-        console.log("DashboardPracas - filtered data count:", data.length);
-        
-        const desembarque = filterByOM(result.desembarque || []) as DesembarqueRecord[];
-        const embarque = filterByOM(result.embarque || []) as DesembarqueRecord[];
-        const trrm = filterByOM(result.trrm || []) as TrrmRecord[];
-        const licencas = filterByOM(result.licencas || []) as LicencaRecord[];
-        const destaques = filterByOM(result.destaques || []) as DestaqueRecord[];
-        const curso = filterByOM(result.concurso || []) as CursoRecord[];
-        
-        setPersonnelData(data);
-        setDesembarqueData(desembarque);
-        setEmbarqueData(embarque);
-        setTrrmData(trrm);
-        setLicencasData(licencas);
-        setDestaquesData(destaques);
-        setCursoData(curso);
+      console.log("Received PRAÇAS data:", result);
 
-        // Extract unique OMs and Opcoes from filtered data
-        const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
-        const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
+      // Apply user access filtering
+      const allowedOMs = getAllowedOMs();
+      console.log("DashboardPracas - allowedOMs:", allowedOMs);
 
-        setAvailableOMs(getAvailableOMsForUser(oms as string[]));
-        setAvailableQuadros((result.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
-        setAvailableOpcoes(opcoes as string[]);
-        setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
-      }
+      const rawData = result.data || [];
+      console.log("DashboardPracas - rawData count:", rawData.length);
+      console.log("DashboardPracas - unique OMs in data:", [...new Set(rawData.map((item: any) => item.om))]);
+
+      const filterByOM = (arr: any[]): any[] => {
+        if (allowedOMs === "all") return arr;
+        return arr.filter((item: any) => allowedOMs.includes(item.om));
+      };
+
+      const data = filterByOM(rawData) as PersonnelRecord[];
+      console.log("DashboardPracas - filtered data count:", data.length);
+
+      const desembarque = filterByOM(result.desembarque || []) as DesembarqueRecord[];
+      const embarque = filterByOM(result.embarque || []) as DesembarqueRecord[];
+      const trrm = filterByOM(result.trrm || []) as TrrmRecord[];
+      const licencas = filterByOM(result.licencas || []) as LicencaRecord[];
+      const destaques = filterByOM(result.destaques || []) as DestaqueRecord[];
+      const curso = filterByOM(result.concurso || []) as CursoRecord[];
+
+      setPersonnelData(data);
+      setDesembarqueData(desembarque);
+      setEmbarqueData(embarque);
+      setTrrmData(trrm);
+      setLicencasData(licencas);
+      setDestaquesData(destaques);
+      setCursoData(curso);
+
+      // Extract unique OMs and Opcoes from filtered data
+      const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
+      const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
+
+      setAvailableOMs(getAvailableOMsForUser(oms as string[]));
+      setAvailableQuadros((result.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
+      setAvailableOpcoes(opcoes as string[]);
+      setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
     } catch (error) {
       console.error("Error in fetchData:", error);
       toast.error("Erro ao carregar dados");
