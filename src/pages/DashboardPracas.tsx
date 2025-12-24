@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
+import { useOfflineCache, useOnlineStatus } from "@/hooks/useOfflineCache";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -18,6 +19,8 @@ import {
   RefreshCw,
   Building2,
   Filter,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList, Legend } from "recharts";
@@ -113,6 +116,7 @@ interface CursoRecord {
 
 const DashboardPracas = () => {
   const navigate = useNavigate();
+  const isOnline = useOnlineStatus();
   const [personnelData, setPersonnelData] = useState<PersonnelRecord[]>([]);
   const [desembarqueData, setDesembarqueData] = useState<DesembarqueRecord[]>([]);
   const [embarqueData, setEmbarqueData] = useState<DesembarqueRecord[]>([]);
@@ -133,11 +137,69 @@ const DashboardPracas = () => {
   const [selectedOMsForVagos, setSelectedOMsForVagos] = useState<string[]>([]);
   const [showOnlyExtraLotacao, setShowOnlyExtraLotacao] = useState(false);
   const [selectedPostos, setSelectedPostos] = useState<string[]>([]);
+  const [isUsingCache, setIsUsingCache] = useState(false);
   // selectedOMsForVagos is now used for both vagos list and top especialidades chart
 
   const chartRef = useRef<HTMLDivElement>(null);
+  
+  const { getFromCache, saveToCache, getCacheTimestamp } = useOfflineCache<{
+    data: PersonnelRecord[];
+    desembarque: DesembarqueRecord[];
+    embarque: DesembarqueRecord[];
+    trrm: TrrmRecord[];
+    licencas: LicencaRecord[];
+    destaques: DestaqueRecord[];
+    concurso: CursoRecord[];
+    quadros: string[];
+    lastUpdate: string;
+  }>('pracas_data');
+
+  const loadFromCache = () => {
+    const cachedData = getFromCache();
+    if (cachedData) {
+      const allowedOMs = getAllowedOMs();
+      const filterByOM = (arr: any[]): any[] => {
+        if (allowedOMs === "all") return arr;
+        return arr.filter((item: any) => allowedOMs.includes(item.om));
+      };
+      
+      const data = filterByOM(cachedData.data || []) as PersonnelRecord[];
+      setPersonnelData(data);
+      setDesembarqueData(filterByOM(cachedData.desembarque || []) as DesembarqueRecord[]);
+      setEmbarqueData(filterByOM(cachedData.embarque || []) as DesembarqueRecord[]);
+      setTrrmData(filterByOM(cachedData.trrm || []) as TrrmRecord[]);
+      setLicencasData(filterByOM(cachedData.licencas || []) as LicencaRecord[]);
+      setDestaquesData(filterByOM(cachedData.destaques || []) as DestaqueRecord[]);
+      setCursoData(filterByOM(cachedData.concurso || []) as CursoRecord[]);
+      
+      const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
+      const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
+      
+      setAvailableOMs(getAvailableOMsForUser(oms as string[]));
+      setAvailableQuadros((cachedData.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
+      setAvailableOpcoes(opcoes as string[]);
+      
+      const cacheTime = getCacheTimestamp();
+      setLastUpdate(cacheTime ? cacheTime.toLocaleString("pt-BR") : "Cache");
+      setIsUsingCache(true);
+      return true;
+    }
+    return false;
+  };
 
   const fetchData = async () => {
+    // If offline, try to load from cache
+    if (!navigator.onLine) {
+      const hasCache = loadFromCache();
+      if (hasCache) {
+        toast.info("Modo offline - usando dados em cache");
+      } else {
+        toast.error("Sem conexão e sem dados em cache");
+      }
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       console.log("Fetching PRAÇAS data...");
@@ -146,12 +208,32 @@ const DashboardPracas = () => {
 
       if (error) {
         console.error("Error fetching PRAÇAS data:", error);
-        toast.error("Erro ao carregar dados de PRAÇAS");
+        // Try cache on error
+        const hasCache = loadFromCache();
+        if (hasCache) {
+          toast.warning("Erro ao atualizar - usando dados em cache");
+        } else {
+          toast.error("Erro ao carregar dados de PRAÇAS");
+        }
         return;
       }
 
       if (result) {
         console.log("Received PRAÇAS data:", result);
+        
+        // Save raw data to cache before filtering
+        saveToCache({
+          data: result.data || [],
+          desembarque: result.desembarque || [],
+          embarque: result.embarque || [],
+          trrm: result.trrm || [],
+          licencas: result.licencas || [],
+          destaques: result.destaques || [],
+          concurso: result.concurso || [],
+          quadros: result.quadros || [],
+          lastUpdate: result.lastUpdate || new Date().toLocaleTimeString("pt-BR"),
+        });
+        setIsUsingCache(false);
         
         // Apply user access filtering
         const allowedOMs = getAllowedOMs();
@@ -195,7 +277,13 @@ const DashboardPracas = () => {
       }
     } catch (error) {
       console.error("Error in fetchData:", error);
-      toast.error("Erro ao carregar dados");
+      // Try cache on error
+      const hasCache = loadFromCache();
+      if (hasCache) {
+        toast.warning("Erro ao atualizar - usando dados em cache");
+      } else {
+        toast.error("Erro ao carregar dados");
+      }
     } finally {
       setLoading(false);
     }
@@ -1019,7 +1107,25 @@ const DashboardPracas = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold mb-2">Dashboard PRAÇAS </h1>
-            <p className="text-muted-foreground">Centro de Operações do Abastecimento - Praças</p>
+            <div className="flex items-center gap-3">
+              <p className="text-muted-foreground">Centro de Operações do Abastecimento - Praças</p>
+              {isOnline ? (
+                <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+                  <Wifi className="h-3 w-3 mr-1" />
+                  Online
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/30">
+                  <WifiOff className="h-3 w-3 mr-1" />
+                  Offline
+                </Badge>
+              )}
+              {isUsingCache && (
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">
+                  Dados em cache
+                </Badge>
+              )}
+            </div>
           </div>
           <div className="flex gap-3">
             <Button onClick={() => navigate("/")} variant="outline">
