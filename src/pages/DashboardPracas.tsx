@@ -133,7 +133,7 @@ const DashboardPracas = () => {
   const [selectedOMsForVagos, setSelectedOMsForVagos] = useState<string[]>([]);
   const [showOnlyExtraLotacao, setShowOnlyExtraLotacao] = useState(false);
   const [selectedPostos, setSelectedPostos] = useState<string[]>([]);
-  const [selectedOMForTopEspecialidades, setSelectedOMForTopEspecialidades] = useState<string | null>(null);
+  const [selectedOMsForTopEspecialidades, setSelectedOMsForTopEspecialidades] = useState<string[]>([]);
 
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -484,17 +484,19 @@ const DashboardPracas = () => {
       setSelectedOMsForVagos((prev) =>
         prev.includes(data.om) ? prev.filter((om) => om !== data.om) : [...prev, data.om],
       );
-      // Toggle top especialidades chart
-      setSelectedOMForTopEspecialidades((prev) => (prev === data.om ? null : data.om));
+      // Toggle top especialidades chart (multiple selection)
+      setSelectedOMsForTopEspecialidades((prev) =>
+        prev.includes(data.om) ? prev.filter((om) => om !== data.om) : [...prev, data.om]
+      );
     }
   };
 
-  // Top 5 especialidades com vagos para a OM selecionada
+  // Top 5 especialidades com vagos para as OMs selecionadas
   const topEspecialidadesVagos = useMemo(() => {
-    if (!selectedOMForTopEspecialidades) return [];
+    if (selectedOMsForTopEspecialidades.length === 0) return [];
 
     const vagosData = baseFilteredForVagos.filter(
-      (item) => item.om === selectedOMForTopEspecialidades && !item.ocupado
+      (item) => selectedOMsForTopEspecialidades.includes(item.om) && !item.ocupado
     );
 
     // Agrupar por especialidade (quadroTmft)
@@ -514,7 +516,7 @@ const DashboardPracas = () => {
     return Object.values(grouped)
       .sort((a, b) => b.vagos - a.vagos)
       .slice(0, 5);
-  }, [baseFilteredForVagos, selectedOMForTopEspecialidades]);
+  }, [baseFilteredForVagos, selectedOMsForTopEspecialidades]);
 
   // Track which bar type was clicked (tmft or efe)
   const [selectedPostoType, setSelectedPostoType] = useState<"tmft" | "efe" | null>(null);
@@ -1319,18 +1321,18 @@ const DashboardPracas = () => {
         )}
 
         {/* Top 5 Especialidades com NEO Vagos */}
-        {selectedOMForTopEspecialidades && topEspecialidadesVagos.length > 0 && (
+        {selectedOMsForTopEspecialidades.length > 0 && topEspecialidadesVagos.length > 0 && (
           <Card className="border-orange-300 bg-gradient-to-br from-orange-50/50 to-background">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-orange-700">
                   <BarChart3 className="h-5 w-5" />
-                  Top 5 Especialidades com Vagas - {selectedOMForTopEspecialidades}
+                  Top 5 Especialidades com Vagas - {selectedOMsForTopEspecialidades.join(", ")}
                   <Badge variant="outline" className="ml-2">
                     {topEspecialidadesVagos.reduce((sum, item) => sum + item.vagos, 0)} vagas
                   </Badge>
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedOMForTopEspecialidades(null)}>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedOMsForTopEspecialidades([])}>
                   Fechar
                 </Button>
               </div>
