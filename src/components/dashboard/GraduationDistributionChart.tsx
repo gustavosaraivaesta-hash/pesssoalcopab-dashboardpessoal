@@ -1,8 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from "recharts";
 import { useState, useEffect } from "react";
-import { invokeFunctionWithCache } from "@/lib/offline-cache";
-
+import { supabase } from "@/integrations/supabase/client";
 
 interface EspecialidadeData {
   especialidade: string;
@@ -29,15 +28,12 @@ export const GraduationDistributionChart = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: response, error } = await invokeFunctionWithCache<any>("fetch-especialidades-data", {
-          timeoutMs: 8000,
-          cacheVersion: "v1",
-        });
-
-        if (error || !response) throw error;
-
+        const { data: response, error } = await supabase.functions.invoke('fetch-especialidades-data');
+        
+        if (error) throw error;
+        
         const especialidadesData = response?.data || [];
-
+        
         // Filtrar por OMs, Especialidades e Graduações selecionadas
         const filteredData = especialidadesData.filter((item: EspecialidadeData) => {
           const omMatch = selectedOMs.length === 0 || selectedOMs.includes(item.om);
@@ -45,32 +41,32 @@ export const GraduationDistributionChart = ({
           const gradMatch = selectedGraduacoes.length === 0 || selectedGraduacoes.includes(item.graduacao);
           return omMatch && espMatch && gradMatch;
         });
-
+        
         // Agrupar por graduação e somar tmft_sum e efe_sum
         const graduationData = new Map<string, { tmft: number; efe: number }>();
-
+        
         filteredData.forEach((item: EspecialidadeData) => {
           const current = graduationData.get(item.graduacao) || { tmft: 0, efe: 0 };
           graduationData.set(item.graduacao, {
             tmft: current.tmft + item.tmft_sum,
-            efe: current.efe + item.efe_sum,
+            efe: current.efe + item.efe_sum
           });
         });
-
+        
         // Ordenar por ordem de graduação (SO, 1SG, 2SG, 3SG, CB, MN)
-        const ordenacao = ["SO", "1SG", "2SG", "3SG", "CB", "MN"];
-
+        const ordenacao = ['SO', '1SG', '2SG', '3SG', 'CB', 'MN'];
+        
         const data = Array.from(graduationData.entries())
           .map(([graduacao, values]) => ({
             graduacao,
             tmft: values.tmft,
-            efe: values.efe,
+            efe: values.efe
           }))
           .sort((a, b) => ordenacao.indexOf(a.graduacao) - ordenacao.indexOf(b.graduacao));
-
+        
         setChartData(data);
       } catch (error) {
-        console.error("Erro ao buscar dados de graduação:", error);
+        console.error('Erro ao buscar dados de graduação:', error);
       } finally {
         setLoading(false);
       }

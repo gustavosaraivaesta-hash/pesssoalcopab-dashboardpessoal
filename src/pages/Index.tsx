@@ -12,8 +12,8 @@ import { MilitaryData } from "@/types/military";
 import { getUniqueValues, mockMilitaryData } from "@/data/mockData";
 import militaryBg from "@/assets/military-background.png";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
-import { invokeFunctionWithCache } from "@/lib/offline-cache";
 
 // Função para detectar mudanças nos dados
 const detectChanges = (oldData: MilitaryData[], newData: MilitaryData[]): string[] => {
@@ -61,7 +61,6 @@ const detectChanges = (oldData: MilitaryData[], newData: MilitaryData[]): string
 const Index = () => {
   const navigate = useNavigate();
   const chartRef = useRef<HTMLDivElement>(null);
-  const offlineToastShownRef = useRef(false);
   const [filters, setFilters] = useState({
     categoria: "PRAÇAS" as "PRAÇAS" | "OFICIAIS",
     om: [] as string[],
@@ -76,52 +75,28 @@ const Index = () => {
   // Fetch data from Google Sheets
   const fetchData = async (showToast = false) => {
     if (showToast) setIsRefreshing(true);
-
     try {
-      console.log("Fetching data from backend function (with offline cache)...");
+      console.log("Fetching data from edge function...");
+      const { data, error } = await supabase.functions.invoke("fetch-sheets-data");
 
-      const {
-        data: result,
-        error,
-        source,
-      } = await invokeFunctionWithCache<{ data: MilitaryData[] }>("fetch-sheets-data", {
-        timeoutMs: 8000,
-        cacheVersion: "v2",
-      });
-
-      if (source === "cache" && !offlineToastShownRef.current) {
-        offlineToastShownRef.current = true;
-        toast("Modo offline", {
-          description: "Exibindo os últimos dados salvos no dispositivo.",
-        });
-      }
-
-      if (error || !result) {
+      if (error) {
         console.error("Error fetching data:", error);
-        toast.error("Erro ao carregar dados. Usando dados salvos/exemplo.");
-
-        const allowedOMs = getAllowedOMs();
-        const filteredMock =
-          allowedOMs === "all"
-            ? mockMilitaryData
-            : mockMilitaryData.filter((item) => allowedOMs.includes(item.om));
-
-        setMilitaryData(filteredMock);
+        toast.error("Erro ao carregar dados da planilha. Usando dados de exemplo.");
+        setMilitaryData(mockMilitaryData);
         return;
       }
 
-      const rows = Array.isArray(result.data) ? result.data : [];
-
-      if (rows.length > 0) {
-        console.log(`Loaded ${rows.length} records from sheets`);
-        console.log("Index - unique OMs in data:", [...new Set(rows.map((item: MilitaryData) => item.om))]);
+      if (data?.data && data.data.length > 0) {
+        console.log(`Loaded ${data.data.length} records from sheets`);
+        console.log("Index - unique OMs in data:", [...new Set(data.data.map((item: MilitaryData) => item.om))]);
 
         // Apply user access filtering
         const allowedOMs = getAllowedOMs();
         console.log("Index - allowedOMs:", allowedOMs);
-
-        const filteredByAccess =
-          allowedOMs === "all" ? rows : rows.filter((item: MilitaryData) => allowedOMs.includes(item.om));
+        
+        const filteredByAccess = allowedOMs === "all" 
+          ? data.data 
+          : data.data.filter((item: MilitaryData) => allowedOMs.includes(item.om));
 
         console.log(`Index - After access filter: ${filteredByAccess.length} records`);
 
@@ -141,28 +116,25 @@ const Index = () => {
         setMilitaryData(filteredByAccess);
 
         if (showToast) {
-          toast.success(`Dados atualizados! ${filteredByAccess.length} registros.`);
+          toast.success(`Dados atualizados! ${filteredByAccess.length} registros da planilha.`);
         }
       } else {
         console.log("No data from sheets, using mock data");
         toast("Usando dados de exemplo", {
           description: "Adicione dados na planilha para ver informações reais.",
         });
-
+        
         // Also filter mock data by access
         const allowedOMs = getAllowedOMs();
-        const filteredMock =
-          allowedOMs === "all" ? mockMilitaryData : mockMilitaryData.filter((item) => allowedOMs.includes(item.om));
+        const filteredMock = allowedOMs === "all" 
+          ? mockMilitaryData 
+          : mockMilitaryData.filter((item) => allowedOMs.includes(item.om));
         setMilitaryData(filteredMock);
       }
-    } catch (err) {
-      console.error("Error:", err);
-      toast.error("Erro ao conectar. Usando dados salvos/exemplo.");
-
-      const allowedOMs = getAllowedOMs();
-      const filteredMock =
-        allowedOMs === "all" ? mockMilitaryData : mockMilitaryData.filter((item) => allowedOMs.includes(item.om));
-      setMilitaryData(filteredMock);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao conectar. Usando dados de exemplo.");
+      setMilitaryData(mockMilitaryData);
     } finally {
       setIsLoading(false);
       if (showToast) setIsRefreshing(false);

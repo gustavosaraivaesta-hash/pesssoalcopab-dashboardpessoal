@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { invokeFunctionWithCache } from "@/lib/offline-cache";
 import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -145,72 +144,63 @@ const DashboardOM = () => {
   const [selectedCorpos, setSelectedCorpos] = useState<string[]>([]);
 
   const chartRef = useRef<HTMLDivElement>(null);
-  const offlineToastShownRef = useRef(false);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      console.log("Fetching OM data (with offline cache)...");
+      console.log("Fetching OM data...");
 
-      const { data: result, error, source } = await invokeFunctionWithCache<any>("fetch-om-data", {
-        timeoutMs: 8000,
-        cacheVersion: "v2",
-      });
+      const { data: result, error } = await supabase.functions.invoke("fetch-om-data");
 
-      if (source === "cache" && !offlineToastShownRef.current) {
-        offlineToastShownRef.current = true;
-        toast("Modo offline", {
-          description: "Exibindo os últimos dados salvos no dispositivo.",
-        });
-      }
-
-      if (error || !result) {
+      if (error) {
         console.error("Error fetching OM data:", error);
         toast.error("Erro ao carregar dados");
         return;
       }
 
-      console.log("Received OM data:", result);
+      if (result) {
+        console.log("Received OM data:", result);
+        
+        // Apply user access filtering
+        const allowedOMs = getAllowedOMs();
+        console.log("DashboardOM - allowedOMs:", allowedOMs);
+        
+        const rawData = result.data || [];
+        console.log("DashboardOM - rawData count:", rawData.length);
+        console.log("DashboardOM - unique OMs in data:", [...new Set(rawData.map((item: any) => item.om))]);
+        
+        const filterByOM = (arr: any[]): any[] => {
+          if (allowedOMs === "all") return arr;
+          return arr.filter((item: any) => allowedOMs.includes(item.om));
+        };
+        
+        const data = filterByOM(rawData) as PersonnelRecord[];
+        console.log("DashboardOM - filtered data count:", data.length);
+        
+        const desembarque = filterByOM(result.desembarque || []) as DesembarqueRecord[];
+        const embarque = filterByOM(result.embarque || []) as DesembarqueRecord[];
+        const trrm = filterByOM(result.trrm || []) as TrrmRecord[];
+        const licencas = filterByOM(result.licencas || []) as LicencaRecord[];
+        const destaques = filterByOM(result.destaques || []) as DestaqueRecord[];
+        const concurso = filterByOM(result.concurso || []) as ConcursoRecord[];
+        
+        setPersonnelData(data);
+        setDesembarqueData(desembarque);
+        setEmbarqueData(embarque);
+        setTrrmData(trrm);
+        setLicencasData(licencas);
+        setDestaquesData(destaques);
+        setConcursoData(concurso);
 
-      // Apply user access filtering
-      const allowedOMs = getAllowedOMs();
-      console.log("DashboardOM - allowedOMs:", allowedOMs);
+        // Extract unique OMs and Opcoes from filtered data
+        const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
+        const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
 
-      const rawData = result.data || [];
-      console.log("DashboardOM - rawData count:", rawData.length);
-      console.log("DashboardOM - unique OMs in data:", [...new Set(rawData.map((item: any) => item.om))]);
-
-      const filterByOM = (arr: any[]): any[] => {
-        if (allowedOMs === "all") return arr;
-        return arr.filter((item: any) => allowedOMs.includes(item.om));
-      };
-
-      const data = filterByOM(rawData) as PersonnelRecord[];
-      console.log("DashboardOM - filtered data count:", data.length);
-
-      const desembarque = filterByOM(result.desembarque || []) as DesembarqueRecord[];
-      const embarque = filterByOM(result.embarque || []) as DesembarqueRecord[];
-      const trrm = filterByOM(result.trrm || []) as TrrmRecord[];
-      const licencas = filterByOM(result.licencas || []) as LicencaRecord[];
-      const destaques = filterByOM(result.destaques || []) as DestaqueRecord[];
-      const concurso = filterByOM(result.concurso || []) as ConcursoRecord[];
-
-      setPersonnelData(data);
-      setDesembarqueData(desembarque);
-      setEmbarqueData(embarque);
-      setTrrmData(trrm);
-      setLicencasData(licencas);
-      setDestaquesData(destaques);
-      setConcursoData(concurso);
-
-      // Extract unique OMs and Opcoes from filtered data
-      const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
-      const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
-
-      setAvailableOMs(getAvailableOMsForUser(oms as string[]));
-      setAvailableQuadros((result.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
-      setAvailableOpcoes(opcoes as string[]);
-      setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
+        setAvailableOMs(getAvailableOMsForUser(oms as string[]));
+        setAvailableQuadros((result.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
+        setAvailableOpcoes(opcoes as string[]);
+        setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
+      }
     } catch (error) {
       console.error("Error in fetchData:", error);
       toast.error("Erro ao carregar dados");
