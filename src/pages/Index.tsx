@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, UserX } from "lucide-react";
+import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, UserX, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { TotalsChart } from "@/components/dashboard/TotalsChart";
@@ -14,6 +15,7 @@ import militaryBg from "@/assets/military-background.png";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
+import { useOfflineCache, useOnlineStatus } from "@/hooks/useOfflineCache";
 
 // Função para detectar mudanças nos dados
 const detectChanges = (oldData: MilitaryData[], newData: MilitaryData[]): string[] => {
@@ -71,16 +73,67 @@ const Index = () => {
   const [previousData, setPreviousData] = useState<MilitaryData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isUsingCache, setIsUsingCache] = useState(false);
+
+  const isOnline = useOnlineStatus();
+  const { getFromCache, saveToCache, getCacheTimestamp } = useOfflineCache<MilitaryData[]>('copab_data');
 
   // Fetch data from Google Sheets
   const fetchData = async (showToast = false) => {
     if (showToast) setIsRefreshing(true);
     try {
       console.log("Fetching data from edge function...");
+      
+      // Check if offline using navigator.onLine for real-time status
+      const currentlyOnline = navigator.onLine;
+      
+      if (!currentlyOnline) {
+        console.log("Offline mode - attempting to load from cache");
+        const cachedData = getFromCache();
+        if (cachedData && cachedData.length > 0) {
+          console.log("Loading COpAb data from cache");
+          
+          // Apply user access filtering to cached data
+          const allowedOMs = getAllowedOMs();
+          const filteredByAccess = allowedOMs === "all" 
+            ? cachedData 
+            : cachedData.filter((item: MilitaryData) => allowedOMs.includes(item.om));
+          
+          setMilitaryData(filteredByAccess);
+          setIsUsingCache(true);
+          const cacheTime = getCacheTimestamp();
+          if (cacheTime) {
+            toast.info(`Modo offline - dados do cache de ${cacheTime.toLocaleString("pt-BR")}`);
+          }
+          setIsLoading(false);
+          if (showToast) setIsRefreshing(false);
+          return;
+        } else {
+          toast.error("Sem conexão e sem dados em cache");
+          setMilitaryData(mockMilitaryData);
+          setIsLoading(false);
+          if (showToast) setIsRefreshing(false);
+          return;
+        }
+      }
+      
       const { data, error } = await supabase.functions.invoke("fetch-sheets-data");
 
       if (error) {
         console.error("Error fetching data:", error);
+        // Try to load from cache on error
+        const cachedData = getFromCache();
+        if (cachedData && cachedData.length > 0) {
+          console.log("Error fetching - loading from cache");
+          const allowedOMs = getAllowedOMs();
+          const filteredByAccess = allowedOMs === "all" 
+            ? cachedData 
+            : cachedData.filter((item: MilitaryData) => allowedOMs.includes(item.om));
+          setMilitaryData(filteredByAccess);
+          setIsUsingCache(true);
+          toast.warning("Erro ao atualizar - usando dados do cache");
+          return;
+        }
         toast.error("Erro ao carregar dados da planilha. Usando dados de exemplo.");
         setMilitaryData(mockMilitaryData);
         return;
@@ -89,6 +142,10 @@ const Index = () => {
       if (data?.data && data.data.length > 0) {
         console.log(`Loaded ${data.data.length} records from sheets`);
         console.log("Index - unique OMs in data:", [...new Set(data.data.map((item: MilitaryData) => item.om))]);
+
+        // Save raw data to cache before filtering
+        saveToCache(data.data);
+        setIsUsingCache(false);
 
         // Apply user access filtering
         const allowedOMs = getAllowedOMs();
@@ -133,6 +190,19 @@ const Index = () => {
       }
     } catch (error) {
       console.error("Error:", error);
+      // Try to load from cache on error
+      const cachedData = getFromCache();
+      if (cachedData && cachedData.length > 0) {
+        console.log("Exception - loading from cache");
+        const allowedOMs = getAllowedOMs();
+        const filteredByAccess = allowedOMs === "all" 
+          ? cachedData 
+          : cachedData.filter((item: MilitaryData) => allowedOMs.includes(item.om));
+        setMilitaryData(filteredByAccess);
+        setIsUsingCache(true);
+        toast.warning("Erro ao conectar - usando dados do cache");
+        return;
+      }
       toast.error("Erro ao conectar. Usando dados de exemplo.");
       setMilitaryData(mockMilitaryData);
     } finally {
@@ -281,7 +351,17 @@ const Index = () => {
                 </p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              {/* Online/Offline Status */}
+              <Badge variant={isOnline ? "default" : "destructive"} className="flex items-center gap-1">
+                {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
+                {isOnline ? "Online" : "Offline"}
+              </Badge>
+              {isUsingCache && (
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+                  Cache
+                </Badge>
+              )}
               <Button variant="secondary" onClick={() => navigate("/dashboard-pracas")}>
                 <FileText size={18} className="mr-2" />
                 PRAÇAS
