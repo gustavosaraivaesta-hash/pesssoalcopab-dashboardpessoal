@@ -210,8 +210,10 @@ const DashboardOM = () => {
       setLoading(true);
       console.log("Fetching OM data...");
 
-      // Check if offline
-      if (!isOnline) {
+      // Check if offline using navigator.onLine for real-time status
+      const currentlyOnline = navigator.onLine;
+      
+      if (!currentlyOnline) {
         console.log("Offline mode - attempting to load from cache");
         const cachedData = getFromCache();
         if (cachedData) {
@@ -222,9 +224,11 @@ const DashboardOM = () => {
           if (cacheTime) {
             toast.info(`Modo offline - dados do cache de ${cacheTime.toLocaleString("pt-BR")}`);
           }
+          setLoading(false);
           return;
         } else {
           toast.error("Sem conexão e sem dados em cache");
+          setLoading(false);
           return;
         }
       }
