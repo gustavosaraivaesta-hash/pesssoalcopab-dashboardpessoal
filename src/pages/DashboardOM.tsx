@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
+import { useOfflineCache, useOnlineStatus } from "@/hooks/useOfflineCache";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -19,6 +20,8 @@ import {
   RefreshCw,
   Building2,
   Filter,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -118,6 +121,18 @@ interface ConcursoRecord {
   om: string;
 }
 
+interface CachedOMData {
+  data: PersonnelRecord[];
+  desembarque: DesembarqueRecord[];
+  embarque: DesembarqueRecord[];
+  trrm: TrrmRecord[];
+  licencas: LicencaRecord[];
+  destaques: DestaqueRecord[];
+  concurso: ConcursoRecord[];
+  quadros: string[];
+  lastUpdate: string;
+}
+
 const DashboardOM = () => {
   const navigate = useNavigate();
   const [personnelData, setPersonnelData] = useState<PersonnelRecord[]>([]);
@@ -142,18 +157,91 @@ const DashboardOM = () => {
   const [showOnlyExtraLotacao, setShowOnlyExtraLotacao] = useState(false);
   const [selectedPostos, setSelectedPostos] = useState<string[]>([]);
   const [selectedCorpos, setSelectedCorpos] = useState<string[]>([]);
+  const [isUsingCache, setIsUsingCache] = useState(false);
 
   const chartRef = useRef<HTMLDivElement>(null);
+  
+  const isOnline = useOnlineStatus();
+  const { getFromCache, saveToCache, getCacheTimestamp } = useOfflineCache<CachedOMData>('om_data');
+
+  const applyUserFiltering = (rawResult: any) => {
+    const allowedOMs = getAllowedOMs();
+    console.log("DashboardOM - allowedOMs:", allowedOMs);
+    
+    const rawData = rawResult.data || [];
+    console.log("DashboardOM - rawData count:", rawData.length);
+    console.log("DashboardOM - unique OMs in data:", [...new Set(rawData.map((item: any) => item.om))]);
+    
+    const filterByOM = (arr: any[]): any[] => {
+      if (allowedOMs === "all") return arr;
+      return arr.filter((item: any) => allowedOMs.includes(item.om));
+    };
+    
+    const data = filterByOM(rawData) as PersonnelRecord[];
+    console.log("DashboardOM - filtered data count:", data.length);
+    
+    const desembarque = filterByOM(rawResult.desembarque || []) as DesembarqueRecord[];
+    const embarque = filterByOM(rawResult.embarque || []) as DesembarqueRecord[];
+    const trrm = filterByOM(rawResult.trrm || []) as TrrmRecord[];
+    const licencas = filterByOM(rawResult.licencas || []) as LicencaRecord[];
+    const destaques = filterByOM(rawResult.destaques || []) as DestaqueRecord[];
+    const concurso = filterByOM(rawResult.concurso || []) as ConcursoRecord[];
+    
+    setPersonnelData(data);
+    setDesembarqueData(desembarque);
+    setEmbarqueData(embarque);
+    setTrrmData(trrm);
+    setLicencasData(licencas);
+    setDestaquesData(destaques);
+    setConcursoData(concurso);
+
+    // Extract unique OMs and Opcoes from filtered data
+    const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
+    const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
+
+    setAvailableOMs(getAvailableOMsForUser(oms as string[]));
+    setAvailableQuadros((rawResult.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
+    setAvailableOpcoes(opcoes as string[]);
+    setLastUpdate(rawResult.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
+  };
 
   const fetchData = async () => {
     try {
       setLoading(true);
       console.log("Fetching OM data...");
 
+      // Check if offline
+      if (!isOnline) {
+        console.log("Offline mode - attempting to load from cache");
+        const cachedData = getFromCache();
+        if (cachedData) {
+          console.log("Loading OM data from cache");
+          applyUserFiltering(cachedData);
+          setIsUsingCache(true);
+          const cacheTime = getCacheTimestamp();
+          if (cacheTime) {
+            toast.info(`Modo offline - dados do cache de ${cacheTime.toLocaleString("pt-BR")}`);
+          }
+          return;
+        } else {
+          toast.error("Sem conexão e sem dados em cache");
+          return;
+        }
+      }
+
       const { data: result, error } = await supabase.functions.invoke("fetch-om-data");
 
       if (error) {
         console.error("Error fetching OM data:", error);
+        // Try to load from cache on error
+        const cachedData = getFromCache();
+        if (cachedData) {
+          console.log("Error fetching - loading from cache");
+          applyUserFiltering(cachedData);
+          setIsUsingCache(true);
+          toast.warning("Erro ao atualizar - usando dados do cache");
+          return;
+        }
         toast.error("Erro ao carregar dados");
         return;
       }
@@ -161,48 +249,34 @@ const DashboardOM = () => {
       if (result) {
         console.log("Received OM data:", result);
         
-        // Apply user access filtering
-        const allowedOMs = getAllowedOMs();
-        console.log("DashboardOM - allowedOMs:", allowedOMs);
-        
-        const rawData = result.data || [];
-        console.log("DashboardOM - rawData count:", rawData.length);
-        console.log("DashboardOM - unique OMs in data:", [...new Set(rawData.map((item: any) => item.om))]);
-        
-        const filterByOM = (arr: any[]): any[] => {
-          if (allowedOMs === "all") return arr;
-          return arr.filter((item: any) => allowedOMs.includes(item.om));
+        // Save raw data to cache before filtering
+        const cacheData: CachedOMData = {
+          data: result.data || [],
+          desembarque: result.desembarque || [],
+          embarque: result.embarque || [],
+          trrm: result.trrm || [],
+          licencas: result.licencas || [],
+          destaques: result.destaques || [],
+          concurso: result.concurso || [],
+          quadros: result.quadros || [],
+          lastUpdate: result.lastUpdate || new Date().toLocaleTimeString("pt-BR"),
         };
+        saveToCache(cacheData);
+        setIsUsingCache(false);
         
-        const data = filterByOM(rawData) as PersonnelRecord[];
-        console.log("DashboardOM - filtered data count:", data.length);
-        
-        const desembarque = filterByOM(result.desembarque || []) as DesembarqueRecord[];
-        const embarque = filterByOM(result.embarque || []) as DesembarqueRecord[];
-        const trrm = filterByOM(result.trrm || []) as TrrmRecord[];
-        const licencas = filterByOM(result.licencas || []) as LicencaRecord[];
-        const destaques = filterByOM(result.destaques || []) as DestaqueRecord[];
-        const concurso = filterByOM(result.concurso || []) as ConcursoRecord[];
-        
-        setPersonnelData(data);
-        setDesembarqueData(desembarque);
-        setEmbarqueData(embarque);
-        setTrrmData(trrm);
-        setLicencasData(licencas);
-        setDestaquesData(destaques);
-        setConcursoData(concurso);
-
-        // Extract unique OMs and Opcoes from filtered data
-        const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
-        const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
-
-        setAvailableOMs(getAvailableOMsForUser(oms as string[]));
-        setAvailableQuadros((result.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
-        setAvailableOpcoes(opcoes as string[]);
-        setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
+        applyUserFiltering(result);
       }
     } catch (error) {
       console.error("Error in fetchData:", error);
+      // Try to load from cache on error
+      const cachedData = getFromCache();
+      if (cachedData) {
+        console.log("Exception - loading from cache");
+        applyUserFiltering(cachedData);
+        setIsUsingCache(true);
+        toast.warning("Erro ao atualizar - usando dados do cache");
+        return;
+      }
       toast.error("Erro ao carregar dados");
     } finally {
       setLoading(false);
@@ -901,7 +975,25 @@ const DashboardOM = () => {
       <div className="border-b bg-card p-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Dashboard OFICIAIS </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold mb-2">Dashboard OFICIAIS </h1>
+              {isOnline ? (
+                <Badge variant="outline" className="flex items-center gap-1 text-green-600 border-green-600">
+                  <Wifi className="h-3 w-3" />
+                  Online
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="flex items-center gap-1 text-orange-600 border-orange-600">
+                  <WifiOff className="h-3 w-3" />
+                  Offline
+                </Badge>
+              )}
+              {isUsingCache && (
+                <Badge variant="secondary" className="text-xs">
+                  Dados do cache
+                </Badge>
+              )}
+            </div>
             <p className="text-muted-foreground">Centro de Operações do Abastecimento</p>
           </div>
           <div className="flex gap-3">
