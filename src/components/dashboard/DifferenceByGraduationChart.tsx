@@ -72,14 +72,19 @@ export const DifferenceByGraduationChart = ({ data, categoria }: DifferenceByGra
           <BarChart 
             data={chartData} 
             layout="vertical"
-            margin={{ top: 5, right: 60, left: 20, bottom: 5 }}
+            margin={{ top: 5, right: 70, left: 30, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
+            <XAxis 
+              type="number" 
+              tick={{ fontSize: 14, fontWeight: 500 }}
+              tickFormatter={(value) => value.toLocaleString('pt-BR')}
+            />
             <YAxis 
               type="category" 
               dataKey="name" 
-              width={100}
+              width={140}
+              tick={{ fontSize: 14, fontWeight: 500 }}
             />
             <Tooltip />
             <Bar dataKey="value" radius={[0, 4, 4, 0]}>
