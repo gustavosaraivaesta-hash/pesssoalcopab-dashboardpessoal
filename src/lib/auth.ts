@@ -36,3 +36,18 @@ export const getAvailableOMsForUser = (allOMs: string[]): string[] => {
   const allowedUpper = new Set(allowedOMs.map((o) => o.toUpperCase()));
   return allOMs.filter((om) => allowedUpper.has(om.toUpperCase()));
 };
+
+export const filterDataByAllowedOMs = <T extends { om: string }>(
+  data: T[],
+  allowedOMs: string[] | "all",
+): T[] => {
+  if (allowedOMs === "all") return data;
+
+  const allowedUpper = new Set(allowedOMs.map((o) => o.toUpperCase()));
+  return data.filter((item) => allowedUpper.has(String(item.om || "").toUpperCase()));
+};
+
+export const filterDataForCurrentUser = <T extends { om: string }>(data: T[]): T[] => {
+  const allowedOMs = getAllowedOMs();
+  return filterDataByAllowedOMs(data, allowedOMs);
+};
