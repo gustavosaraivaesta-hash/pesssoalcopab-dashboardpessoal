@@ -79,6 +79,7 @@ export const DifferenceByGraduationChart = ({ data, categoria }: DifferenceByGra
               type="number" 
               tick={{ fontSize: 14, fontWeight: 500 }}
               tickFormatter={(value) => value.toLocaleString('pt-BR')}
+              domain={['dataMin - 50', 'dataMax + 50']}
             />
             <YAxis 
               type="category" 
