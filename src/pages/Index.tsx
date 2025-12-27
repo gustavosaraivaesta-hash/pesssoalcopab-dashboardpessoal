@@ -81,41 +81,40 @@ const Index = () => {
   // Fetch data from Google Sheets
   const fetchData = async (showToast = false) => {
     if (showToast) setIsRefreshing(true);
+    
+    // Check if offline using navigator.onLine for real-time status
+    const currentlyOnline = navigator.onLine;
+    
+    if (!currentlyOnline) {
+      console.log("Offline mode - attempting to load from cache");
+      const cachedData = getFromCache();
+      if (cachedData && cachedData.length > 0) {
+        console.log("Loading COpAb data from cache:", cachedData.length, "records");
+        
+        // Apply user access filtering to cached data
+        const allowedOMs = getAllowedOMs();
+        const filteredByAccess = allowedOMs === "all" 
+          ? cachedData 
+          : cachedData.filter((item: MilitaryData) => allowedOMs.includes(item.om));
+        
+        setMilitaryData(filteredByAccess);
+        setIsUsingCache(true);
+        const cacheTime = getCacheTimestamp();
+        if (cacheTime) {
+          toast.info(`Modo offline - dados do cache de ${cacheTime.toLocaleString("pt-BR")}`);
+        }
+      } else {
+        console.log("No cache available, using mock data");
+        toast.error("Sem conexão e sem dados em cache");
+        setMilitaryData(mockMilitaryData);
+      }
+      setIsLoading(false);
+      if (showToast) setIsRefreshing(false);
+      return;
+    }
+    
     try {
       console.log("Fetching data from edge function...");
-      
-      // Check if offline using navigator.onLine for real-time status
-      const currentlyOnline = navigator.onLine;
-      
-      if (!currentlyOnline) {
-        console.log("Offline mode - attempting to load from cache");
-        const cachedData = getFromCache();
-        if (cachedData && cachedData.length > 0) {
-          console.log("Loading COpAb data from cache");
-          
-          // Apply user access filtering to cached data
-          const allowedOMs = getAllowedOMs();
-          const filteredByAccess = allowedOMs === "all" 
-            ? cachedData 
-            : cachedData.filter((item: MilitaryData) => allowedOMs.includes(item.om));
-          
-          setMilitaryData(filteredByAccess);
-          setIsUsingCache(true);
-          const cacheTime = getCacheTimestamp();
-          if (cacheTime) {
-            toast.info(`Modo offline - dados do cache de ${cacheTime.toLocaleString("pt-BR")}`);
-          }
-          setIsLoading(false);
-          if (showToast) setIsRefreshing(false);
-          return;
-        } else {
-          toast.error("Sem conexão e sem dados em cache");
-          setMilitaryData(mockMilitaryData);
-          setIsLoading(false);
-          if (showToast) setIsRefreshing(false);
-          return;
-        }
-      }
       
       const { data, error } = await supabase.functions.invoke("fetch-sheets-data");
 
@@ -132,10 +131,12 @@ const Index = () => {
           setMilitaryData(filteredByAccess);
           setIsUsingCache(true);
           toast.warning("Erro ao atualizar - usando dados do cache");
-          return;
+        } else {
+          toast.error("Erro ao carregar dados da planilha. Usando dados de exemplo.");
+          setMilitaryData(mockMilitaryData);
         }
-        toast.error("Erro ao carregar dados da planilha. Usando dados de exemplo.");
-        setMilitaryData(mockMilitaryData);
+        setIsLoading(false);
+        if (showToast) setIsRefreshing(false);
         return;
       }
 
@@ -201,14 +202,13 @@ const Index = () => {
         setMilitaryData(filteredByAccess);
         setIsUsingCache(true);
         toast.warning("Erro ao conectar - usando dados do cache");
-        return;
+      } else {
+        toast.error("Erro ao conectar. Usando dados de exemplo.");
+        setMilitaryData(mockMilitaryData);
       }
-      toast.error("Erro ao conectar. Usando dados de exemplo.");
-      setMilitaryData(mockMilitaryData);
-    } finally {
-      setIsLoading(false);
-      if (showToast) setIsRefreshing(false);
     }
+    setIsLoading(false);
+    if (showToast) setIsRefreshing(false);
   };
 
   const handleManualRefresh = () => {
