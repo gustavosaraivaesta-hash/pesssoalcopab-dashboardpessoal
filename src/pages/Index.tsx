@@ -14,7 +14,7 @@ import { getUniqueValues, mockMilitaryData } from "@/data/mockData";
 import militaryBg from "@/assets/military-background.png";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
+import { getAllowedOMs, getAvailableOMsForUser, filterDataForCurrentUser } from "@/lib/auth";
 import { useOfflineCache, useOnlineStatus } from "@/hooks/useOfflineCache";
 
 // Função para detectar mudanças nos dados
@@ -91,11 +91,8 @@ const Index = () => {
       if (cachedData && cachedData.length > 0) {
         console.log("Loading COpAb data from cache:", cachedData.length, "records");
         
-        // Apply user access filtering to cached data
-        const allowedOMs = getAllowedOMs();
-        const filteredByAccess = allowedOMs === "all" 
-          ? cachedData 
-          : cachedData.filter((item: MilitaryData) => allowedOMs.includes(item.om));
+        // Apply user access filtering to cached data (case-insensitive)
+        const filteredByAccess = filterDataForCurrentUser(cachedData);
         
         setMilitaryData(filteredByAccess);
         setIsUsingCache(true);
@@ -124,10 +121,7 @@ const Index = () => {
         const cachedData = getFromCache();
         if (cachedData && cachedData.length > 0) {
           console.log("Error fetching - loading from cache");
-          const allowedOMs = getAllowedOMs();
-          const filteredByAccess = allowedOMs === "all" 
-            ? cachedData 
-            : cachedData.filter((item: MilitaryData) => allowedOMs.includes(item.om));
+          const filteredByAccess = filterDataForCurrentUser(cachedData);
           setMilitaryData(filteredByAccess);
           setIsUsingCache(true);
           toast.warning("Erro ao atualizar - usando dados do cache");
@@ -142,21 +136,18 @@ const Index = () => {
 
       if (data?.data && data.data.length > 0) {
         console.log(`Loaded ${data.data.length} records from sheets`);
-        console.log("Index - unique OMs in data:", [...new Set(data.data.map((item: MilitaryData) => item.om))]);
+
+        const rawData = data.data as MilitaryData[];
+        console.log("Index - unique OMs in data:", [...new Set(rawData.map((item) => item.om))]);
 
         // Save raw data to cache before filtering
-        saveToCache(data.data);
+        saveToCache(rawData);
         setIsUsingCache(false);
 
-        // Apply user access filtering
-        const allowedOMs = getAllowedOMs();
-        console.log("Index - allowedOMs:", allowedOMs);
-        
-        const filteredByAccess = allowedOMs === "all" 
-          ? data.data 
-          : data.data.filter((item: MilitaryData) => allowedOMs.includes(item.om));
+        // Apply user access filtering (case-insensitive)
+        const filteredByAccess = filterDataForCurrentUser<MilitaryData>(rawData);
 
-        console.log(`Index - After access filter: ${filteredByAccess.length} records`);
+        console.log("Index - After access filter:", filteredByAccess.length, "records");
 
         // Detectar alterações nos valores
         if (previousData.length > 0 && showToast) {
@@ -182,11 +173,8 @@ const Index = () => {
           description: "Adicione dados na planilha para ver informações reais.",
         });
         
-        // Also filter mock data by access
-        const allowedOMs = getAllowedOMs();
-        const filteredMock = allowedOMs === "all" 
-          ? mockMilitaryData 
-          : mockMilitaryData.filter((item) => allowedOMs.includes(item.om));
+        // Also filter mock data by access (case-insensitive)
+        const filteredMock = filterDataForCurrentUser(mockMilitaryData);
         setMilitaryData(filteredMock);
       }
     } catch (error) {
@@ -195,10 +183,7 @@ const Index = () => {
       const cachedData = getFromCache();
       if (cachedData && cachedData.length > 0) {
         console.log("Exception - loading from cache");
-        const allowedOMs = getAllowedOMs();
-        const filteredByAccess = allowedOMs === "all" 
-          ? cachedData 
-          : cachedData.filter((item: MilitaryData) => allowedOMs.includes(item.om));
+        const filteredByAccess = filterDataForCurrentUser(cachedData);
         setMilitaryData(filteredByAccess);
         setIsUsingCache(true);
         toast.warning("Erro ao conectar - usando dados do cache");
