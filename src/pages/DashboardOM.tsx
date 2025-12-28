@@ -1170,19 +1170,49 @@ const DashboardOM = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200">
+          <Card className={`bg-gradient-to-br ${
+            metrics.percentualPreenchimento >= 90 
+              ? "from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200" 
+              : metrics.percentualPreenchimento >= 70 
+                ? "from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200"
+                : "from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200"
+          }`}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-1">ATENDIMENTO</p>
-                  <p className="text-4xl font-bold text-amber-900 dark:text-amber-100">
+                  <p className={`text-sm font-medium mb-1 ${
+                    metrics.percentualPreenchimento >= 90 
+                      ? "text-green-700 dark:text-green-300" 
+                      : metrics.percentualPreenchimento >= 70 
+                        ? "text-amber-700 dark:text-amber-300"
+                        : "text-red-700 dark:text-red-300"
+                  }`}>ATENDIMENTO</p>
+                  <p className={`text-4xl font-bold ${
+                    metrics.percentualPreenchimento >= 90 
+                      ? "text-green-900 dark:text-green-100" 
+                      : metrics.percentualPreenchimento >= 70 
+                        ? "text-amber-900 dark:text-amber-100"
+                        : "text-red-900 dark:text-red-100"
+                  }`}>
                     {metrics.percentualPreenchimento.toFixed(0)}%
                   </p>
-                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  <p className={`text-xs mt-1 ${
+                    metrics.percentualPreenchimento >= 90 
+                      ? "text-green-600 dark:text-green-400" 
+                      : metrics.percentualPreenchimento >= 70 
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-red-600 dark:text-red-400"
+                  }`}>
                     Situação: {metrics.totalDIF < 0 ? metrics.totalDIF : `+${metrics.totalDIF}`}
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-amber-500" />
+                <TrendingUp className={`h-8 w-8 ${
+                  metrics.percentualPreenchimento >= 90 
+                    ? "text-green-500" 
+                    : metrics.percentualPreenchimento >= 70 
+                      ? "text-amber-500"
+                      : "text-red-500"
+                }`} />
               </div>
             </CardContent>
           </Card>
