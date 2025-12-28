@@ -3,7 +3,7 @@ import { LucideIcon } from "lucide-react";
 
 interface MetricsCardProps {
   title: string;
-  value: number;
+  value: number | string;
   icon: LucideIcon;
   variant?: "default" | "success" | "warning" | "destructive";
 }
