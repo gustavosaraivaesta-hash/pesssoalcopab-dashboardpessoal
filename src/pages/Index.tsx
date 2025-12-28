@@ -377,7 +377,7 @@ const Index = () => {
         />
 
         {/* Métricas principais */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <MetricsCard title="Total TMFT" value={metrics.totalTMFT} icon={Shield} variant="default" />
           <MetricsCard title="Total EXI" value={metrics.totalEXI} icon={Users} variant="success" />
           <MetricsCard
@@ -386,7 +386,6 @@ const Index = () => {
             icon={metrics.totalDIF >= 0 ? TrendingUp : TrendingDown}
             variant={metrics.totalDIF >= 0 ? "success" : "destructive"}
           />
-          <MetricsCard title="Vagos" value={metrics.totalVagos} icon={UserX} variant="warning" />
         </div>
 
         {/* Gráfico de Totais */}
