@@ -387,7 +387,7 @@ const Index = () => {
             variant={metrics.totalDIF >= 0 ? "success" : "destructive"}
           />
           <MetricsCard 
-            title="Ocupação" 
+            title="Atendimento" 
             value={`${metrics.occupancyPercent}%`} 
             icon={Percent} 
             variant={parseFloat(metrics.occupancyPercent) >= 90 ? "success" : parseFloat(metrics.occupancyPercent) >= 70 ? "warning" : "destructive"} 
