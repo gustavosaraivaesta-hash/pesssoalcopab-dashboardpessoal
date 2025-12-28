@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, UserX, Wifi, WifiOff } from "lucide-react";
+import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
@@ -282,14 +282,14 @@ const Index = () => {
     const totalTMFT = filteredData.reduce((sum, item) => sum + item.tmft, 0);
     const totalEXI = filteredData.reduce((sum, item) => sum + item.exi, 0);
     const totalDIF = filteredData.reduce((sum, item) => sum + item.dif, 0);
-    // Vagos = soma dos DIF negativos (valor absoluto)
-    const totalVagos = filteredData.reduce((sum, item) => sum + (item.dif < 0 ? Math.abs(item.dif) : 0), 0);
+    // Porcentagem de ocupação (EXI/TMFT)
+    const occupancyPercent = totalTMFT > 0 ? ((totalEXI / totalTMFT) * 100).toFixed(1) : "0.0";
 
     return {
       totalTMFT,
       totalEXI,
       totalDIF,
-      totalVagos,
+      occupancyPercent,
     };
   }, [filteredData]);
 
@@ -377,7 +377,7 @@ const Index = () => {
         />
 
         {/* Métricas principais */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <MetricsCard title="Total TMFT" value={metrics.totalTMFT} icon={Shield} variant="default" />
           <MetricsCard title="Total EXI" value={metrics.totalEXI} icon={Users} variant="success" />
           <MetricsCard
@@ -385,6 +385,12 @@ const Index = () => {
             value={metrics.totalDIF}
             icon={metrics.totalDIF >= 0 ? TrendingUp : TrendingDown}
             variant={metrics.totalDIF >= 0 ? "success" : "destructive"}
+          />
+          <MetricsCard 
+            title="Ocupação" 
+            value={`${metrics.occupancyPercent}%`} 
+            icon={Percent} 
+            variant={parseFloat(metrics.occupancyPercent) >= 90 ? "success" : parseFloat(metrics.occupancyPercent) >= 70 ? "warning" : "destructive"} 
           />
         </div>
 
