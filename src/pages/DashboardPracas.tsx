@@ -1556,9 +1556,9 @@ const DashboardPracas = () => {
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      {Number(item.neo) > 0 && (
+                      {item.neo && item.neo !== '0' && item.neo !== '' && (
                         <Badge variant="outline" className="bg-blue-500 text-white border-blue-500 text-xs">
-                          NEO {item.neo}
+                          NEO {String(item.neo).split('.')[0]}
                         </Badge>
                       )}
                       <Badge variant="outline" className="text-xs">
