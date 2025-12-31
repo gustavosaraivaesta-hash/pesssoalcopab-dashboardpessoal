@@ -19,6 +19,7 @@ export const OMS = [
 ];
 
 export const ESPECIALIDADES = [
+  { code: "NEO", name: "NÚCLEO DE ESPECIALIZAÇÃO E ORIENTAÇÃO" },
   { code: "MR", name: "MANOBRAS E REPAROS" },
   { code: "MA", name: "MÁQUINAS" },
   { code: "CA", name: "CALDEIRA" },
