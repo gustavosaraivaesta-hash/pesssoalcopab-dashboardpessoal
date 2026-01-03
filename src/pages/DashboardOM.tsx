@@ -420,26 +420,43 @@ const DashboardOM = () => {
   const chartDataByPosto = useMemo(() => {
     const POSTO_ORDER = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM"];
 
+    const normalizePosto = (posto: string) => {
+      if (posto === "CONTRA-ALMIRANTE") return "C ALTE";
+      if (posto === "1TEN") return "1T";
+      if (posto === "2TEN") return "2T";
+      return posto;
+    };
+
     const grouped = filteredData.reduce(
       (acc, item) => {
+        // Para quantidade: usar postoEfe se ocupado, senão postoTmft
         let posto = item.ocupado ? item.postoEfe : item.postoTmft;
-        // Normalize posto names
-        if (posto === "CONTRA-ALMIRANTE") posto = "C ALTE";
-        if (posto === "1TEN") posto = "1T";
-        if (posto === "2TEN") posto = "2T";
+        posto = normalizePosto(posto);
+
+        // Para EFE: usar postoEfe apenas se ocupado
+        let postoEfe = item.ocupado ? normalizePosto(item.postoEfe) : null;
 
         if (posto && !acc[posto]) {
-          acc[posto] = { name: posto, value: 0 };
+          acc[posto] = { name: posto, quantidade: 0, efe: 0 };
         }
         if (posto) {
-          acc[posto].value += 1;
+          acc[posto].quantidade += 1;
         }
+
+        // Contabiliza EFE separadamente por postoEfe
+        if (postoEfe) {
+          if (!acc[postoEfe]) {
+            acc[postoEfe] = { name: postoEfe, quantidade: 0, efe: 0 };
+          }
+          acc[postoEfe].efe += 1;
+        }
+
         return acc;
       },
-      {} as Record<string, { name: string; value: number }>,
+      {} as Record<string, { name: string; quantidade: number; efe: number }>,
     );
 
-    const values = Object.values(grouped).filter((item) => item.value > 0);
+    const values = Object.values(grouped).filter((item) => item.quantidade > 0 || item.efe > 0);
 
     // Sort by the defined order
     return values.sort((a, b) => {
@@ -1346,7 +1363,8 @@ const DashboardOM = () => {
                   allowDecimals={false}
                 />
                 <Tooltip />
-                <Bar dataKey="value" name="Quantidade" cursor="pointer" onClick={handlePostoBarClick}>
+                <Legend />
+                <Bar dataKey="quantidade" name="Quantidade" cursor="pointer" onClick={handlePostoBarClick}>
                   {chartDataByPosto.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
@@ -1355,7 +1373,10 @@ const DashboardOM = () => {
                       strokeWidth={selectedPostos.includes(entry.name) ? 2 : 0}
                     />
                   ))}
-                  <LabelList dataKey="value" position="top" style={{ fontWeight: "bold", fontSize: "14px" }} />
+                  <LabelList dataKey="quantidade" position="top" style={{ fontWeight: "bold", fontSize: "12px", fill: "#3b82f6" }} />
+                </Bar>
+                <Bar dataKey="efe" name="EFE" fill="#10b981">
+                  <LabelList dataKey="efe" position="top" style={{ fontWeight: "bold", fontSize: "12px", fill: "#10b981" }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
