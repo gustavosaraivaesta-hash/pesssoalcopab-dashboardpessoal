@@ -1631,8 +1631,8 @@ const DashboardOM = () => {
                           <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
                           <p className="text-sm text-muted-foreground">{item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
-                            <span className="text-amber-600">Destino: {item.destino}</span>
-                            <span className="text-muted-foreground">{item.mesAno}</span>
+                            <span className="text-amber-600">Destino: {item.destino || "-"}</span>
+                            <span className="text-muted-foreground">{item.mesAno || "-"}</span>
                           </div>
                           {item.documento && <p className="text-xs text-muted-foreground mt-1">{item.documento}</p>}
                         </div>
@@ -1663,8 +1663,8 @@ const DashboardOM = () => {
                           <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
                           <p className="text-sm text-muted-foreground">{item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
-                            <span className="text-green-600">Destino: {item.destino}</span>
-                            <span className="text-muted-foreground">{item.mesAno}</span>
+                            <span className="text-green-600">Destino: {item.destino || "-"}</span>
+                            <span className="text-muted-foreground">{item.mesAno || "-"}</span>
                           </div>
                           {item.documento && <p className="text-xs text-muted-foreground mt-1">{item.documento}</p>}
                         </div>
