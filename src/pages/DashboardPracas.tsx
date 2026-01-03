@@ -23,7 +23,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList, Legend, Brush } from "recharts";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
@@ -1548,6 +1548,15 @@ const DashboardPracas = () => {
                     formatter={(value: number) => value > 0 ? value : ""}
                   />
                 </Bar>
+                <Brush 
+                  dataKey="name" 
+                  height={30} 
+                  stroke="hsl(var(--primary))"
+                  fill="hsl(var(--muted))"
+                  travellerWidth={10}
+                  startIndex={0}
+                  endIndex={Math.min(5, chartDataByPosto.length - 1)}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
