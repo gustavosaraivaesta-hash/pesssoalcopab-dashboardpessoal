@@ -1495,29 +1495,57 @@ const DashboardPracas = () => {
             <p className="text-sm text-muted-foreground">Clique nas colunas para ver os militares</p>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartDataByPosto}>
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={chartDataByPosto} barCategoryGap="15%" barGap={4}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="name" className="text-xs" />
+                <XAxis dataKey="name" className="text-xs" tick={{ fontSize: 12 }} />
                 <YAxis
                   className="text-xs"
-                  domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.2)]}
+                  domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.15)]}
                   allowDecimals={false}
+                  tick={{ fontSize: 11 }}
                 />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="tmft" name="TMFT" fill="#93c5fd" cursor="pointer" onClick={handlePostoTmftClick}>
+                <Tooltip
+                  formatter={(value: number, name: string) => [value, name === "tmft" ? "TMFT" : "Efetivo"]}
+                  contentStyle={{ 
+                    backgroundColor: "hsl(var(--card))", 
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)"
+                  }}
+                  labelStyle={{ fontWeight: "bold", marginBottom: "4px" }}
+                />
+                <Legend wrapperStyle={{ paddingTop: "10px" }} />
+                <Bar 
+                  dataKey="tmft" 
+                  name="TMFT" 
+                  fill="#93c5fd" 
+                  cursor="pointer" 
+                  onClick={handlePostoTmftClick}
+                  minPointSize={8}
+                  radius={[4, 4, 0, 0]}
+                >
                   <LabelList
                     dataKey="tmft"
                     position="top"
                     style={{ fontWeight: "bold", fontSize: "11px", fill: "#1e40af" }}
+                    formatter={(value: number) => value > 0 ? value : ""}
                   />
                 </Bar>
-                <Bar dataKey="efe" name="EFE" fill="#ef4444" cursor="pointer" onClick={handlePostoEfeClick}>
+                <Bar 
+                  dataKey="efe" 
+                  name="EFE" 
+                  fill="#ef4444" 
+                  cursor="pointer" 
+                  onClick={handlePostoEfeClick}
+                  minPointSize={8}
+                  radius={[4, 4, 0, 0]}
+                >
                   <LabelList
                     dataKey="efe"
                     position="top"
                     style={{ fontWeight: "bold", fontSize: "11px", fill: "#b91c1c" }}
+                    formatter={(value: number) => value > 0 ? value : ""}
                   />
                 </Bar>
               </BarChart>
