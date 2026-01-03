@@ -176,7 +176,7 @@ const DashboardPracas = () => {
       const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
       
       setAvailableOMs(getAvailableOMsForUser(oms as string[]));
-      setAvailableQuadros((cachedData.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
+      setAvailableQuadros((cachedData.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"));
       setAvailableOpcoes(opcoes as string[]);
       
       const cacheTime = getCacheTimestamp();
@@ -271,7 +271,7 @@ const DashboardPracas = () => {
         const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
 
         setAvailableOMs(getAvailableOMsForUser(oms as string[]));
-        setAvailableQuadros((result.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
+        setAvailableQuadros((result.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"));
         setAvailableOpcoes(opcoes as string[]);
         setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
       }
@@ -354,7 +354,7 @@ const DashboardPracas = () => {
     setStatusFilter((prev) => (prev === status ? "all" : status));
   };
 
-  const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TTC"];
+  const OPCOES_FIXAS = ["CARREIRA", "TTC"];
 
   const metrics = useMemo(() => {
     const regularData = filteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
