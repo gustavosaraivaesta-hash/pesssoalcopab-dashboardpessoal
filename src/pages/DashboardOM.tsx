@@ -430,22 +430,25 @@ const DashboardOM = () => {
 
     const grouped = filteredData.reduce(
       (acc, item) => {
-        // Para quantidade: usar postoEfe se ocupado, senão postoTmft
-        let posto = item.ocupado ? item.postoEfe : item.postoTmft;
-        posto = normalizePosto(posto);
+        // Para quantidade: usar opcaoTmft para agrupar
+        const opcaoTmft = item.opcaoTmft || "";
+        let postoTmft = item.postoTmft;
+        postoTmft = normalizePosto(postoTmft);
 
-        // Para EFE: usar postoEfe apenas se ocupado
+        // Para EFE: usar opcaoEfe para agrupar (apenas se ocupado)
+        const opcaoEfe = item.ocupado ? (item.opcaoEfe || "") : "";
         let postoEfe = item.ocupado ? normalizePosto(item.postoEfe) : null;
 
-        if (posto && !acc[posto]) {
-          acc[posto] = { name: posto, quantidade: 0, efe: 0 };
-        }
-        if (posto) {
-          acc[posto].quantidade += 1;
+        // Contabiliza Quantidade por postoTmft (baseado em opcaoTmft)
+        if (postoTmft && opcaoTmft) {
+          if (!acc[postoTmft]) {
+            acc[postoTmft] = { name: postoTmft, quantidade: 0, efe: 0 };
+          }
+          acc[postoTmft].quantidade += 1;
         }
 
-        // Contabiliza EFE separadamente por postoEfe
-        if (postoEfe) {
+        // Contabiliza EFE por postoEfe (baseado em opcaoEfe)
+        if (postoEfe && opcaoEfe) {
           if (!acc[postoEfe]) {
             acc[postoEfe] = { name: postoEfe, quantidade: 0, efe: 0 };
           }
@@ -454,7 +457,7 @@ const DashboardOM = () => {
 
         return acc;
       },
-      {} as Record<string, { name: string; quantidade: number; efe: number }>,
+      {} as Record<string, { name: string; quantidade: 0; efe: 0 }>,
     );
 
     const values = Object.values(grouped).filter((item) => item.quantidade > 0 || item.efe > 0);
