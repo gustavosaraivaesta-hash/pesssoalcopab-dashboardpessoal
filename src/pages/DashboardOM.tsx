@@ -1636,14 +1636,11 @@ const DashboardOM = () => {
                           </div>
                           {item.documento && <p className="text-xs text-muted-foreground mt-1">{item.documento}</p>}
                         </div>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{item.posto}</Badge>
-                          <Badge variant="outline">{item.quadro}</Badge>
-                          {item.opcao && (
-                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                              {item.opcao}
-                            </Badge>
-                          )}
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+                            {item.posto}, {item.quadro || "-"}, {item.corpo || "-"}, {item.opcao || "-"}
+                          </Badge>
+                          <Badge variant="secondary">{item.om}</Badge>
                         </div>
                       </div>
                     </div>
@@ -1671,14 +1668,11 @@ const DashboardOM = () => {
                           </div>
                           {item.documento && <p className="text-xs text-muted-foreground mt-1">{item.documento}</p>}
                         </div>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{item.posto}</Badge>
-                          <Badge variant="outline">{item.quadro}</Badge>
-                          {item.opcao && (
-                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                              {item.opcao}
-                            </Badge>
-                          )}
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+                            {item.posto}, {item.quadro || "-"}, {item.corpo || "-"}, {item.opcao || "-"}
+                          </Badge>
+                          <Badge variant="secondary">{item.om}</Badge>
                         </div>
                       </div>
                     </div>
