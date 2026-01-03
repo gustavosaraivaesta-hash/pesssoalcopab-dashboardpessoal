@@ -1475,9 +1475,9 @@ const DashboardOM = () => {
                       <span>•</span>
                       <span>Opção: {item.opcaoEfe || item.opcaoTmft || "-"}</span>
                     </div>
-                    {item.opcaoTmft && item.opcaoEfe && item.opcaoTmft !== item.opcaoEfe && (
+                    {(item.opcaoTmft || item.opcaoEfe) && item.opcaoTmft !== item.opcaoEfe && (
                       <p className="text-xs text-amber-600 mt-1 font-medium">
-                        ⚠ Opção TMFT ({item.opcaoTmft}) ≠ Opção EFE ({item.opcaoEfe})
+                        ⚠ TMFT: {item.opcaoTmft || "-"} ≠ EFE: {item.opcaoEfe || "-"}
                       </p>
                     )}
                   </div>
