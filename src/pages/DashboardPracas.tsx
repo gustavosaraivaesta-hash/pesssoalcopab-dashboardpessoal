@@ -354,7 +354,7 @@ const DashboardPracas = () => {
     setStatusFilter((prev) => (prev === status ? "all" : status));
   };
 
-  const OPCOES_FIXAS = ["CARREIRA", "TTC"];
+  const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TTC"];
 
   const metrics = useMemo(() => {
     const regularData = filteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
