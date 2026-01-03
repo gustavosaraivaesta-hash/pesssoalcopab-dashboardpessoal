@@ -216,30 +216,52 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     // Handle rows with empty/invalid NEO
     if (!firstCell || !isValidNeo) {
       // Check if it's a desembarque/embarque data row
-      // Columns: GRADUAÇÃO | QUADRO | CARGO | NOME | OPÇÃO | DESTINO | MÊS/ANO | DOCUMENTO
-      if ((currentSection === 'DESEMBARQUE' || currentSection === 'EMBARQUE') && 
-          validPostos.includes(firstCell)) {
+      // Layouts seen in sheets:
+      // - PRAÇAS (older): POSTO | QUADRO | CARGO | NOME | OPÇÃO | DESTINO | MÊS/ANO | DOCUMENTO
+      // - OFICIAIS (common): POSTO | CORPO | QUADRO | CARGO | NOME | OPÇÃO | DESTINO | MÊS/ANO | DOCUMENTO
+      if ((currentSection === 'DESEMBARQUE' || currentSection === 'EMBARQUE') && validPostos.includes(firstCell)) {
         const posto = firstCell;
-        const quadro = String(cells[1]?.v || '').trim();
-        const cargo = String(cells[2]?.v || '').trim();
-        const nome = String(cells[3]?.v || '').trim();
-        const opcao = String(cells[4]?.v || '').trim();
-        const destino = String(cells[5]?.v || '').trim();
-        const mesAno = String(cells[6]?.v || '').trim();
-        const documento = String(cells[7]?.v || '').trim();
-        const corpo = ''; // Not present in DESEMBARQUE section
-        
+
+        const hasCorpoColumn = Boolean(String(cells[8]?.v || '').trim()) || cells.length >= 9;
+
+        const corpo = hasCorpoColumn ? String(cells[1]?.v || '').trim() : '';
+        const quadro = hasCorpoColumn ? String(cells[2]?.v || '').trim() : String(cells[1]?.v || '').trim();
+        const cargo = hasCorpoColumn ? String(cells[3]?.v || '').trim() : String(cells[2]?.v || '').trim();
+        const nome = hasCorpoColumn ? String(cells[4]?.v || '').trim() : String(cells[3]?.v || '').trim();
+        const opcao = hasCorpoColumn ? String(cells[5]?.v || '').trim() : String(cells[4]?.v || '').trim();
+        const destino = hasCorpoColumn ? String(cells[6]?.v || '').trim() : String(cells[5]?.v || '').trim();
+        const mesAno = hasCorpoColumn ? String(cells[7]?.v || '').trim() : String(cells[6]?.v || '').trim();
+        const documento = hasCorpoColumn ? String(cells[8]?.v || '').trim() : String(cells[7]?.v || '').trim();
+
         if (nome && currentSection === 'DESEMBARQUE') {
           desembarqueData.push({
-            posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName
+            posto,
+            corpo,
+            quadro,
+            opcao,
+            cargo,
+            nome,
+            destino,
+            mesAno,
+            documento,
+            om: omName,
           });
-          console.log(`${omName} Desembarque: ${nome} - Opção: ${opcao}`);
+          console.log(`${omName} Desembarque: ${nome} - Cargo: ${cargo} - Opção: ${opcao}`);
         }
         if (nome && currentSection === 'EMBARQUE') {
           embarqueData.push({
-            posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName
+            posto,
+            corpo,
+            quadro,
+            opcao,
+            cargo,
+            nome,
+            destino,
+            mesAno,
+            documento,
+            om: omName,
           });
-          console.log(`${omName} Embarque: ${nome} - Opção: ${opcao}`);
+          console.log(`${omName} Embarque: ${nome} - Cargo: ${cargo} - Opção: ${opcao}`);
         }
       }
       
