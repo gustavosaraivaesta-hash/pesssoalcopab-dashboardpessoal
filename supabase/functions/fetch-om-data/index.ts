@@ -159,14 +159,43 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
   const setores = new Set<string>();
   const quadros = new Set<string>();
   const opcoes = new Set<string>();
-  
+
   let currentSection = 'TABELA_MESTRA';
   let extraLotacaoCounter = 0;
-  
+
+  let desembarqueHeader: Record<string, number> | null = null;
+  let embarqueHeader: Record<string, number> | null = null;
+
+  const normalizeHeaderText = (s: string) =>
+    s
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .toUpperCase()
+      .trim();
+
+  const buildHeaderIndex = (cells: any[]) => {
+    const idx: Record<string, number> = {};
+    for (let i = 0; i < cells.length; i++) {
+      const raw = String(cells[i]?.v || '');
+      const v = normalizeHeaderText(raw);
+      if (!v) continue;
+
+      if (v.includes('CORPO')) idx.corpo = i;
+      else if (v.includes('QUADRO')) idx.quadro = i;
+      else if (v.includes('CARGO')) idx.cargo = i;
+      else if (v.includes('NOME')) idx.nome = i;
+      else if (v.includes('OPCAO')) idx.opcao = i;
+      else if (v.includes('DESTINO')) idx.destino = i;
+      else if (v.includes('MES') && v.includes('ANO')) idx.mesAno = i;
+      else if (v.includes('DOCUMENTO')) idx.documento = i;
+    }
+    return idx;
+  };
+
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
     const cells = rows[rowIndex].c || [];
     const firstCell = String(cells[0]?.v || '').trim();
-    
+
     // Detect section headers
     if (firstCell === 'DESTAQUES/LICENÇAS' || firstCell === 'DESTAQUES') {
       currentSection = 'DESTAQUES';
@@ -182,10 +211,12 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     }
     if (firstCell === 'PREVISÃO DE DESEMBARQUE' || firstCell.includes('DESEMBARQUE')) {
       currentSection = 'DESEMBARQUE';
+      desembarqueHeader = null;
       continue;
     }
     if (firstCell === 'PREVISÃO DE EMBARQUE' || firstCell.includes('EMBARQUE')) {
       currentSection = 'EMBARQUE';
+      embarqueHeader = null;
       continue;
     }
     if (firstCell === 'PREVISÃO DE TRRM' || firstCell.includes('TRRM')) {
@@ -196,75 +227,111 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       currentSection = 'CONCURSO';
       continue;
     }
-    if (firstCell === 'POSTO' && currentSection !== 'DESEMBARQUE' && currentSection !== 'EMBARQUE' && currentSection !== 'TRRM' && currentSection !== 'CONCURSO' && currentSection !== 'DESTAQUES_LICENCAS') {
+    if (
+      firstCell === 'POSTO' &&
+      currentSection !== 'DESEMBARQUE' &&
+      currentSection !== 'EMBARQUE' &&
+      currentSection !== 'TRRM' &&
+      currentSection !== 'CONCURSO' &&
+      currentSection !== 'DESTAQUES_LICENCAS'
+    ) {
       continue;
     }
     if (firstCell === 'RESUMO DA SITUAÇÃO') {
       currentSection = 'RESUMO';
       continue;
     }
-    
+
     // Check if NEO contains a dot (like 01.01, 02.01.2001) or is a valid number
     const neoString = String(cells[0]?.v || '').trim();
-    const isValidNeo = neoString && (
-      !isNaN(Number(neoString)) || 
-      /^\d+(\.\d+)*$/.test(neoString)
-    );
-    
-    const validPostos = ['C ALTE', 'CONTRA-ALMIRANTE', 'CT', 'CF', 'CC', 'CMG', '1TEN', '2TEN', '1T', '2T', 'SO', '1SG', '2SG', '3SG', 'CB', 'MN', 'GM'];
-    
+    const isValidNeo = neoString && (!isNaN(Number(neoString)) || /^\d+(\.\d+)*$/.test(neoString));
+
+    const validPostos = [
+      'C ALTE',
+      'CONTRA-ALMIRANTE',
+      'CT',
+      'CF',
+      'CC',
+      'CMG',
+      '1TEN',
+      '2TEN',
+      '1T',
+      '2T',
+      'SO',
+      '1SG',
+      '2SG',
+      '3SG',
+      'CB',
+      'MN',
+      'GM',
+    ];
+
+    const cellStr = (i: number) => String(cells[i]?.v || '').trim();
+
     // Handle rows with empty/invalid NEO
     if (!firstCell || !isValidNeo) {
+      // Capture header row inside DESEMBARQUE/EMBARQUE so we can read DESTINO and MÊS/ANO reliably.
+      if (currentSection === 'DESEMBARQUE' || currentSection === 'EMBARQUE') {
+        const headerToken = normalizeHeaderText(firstCell);
+        if (headerToken === 'POSTO' || headerToken === 'GRADUACAO' || headerToken === 'GRADUACAO' || headerToken === 'GRADUAÇÃO') {
+          const idx = buildHeaderIndex(cells);
+          if (currentSection === 'DESEMBARQUE') desembarqueHeader = idx;
+          if (currentSection === 'EMBARQUE') embarqueHeader = idx;
+          continue;
+        }
+      }
+
       // Check if it's a desembarque/embarque data row
       // Layouts seen in sheets:
       // - PRAÇAS (older): POSTO | QUADRO | CARGO | NOME | OPÇÃO | DESTINO | MÊS/ANO | DOCUMENTO
       // - OFICIAIS (common): POSTO | CORPO | QUADRO | CARGO | NOME | OPÇÃO | DESTINO | MÊS/ANO | DOCUMENTO
       if ((currentSection === 'DESEMBARQUE' || currentSection === 'EMBARQUE') && validPostos.includes(firstCell)) {
         const posto = firstCell;
+        const header = currentSection === 'DESEMBARQUE' ? desembarqueHeader : embarqueHeader;
 
-        const hasCorpoColumn = Boolean(String(cells[8]?.v || '').trim()) || cells.length >= 9;
+        // Prefer header-based mapping when available
+        if (header && Object.keys(header).length > 0) {
+          const corpo = header.corpo !== undefined ? cellStr(header.corpo) : '';
+          const quadro = header.quadro !== undefined ? cellStr(header.quadro) : '';
+          const cargo = header.cargo !== undefined ? cellStr(header.cargo) : '';
+          const nome = header.nome !== undefined ? cellStr(header.nome) : '';
+          const opcao = header.opcao !== undefined ? cellStr(header.opcao) : '';
+          const destino = header.destino !== undefined ? cellStr(header.destino) : '';
+          const mesAno = header.mesAno !== undefined ? cellStr(header.mesAno) : '';
+          const documento = header.documento !== undefined ? cellStr(header.documento) : '';
 
-        const corpo = hasCorpoColumn ? String(cells[1]?.v || '').trim() : '';
-        const quadro = hasCorpoColumn ? String(cells[2]?.v || '').trim() : String(cells[1]?.v || '').trim();
-        const cargo = hasCorpoColumn ? String(cells[3]?.v || '').trim() : String(cells[2]?.v || '').trim();
-        const nome = hasCorpoColumn ? String(cells[4]?.v || '').trim() : String(cells[3]?.v || '').trim();
-        const opcao = hasCorpoColumn ? String(cells[5]?.v || '').trim() : String(cells[4]?.v || '').trim();
-        const destino = hasCorpoColumn ? String(cells[6]?.v || '').trim() : String(cells[5]?.v || '').trim();
-        const mesAno = hasCorpoColumn ? String(cells[7]?.v || '').trim() : String(cells[6]?.v || '').trim();
-        const documento = hasCorpoColumn ? String(cells[8]?.v || '').trim() : String(cells[7]?.v || '').trim();
+          if (nome && currentSection === 'DESEMBARQUE') {
+            desembarqueData.push({ posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName });
+            console.log(`${omName} Desembarque: ${nome} - Destino: ${destino} - Mês/Ano: ${mesAno}`);
+          }
+          if (nome && currentSection === 'EMBARQUE') {
+            embarqueData.push({ posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName });
+            console.log(`${omName} Embarque: ${nome} - Destino: ${destino} - Mês/Ano: ${mesAno}`);
+          }
+        } else {
+          // Fallback to index-based mapping
+          const hasCorpoColumn = Boolean(cellStr(8)) || cells.length >= 9;
 
-        if (nome && currentSection === 'DESEMBARQUE') {
-          desembarqueData.push({
-            posto,
-            corpo,
-            quadro,
-            opcao,
-            cargo,
-            nome,
-            destino,
-            mesAno,
-            documento,
-            om: omName,
-          });
-          console.log(`${omName} Desembarque: ${nome} - Cargo: ${cargo} - Opção: ${opcao}`);
-        }
-        if (nome && currentSection === 'EMBARQUE') {
-          embarqueData.push({
-            posto,
-            corpo,
-            quadro,
-            opcao,
-            cargo,
-            nome,
-            destino,
-            mesAno,
-            documento,
-            om: omName,
-          });
-          console.log(`${omName} Embarque: ${nome} - Cargo: ${cargo} - Opção: ${opcao}`);
+          const corpo = hasCorpoColumn ? cellStr(1) : '';
+          const quadro = hasCorpoColumn ? cellStr(2) : cellStr(1);
+          const cargo = hasCorpoColumn ? cellStr(3) : cellStr(2);
+          const nome = hasCorpoColumn ? cellStr(4) : cellStr(3);
+          const opcao = hasCorpoColumn ? cellStr(5) : cellStr(4);
+          const destino = hasCorpoColumn ? cellStr(6) : cellStr(5);
+          const mesAno = hasCorpoColumn ? cellStr(7) : cellStr(6);
+          const documento = hasCorpoColumn ? cellStr(8) : cellStr(7);
+
+          if (nome && currentSection === 'DESEMBARQUE') {
+            desembarqueData.push({ posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName });
+            console.log(`${omName} Desembarque: ${nome} - Destino: ${destino} - Mês/Ano: ${mesAno}`);
+          }
+          if (nome && currentSection === 'EMBARQUE') {
+            embarqueData.push({ posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName });
+            console.log(`${omName} Embarque: ${nome} - Destino: ${destino} - Mês/Ano: ${mesAno}`);
+          }
         }
       }
-      
+
       // Check if it's a TRRM data row
       if (currentSection === 'TRRM' && validPostos.includes(firstCell)) {
         const posto = firstCell;
