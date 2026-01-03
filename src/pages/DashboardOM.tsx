@@ -1394,7 +1394,7 @@ const DashboardOM = () => {
                 />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="quantidade" name="Quantidade" cursor="pointer" onClick={handlePostoBarClick}>
+                <Bar dataKey="quantidade" name="TMFT" cursor="pointer" onClick={handlePostoBarClick}>
                   {chartDataByPosto.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
