@@ -156,6 +156,7 @@ const DashboardOM = () => {
   const [selectedOMsForVagos, setSelectedOMsForVagos] = useState<string[]>([]);
   const [showOnlyExtraLotacao, setShowOnlyExtraLotacao] = useState(false);
   const [selectedPostos, setSelectedPostos] = useState<string[]>([]);
+  const [selectedPostosEfe, setSelectedPostosEfe] = useState<string[]>([]);
   const [selectedCorpos, setSelectedCorpos] = useState<string[]>([]);
   const [isUsingCache, setIsUsingCache] = useState(false);
 
@@ -530,10 +531,22 @@ const DashboardOM = () => {
       setSelectedPostos((prev) =>
         prev.includes(data.name) ? prev.filter((p) => p !== data.name) : [...prev, data.name],
       );
+      // Limpa seleção EFE ao selecionar Quantidade
+      setSelectedPostosEfe([]);
     }
   };
 
-  // Get personnel for selected postos
+  const handlePostoEfeBarClick = (data: any) => {
+    if (data && data.name) {
+      setSelectedPostosEfe((prev) =>
+        prev.includes(data.name) ? prev.filter((p) => p !== data.name) : [...prev, data.name],
+      );
+      // Limpa seleção Quantidade ao selecionar EFE
+      setSelectedPostos([]);
+    }
+  };
+
+  // Get personnel for selected postos (Quantidade)
   const personnelForSelectedPostos = useMemo(() => {
     if (selectedPostos.length === 0) return [];
 
@@ -546,6 +559,20 @@ const DashboardOM = () => {
       return selectedPostos.includes(posto);
     });
   }, [filteredData, selectedPostos]);
+
+  // Get personnel for selected postos EFE (somente ocupados pelo posto efetivo)
+  const personnelForSelectedPostosEfe = useMemo(() => {
+    if (selectedPostosEfe.length === 0) return [];
+
+    return filteredData.filter((item) => {
+      if (!item.ocupado) return false;
+      let postoEfe = item.postoEfe;
+      if (postoEfe === "CONTRA-ALMIRANTE") postoEfe = "C ALTE";
+      if (postoEfe === "1TEN") postoEfe = "1T";
+      if (postoEfe === "2TEN") postoEfe = "2T";
+      return selectedPostosEfe.includes(postoEfe);
+    });
+  }, [filteredData, selectedPostosEfe]);
 
   // Chart data by Corpo (CORPO)
   const chartDataByCorpo = useMemo(() => {
@@ -1375,7 +1402,15 @@ const DashboardOM = () => {
                   ))}
                   <LabelList dataKey="quantidade" position="top" style={{ fontWeight: "bold", fontSize: "12px", fill: "#3b82f6" }} />
                 </Bar>
-                <Bar dataKey="efe" name="EFE" fill="#10b981">
+                <Bar dataKey="efe" name="EFE" cursor="pointer" onClick={handlePostoEfeBarClick}>
+                  {chartDataByPosto.map((entry, index) => (
+                    <Cell
+                      key={`cell-efe-${index}`}
+                      fill={selectedPostosEfe.includes(entry.name) ? "#10b981" : "#6ee7b7"}
+                      stroke={selectedPostosEfe.includes(entry.name) ? "#047857" : "transparent"}
+                      strokeWidth={selectedPostosEfe.includes(entry.name) ? 2 : 0}
+                    />
+                  ))}
                   <LabelList dataKey="efe" position="top" style={{ fontWeight: "bold", fontSize: "12px", fill: "#10b981" }} />
                 </Bar>
               </BarChart>
@@ -1436,6 +1471,67 @@ const DashboardOM = () => {
                       <span>Quadro: {item.quadroEfe || item.quadroTmft || "-"}</span>
                       <span>•</span>
                       <span>Opção: {item.opcaoEfe || item.opcaoTmft || "-"}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Detalhes dos Militares por Posto EFE */}
+        {selectedPostosEfe.length > 0 && personnelForSelectedPostosEfe.length > 0 && (
+          <Card className="border-green-300 bg-gradient-to-br from-green-50 to-background">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-green-700">
+                  <Users2 className="h-5 w-5" />
+                  Efetivo - {selectedPostosEfe.join(", ")}
+                  <Badge variant="outline" className="ml-2">
+                    {personnelForSelectedPostosEfe.length} pessoa(s)
+                  </Badge>
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedPostosEfe([])}>
+                  Limpar seleção
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {personnelForSelectedPostosEfe.map((item, index) => (
+                  <div
+                    key={`posto-efe-${index}`}
+                    className={`p-3 border rounded-lg ${
+                      item.tipoSetor === "EXTRA LOTAÇÃO"
+                        ? "bg-orange-100/50 border-orange-200"
+                        : "bg-green-100/50 border-green-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      {item.neo > 0 && (
+                        <Badge variant="outline" className="bg-green-500 text-white border-green-500 text-xs">
+                          NEO {item.neo}
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        {item.postoEfe}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {item.om}
+                      </Badge>
+                      {item.tipoSetor === "EXTRA LOTAÇÃO" && (
+                        <Badge className="bg-orange-500 text-white text-xs">EXTRA</Badge>
+                      )}
+                    </div>
+                    <p className="font-medium text-sm text-foreground">{item.nome}</p>
+                    <p className="text-xs text-muted-foreground">{item.cargo}</p>
+                    <p className="text-xs text-muted-foreground">{item.setor}</p>
+                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
+                      <span>Corpo: {item.corpoEfe || "-"}</span>
+                      <span>•</span>
+                      <span>Quadro: {item.quadroEfe || "-"}</span>
+                      <span>•</span>
+                      <span>Opção: {item.opcaoEfe || "-"}</span>
                     </div>
                   </div>
                 ))}
