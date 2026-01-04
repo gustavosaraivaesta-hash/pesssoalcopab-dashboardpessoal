@@ -174,9 +174,11 @@ const DashboardPracas = () => {
       
       const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
       const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
+      // Extrair especialidades diretamente dos dados em cache
+      const quadrosFromData = [...new Set(data.map((item: any) => item.quadroTmft).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"))];
       
       setAvailableOMs(getAvailableOMsForUser(oms as string[]));
-      setAvailableQuadros((cachedData.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"));
+      setAvailableQuadros(quadrosFromData as string[]);
       setAvailableOpcoes(opcoes as string[]);
       
       const cacheTime = getCacheTimestamp();
@@ -271,7 +273,9 @@ const DashboardPracas = () => {
         const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
 
         setAvailableOMs(getAvailableOMsForUser(oms as string[]));
-        setAvailableQuadros((result.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"));
+        // Extrair especialidades diretamente dos dados atuais da planilha
+        const quadrosFromData = [...new Set(data.map((item: any) => item.quadroTmft).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"))];
+        setAvailableQuadros(quadrosFromData as string[]);
         setAvailableOpcoes(opcoes as string[]);
         setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
       }
