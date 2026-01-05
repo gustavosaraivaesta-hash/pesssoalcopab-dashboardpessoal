@@ -1593,13 +1593,11 @@ const DashboardPracas = () => {
                   <div
                     key={`posto-${index}`}
                     className={`p-3 border rounded-lg ${
-                      isDifferentGraduacao
-                        ? "bg-amber-100/70 border-amber-300"
-                        : item.tipoSetor === "EXTRA LOTAÇÃO"
-                          ? "bg-orange-100/50 border-orange-200"
-                          : item.ocupado
-                            ? "bg-green-100/50 border-green-200"
-                            : "bg-red-100/50 border-red-200"
+                      item.tipoSetor === "EXTRA LOTAÇÃO"
+                        ? "bg-orange-100/50 border-orange-200"
+                        : item.ocupado
+                          ? "bg-green-100/50 border-green-200"
+                          : "bg-red-100/50 border-red-200"
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
