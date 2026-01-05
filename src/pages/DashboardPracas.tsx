@@ -1586,8 +1586,8 @@ const DashboardPracas = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {personnelForSelectedPostos.map((item, index) => {
-                  const itemGraduacao = item.postoEfe || item.postoTmft;
-                  const isDifferentGraduacao = !selectedPostos.includes(itemGraduacao);
+                  const itemGraduacao = selectedPostoType === "efe" ? item.postoEfe : item.postoTmft;
+                  const isDifferentGraduacao = itemGraduacao && !selectedPostos.includes(itemGraduacao);
                   
                   return (
                   <div
