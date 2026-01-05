@@ -1585,15 +1585,21 @@ const DashboardPracas = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {personnelForSelectedPostos.map((item, index) => (
+                {personnelForSelectedPostos.map((item, index) => {
+                  const itemGraduacao = item.postoEfe || item.postoTmft;
+                  const isDifferentGraduacao = !selectedPostos.includes(itemGraduacao);
+                  
+                  return (
                   <div
                     key={`posto-${index}`}
                     className={`p-3 border rounded-lg ${
-                      item.tipoSetor === "EXTRA LOTAÇÃO"
-                        ? "bg-orange-100/50 border-orange-200"
-                        : item.ocupado
-                          ? "bg-green-100/50 border-green-200"
-                          : "bg-red-100/50 border-red-200"
+                      isDifferentGraduacao
+                        ? "bg-amber-100/70 border-amber-300"
+                        : item.tipoSetor === "EXTRA LOTAÇÃO"
+                          ? "bg-orange-100/50 border-orange-200"
+                          : item.ocupado
+                            ? "bg-green-100/50 border-green-200"
+                            : "bg-red-100/50 border-red-200"
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -1633,8 +1639,14 @@ const DashboardPracas = () => {
                     <p className="font-semibold text-sm text-foreground uppercase">{item.nome || "VAGO"}</p>
                     <p className="text-xs text-muted-foreground">{item.cargo}</p>
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
+                    {isDifferentGraduacao && (
+                      <p className="text-xs mt-1 font-medium text-amber-700">
+                        ⚠ Graduação diferente: {itemGraduacao}
+                      </p>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
