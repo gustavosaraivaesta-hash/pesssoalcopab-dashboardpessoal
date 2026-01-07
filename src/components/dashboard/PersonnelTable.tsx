@@ -37,7 +37,11 @@ export const PersonnelTable = ({ data, categoria }: PersonnelTableProps) => {
     categoria === "TODOS" ? graduationOrderTodos : categoria === "PRAÇAS" ? graduationOrderPracas : graduationOrderOficiais;
 
   // Get unique graduations in specified order
-  const allGraduations = graduationOrder.filter((grad) => data.some((item) => item.graduacao === grad));
+  const dataGraduations = Array.from(new Set(data.map((item) => item.graduacao))).filter(Boolean);
+
+  const orderedGraduations = graduationOrder.filter((grad) => data.some((item) => item.graduacao === grad));
+  const extraGraduations = dataGraduations.filter((g) => !graduationOrder.includes(g)).sort();
+  const allGraduations = [...orderedGraduations, ...extraGraduations];
 
   // Build table data structure
   const tableData = allGraduations.map((graduacao) => {
