@@ -86,15 +86,14 @@ const Index = () => {
   // Helper function to convert personnel data (same counting logic used in Dashboard PRAÇAS/OFICIAIS)
   const convertToMilitaryData = (personnel: any[], categoria: "PRAÇAS" | "OFICIAIS"): MilitaryData[] => {
     // No Dash de PRAÇAS/OFICIAIS:
-    // - TMFT = quantidade de registros (posições) EXCLUINDO "EXTRA LOTAÇÃO"
+    // - TMFT = quantidade de registros (posições) EXCLUINDO "EXTRA LOTAÇÃO" → agrupado por postoTmft
     // - EXI = quantidade de registros ocupados (ocupado=true) EXCLUINDO "EXTRA LOTAÇÃO"
+    //         ⚠ Aqui deve usar o postoTmft (a posição que estamos contando), não postoEfe
 
     const normalizePostoOficiais = (postoRaw: string) => {
-      // Normalização defensiva: cobre variações como "2TEN", "2º TEN", "2 TENENTE", etc.
       const raw = String(postoRaw || "").trim().toUpperCase();
       if (!raw) return "";
 
-      // Remove acentos/ordinais e normaliza separadores
       const cleaned = raw
         .normalize("NFD")
         .replace(/\p{Diacritic}/gu, "")
@@ -103,15 +102,10 @@ const Index = () => {
         .replace(/\s+/g, " ")
         .trim();
 
-      if (cleaned === "CONTRA ALMIRANTE" || cleaned === "CONTRA-ALMIRANTE") return "C ALTE";
+      if (cleaned === "CONTRA ALMIRANTE" || cleaned === "CONTRA-ALMIRANTE" || cleaned === "C ALTE") return "C ALTE";
 
-      // 1º/2º TENENTE abreviado
-      if (/^1\s*TEN/.test(cleaned) || cleaned.startsWith("1TENENTE")) return "1T";
-      if (/^2\s*TEN/.test(cleaned) || cleaned.startsWith("2TENENTE")) return "2T";
-
-      // Variações comuns já abreviadas
-      if (cleaned === "1TEN" || cleaned === "1T") return "1T";
-      if (cleaned === "2TEN" || cleaned === "2T") return "2T";
+      if (/^1\s*TEN/.test(cleaned) || cleaned.startsWith("1TENENTE") || cleaned === "1TEN" || cleaned === "1T") return "1T";
+      if (/^2\s*TEN/.test(cleaned) || cleaned.startsWith("2TENENTE") || cleaned === "2TEN" || cleaned === "2T") return "2T";
 
       return cleaned;
     };
@@ -127,9 +121,13 @@ const Index = () => {
       if (isExtraLotacao) continue;
 
       const om = String(person.om || "").trim();
-      // Em algumas planilhas de OFICIAIS, o posto pode estar vazio em TMFT e preenchido em EFE.
-      const graduacaoRaw = String((categoria === "OFICIAIS" ? (person.postoTmft || person.postoEfe) : person.postoTmft) || "").trim();
-      const graduacao = categoria === "OFICIAIS" ? normalizePostoOficiais(graduacaoRaw) : graduacaoRaw;
+      
+      // SEMPRE usar postoTmft como base (é a posição da TMFT)
+      // Se postoTmft estiver vazio, pula esse registro (não conta na TMFT)
+      const postoTmftRaw = String(person.postoTmft || "").trim();
+      if (!postoTmftRaw) continue; // Posição sem posto definido na TMFT não conta
+      
+      const graduacao = categoria === "OFICIAIS" ? normalizePostoOficiais(postoTmftRaw) : postoTmftRaw;
 
       const especialidade = String(
         person.quadroTmft || person.especialidadeTmft || person.quadroEfe || person.especialidadeEfe || "",
@@ -137,7 +135,6 @@ const Index = () => {
 
       if (!om || !graduacao) continue;
 
-      // Delimitador seguro (OM/Quadro podem conter '-')
       const key = `${om}||${graduacao}||${especialidade}`;
 
       if (!grouped.has(key)) {
@@ -149,7 +146,7 @@ const Index = () => {
       // TMFT = 1 por posição (registro)
       group.tmft += 1;
 
-      // EXI = 1 se ocupado
+      // EXI = 1 se ocupado (independente do posto do efetivo)
       const nomeUpper = String(person.nome || "").trim().toUpperCase();
       const isVagoByNome = !nomeUpper || nomeUpper === "VAGO" || nomeUpper === "VAZIO";
       const isVagoByFlag = Boolean(person.isVago);
@@ -165,11 +162,9 @@ const Index = () => {
         else if (["FALSE", "NÃO", "NAO", "N", "NO", "0", "VAGO", "VAZIO", ""].includes(v)) ocupado = false;
         else ocupado = true;
       } else {
-        // PRAÇAS (via CSV) não traz 'ocupado' → inferir por nome/isVago
         ocupado = true;
       }
 
-      // Regra final: se for VAGO/VAZIO (por flag ou nome), não conta no EXI
       if (isVagoByFlag || isVagoByNome) ocupado = false;
 
       if (ocupado) group.exi += 1;
