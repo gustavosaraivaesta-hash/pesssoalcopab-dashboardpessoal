@@ -22,6 +22,7 @@ const DashboardTTC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterOM, setFilterOM] = useState<string>("all");
   const [filterArea, setFilterArea] = useState<string>("all");
   const [filterGraduacao, setFilterGraduacao] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -91,11 +92,12 @@ const DashboardTTC = () => {
 
   // Filter options
   const filterOptions = useMemo(() => {
+    const oms = Array.from(new Set(ttcData.map(d => d.om).filter(Boolean))).sort();
     const areas = Array.from(new Set(ttcData.map(d => d.area).filter(Boolean))).sort();
     const graduacoes = Array.from(new Set(ttcData.map(d => d.graduacao).filter(Boolean))).sort();
     const espQuadros = Array.from(new Set(ttcData.map(d => d.espQuadro).filter(Boolean))).sort();
     const renovacoes = Array.from(new Set(ttcData.filter(d => !d.isVaga).map(d => d.qtdRenovacoes))).sort((a, b) => a - b);
-    return { areas, graduacoes, espQuadros, renovacoes };
+    return { oms, areas, graduacoes, espQuadros, renovacoes };
   }, [ttcData]);
 
   // Filtered data
@@ -110,6 +112,10 @@ const DashboardTTC = () => {
         d.neo.toLowerCase().includes(term) ||
         d.espQuadro.toLowerCase().includes(term)
       );
+    }
+    
+    if (filterOM !== "all") {
+      data = data.filter(d => d.om === filterOM);
     }
     
     if (filterArea !== "all") {
@@ -138,7 +144,7 @@ const DashboardTTC = () => {
     }
     
     return data;
-  }, [ttcData, searchTerm, filterArea, filterGraduacao, filterStatus, filterEspQuadro, filterRenovacoes]);
+  }, [ttcData, searchTerm, filterOM, filterArea, filterGraduacao, filterStatus, filterEspQuadro, filterRenovacoes]);
 
   // Filtered summary
   const filteredSummary = useMemo(() => {
@@ -151,6 +157,7 @@ const DashboardTTC = () => {
   // Clear all filters
   const clearFilters = () => {
     setSearchTerm("");
+    setFilterOM("all");
     setFilterArea("all");
     setFilterGraduacao("all");
     setFilterStatus("all");
@@ -158,7 +165,7 @@ const DashboardTTC = () => {
     setFilterRenovacoes("all");
   };
 
-  const hasActiveFilters = searchTerm || filterArea !== "all" || filterGraduacao !== "all" || 
+  const hasActiveFilters = searchTerm || filterOM !== "all" || filterArea !== "all" || filterGraduacao !== "all" || 
     filterStatus !== "all" || filterEspQuadro !== "all" || filterRenovacoes !== "all";
 
   // Chart data
@@ -388,7 +395,7 @@ const DashboardTTC = () => {
               )}
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Buscar</label>
                   <Input
@@ -396,6 +403,21 @@ const DashboardTTC = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">OM</label>
+                  <Select value={filterOM} onValueChange={setFilterOM}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as OMs</SelectItem>
+                      {filterOptions.oms.map(om => (
+                        <SelectItem key={om} value={om}>{om}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div>
