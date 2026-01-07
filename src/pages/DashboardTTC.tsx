@@ -14,30 +14,35 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOnlineStatus } from "@/hooks/useOfflineCache";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend } from "recharts";
-import { differenceInYears, parse, isValid } from "date-fns";
+import { differenceInYears, differenceInMonths, differenceInDays, parse, isValid, addYears, addMonths } from "date-fns";
 
-// Calculates current age from birth date string (formats: DD/MM/YYYY or just a number)
+// Calculates current age from birth date string (formats: DD/MM/YYYY) with years, months, and days
 const calcularIdadeAtual = (idadeOuData: string): string => {
   if (!idadeOuData) return "-";
+  
+  // Try to parse as date (DD/MM/YYYY)
+  let birthDate = parse(idadeOuData, "dd/MM/yyyy", new Date());
+  
+  // Try alternate format if first fails
+  if (!isValid(birthDate)) {
+    birthDate = parse(idadeOuData, "MM/dd/yyyy", new Date());
+  }
+  
+  if (isValid(birthDate)) {
+    const today = new Date();
+    const anos = differenceInYears(today, birthDate);
+    const afterYears = addYears(birthDate, anos);
+    const meses = differenceInMonths(today, afterYears);
+    const afterMonths = addMonths(afterYears, meses);
+    const dias = differenceInDays(today, afterMonths);
+    
+    return `${anos}a ${meses}m ${dias}d`;
+  }
   
   // If it's already a number (age), return as is
   const numericAge = parseInt(idadeOuData);
   if (!isNaN(numericAge) && idadeOuData.length <= 3) {
     return `${numericAge} anos`;
-  }
-  
-  // Try to parse as date (DD/MM/YYYY)
-  const parsedDate = parse(idadeOuData, "dd/MM/yyyy", new Date());
-  if (isValid(parsedDate)) {
-    const idade = differenceInYears(new Date(), parsedDate);
-    return `${idade} anos`;
-  }
-  
-  // Try alternate format (MM/DD/YYYY)
-  const parsedDateAlt = parse(idadeOuData, "MM/dd/yyyy", new Date());
-  if (isValid(parsedDateAlt)) {
-    const idade = differenceInYears(new Date(), parsedDateAlt);
-    return `${idade} anos`;
   }
   
   return idadeOuData;
