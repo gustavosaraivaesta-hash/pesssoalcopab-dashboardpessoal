@@ -621,6 +621,10 @@ const Index = () => {
                 <FileText size={18} className="mr-2" />
                 OFICIAIS
               </Button>
+              <Button variant="secondary" onClick={() => navigate("/dashboard-ttc")}>
+                <FileText size={18} className="mr-2" />
+                TTC
+              </Button>
               <Button variant="secondary" onClick={handleManualRefresh} disabled={isRefreshing}>
                 <RefreshCw size={18} className={`mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
                 Atualizar
