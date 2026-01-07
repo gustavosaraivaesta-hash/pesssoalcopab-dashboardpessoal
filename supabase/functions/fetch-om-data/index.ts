@@ -514,6 +514,8 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     if (quadroTmft) quadros.add(quadroTmft);
     if (opcaoTmft) opcoes.add(opcaoTmft);
     
+    const nomeUpper = nome.toUpperCase();
+
     const record: PersonnelRecord = {
       id: `${omName}-${neoString}`,
       neo: parseFloat(neoString) || 0,
@@ -529,7 +531,8 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       quadroEfe,
       opcaoEfe,
       nome,
-      ocupado: nome.length > 0 && nome !== 'VAZIO',
+      // Importante: "VAGO" não conta como ocupado
+      ocupado: nomeUpper.length > 0 && nomeUpper !== 'VAZIO' && nomeUpper !== 'VAGO',
       om: omName,
     };
     
