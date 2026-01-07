@@ -45,8 +45,8 @@ serve(async (req) => {
     
     console.log(`Processing ${rows.length} TTC rows`);
     
-    // Skip header row (index 0), process data rows
-    for (let i = 1; i < rows.length; i++) {
+    // Process all rows; we will skip header/summary rows by content
+    for (let i = 0; i < rows.length; i++) {
       const cells = rows[i].c || [];
       
       // Column mapping based on the spreadsheet structure:
@@ -106,7 +106,7 @@ serve(async (req) => {
         nomeCompleto.toUpperCase().includes('VAGA ABERTA');
       
       transformedData.push({
-        id: `TTC-${i}`,
+        id: `TTC-${i + 1}`,
         numero: numero,
         graduacao: graduacao,
         espQuadro: espQuadro,
