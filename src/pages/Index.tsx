@@ -81,7 +81,7 @@ const Index = () => {
   const [isUsingCache, setIsUsingCache] = useState(false);
 
   const isOnline = useOnlineStatus();
-  const { getFromCache, saveToCache, getCacheTimestamp } = useOfflineCache<MilitaryData[]>('copab_data');
+  const { getFromCache, saveToCache, clearCache, getCacheTimestamp } = useOfflineCache<MilitaryData[]>('copab_data');
 
   // Helper function to convert personnel data (same counting logic used in Dashboard PRAÇAS/OFICIAIS)
   const convertToMilitaryData = (personnel: any[], categoria: "PRAÇAS" | "OFICIAIS"): MilitaryData[] => {
@@ -197,7 +197,9 @@ const Index = () => {
   const filterRawForCurrentUser = (arr: any[]) => {
     const allowedOMs = getAllowedOMs();
     if (allowedOMs === "all") return arr;
-    return arr.filter((item: any) => allowedOMs.includes(item.om));
+
+    const allowedUpper = new Set(allowedOMs.map((o) => String(o || "").toUpperCase()));
+    return arr.filter((item: any) => allowedUpper.has(String(item?.om || "").toUpperCase()));
   };
 
   // Fetch data from both PRAÇAS and OFICIAIS edge functions
@@ -273,6 +275,18 @@ const Index = () => {
 
         if (oficiaisFiltered.length > 0) {
           console.log(`Loaded ${oficiaisFiltered.length} OFICIAIS records`);
+
+          // Debug: conferir se existe 2T em COpAb nos dados brutos
+          const copab = oficiaisFiltered.filter((p: any) => String(p?.om || "") === "COpAb");
+          const postosCopab = Array.from(
+            new Set(
+              copab
+                .map((p: any) => String(p?.postoTmft || p?.postoEfe || "").trim())
+                .filter(Boolean),
+            ),
+          ).sort();
+          console.log("Index debug (OFICIAIS/COpAb) postos encontrados:", postosCopab);
+
           const oficiaisData = convertToMilitaryData(oficiaisFiltered, "OFICIAIS");
           allMilitaryData = [...allMilitaryData, ...oficiaisData];
         }
@@ -340,6 +354,9 @@ const Index = () => {
   };
 
   const handleManualRefresh = () => {
+    // Evita ficar preso em dados antigos (ex.: posto 2T não aparecendo por cache)
+    clearCache();
+    setIsUsingCache(false);
     fetchData(true);
   };
 
