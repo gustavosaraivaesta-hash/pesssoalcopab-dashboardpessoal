@@ -78,65 +78,64 @@ const Index = () => {
   const isOnline = useOnlineStatus();
   const { getFromCache, saveToCache, getCacheTimestamp } = useOfflineCache<MilitaryData[]>('copab_data');
 
-  // Helper function to convert personnel data to MilitaryData format
+  // Helper function to convert personnel data (same counting logic used in Dashboard PRAÇAS/OFICIAIS)
   const convertToMilitaryData = (personnel: any[], categoria: "PRAÇAS" | "OFICIAIS"): MilitaryData[] => {
-    // Group by OM, graduation, and especialidade to calculate TMFT/EXI
-    const grouped = new Map<string, { tmft: number; exi: number }>();
-    
-    personnel.forEach(person => {
-      const om = person.om || '';
-      const graduacao = person.postoTmft || person.postoEfe || '';
-      const especialidade = person.especialidadeTmft || person.quadroTmft || person.especialidadeEfe || person.quadroEfe || '';
-      
-      // Skip EXTRA LOTAÇÃO for TMFT count
-      const isExtraLotacao = person.tipoSetor === 'EXTRA LOTAÇÃO' || person.isExtraLotacao;
-      
-      const key = `${om}-${graduacao}-${especialidade}`;
-      
+    // No Dash de PRAÇAS/OFICIAIS:
+    // - TMFT = quantidade de registros (posições) EXCLUINDO "EXTRA LOTAÇÃO"
+    // - EXI = quantidade de registros ocupados (ocupado=true) EXCLUINDO "EXTRA LOTAÇÃO"
+
+    const grouped = new Map<string, { tmft: number; exi: number; om: string; graduacao: string; especialidade: string }>();
+
+    for (const person of personnel) {
+      const tipoSetor = String(person.tipoSetor || "").trim();
+      const isExtraLotacao = tipoSetor.toUpperCase() === "EXTRA LOTAÇÃO" || Boolean(person.isExtraLotacao);
+      if (isExtraLotacao) continue;
+
+      const om = String(person.om || "").trim();
+      const graduacao = String(person.postoTmft || "").trim();
+      const especialidade = String(
+        person.quadroTmft || person.especialidadeTmft || person.quadroEfe || person.especialidadeEfe || "",
+      ).trim();
+
+      if (!om || !graduacao) continue;
+
+      // Delimitador seguro (OM/Quadro podem conter '-')
+      const key = `${om}||${graduacao}||${especialidade}`;
+
       if (!grouped.has(key)) {
-        grouped.set(key, { tmft: 0, exi: 0 });
+        grouped.set(key, { tmft: 0, exi: 0, om, graduacao, especialidade });
       }
-      
+
       const group = grouped.get(key)!;
-      
-      // TMFT = count all regular positions (excluding EXTRA LOTAÇÃO)
-      if (!isExtraLotacao && graduacao) {
-        group.tmft++;
-      }
-      
-      // EXI = count occupied positions (not VAGO)
-      const isVago = person.isVago || !person.nome || person.nome === 'VAGO' || person.nome === 'VAZIO';
-      if (!isVago && (person.postoEfe || person.nome)) {
-        group.exi++;
-      }
-    });
 
-    // Convert grouped data to MilitaryData format
-    const result: MilitaryData[] = [];
-    grouped.forEach((value, key) => {
-      const [om, graduacao, especialidade] = key.split('-');
-      if (!om || !graduacao) return;
-      
-      result.push({
-        id: `${categoria}-${key}`,
-        nome: `${graduacao} - ${om}`,
-        especialidade: especialidade || graduacao,
-        graduacao,
-        om,
-        sdp: '',
-        tmft: value.tmft,
-        exi: value.exi,
-        dif: value.exi - value.tmft,
-        previsaoEmbarque: '',
-        pracasTTC: 0,
-        servidoresCivis: 0,
-        percentualPracasAtiva: value.tmft > 0 ? (value.exi / value.tmft) * 100 : 0,
-        percentualForcaTrabalho: 0,
-        categoria,
-      });
-    });
+      // TMFT = 1 por posição (registro)
+      group.tmft += 1;
 
-    return result;
+      // EXI = 1 se ocupado
+      const hasOcupadoFlag = typeof person.ocupado === "boolean";
+      const isVagoFallback = Boolean(person.isVago) || !person.nome || String(person.nome).toUpperCase() === "VAGO" || String(person.nome).toUpperCase() === "VAZIO";
+      const ocupado = hasOcupadoFlag ? Boolean(person.ocupado) : !isVagoFallback;
+
+      if (ocupado) group.exi += 1;
+    }
+
+    return Array.from(grouped.values()).map(({ tmft, exi, om, graduacao, especialidade }) => ({
+      id: `${categoria}-${om}||${graduacao}||${especialidade}`,
+      nome: `${graduacao} - ${om}`,
+      especialidade: especialidade || "-",
+      graduacao,
+      om,
+      sdp: "",
+      tmft,
+      exi,
+      dif: exi - tmft,
+      previsaoEmbarque: "",
+      pracasTTC: 0,
+      servidoresCivis: 0,
+      percentualPracasAtiva: tmft > 0 ? (exi / tmft) * 100 : 0,
+      percentualForcaTrabalho: 0,
+      categoria,
+    }));
   };
 
   // Fetch data from both PRAÇAS and OFICIAIS edge functions
