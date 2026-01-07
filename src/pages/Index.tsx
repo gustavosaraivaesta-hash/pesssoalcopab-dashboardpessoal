@@ -78,7 +78,63 @@ const Index = () => {
   const isOnline = useOnlineStatus();
   const { getFromCache, saveToCache, getCacheTimestamp } = useOfflineCache<MilitaryData[]>('copab_data');
 
-  // Fetch data from Google Sheets
+  // Helper function to convert personnel data to MilitaryData format
+  const convertToMilitaryData = (personnel: any[], categoria: "PRAÇAS" | "OFICIAIS"): MilitaryData[] => {
+    // Group by OM and graduation to calculate TMFT/EXI
+    const grouped = new Map<string, { tmft: number; exi: number; records: any[] }>();
+    
+    personnel.forEach(person => {
+      const om = person.om || '';
+      const graduacao = person.postoTmft || person.postoEfe || '';
+      const especialidade = person.especialidadeTmft || person.especialidadeEfe || person.quadroTmft || person.quadroEfe || '';
+      const key = `${om}-${graduacao}-${especialidade}`;
+      
+      if (!grouped.has(key)) {
+        grouped.set(key, { tmft: 0, exi: 0, records: [] });
+      }
+      
+      const group = grouped.get(key)!;
+      // TMFT = count of all positions (including vacant)
+      if (person.postoTmft || person.cargo) {
+        group.tmft++;
+      }
+      // EXI = count of occupied positions (not vacant)
+      const isVago = !person.nome || person.nome === 'VAGO' || person.nome === 'VAZIO' || person.isVago;
+      if (!isVago && (person.postoEfe || person.nome)) {
+        group.exi++;
+      }
+      group.records.push(person);
+    });
+
+    // Convert grouped data to MilitaryData format
+    const result: MilitaryData[] = [];
+    grouped.forEach((value, key) => {
+      const [om, graduacao, especialidade] = key.split('-');
+      if (!om || !graduacao) return;
+      
+      result.push({
+        id: `${categoria}-${key}`,
+        nome: `${graduacao} - ${om}`,
+        especialidade: especialidade || graduacao,
+        graduacao,
+        om,
+        sdp: '',
+        tmft: value.tmft,
+        exi: value.exi,
+        dif: value.exi - value.tmft,
+        previsaoEmbarque: '',
+        pracasTTC: 0,
+        servidoresCivis: 0,
+        percentualPracasAtiva: value.tmft > 0 ? (value.exi / value.tmft) * 100 : 0,
+        percentualForcaTrabalho: 0,
+        categoria,
+      });
+    });
+
+    return result;
+  };
+
+  // Fetch data from both PRAÇAS and OFICIAIS edge functions
   const fetchData = async (showToast = false) => {
     if (showToast) setIsRefreshing(true);
     
@@ -111,41 +167,43 @@ const Index = () => {
     }
     
     try {
-      console.log("Fetching data from edge function...");
+      console.log("Fetching data from PRAÇAS and OFICIAIS edge functions...");
       
-      const { data, error } = await supabase.functions.invoke("fetch-sheets-data");
+      // Fetch both PRAÇAS and OFICIAIS data in parallel
+      const [pracasResponse, oficiaisResponse] = await Promise.all([
+        supabase.functions.invoke("fetch-pracas-data"),
+        supabase.functions.invoke("fetch-om-data"),
+      ]);
 
-      if (error) {
-        console.error("Error fetching data:", error);
-        // Try to load from cache on error
-        const cachedData = getFromCache();
-        if (cachedData && cachedData.length > 0) {
-          console.log("Error fetching - loading from cache");
-          const filteredByAccess = filterDataForCurrentUser(cachedData);
-          setMilitaryData(filteredByAccess);
-          setIsUsingCache(true);
-          toast.warning("Erro ao atualizar - usando dados do cache");
-        } else {
-          toast.error("Erro ao carregar dados da planilha. Usando dados de exemplo.");
-          setMilitaryData(mockMilitaryData);
-        }
-        setIsLoading(false);
-        if (showToast) setIsRefreshing(false);
-        return;
+      let allMilitaryData: MilitaryData[] = [];
+
+      // Process PRAÇAS data
+      if (pracasResponse.error) {
+        console.error("Error fetching PRAÇAS data:", pracasResponse.error);
+      } else if (pracasResponse.data?.personnel && pracasResponse.data.personnel.length > 0) {
+        console.log(`Loaded ${pracasResponse.data.personnel.length} PRAÇAS records`);
+        const pracasData = convertToMilitaryData(pracasResponse.data.personnel, "PRAÇAS");
+        allMilitaryData = [...allMilitaryData, ...pracasData];
       }
 
-      if (data?.data && data.data.length > 0) {
-        console.log(`Loaded ${data.data.length} records from sheets`);
+      // Process OFICIAIS data
+      if (oficiaisResponse.error) {
+        console.error("Error fetching OFICIAIS data:", oficiaisResponse.error);
+      } else if (oficiaisResponse.data?.personnel && oficiaisResponse.data.personnel.length > 0) {
+        console.log(`Loaded ${oficiaisResponse.data.personnel.length} OFICIAIS records`);
+        const oficiaisData = convertToMilitaryData(oficiaisResponse.data.personnel, "OFICIAIS");
+        allMilitaryData = [...allMilitaryData, ...oficiaisData];
+      }
 
-        const rawData = data.data as MilitaryData[];
-        console.log("Index - unique OMs in data:", [...new Set(rawData.map((item) => item.om))]);
+      if (allMilitaryData.length > 0) {
+        console.log(`Total combined records: ${allMilitaryData.length}`);
 
         // Save raw data to cache before filtering
-        saveToCache(rawData);
+        saveToCache(allMilitaryData);
         setIsUsingCache(false);
 
         // Apply user access filtering (case-insensitive)
-        const filteredByAccess = filterDataForCurrentUser<MilitaryData>(rawData);
+        const filteredByAccess = filterDataForCurrentUser<MilitaryData>(allMilitaryData);
 
         console.log("Index - After access filter:", filteredByAccess.length, "records");
 
@@ -165,10 +223,10 @@ const Index = () => {
         setMilitaryData(filteredByAccess);
 
         if (showToast) {
-          toast.success(`Dados atualizados! ${filteredByAccess.length} registros da planilha.`);
+          toast.success(`Dados atualizados! ${filteredByAccess.length} registros combinados.`);
         }
       } else {
-        console.log("No data from sheets, using mock data");
+        console.log("No data from edge functions, using mock data");
         toast("Usando dados de exemplo", {
           description: "Adicione dados na planilha para ver informações reais.",
         });
