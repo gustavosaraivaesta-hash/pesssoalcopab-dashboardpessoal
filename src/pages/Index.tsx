@@ -87,8 +87,8 @@ const Index = () => {
   const convertToMilitaryData = (personnel: any[], categoria: "PRAÇAS" | "OFICIAIS"): MilitaryData[] => {
     // No Dash de PRAÇAS/OFICIAIS:
     // - TMFT = quantidade de registros (posições) EXCLUINDO "EXTRA LOTAÇÃO" → agrupado por postoTmft
-    // - EXI = quantidade de registros ocupados (ocupado=true) EXCLUINDO "EXTRA LOTAÇÃO"
-    //         ⚠ Aqui deve usar o postoTmft (a posição que estamos contando), não postoEfe
+    // - EXI = quantidade de registros ocupados (ocupado=true) EXCLUINDO "EXTRA LOTAÇÃO" → agrupado por postoEfe
+    //   (se postoEfe estiver vazio, usa postoTmft como fallback)
 
     const normalizePostoOficiais = (postoRaw: string) => {
       const raw = String(postoRaw || "").trim().toUpperCase();
@@ -115,38 +115,21 @@ const Index = () => {
       { tmft: number; exi: number; om: string; graduacao: string; especialidade: string }
     >();
 
+    const ensureGroup = (om: string, graduacao: string, especialidade: string) => {
+      const key = `${om}||${graduacao}||${especialidade}`;
+      if (!grouped.has(key)) grouped.set(key, { tmft: 0, exi: 0, om, graduacao, especialidade });
+      return grouped.get(key)!;
+    };
+
     for (const person of personnel) {
       const tipoSetor = String(person.tipoSetor || "").trim();
       const isExtraLotacao = tipoSetor.toUpperCase() === "EXTRA LOTAÇÃO" || Boolean(person.isExtraLotacao);
       if (isExtraLotacao) continue;
 
       const om = String(person.om || "").trim();
-      
-      // SEMPRE usar postoTmft como base (é a posição da TMFT)
-      // Se postoTmft estiver vazio, pula esse registro (não conta na TMFT)
-      const postoTmftRaw = String(person.postoTmft || "").trim();
-      if (!postoTmftRaw) continue; // Posição sem posto definido na TMFT não conta
-      
-      const graduacao = categoria === "OFICIAIS" ? normalizePostoOficiais(postoTmftRaw) : postoTmftRaw;
+      if (!om) continue;
 
-      const especialidade = String(
-        person.quadroTmft || person.especialidadeTmft || person.quadroEfe || person.especialidadeEfe || "",
-      ).trim();
-
-      if (!om || !graduacao) continue;
-
-      const key = `${om}||${graduacao}||${especialidade}`;
-
-      if (!grouped.has(key)) {
-        grouped.set(key, { tmft: 0, exi: 0, om, graduacao, especialidade });
-      }
-
-      const group = grouped.get(key)!;
-
-      // TMFT = 1 por posição (registro)
-      group.tmft += 1;
-
-      // EXI = 1 se ocupado (independente do posto do efetivo)
+      // Determina ocupado
       const nomeUpper = String(person.nome || "").trim().toUpperCase();
       const isVagoByNome = !nomeUpper || nomeUpper === "VAGO" || nomeUpper === "VAZIO";
       const isVagoByFlag = Boolean(person.isVago);
@@ -164,10 +147,32 @@ const Index = () => {
       } else {
         ocupado = true;
       }
-
       if (isVagoByFlag || isVagoByNome) ocupado = false;
 
-      if (ocupado) group.exi += 1;
+      // TMFT: conta a posição pelo postoTmft
+      const postoTmftRaw = String(person.postoTmft || "").trim();
+      if (postoTmftRaw) {
+        const graduacaoTmft = categoria === "OFICIAIS" ? normalizePostoOficiais(postoTmftRaw) : postoTmftRaw;
+        const especialidadeTmft = String(person.quadroTmft || person.especialidadeTmft || "").trim();
+        if (graduacaoTmft) {
+          const g = ensureGroup(om, graduacaoTmft, especialidadeTmft);
+          g.tmft += 1;
+        }
+      }
+
+      // EXI: conta o efetivo pelo postoEfe (ou fallback) quando ocupado
+      if (ocupado) {
+        const postoEfeRaw = String(person.postoEfe || person.postoTmft || "").trim();
+        const graduacaoEfe =
+          categoria === "OFICIAIS" ? normalizePostoOficiais(postoEfeRaw) : postoEfeRaw;
+        const especialidadeEfe = String(
+          person.quadroEfe || person.especialidadeEfe || person.quadroTmft || person.especialidadeTmft || "",
+        ).trim();
+        if (graduacaoEfe) {
+          const g = ensureGroup(om, graduacaoEfe, especialidadeEfe);
+          g.exi += 1;
+        }
+      }
     }
 
     return Array.from(grouped.values()).map(({ tmft, exi, om, graduacao, especialidade }) => ({
