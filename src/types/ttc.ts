@@ -13,6 +13,7 @@ export interface TTCData {
   qtdRenovacoes: number;
   isVaga: boolean;
   ocupado: boolean;
+  om: string;
 }
 
 export interface TTCSummary {

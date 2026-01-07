@@ -101,6 +101,7 @@ serve(async (req) => {
         qtdRenovacoes: qtdRenovacoes,
         isVaga: isVaga,
         ocupado: !isVaga,
+        om: 'COPAB',
       });
     }
     
