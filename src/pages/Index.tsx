@@ -70,6 +70,10 @@ const Index = () => {
     pessoal: [] as string[],
   });
   const [militaryData, setMilitaryData] = useState<MilitaryData[]>([]);
+  const [rawPersonnel, setRawPersonnel] = useState<{ pracas: any[]; oficiais: any[] }>({
+    pracas: [],
+    oficiais: [],
+  });
   const [previousData, setPreviousData] = useState<MilitaryData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -138,23 +142,30 @@ const Index = () => {
     }));
   };
 
+  const filterRawForCurrentUser = (arr: any[]) => {
+    const allowedOMs = getAllowedOMs();
+    if (allowedOMs === "all") return arr;
+    return arr.filter((item: any) => allowedOMs.includes(item.om));
+  };
+
   // Fetch data from both PRAÇAS and OFICIAIS edge functions
   const fetchData = async (showToast = false) => {
     if (showToast) setIsRefreshing(true);
-    
+
     // Check if offline using navigator.onLine for real-time status
     const currentlyOnline = navigator.onLine;
-    
+
     if (!currentlyOnline) {
       console.log("Offline mode - attempting to load from cache");
       const cachedData = getFromCache();
       if (cachedData && cachedData.length > 0) {
         console.log("Loading COpAb data from cache:", cachedData.length, "records");
-        
+
         // Apply user access filtering to cached data (case-insensitive)
         const filteredByAccess = filterDataForCurrentUser(cachedData);
-        
+
         setMilitaryData(filteredByAccess);
+        setRawPersonnel({ pracas: [], oficiais: [] });
         setIsUsingCache(true);
         const cacheTime = getCacheTimestamp();
         if (cacheTime) {
@@ -164,6 +175,7 @@ const Index = () => {
         console.log("No cache available, using mock data");
         toast.error("Sem conexão e sem dados em cache");
         setMilitaryData(mockMilitaryData);
+        setRawPersonnel({ pracas: [], oficiais: [] });
       }
       setIsLoading(false);
       if (showToast) setIsRefreshing(false);
@@ -181,14 +193,20 @@ const Index = () => {
 
       let allMilitaryData: MilitaryData[] = [];
 
+      const nextRawPracas: any[] = [];
+      const nextRawOficiais: any[] = [];
+
       // Process PRAÇAS data - use 'data' property (or 'personnel' for backwards compatibility)
       if (pracasResponse.error) {
         console.error("Error fetching PRAÇAS data:", pracasResponse.error);
       } else {
         const pracasRaw = pracasResponse.data?.data || pracasResponse.data?.personnel || [];
-        if (pracasRaw.length > 0) {
-          console.log(`Loaded ${pracasRaw.length} PRAÇAS records`);
-          const pracasData = convertToMilitaryData(pracasRaw, "PRAÇAS");
+        const pracasFiltered = filterRawForCurrentUser(pracasRaw);
+        nextRawPracas.push(...pracasFiltered);
+
+        if (pracasFiltered.length > 0) {
+          console.log(`Loaded ${pracasFiltered.length} PRAÇAS records`);
+          const pracasData = convertToMilitaryData(pracasFiltered, "PRAÇAS");
           allMilitaryData = [...allMilitaryData, ...pracasData];
         }
       }
@@ -198,12 +216,17 @@ const Index = () => {
         console.error("Error fetching OFICIAIS data:", oficiaisResponse.error);
       } else {
         const oficiaisRaw = oficiaisResponse.data?.data || oficiaisResponse.data?.personnel || [];
-        if (oficiaisRaw.length > 0) {
-          console.log(`Loaded ${oficiaisRaw.length} OFICIAIS records`);
-          const oficiaisData = convertToMilitaryData(oficiaisRaw, "OFICIAIS");
+        const oficiaisFiltered = filterRawForCurrentUser(oficiaisRaw);
+        nextRawOficiais.push(...oficiaisFiltered);
+
+        if (oficiaisFiltered.length > 0) {
+          console.log(`Loaded ${oficiaisFiltered.length} OFICIAIS records`);
+          const oficiaisData = convertToMilitaryData(oficiaisFiltered, "OFICIAIS");
           allMilitaryData = [...allMilitaryData, ...oficiaisData];
         }
       }
+
+      setRawPersonnel({ pracas: nextRawPracas, oficiais: nextRawOficiais });
 
       if (allMilitaryData.length > 0) {
         console.log(`Total combined records: ${allMilitaryData.length}`);
@@ -350,6 +373,45 @@ const Index = () => {
     return data;
   }, [filters, militaryData]);
 
+  const extraLotacaoTotal = useMemo(() => {
+    const categoriaSelecionada = filters.categoria;
+
+    const candidates: any[] =
+      categoriaSelecionada === "PRAÇAS"
+        ? rawPersonnel.pracas
+        : categoriaSelecionada === "OFICIAIS"
+          ? rawPersonnel.oficiais
+          : [...rawPersonnel.pracas, ...rawPersonnel.oficiais];
+
+    const isExtra = (p: any) => {
+      const tipoSetor = String(p.tipoSetor || "").trim().toUpperCase();
+      return tipoSetor === "EXTRA LOTAÇÃO" || Boolean(p.isExtraLotacao);
+    };
+
+    const matches = (p: any) => {
+      // OM
+      if (filters.om.length > 0 && !filters.om.includes(String(p.om || "").trim())) return false;
+
+      // Pessoal (graduação) - para EXTRA LOTAÇÃO normalmente vem em postoEfe
+      if (filters.pessoal.length > 0) {
+        const posto = String(p.postoEfe || p.postoTmft || "").trim();
+        if (!filters.pessoal.includes(posto)) return false;
+      }
+
+      // Especialidade (quadro/especialidade) - opcional no dashboard principal
+      if (filters.especialidade.length > 0) {
+        const esp = String(
+          p.quadroTmft || p.especialidadeTmft || p.quadroEfe || p.especialidadeEfe || "",
+        ).trim();
+        if (!filters.especialidade.includes(esp)) return false;
+      }
+
+      return true;
+    };
+
+    return candidates.filter((p) => isExtra(p) && matches(p)).length;
+  }, [filters.categoria, filters.om, filters.pessoal, filters.especialidade, rawPersonnel]);
+
   const metrics = useMemo(() => {
     const totalTMFT = filteredData.reduce((sum, item) => sum + item.tmft, 0);
     const totalEXI = filteredData.reduce((sum, item) => sum + item.exi, 0);
@@ -449,7 +511,7 @@ const Index = () => {
         />
 
         {/* Métricas principais */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <MetricsCard title="Total TMFT" value={metrics.totalTMFT} icon={Shield} variant="default" />
           <MetricsCard title="Total EXI" value={metrics.totalEXI} icon={Users} variant="success" />
           <MetricsCard
@@ -458,12 +520,19 @@ const Index = () => {
             icon={metrics.totalDIF >= 0 ? TrendingUp : TrendingDown}
             variant={metrics.totalDIF >= 0 ? "success" : "destructive"}
           />
-          <MetricsCard 
-            title="Atendimento" 
-            value={`${metrics.occupancyPercent}%`} 
-            icon={Percent} 
-            variant={parseFloat(metrics.occupancyPercent) >= 90 ? "success" : parseFloat(metrics.occupancyPercent) >= 70 ? "warning" : "destructive"} 
+          <MetricsCard
+            title="Atendimento"
+            value={`${metrics.occupancyPercent}%`}
+            icon={Percent}
+            variant={
+              parseFloat(metrics.occupancyPercent) >= 90
+                ? "success"
+                : parseFloat(metrics.occupancyPercent) >= 70
+                  ? "warning"
+                  : "destructive"
+            }
           />
+          <MetricsCard title="Extra Lotação" value={extraLotacaoTotal} icon={Users} variant="warning" />
         </div>
 
         {/* Gráfico de Totais */}
