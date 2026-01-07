@@ -9,6 +9,7 @@ import { TotalsChart } from "@/components/dashboard/TotalsChart";
 import { DistributionChart } from "@/components/dashboard/DistributionChart";
 import { PersonnelTable } from "@/components/dashboard/PersonnelTable";
 import { DifferenceByGraduationChart } from "@/components/dashboard/DifferenceByGraduationChart";
+import { ExtraLotacaoTable, type ExtraLotacaoRow } from "@/components/dashboard/ExtraLotacaoTable";
 import { MilitaryData } from "@/types/military";
 import { getUniqueValues, mockMilitaryData } from "@/data/mockData";
 import militaryBg from "@/assets/military-background.png";
@@ -398,11 +399,9 @@ const Index = () => {
         if (!filters.pessoal.includes(posto)) return false;
       }
 
-      // Especialidade (quadro/especialidade) - opcional no dashboard principal
+      // Especialidade (quadro/especialidade)
       if (filters.especialidade.length > 0) {
-        const esp = String(
-          p.quadroTmft || p.especialidadeTmft || p.quadroEfe || p.especialidadeEfe || "",
-        ).trim();
+        const esp = String(p.quadroEfe || p.quadroTmft || p.especialidadeEfe || p.especialidadeTmft || "").trim();
         if (!filters.especialidade.includes(esp)) return false;
       }
 
@@ -410,6 +409,71 @@ const Index = () => {
     };
 
     return candidates.filter((p) => isExtra(p) && matches(p)).length;
+  }, [filters.categoria, filters.om, filters.pessoal, filters.especialidade, rawPersonnel]);
+
+  const extraLotacaoRows = useMemo<ExtraLotacaoRow[]>(() => {
+    const categoriaSelecionada = filters.categoria;
+
+    const candidates: Array<{ categoria: "PRAÇAS" | "OFICIAIS"; p: any }> = [];
+    if (categoriaSelecionada === "PRAÇAS" || categoriaSelecionada === "TODOS") {
+      candidates.push(...rawPersonnel.pracas.map((p) => ({ categoria: "PRAÇAS" as const, p })));
+    }
+    if (categoriaSelecionada === "OFICIAIS" || categoriaSelecionada === "TODOS") {
+      candidates.push(...rawPersonnel.oficiais.map((p) => ({ categoria: "OFICIAIS" as const, p })));
+    }
+
+    const isExtra = (p: any) => {
+      const tipoSetor = String(p.tipoSetor || "").trim().toUpperCase();
+      return tipoSetor === "EXTRA LOTAÇÃO" || Boolean(p.isExtraLotacao);
+    };
+
+    const matches = (p: any) => {
+      if (filters.om.length > 0 && !filters.om.includes(String(p.om || "").trim())) return false;
+
+      if (filters.pessoal.length > 0) {
+        const posto = String(p.postoEfe || p.postoTmft || "").trim();
+        if (!filters.pessoal.includes(posto)) return false;
+      }
+
+      if (filters.especialidade.length > 0) {
+        const esp = String(p.quadroEfe || p.quadroTmft || p.especialidadeEfe || p.especialidadeTmft || "").trim();
+        if (!filters.especialidade.includes(esp)) return false;
+      }
+
+      return true;
+    };
+
+    const normalizeOcupado = (p: any) => {
+      if (typeof p.ocupado === "boolean") return p.ocupado;
+      const nome = String(p.nome || "").trim().toUpperCase();
+      if (!nome || nome === "VAGO" || nome === "VAZIO") return false;
+      if (Boolean(p.isVago)) return false;
+      return true;
+    };
+
+    return candidates
+      .filter(({ p }) => isExtra(p) && matches(p))
+      .map(({ categoria, p }, idx) => {
+        const om = String(p.om || "").trim();
+        const posto = String(p.postoEfe || p.postoTmft || "").trim();
+        const quadro = String(p.quadroEfe || p.quadroTmft || p.especialidadeEfe || p.especialidadeTmft || "").trim();
+        const opcao = String(p.opcaoEfe || p.opcaoTmft || "").trim();
+        const cargo = String(p.cargo || "").trim();
+        const nome = String(p.nome || "").trim();
+        const ocupado = normalizeOcupado(p);
+
+        return {
+          id: `${categoria}-${om}-${posto}-${quadro}-${opcao}-${idx}`,
+          categoria,
+          om,
+          posto,
+          quadro,
+          opcao,
+          cargo,
+          nome,
+          ocupado,
+        };
+      });
   }, [filters.categoria, filters.om, filters.pessoal, filters.especialidade, rawPersonnel]);
 
   const metrics = useMemo(() => {
@@ -547,6 +611,9 @@ const Index = () => {
 
         {/* Tabela de Pessoal por OM */}
         <PersonnelTable data={filteredData} categoria={filters.categoria} />
+
+        {/* Lista de Extra Lotação (filtrada pelos mesmos filtros acima) */}
+        <ExtraLotacaoTable rows={extraLotacaoRows} />
 
         {/* Gráfico de Diferença por Graduação */}
         <DifferenceByGraduationChart data={filteredData} categoria={filters.categoria} />
