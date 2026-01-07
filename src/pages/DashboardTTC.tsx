@@ -14,6 +14,34 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOnlineStatus } from "@/hooks/useOfflineCache";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend } from "recharts";
+import { differenceInYears, parse, isValid } from "date-fns";
+
+// Calculates current age from birth date string (formats: DD/MM/YYYY or just a number)
+const calcularIdadeAtual = (idadeOuData: string): string => {
+  if (!idadeOuData) return "-";
+  
+  // If it's already a number (age), return as is
+  const numericAge = parseInt(idadeOuData);
+  if (!isNaN(numericAge) && idadeOuData.length <= 3) {
+    return `${numericAge} anos`;
+  }
+  
+  // Try to parse as date (DD/MM/YYYY)
+  const parsedDate = parse(idadeOuData, "dd/MM/yyyy", new Date());
+  if (isValid(parsedDate)) {
+    const idade = differenceInYears(new Date(), parsedDate);
+    return `${idade} anos`;
+  }
+  
+  // Try alternate format (MM/DD/YYYY)
+  const parsedDateAlt = parse(idadeOuData, "MM/dd/yyyy", new Date());
+  if (isValid(parsedDateAlt)) {
+    const idade = differenceInYears(new Date(), parsedDateAlt);
+    return `${idade} anos`;
+  }
+  
+  return idadeOuData;
+};
 
 const DashboardTTC = () => {
   const navigate = useNavigate();
@@ -550,7 +578,7 @@ const DashboardTTC = () => {
                             row.nomeCompleto
                           )}
                         </TableCell>
-                        <TableCell className="text-sm">{row.idade}</TableCell>
+                        <TableCell className="text-sm">{calcularIdadeAtual(row.idade)}</TableCell>
                         <TableCell>
                           <Badge variant="secondary">{row.area}</Badge>
                         </TableCell>
