@@ -80,30 +80,35 @@ const Index = () => {
 
   // Helper function to convert personnel data to MilitaryData format
   const convertToMilitaryData = (personnel: any[], categoria: "PRAÇAS" | "OFICIAIS"): MilitaryData[] => {
-    // Group by OM and graduation to calculate TMFT/EXI
-    const grouped = new Map<string, { tmft: number; exi: number; records: any[] }>();
+    // Group by OM, graduation, and especialidade to calculate TMFT/EXI
+    const grouped = new Map<string, { tmft: number; exi: number }>();
     
     personnel.forEach(person => {
       const om = person.om || '';
       const graduacao = person.postoTmft || person.postoEfe || '';
-      const especialidade = person.especialidadeTmft || person.especialidadeEfe || person.quadroTmft || person.quadroEfe || '';
+      const especialidade = person.especialidadeTmft || person.quadroTmft || person.especialidadeEfe || person.quadroEfe || '';
+      
+      // Skip EXTRA LOTAÇÃO for TMFT count
+      const isExtraLotacao = person.tipoSetor === 'EXTRA LOTAÇÃO' || person.isExtraLotacao;
+      
       const key = `${om}-${graduacao}-${especialidade}`;
       
       if (!grouped.has(key)) {
-        grouped.set(key, { tmft: 0, exi: 0, records: [] });
+        grouped.set(key, { tmft: 0, exi: 0 });
       }
       
       const group = grouped.get(key)!;
-      // TMFT = count of all positions (including vacant)
-      if (person.postoTmft || person.cargo) {
+      
+      // TMFT = count all regular positions (excluding EXTRA LOTAÇÃO)
+      if (!isExtraLotacao && graduacao) {
         group.tmft++;
       }
-      // EXI = count of occupied positions (not vacant)
-      const isVago = !person.nome || person.nome === 'VAGO' || person.nome === 'VAZIO' || person.isVago;
+      
+      // EXI = count occupied positions (not VAGO)
+      const isVago = person.isVago || !person.nome || person.nome === 'VAGO' || person.nome === 'VAZIO';
       if (!isVago && (person.postoEfe || person.nome)) {
         group.exi++;
       }
-      group.records.push(person);
     });
 
     // Convert grouped data to MilitaryData format
@@ -177,22 +182,28 @@ const Index = () => {
 
       let allMilitaryData: MilitaryData[] = [];
 
-      // Process PRAÇAS data
+      // Process PRAÇAS data - use 'data' property (or 'personnel' for backwards compatibility)
       if (pracasResponse.error) {
         console.error("Error fetching PRAÇAS data:", pracasResponse.error);
-      } else if (pracasResponse.data?.personnel && pracasResponse.data.personnel.length > 0) {
-        console.log(`Loaded ${pracasResponse.data.personnel.length} PRAÇAS records`);
-        const pracasData = convertToMilitaryData(pracasResponse.data.personnel, "PRAÇAS");
-        allMilitaryData = [...allMilitaryData, ...pracasData];
+      } else {
+        const pracasRaw = pracasResponse.data?.data || pracasResponse.data?.personnel || [];
+        if (pracasRaw.length > 0) {
+          console.log(`Loaded ${pracasRaw.length} PRAÇAS records`);
+          const pracasData = convertToMilitaryData(pracasRaw, "PRAÇAS");
+          allMilitaryData = [...allMilitaryData, ...pracasData];
+        }
       }
 
-      // Process OFICIAIS data
+      // Process OFICIAIS data - use 'data' property (or 'personnel' for backwards compatibility)
       if (oficiaisResponse.error) {
         console.error("Error fetching OFICIAIS data:", oficiaisResponse.error);
-      } else if (oficiaisResponse.data?.personnel && oficiaisResponse.data.personnel.length > 0) {
-        console.log(`Loaded ${oficiaisResponse.data.personnel.length} OFICIAIS records`);
-        const oficiaisData = convertToMilitaryData(oficiaisResponse.data.personnel, "OFICIAIS");
-        allMilitaryData = [...allMilitaryData, ...oficiaisData];
+      } else {
+        const oficiaisRaw = oficiaisResponse.data?.data || oficiaisResponse.data?.personnel || [];
+        if (oficiaisRaw.length > 0) {
+          console.log(`Loaded ${oficiaisRaw.length} OFICIAIS records`);
+          const oficiaisData = convertToMilitaryData(oficiaisRaw, "OFICIAIS");
+          allMilitaryData = [...allMilitaryData, ...oficiaisData];
+        }
       }
 
       if (allMilitaryData.length > 0) {
