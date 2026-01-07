@@ -50,11 +50,11 @@ serve(async (req) => {
       const cells = rows[i].c || [];
       
       // Column mapping based on the spreadsheet structure:
-      // 0: Number (#)
+      // 0: Number (#) or CONTR. / RENOVAÇÃO
       // 1: Graduação (SO, etc)
       // 2: ESP/QUADRO (CAP / QAP / PL, etc)
       // 3: Nome Completo
-      // 4: Idade
+      // 4: Data Nasc. (Idade)
       // 5: Área
       // 6: NEO
       // 7: Tarefa Designada
@@ -62,7 +62,7 @@ serve(async (req) => {
       // 9: Término
       // 10: Quantidade Renovações
       
-      const numero = cells[0]?.v || '';
+      const numero = cells[0]?.v ?? '';
       const graduacao = String(cells[1]?.v || '').trim();
       const espQuadro = String(cells[2]?.v || '').trim();
       const nomeCompleto = String(cells[3]?.v || '').trim();
@@ -71,28 +71,46 @@ serve(async (req) => {
       const area = String(cells[5]?.v || '').trim();
       const neo = String(cells[6]?.v || '').trim();
       const tarefaDesignada = String(cells[7]?.v || '').trim();
-      const periodoInicio = cells[8]?.f || cells[8]?.v || '';
-      const termino = cells[9]?.f || cells[9]?.v || '';
+      const periodoInicio = String(cells[8]?.f || cells[8]?.v || '').trim();
+      const termino = String(cells[9]?.f || cells[9]?.v || '').trim();
       const qtdRenovacoes = Number(cells[10]?.v || 0);
       
-      // Skip summary rows (VAGAS, CONTRATADOS, etc) and empty rows
-      if (!graduacao || graduacao.toUpperCase() === 'VAGAS' || graduacao.toUpperCase() === 'CONTRATADOS') {
-        // Check if this is the summary row
-        if (numero === '' && cells[1]?.v === 'VAGAS') {
-          console.log(`Found summary row: VAGAS=${cells[2]?.v}, CONTRATADOS=${cells[3]?.v}`);
-        }
+      console.log(`Row ${i}: numero=${numero}, grad=${graduacao}, nome=${nomeCompleto?.substring(0, 20)}`);
+      
+      // Skip summary rows (VAGAS, CONTRATADOS, etc) - check in multiple columns
+      const isHeaderOrSummary = 
+        graduacao.toUpperCase() === 'VAGAS' || 
+        graduacao.toUpperCase() === 'CONTRATADOS' ||
+        graduacao.toUpperCase() === 'GRADUAÇÃO' ||
+        graduacao.toUpperCase().includes('GRADUAÇÃO') ||
+        espQuadro.toUpperCase().includes('ESP/QUADRO') ||
+        nomeCompleto.toUpperCase().includes('NOME COMPLETO');
+      
+      if (isHeaderOrSummary) {
+        console.log(`Skipping row ${i}: header or summary row`);
         continue;
       }
       
-      // Skip if no name (empty position)
-      const isVaga = !nomeCompleto || nomeCompleto.toUpperCase() === 'VAGO' || nomeCompleto.toUpperCase() === 'VAZIO';
+      // Skip completely empty rows (no numero, no graduacao, no nome, no tarefa)
+      if (!numero && !graduacao && !nomeCompleto && !tarefaDesignada) {
+        console.log(`Skipping row ${i}: empty row`);
+        continue;
+      }
+      
+      // Determine if this is an open position (VAGA)
+      const isVaga = !nomeCompleto || 
+        nomeCompleto.toUpperCase() === 'VAGO' || 
+        nomeCompleto.toUpperCase() === 'VAZIA' || 
+        nomeCompleto.toUpperCase() === 'VAZIO' ||
+        nomeCompleto.toUpperCase() === 'VAGA' ||
+        nomeCompleto.toUpperCase().includes('VAGA ABERTA');
       
       transformedData.push({
         id: `TTC-${i}`,
         numero: numero,
         graduacao: graduacao,
         espQuadro: espQuadro,
-        nomeCompleto: nomeCompleto,
+        nomeCompleto: isVaga ? 'VAGA ABERTA' : nomeCompleto,
         idade: idade,
         area: area,
         neo: neo,
@@ -104,6 +122,8 @@ serve(async (req) => {
         ocupado: !isVaga,
         om: 'COPAB',
       });
+      
+      console.log(`Added row ${i}: isVaga=${isVaga}`);
     }
     
     // Calculate summary
