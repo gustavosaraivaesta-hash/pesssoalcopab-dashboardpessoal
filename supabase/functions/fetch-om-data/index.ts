@@ -604,8 +604,18 @@ serve(async (req) => {
     
     console.log(`Total: ${allPersonnel.length} personnel, ${allDesembarque.length} desembarque, ${allEmbarque.length} embarque, ${allTrrm.length} TRRM, ${allLicencas.length} licenças, ${allDestaques.length} destaques, ${allConcurso.length} concurso from ${allOMs.size} OMs`);
 
+    // Debug específico: postos existentes em COpAb (para validar ausência do "2T")
+    const copabRows = allPersonnel.filter((p) => String(p.om || "") === "COpAb");
+    const copabPostosTmft = Array.from(
+      new Set(copabRows.map((p) => String((p as any).postoTmft || "").trim()).filter(Boolean)),
+    ).sort();
+    const copabPostosEfe = Array.from(
+      new Set(copabRows.map((p) => String((p as any).postoEfe || "").trim()).filter(Boolean)),
+    ).sort();
+    console.log(`COpAb debug: rows=${copabRows.length}, postoTmft=[${copabPostosTmft.join(", ")}], postoEfe=[${copabPostosEfe.join(", ")}]`);
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         data: allPersonnel,
         desembarque: allDesembarque,
         embarque: allEmbarque,
@@ -618,6 +628,13 @@ serve(async (req) => {
         opcoes: Array.from(allOpcoes).sort(),
         oms: Array.from(allOMs).sort(),
         lastUpdate: new Date().toLocaleTimeString('pt-BR'),
+        debug: {
+          copab: {
+            rows: copabRows.length,
+            postos_tmft: copabPostosTmft,
+            postos_efe: copabPostosEfe,
+          },
+        },
       }),
       { 
         headers: { 
