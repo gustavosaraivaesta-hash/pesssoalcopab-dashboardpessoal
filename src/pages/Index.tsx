@@ -108,7 +108,8 @@ const Index = () => {
       if (isExtraLotacao) continue;
 
       const om = String(person.om || "").trim();
-      const graduacaoRaw = String(person.postoTmft || "").trim();
+      // Em algumas planilhas de OFICIAIS, o posto pode estar vazio em TMFT e preenchido em EFE.
+      const graduacaoRaw = String((categoria === "OFICIAIS" ? (person.postoTmft || person.postoEfe) : person.postoTmft) || "").trim();
       const graduacao = categoria === "OFICIAIS" ? normalizePostoOficiais(graduacaoRaw) : graduacaoRaw;
 
       const especialidade = String(
