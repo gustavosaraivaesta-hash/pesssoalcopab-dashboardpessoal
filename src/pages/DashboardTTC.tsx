@@ -97,30 +97,45 @@ const calcularTempoRestante = (terminoStr: string): { texto: string; status: 'no
   
   // If already expired
   if (isBefore(termino, today)) {
-    const mesesPassados = differenceInMonths(today, termino);
-    const afterMonths = addMonths(termino, mesesPassados);
+    const totalMesesPassados = differenceInMonths(today, termino);
+    const anosPassados = Math.floor(totalMesesPassados / 12);
+    const mesesPassados = totalMesesPassados % 12;
+    const afterMonths = addMonths(termino, totalMesesPassados);
     const diasPassados = differenceInDays(today, afterMonths);
+    
+    const partes = [];
+    if (anosPassados > 0) partes.push(`${anosPassados}a`);
+    if (mesesPassados > 0) partes.push(`${mesesPassados}m`);
+    if (diasPassados > 0 || partes.length === 0) partes.push(`${diasPassados}d`);
+    
     return { 
-      texto: `Vencido há ${mesesPassados}m ${diasPassados}d`, 
+      texto: `Vencido há ${partes.join(' ')}`, 
       status: 'expired' 
     };
   }
   
   // Calculate remaining time
-  const meses = differenceInMonths(termino, today);
-  const afterMonths = addMonths(today, meses);
+  const totalMeses = differenceInMonths(termino, today);
+  const anos = Math.floor(totalMeses / 12);
+  const meses = totalMeses % 12;
+  const afterMonths = addMonths(today, totalMeses);
   const dias = differenceInDays(termino, afterMonths);
   
   // Determine status based on remaining time
   let status: 'normal' | 'warning' | 'danger' | 'expired' = 'normal';
-  if (meses < 1) {
+  if (totalMeses < 1) {
     status = 'danger';
-  } else if (meses < 3) {
+  } else if (totalMeses < 3) {
     status = 'warning';
   }
   
+  const partes = [];
+  if (anos > 0) partes.push(`${anos}a`);
+  if (meses > 0) partes.push(`${meses}m`);
+  if (dias > 0 || partes.length === 0) partes.push(`${dias}d`);
+  
   return { 
-    texto: `${meses}m ${dias}d`, 
+    texto: partes.join(' '), 
     status 
   };
 };
