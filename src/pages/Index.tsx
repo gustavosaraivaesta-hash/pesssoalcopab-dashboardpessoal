@@ -64,7 +64,7 @@ const Index = () => {
   const navigate = useNavigate();
   const chartRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState({
-    categoria: "PRAÇAS" as "PRAÇAS" | "OFICIAIS",
+    categoria: "TODOS" as "TODOS" | "PRAÇAS" | "OFICIAIS",
     om: [] as string[],
     especialidade: [] as string[],
     pessoal: [] as string[],
@@ -227,8 +227,10 @@ const Index = () => {
   };
 
   const filterOptions = useMemo(() => {
-    // Filtrar dados baseado na categoria selecionada
-    const dataByCategory = militaryData.filter((item) => item.categoria === filters.categoria);
+    // Filtrar dados baseado na categoria selecionada (ou todos)
+    const dataByCategory = filters.categoria === "TODOS" 
+      ? militaryData 
+      : militaryData.filter((item) => item.categoria === filters.categoria);
 
     // Obter valores únicos apenas da categoria selecionada
     const filteredOMs = getAvailableOMsForUser(
@@ -257,8 +259,10 @@ const Index = () => {
   const filteredData = useMemo(() => {
     let data = militaryData;
 
-    // Filtrar por categoria (PRAÇAS/OFICIAIS)
-    data = data.filter((item) => item.categoria === filters.categoria);
+    // Filtrar por categoria (PRAÇAS/OFICIAIS) - apenas se não for "TODOS"
+    if (filters.categoria !== "TODOS") {
+      data = data.filter((item) => item.categoria === filters.categoria);
+    }
 
     // Filtrar por OM
     if (filters.om.length > 0) {
@@ -293,12 +297,12 @@ const Index = () => {
     };
   }, [filteredData]);
 
-  const handleFilterChange = (filterType: string, values: string[] | "PRAÇAS" | "OFICIAIS") => {
+  const handleFilterChange = (filterType: string, values: string[] | "TODOS" | "PRAÇAS" | "OFICIAIS") => {
     if (filterType === "categoria") {
       // Limpar filtros de pessoal ao trocar de categoria
       setFilters((prev) => ({
         ...prev,
-        categoria: values as "PRAÇAS" | "OFICIAIS",
+        categoria: values as "TODOS" | "PRAÇAS" | "OFICIAIS",
         pessoal: [],
       }));
     } else {

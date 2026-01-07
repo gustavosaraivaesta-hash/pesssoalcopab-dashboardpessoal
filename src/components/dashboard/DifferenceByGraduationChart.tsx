@@ -13,7 +13,7 @@ import { MilitaryData } from "@/types/military";
 
 interface DifferenceByGraduationChartProps {
   data: MilitaryData[];
-  categoria: "PRAÇAS" | "OFICIAIS";
+  categoria: "TODOS" | "PRAÇAS" | "OFICIAIS";
 }
 
 export const DifferenceByGraduationChart = ({ data, categoria }: DifferenceByGraduationChartProps) => {
@@ -42,7 +42,14 @@ export const DifferenceByGraduationChart = ({ data, categoria }: DifferenceByGra
     'SERVIDORES CIVIS (NA + NI)'
   ];
   
-  const graduationOrder = categoria === "PRAÇAS" ? graduationOrderPracas : graduationOrderOficiais;
+  // Quando "TODOS", combina ambas as ordens
+  const graduationOrderTodos = [...graduationOrderOficiais.filter(g => g !== "SERVIDORES CIVIS (NA + NI)"), ...graduationOrderPracas];
+  
+  const graduationOrder = categoria === "TODOS" 
+    ? graduationOrderTodos 
+    : categoria === "PRAÇAS" 
+      ? graduationOrderPracas 
+      : graduationOrderOficiais;
   
   // Get unique graduations in specified order
   const allGraduations = graduationOrder.filter(grad => 
