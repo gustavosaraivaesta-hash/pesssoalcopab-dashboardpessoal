@@ -89,7 +89,18 @@ const Index = () => {
     // - TMFT = quantidade de registros (posições) EXCLUINDO "EXTRA LOTAÇÃO"
     // - EXI = quantidade de registros ocupados (ocupado=true) EXCLUINDO "EXTRA LOTAÇÃO"
 
-    const grouped = new Map<string, { tmft: number; exi: number; om: string; graduacao: string; especialidade: string }>();
+    const normalizePostoOficiais = (postoRaw: string) => {
+      const p = String(postoRaw || "").trim().toUpperCase();
+      if (p === "CONTRA-ALMIRANTE") return "C ALTE";
+      if (p === "1TEN" || p === "1TENENTE" || p === "1 TEN" || p === "1 TENENTE") return "1T";
+      if (p === "2TEN" || p === "2TENENTE" || p === "2 TEN" || p === "2 TENENTE") return "2T";
+      return p;
+    };
+
+    const grouped = new Map<
+      string,
+      { tmft: number; exi: number; om: string; graduacao: string; especialidade: string }
+    >();
 
     for (const person of personnel) {
       const tipoSetor = String(person.tipoSetor || "").trim();
@@ -97,7 +108,9 @@ const Index = () => {
       if (isExtraLotacao) continue;
 
       const om = String(person.om || "").trim();
-      const graduacao = String(person.postoTmft || "").trim();
+      const graduacaoRaw = String(person.postoTmft || "").trim();
+      const graduacao = categoria === "OFICIAIS" ? normalizePostoOficiais(graduacaoRaw) : graduacaoRaw;
+
       const especialidade = String(
         person.quadroTmft || person.especialidadeTmft || person.quadroEfe || person.especialidadeEfe || "",
       ).trim();
@@ -118,7 +131,11 @@ const Index = () => {
 
       // EXI = 1 se ocupado
       const hasOcupadoFlag = typeof person.ocupado === "boolean";
-      const isVagoFallback = Boolean(person.isVago) || !person.nome || String(person.nome).toUpperCase() === "VAGO" || String(person.nome).toUpperCase() === "VAZIO";
+      const isVagoFallback =
+        Boolean(person.isVago) ||
+        !person.nome ||
+        String(person.nome).toUpperCase() === "VAGO" ||
+        String(person.nome).toUpperCase() === "VAZIO";
       const ocupado = hasOcupadoFlag ? Boolean(person.ocupado) : !isVagoFallback;
 
       if (ocupado) group.exi += 1;
