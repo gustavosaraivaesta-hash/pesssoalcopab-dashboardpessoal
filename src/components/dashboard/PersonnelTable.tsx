@@ -13,27 +13,28 @@ export const PersonnelTable = ({ data, categoria }: PersonnelTableProps) => {
   // Define graduation order based on categoria
   const graduationOrderPracas = ["SO", "1SG", "2SG", "3SG", "CB", "MN", "PRAÇAS TTC", "SERVIDORES CIVIS (NA + NI)"];
 
+  // Importante: no dashboard de OFICIAIS os postos são normalizados (ex.: 1TEN -> 1T)
   const graduationOrderOficiais = [
-    "CONTRA-ALMIRANTE",
+    "C ALTE",
     "CMG",
     "CF",
     "CC",
     "CT",
-    "1TEN",
-    "2TEN",
+    "1T",
+    "2T",
     "GM",
     "OFICIAIS TTC",
     "SERVIDORES CIVIS (NA + NI)",
   ];
 
   // Quando "TODOS", combina ambas as ordens
-  const graduationOrderTodos = [...graduationOrderOficiais.filter(g => g !== "SERVIDORES CIVIS (NA + NI)"), ...graduationOrderPracas];
+  const graduationOrderTodos = [
+    ...graduationOrderOficiais.filter((g) => g !== "SERVIDORES CIVIS (NA + NI)"),
+    ...graduationOrderPracas,
+  ];
 
-  const graduationOrder = categoria === "TODOS" 
-    ? graduationOrderTodos 
-    : categoria === "PRAÇAS" 
-      ? graduationOrderPracas 
-      : graduationOrderOficiais;
+  const graduationOrder =
+    categoria === "TODOS" ? graduationOrderTodos : categoria === "PRAÇAS" ? graduationOrderPracas : graduationOrderOficiais;
 
   // Get unique graduations in specified order
   const allGraduations = graduationOrder.filter((grad) => data.some((item) => item.graduacao === grad));
