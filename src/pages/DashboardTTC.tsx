@@ -278,10 +278,10 @@ const DashboardTTC = () => {
   const hasActiveFilters = searchTerm || filterOM !== "all" || filterArea !== "all" || filterGraduacao !== "all" || 
     filterStatus !== "all" || filterEspQuadro !== "all" || filterRenovacoes !== "all";
 
-  // Chart data
+  // Chart data - using blue colors
   const statusChartData = useMemo(() => [
-    { name: "Contratados", value: summary.contratados, fill: "hsl(var(--chart-1))" },
-    { name: "Vagas Abertas", value: summary.vagasAbertas, fill: "hsl(var(--chart-2))" },
+    { name: "Contratados", value: summary.contratados, fill: "#3b82f6" },
+    { name: "Vagas Abertas", value: summary.vagasAbertas, fill: "#93c5fd" },
   ], [summary]);
 
   const areaChartData = useMemo(() => {
@@ -324,9 +324,9 @@ const DashboardTTC = () => {
   }, [ttcData]);
 
   const chartConfig = {
-    contratados: { label: "Contratados", color: "hsl(var(--chart-1))" },
-    vagas: { label: "Vagas", color: "hsl(var(--chart-2))" },
-    quantidade: { label: "Quantidade", color: "hsl(var(--chart-3))" },
+    contratados: { label: "Contratados", color: "#3b82f6" },
+    vagas: { label: "Vagas", color: "#93c5fd" },
+    quantidade: { label: "Quantidade", color: "#2563eb" },
   };
 
   if (isLoading) {
@@ -466,8 +466,8 @@ const DashboardTTC = () => {
                     <XAxis dataKey="area" fontSize={12} />
                     <YAxis fontSize={12} />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="contratados" fill="hsl(var(--chart-1))" name="Contratados" />
-                    <Bar dataKey="vagas" fill="hsl(var(--chart-2))" name="Vagas" />
+                    <Bar dataKey="contratados" fill="#3b82f6" name="Contratados" />
+                    <Bar dataKey="vagas" fill="#93c5fd" name="Vagas" />
                   </BarChart>
                 </ChartContainer>
               </CardContent>
@@ -487,7 +487,7 @@ const DashboardTTC = () => {
                     <XAxis dataKey="renovacoes" fontSize={12} />
                     <YAxis fontSize={12} />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="quantidade" fill="hsl(var(--chart-3))" name="Quantidade" />
+                    <Bar dataKey="quantidade" fill="#2563eb" name="Quantidade" />
                   </BarChart>
                 </ChartContainer>
               </CardContent>
