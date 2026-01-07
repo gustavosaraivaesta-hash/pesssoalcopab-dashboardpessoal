@@ -3,7 +3,7 @@ import { MilitaryData } from "@/types/military";
 
 interface PersonnelTableProps {
   data: MilitaryData[];
-  categoria: "PRAÇAS" | "OFICIAIS";
+  categoria: "TODOS" | "PRAÇAS" | "OFICIAIS";
 }
 
 export const PersonnelTable = ({ data, categoria }: PersonnelTableProps) => {
@@ -26,7 +26,14 @@ export const PersonnelTable = ({ data, categoria }: PersonnelTableProps) => {
     "SERVIDORES CIVIS (NA + NI)",
   ];
 
-  const graduationOrder = categoria === "PRAÇAS" ? graduationOrderPracas : graduationOrderOficiais;
+  // Quando "TODOS", combina ambas as ordens
+  const graduationOrderTodos = [...graduationOrderOficiais.filter(g => g !== "SERVIDORES CIVIS (NA + NI)"), ...graduationOrderPracas];
+
+  const graduationOrder = categoria === "TODOS" 
+    ? graduationOrderTodos 
+    : categoria === "PRAÇAS" 
+      ? graduationOrderPracas 
+      : graduationOrderOficiais;
 
   // Get unique graduations in specified order
   const allGraduations = graduationOrder.filter((grad) => data.some((item) => item.graduacao === grad));

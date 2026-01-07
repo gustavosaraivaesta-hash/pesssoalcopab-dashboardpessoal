@@ -79,12 +79,12 @@ const ESPECIALIDADES = [
 interface DashboardFiltersProps {
   filterOptions: FilterOptions;
   selectedFilters: {
-    categoria: "PRAÇAS" | "OFICIAIS";
+    categoria: "TODOS" | "PRAÇAS" | "OFICIAIS";
     om: string[];
     especialidade: string[];
     pessoal: string[];
   };
-  onFilterChange: (filterType: string, values: string[] | "PRAÇAS" | "OFICIAIS") => void;
+  onFilterChange: (filterType: string, values: string[] | "TODOS" | "PRAÇAS" | "OFICIAIS") => void;
   filteredData: MilitaryData[];
   metrics: {
     totalTMFT: number;
@@ -241,6 +241,13 @@ export const DashboardFilters = ({
             <span className="text-sm font-medium text-foreground">Visualizar:</span>
             <div className="flex gap-2">
               <Button
+                variant={selectedFilters.categoria === "TODOS" ? "default" : "outline"}
+                onClick={() => onFilterChange("categoria", "TODOS")}
+                className="font-semibold"
+              >
+                TODOS
+              </Button>
+              <Button
                 variant={selectedFilters.categoria === "PRAÇAS" ? "default" : "outline"}
                 onClick={() => onFilterChange("categoria", "PRAÇAS")}
                 className="font-semibold"
@@ -321,7 +328,7 @@ export const DashboardFilters = ({
                 <div className="space-y-2">
                   <div className="mb-3 pb-2 border-b">
                     <p className="text-xs text-muted-foreground font-medium">
-                      {selectedFilters.categoria === "OFICIAIS" ? "Pessoal OFI" : "Pessoal Praças"}
+                      {selectedFilters.categoria === "OFICIAIS" ? "Pessoal OFI" : selectedFilters.categoria === "PRAÇAS" ? "Pessoal Praças" : "Pessoal (Praças e Oficiais)"}
                     </p>
                   </div>
                   {filterOptions.graduacoes.map((grad) => (
