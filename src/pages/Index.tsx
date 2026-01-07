@@ -130,13 +130,27 @@ const Index = () => {
       group.tmft += 1;
 
       // EXI = 1 se ocupado
-      const hasOcupadoFlag = typeof person.ocupado === "boolean";
-      const isVagoFallback =
-        Boolean(person.isVago) ||
-        !person.nome ||
-        String(person.nome).toUpperCase() === "VAGO" ||
-        String(person.nome).toUpperCase() === "VAZIO";
-      const ocupado = hasOcupadoFlag ? Boolean(person.ocupado) : !isVagoFallback;
+      const nomeUpper = String(person.nome || "").trim().toUpperCase();
+      const isVagoByNome = !nomeUpper || nomeUpper === "VAGO" || nomeUpper === "VAZIO";
+      const isVagoByFlag = Boolean(person.isVago);
+
+      let ocupado: boolean;
+      if (typeof person.ocupado === "boolean") {
+        ocupado = person.ocupado;
+      } else if (typeof person.ocupado === "number") {
+        ocupado = person.ocupado !== 0;
+      } else if (typeof person.ocupado === "string") {
+        const v = person.ocupado.trim().toUpperCase();
+        if (["TRUE", "SIM", "S", "YES", "1", "X", "OCUPADO"].includes(v)) ocupado = true;
+        else if (["FALSE", "NÃO", "NAO", "N", "NO", "0", "VAGO", "VAZIO", ""].includes(v)) ocupado = false;
+        else ocupado = true;
+      } else {
+        // PRAÇAS (via CSV) não traz 'ocupado' → inferir por nome/isVago
+        ocupado = true;
+      }
+
+      // Regra final: se for VAGO/VAZIO (por flag ou nome), não conta no EXI
+      if (isVagoByFlag || isVagoByNome) ocupado = false;
 
       if (ocupado) group.exi += 1;
     }
