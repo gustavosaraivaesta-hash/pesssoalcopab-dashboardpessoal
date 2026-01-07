@@ -66,7 +66,8 @@ serve(async (req) => {
       const graduacao = String(cells[1]?.v || '').trim();
       const espQuadro = String(cells[2]?.v || '').trim();
       const nomeCompleto = String(cells[3]?.v || '').trim();
-      const idade = String(cells[4]?.v || '').trim();
+      // Use formatted value (.f) for date to get DD/MM/YYYY instead of Date() object
+      const idade = String(cells[4]?.f || cells[4]?.v || '').trim();
       const area = String(cells[5]?.v || '').trim();
       const neo = String(cells[6]?.v || '').trim();
       const tarefaDesignada = String(cells[7]?.v || '').trim();
