@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.fetch-pracas-data]
 verify_jwt = false
+
+[functions.fetch-ttc-data]
+verify_jwt = false
