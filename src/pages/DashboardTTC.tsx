@@ -16,19 +16,32 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend } from "recharts";
 import { differenceInYears, differenceInMonths, differenceInDays, parse, isValid, addYears, addMonths } from "date-fns";
 
-// Calculates current age from birth date string (formats: DD/MM/YYYY) with years, months, and days
+// Calculates current age from birth date string with years, months, and days
 const calcularIdadeAtual = (idadeOuData: string): string => {
   if (!idadeOuData) return "-";
   
+  let birthDate: Date | null = null;
+  
+  // Handle Google Sheets Date format: Date(year, month, day) - month is 0-indexed
+  const googleDateMatch = idadeOuData.match(/Date\((\d+),(\d+),(\d+)\)/);
+  if (googleDateMatch) {
+    const year = parseInt(googleDateMatch[1]);
+    const month = parseInt(googleDateMatch[2]); // 0-indexed in Google Sheets
+    const day = parseInt(googleDateMatch[3]);
+    birthDate = new Date(year, month, day);
+  }
+  
   // Try to parse as date (DD/MM/YYYY)
-  let birthDate = parse(idadeOuData, "dd/MM/yyyy", new Date());
+  if (!birthDate || !isValid(birthDate)) {
+    birthDate = parse(idadeOuData, "dd/MM/yyyy", new Date());
+  }
   
   // Try alternate format if first fails
   if (!isValid(birthDate)) {
     birthDate = parse(idadeOuData, "MM/dd/yyyy", new Date());
   }
   
-  if (isValid(birthDate)) {
+  if (birthDate && isValid(birthDate)) {
     const today = new Date();
     const anos = differenceInYears(today, birthDate);
     const afterYears = addYears(birthDate, anos);
