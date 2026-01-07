@@ -90,11 +90,30 @@ const Index = () => {
     // - EXI = quantidade de registros ocupados (ocupado=true) EXCLUINDO "EXTRA LOTAÇÃO"
 
     const normalizePostoOficiais = (postoRaw: string) => {
-      const p = String(postoRaw || "").trim().toUpperCase();
-      if (p === "CONTRA-ALMIRANTE") return "C ALTE";
-      if (p === "1TEN" || p === "1TENENTE" || p === "1 TEN" || p === "1 TENENTE") return "1T";
-      if (p === "2TEN" || p === "2TENENTE" || p === "2 TEN" || p === "2 TENENTE") return "2T";
-      return p;
+      // Normalização defensiva: cobre variações como "2TEN", "2º TEN", "2 TENENTE", etc.
+      const raw = String(postoRaw || "").trim().toUpperCase();
+      if (!raw) return "";
+
+      // Remove acentos/ordinais e normaliza separadores
+      const cleaned = raw
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .replace(/[º°]/g, "")
+        .replace(/[-_.]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (cleaned === "CONTRA ALMIRANTE" || cleaned === "CONTRA-ALMIRANTE") return "C ALTE";
+
+      // 1º/2º TENENTE abreviado
+      if (/^1\s*TEN/.test(cleaned) || cleaned.startsWith("1TENENTE")) return "1T";
+      if (/^2\s*TEN/.test(cleaned) || cleaned.startsWith("2TENENTE")) return "2T";
+
+      // Variações comuns já abreviadas
+      if (cleaned === "1TEN" || cleaned === "1T") return "1T";
+      if (cleaned === "2TEN" || cleaned === "2T") return "2T";
+
+      return cleaned;
     };
 
     const grouped = new Map<
