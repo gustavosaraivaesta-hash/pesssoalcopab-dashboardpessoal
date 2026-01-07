@@ -24,6 +24,9 @@ const DashboardTTC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterArea, setFilterArea] = useState<string>("all");
   const [filterGraduacao, setFilterGraduacao] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterEspQuadro, setFilterEspQuadro] = useState<string>("all");
+  const [filterRenovacoes, setFilterRenovacoes] = useState<string>("all");
   
   const isOnline = useOnlineStatus();
 
@@ -90,7 +93,9 @@ const DashboardTTC = () => {
   const filterOptions = useMemo(() => {
     const areas = Array.from(new Set(ttcData.map(d => d.area).filter(Boolean))).sort();
     const graduacoes = Array.from(new Set(ttcData.map(d => d.graduacao).filter(Boolean))).sort();
-    return { areas, graduacoes };
+    const espQuadros = Array.from(new Set(ttcData.map(d => d.espQuadro).filter(Boolean))).sort();
+    const renovacoes = Array.from(new Set(ttcData.filter(d => !d.isVaga).map(d => d.qtdRenovacoes))).sort((a, b) => a - b);
+    return { areas, graduacoes, espQuadros, renovacoes };
   }, [ttcData]);
 
   // Filtered data
@@ -102,7 +107,8 @@ const DashboardTTC = () => {
       data = data.filter(d => 
         d.nomeCompleto.toLowerCase().includes(term) ||
         d.tarefaDesignada.toLowerCase().includes(term) ||
-        d.neo.toLowerCase().includes(term)
+        d.neo.toLowerCase().includes(term) ||
+        d.espQuadro.toLowerCase().includes(term)
       );
     }
     
@@ -114,8 +120,46 @@ const DashboardTTC = () => {
       data = data.filter(d => d.graduacao === filterGraduacao);
     }
     
+    if (filterStatus !== "all") {
+      if (filterStatus === "contratado") {
+        data = data.filter(d => !d.isVaga);
+      } else if (filterStatus === "vaga") {
+        data = data.filter(d => d.isVaga);
+      }
+    }
+    
+    if (filterEspQuadro !== "all") {
+      data = data.filter(d => d.espQuadro === filterEspQuadro);
+    }
+    
+    if (filterRenovacoes !== "all") {
+      const renovacoesNum = parseInt(filterRenovacoes);
+      data = data.filter(d => d.qtdRenovacoes === renovacoesNum);
+    }
+    
     return data;
-  }, [ttcData, searchTerm, filterArea, filterGraduacao]);
+  }, [ttcData, searchTerm, filterArea, filterGraduacao, filterStatus, filterEspQuadro, filterRenovacoes]);
+
+  // Filtered summary
+  const filteredSummary = useMemo(() => {
+    const total = filteredData.length;
+    const contratados = filteredData.filter(d => !d.isVaga).length;
+    const vagasAbertas = filteredData.filter(d => d.isVaga).length;
+    return { total, contratados, vagasAbertas };
+  }, [filteredData]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilterArea("all");
+    setFilterGraduacao("all");
+    setFilterStatus("all");
+    setFilterEspQuadro("all");
+    setFilterRenovacoes("all");
+  };
+
+  const hasActiveFilters = searchTerm || filterArea !== "all" || filterGraduacao !== "all" || 
+    filterStatus !== "all" || filterEspQuadro !== "all" || filterRenovacoes !== "all";
 
   // Chart data
   const statusChartData = useMemo(() => [
@@ -335,25 +379,44 @@ const DashboardTTC = () => {
 
           {/* Filters */}
           <Card className="bg-card/80 backdrop-blur-sm">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base">Filtros</CardTitle>
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" onClick={clearFilters}>
+                  Limpar Filtros
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Buscar</label>
                   <Input
-                    placeholder="Nome, tarefa ou NEO..."
+                    placeholder="Nome, tarefa, NEO..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
                 
                 <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Status</label>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="contratado">Contratados</SelectItem>
+                      <SelectItem value="vaga">Vagas Abertas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Área</label>
                   <Select value={filterArea} onValueChange={setFilterArea}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Todas as áreas" />
+                      <SelectValue placeholder="Todas" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todas as áreas</SelectItem>
@@ -368,7 +431,7 @@ const DashboardTTC = () => {
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Graduação</label>
                   <Select value={filterGraduacao} onValueChange={setFilterGraduacao}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Todas as graduações" />
+                      <SelectValue placeholder="Todas" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todas as graduações</SelectItem>
@@ -378,7 +441,46 @@ const DashboardTTC = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">ESP/Quadro</label>
+                  <Select value={filterEspQuadro} onValueChange={setFilterEspQuadro}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {filterOptions.espQuadros.map(esp => (
+                        <SelectItem key={esp} value={esp}>{esp}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Renovações</label>
+                  <Select value={filterRenovacoes} onValueChange={setFilterRenovacoes}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {filterOptions.renovacoes.map(ren => (
+                        <SelectItem key={ren} value={String(ren)}>{ren}x renovações</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              
+              {hasActiveFilters && (
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Exibindo <span className="font-medium text-foreground">{filteredSummary.total}</span> registros 
+                    ({filteredSummary.contratados} contratados, {filteredSummary.vagasAbertas} vagas)
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
