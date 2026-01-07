@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOnlineStatus } from "@/hooks/useOfflineCache";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend } from "recharts";
-import { differenceInYears, differenceInMonths, differenceInDays, parse, isValid, addYears, addMonths } from "date-fns";
+import { differenceInYears, differenceInMonths, differenceInDays, parse, isValid, addYears, addMonths, isBefore, isAfter } from "date-fns";
 
 // Calculates current age from birth date string with years, months, and days
 const calcularIdadeAtual = (idadeOuData: string): string => {
@@ -59,6 +59,70 @@ const calcularIdadeAtual = (idadeOuData: string): string => {
   }
   
   return idadeOuData;
+};
+
+// Parse date from various formats
+const parseDataFlexivel = (dataStr: string): Date | null => {
+  if (!dataStr) return null;
+  
+  // Handle Google Sheets Date format: Date(year, month, day)
+  const googleDateMatch = dataStr.match(/Date\((\d+),(\d+),(\d+)\)/);
+  if (googleDateMatch) {
+    const year = parseInt(googleDateMatch[1]);
+    const month = parseInt(googleDateMatch[2]);
+    const day = parseInt(googleDateMatch[3]);
+    return new Date(year, month, day);
+  }
+  
+  // Try DD/MM/YYYY format
+  let parsed = parse(dataStr, "dd/MM/yyyy", new Date());
+  if (isValid(parsed)) return parsed;
+  
+  // Try MM/DD/YYYY format
+  parsed = parse(dataStr, "MM/dd/yyyy", new Date());
+  if (isValid(parsed)) return parsed;
+  
+  return null;
+};
+
+// Calculate remaining time until termino date
+const calcularTempoRestante = (terminoStr: string): { texto: string; status: 'normal' | 'warning' | 'danger' | 'expired' } => {
+  if (!terminoStr) return { texto: "-", status: 'normal' };
+  
+  const termino = parseDataFlexivel(terminoStr);
+  if (!termino) return { texto: "-", status: 'normal' };
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // If already expired
+  if (isBefore(termino, today)) {
+    const mesesPassados = differenceInMonths(today, termino);
+    const afterMonths = addMonths(termino, mesesPassados);
+    const diasPassados = differenceInDays(today, afterMonths);
+    return { 
+      texto: `Vencido há ${mesesPassados}m ${diasPassados}d`, 
+      status: 'expired' 
+    };
+  }
+  
+  // Calculate remaining time
+  const meses = differenceInMonths(termino, today);
+  const afterMonths = addMonths(today, meses);
+  const dias = differenceInDays(termino, afterMonths);
+  
+  // Determine status based on remaining time
+  let status: 'normal' | 'warning' | 'danger' | 'expired' = 'normal';
+  if (meses < 1) {
+    status = 'danger';
+  } else if (meses < 3) {
+    status = 'warning';
+  }
+  
+  return { 
+    texto: `${meses}m ${dias}d`, 
+    status 
+  };
 };
 
 const DashboardTTC = () => {
@@ -575,6 +639,7 @@ const DashboardTTC = () => {
                       <TableHead className="min-w-[200px]">Tarefa Designada</TableHead>
                       <TableHead>Início</TableHead>
                       <TableHead>Término</TableHead>
+                      <TableHead>Tempo Restante</TableHead>
                       <TableHead className="text-center">Renovações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -604,6 +669,19 @@ const DashboardTTC = () => {
                         <TableCell className="text-sm">{row.tarefaDesignada}</TableCell>
                         <TableCell className="text-sm">{row.periodoInicio}</TableCell>
                         <TableCell className="text-sm">{row.termino}</TableCell>
+                        <TableCell className="text-sm">
+                          {!row.isVaga && (() => {
+                            const { texto, status } = calcularTempoRestante(row.termino);
+                            return (
+                              <Badge 
+                                variant={status === 'expired' ? 'destructive' : status === 'danger' ? 'destructive' : status === 'warning' ? 'default' : 'secondary'}
+                                className={status === 'warning' ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}
+                              >
+                                {texto}
+                              </Badge>
+                            );
+                          })()}
+                        </TableCell>
                         <TableCell className="text-center">
                           {!row.isVaga && (
                             <Badge 
@@ -618,7 +696,7 @@ const DashboardTTC = () => {
                     
                     {filteredData.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                           Nenhum registro encontrado
                         </TableCell>
                       </TableRow>
