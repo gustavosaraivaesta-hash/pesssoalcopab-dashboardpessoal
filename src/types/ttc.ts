@@ -11,6 +11,7 @@ export interface TTCData {
   periodoInicio: string;
   termino: string;
   qtdRenovacoes: number;
+  portariaAtual: string;
   isVaga: boolean;
   ocupado: boolean;
   om: string;

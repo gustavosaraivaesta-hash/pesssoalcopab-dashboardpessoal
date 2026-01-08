@@ -70,6 +70,7 @@ serve(async (req) => {
         // 8: Período Início
         // 9: Término
         // 10: Quantidade Renovações
+        // 11: Portaria Atual
         
         const numero = cells[0]?.v ?? '';
         const graduacao = String(cells[1]?.v || '').trim();
@@ -83,6 +84,7 @@ serve(async (req) => {
         const periodoInicio = String(cells[8]?.f || cells[8]?.v || '').trim();
         const termino = String(cells[9]?.f || cells[9]?.v || '').trim();
         const qtdRenovacoes = Number(cells[10]?.v || 0);
+        const portariaAtual = String(cells[11]?.v || '').trim();
         
         console.log(`${sheet.om} Row ${i}: numero=${numero}, grad=${graduacao}, nome=${nomeCompleto?.substring(0, 20)}`);
         
@@ -127,6 +129,7 @@ serve(async (req) => {
           periodoInicio: periodoInicio,
           termino: termino,
           qtdRenovacoes: qtdRenovacoes,
+          portariaAtual: portariaAtual,
           isVaga: isVaga,
           ocupado: !isVaga,
           om: sheet.om,
