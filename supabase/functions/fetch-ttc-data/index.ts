@@ -67,10 +67,10 @@ serve(async (req) => {
         // 5: Área
         // 6: NEO
         // 7: Tarefa Designada
-        // 8: Período Início
-        // 9: Término
-        // 10: Quantidade Renovações
-        // 11: Portaria Atual
+        // 8: Portaria Atual (PORT XX/2025 DO...)
+        // 9: Período Início
+        // 10: Término
+        // 11: Quantidade Renovações
         
         const numero = cells[0]?.v ?? '';
         const graduacao = String(cells[1]?.v || '').trim();
@@ -81,12 +81,12 @@ serve(async (req) => {
         const area = String(cells[5]?.v || '').trim();
         const neo = String(cells[6]?.v || '').trim();
         const tarefaDesignada = String(cells[7]?.v || '').trim();
-        const periodoInicio = String(cells[8]?.f || cells[8]?.v || '').trim();
-        const termino = String(cells[9]?.f || cells[9]?.v || '').trim();
-        const qtdRenovacoes = Number(cells[10]?.v || 0);
-        const portariaAtual = String(cells[11]?.v || '').trim();
+        const portariaAtual = String(cells[8]?.v || '').trim();
+        const periodoInicio = String(cells[9]?.f || cells[9]?.v || '').trim();
+        const termino = String(cells[10]?.f || cells[10]?.v || '').trim();
+        const qtdRenovacoes = Number(cells[11]?.v || 0);
         
-        console.log(`${sheet.om} Row ${i}: numero=${numero}, grad=${graduacao}, nome=${nomeCompleto?.substring(0, 20)}`);
+        console.log(`${sheet.om} Row ${i}: numero=${numero}, grad=${graduacao}, nome=${nomeCompleto?.substring(0, 20)}, portaria=${portariaAtual?.substring(0, 20)}`);
         
         // Skip summary rows (VAGAS, CONTRATADOS, etc) - check in multiple columns
         const isHeaderOrSummary = 
