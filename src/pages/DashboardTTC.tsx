@@ -153,6 +153,14 @@ const DashboardTTC = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterEspQuadro, setFilterEspQuadro] = useState<string>("all");
   const [filterRenovacoes, setFilterRenovacoes] = useState<string>("all");
+  const [filterCategoria, setFilterCategoria] = useState<string>("all");
+  
+  // Lista de graduações de oficiais
+  const graduacoesOficiais = ["CMG", "CF", "CC", "CT", "1T", "2T", "GM", "ASP"];
+  
+  const isOficial = (graduacao: string): boolean => {
+    return graduacoesOficiais.includes(graduacao?.toUpperCase());
+  };
   
   const isOnline = useOnlineStatus();
 
@@ -268,8 +276,16 @@ const DashboardTTC = () => {
       data = data.filter(d => d.qtdRenovacoes === renovacoesNum);
     }
     
+    if (filterCategoria !== "all") {
+      if (filterCategoria === "oficial") {
+        data = data.filter(d => isOficial(d.graduacao));
+      } else if (filterCategoria === "praca") {
+        data = data.filter(d => !isOficial(d.graduacao));
+      }
+    }
+    
     return data;
-  }, [ttcData, searchTerm, filterOM, filterArea, filterGraduacao, filterStatus, filterEspQuadro, filterRenovacoes]);
+  }, [ttcData, searchTerm, filterOM, filterArea, filterGraduacao, filterStatus, filterEspQuadro, filterRenovacoes, filterCategoria]);
 
   // Filtered summary
   const filteredSummary = useMemo(() => {
@@ -288,10 +304,11 @@ const DashboardTTC = () => {
     setFilterStatus("all");
     setFilterEspQuadro("all");
     setFilterRenovacoes("all");
+    setFilterCategoria("all");
   };
 
   const hasActiveFilters = searchTerm || filterOM !== "all" || filterArea !== "all" || filterGraduacao !== "all" || 
-    filterStatus !== "all" || filterEspQuadro !== "all" || filterRenovacoes !== "all";
+    filterStatus !== "all" || filterEspQuadro !== "all" || filterRenovacoes !== "all" || filterCategoria !== "all";
 
   // Chart data - using blue colors
   const statusChartData = useMemo(() => [
@@ -520,7 +537,7 @@ const DashboardTTC = () => {
               )}
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Buscar</label>
                   <Input
@@ -615,6 +632,20 @@ const DashboardTTC = () => {
                       {filterOptions.renovacoes.map(ren => (
                         <SelectItem key={ren} value={String(ren)}>{ren}x renovações</SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Categoria</label>
+                  <Select value={filterCategoria} onValueChange={setFilterCategoria}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      <SelectItem value="oficial">Oficial</SelectItem>
+                      <SelectItem value="praca">Praça</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
