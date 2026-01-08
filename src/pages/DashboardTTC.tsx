@@ -725,11 +725,6 @@ const DashboardTTC = () => {
                             {row.neo}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm">
-                          <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-orange-500" : ""}>
-                            {row.espQuadro}
-                          </Badge>
-                        </TableCell>
                         <TableCell className="text-sm">{calcularIdadeAtual(row.idade)}</TableCell>
                         <TableCell>
                           <Badge variant="secondary">{row.area}</Badge>

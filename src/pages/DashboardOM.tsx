@@ -1483,11 +1483,6 @@ const DashboardOM = () => {
                       <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500 text-white text-xs" : "text-xs"}>
                         {item.quadroTmft || "-"}
                       </Badge>
-                      {item.ocupado && isDifferentNeoEfe && (
-                        <Badge className="bg-orange-500 text-white text-xs">
-                          {item.quadroEfe}
-                        </Badge>
-                      )}
                       {(item.opcaoEfe || item.opcaoTmft) && (
                         <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
                           {item.opcaoEfe || item.opcaoTmft}
@@ -1585,11 +1580,6 @@ const DashboardOM = () => {
                       <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500 text-white text-xs" : "text-xs"}>
                         {item.quadroTmft || "-"}
                       </Badge>
-                      {isDifferentNeoEfe && (
-                        <Badge className="bg-orange-500 text-white text-xs">
-                          {item.quadroEfe}
-                        </Badge>
-                      )}
                       {item.opcaoEfe && (
                         <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
                           {item.opcaoEfe}
@@ -1723,11 +1713,6 @@ const DashboardOM = () => {
                       <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500 text-white text-xs" : "text-xs"}>
                         {item.quadroTmft || "-"}
                       </Badge>
-                      {item.ocupado && isDifferentNeoEfe && (
-                        <Badge className="bg-orange-500 text-white text-xs">
-                          {item.quadroEfe}
-                        </Badge>
-                      )}
                       {(item.opcaoEfe || item.opcaoTmft) && (
                         <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
                           {item.opcaoEfe || item.opcaoTmft}

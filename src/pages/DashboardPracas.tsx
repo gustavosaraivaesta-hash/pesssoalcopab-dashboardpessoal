@@ -1636,11 +1636,6 @@ const DashboardPracas = () => {
                       <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500 text-white text-xs" : "text-xs"}>
                         {item.quadroTmft || "-"}
                       </Badge>
-                      {item.ocupado && isDifferentNeoEfe && (
-                        <Badge className="bg-orange-500 text-white text-xs">
-                          {item.quadroEfe}
-                        </Badge>
-                      )}
                       {(item.opcaoEfe || item.opcaoTmft) && (
                         <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
                           {item.opcaoEfe || item.opcaoTmft}
@@ -1799,11 +1794,6 @@ const DashboardPracas = () => {
                                 <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500 text-white" : "bg-background"}>
                                   NEO: {item.quadroTmft}
                                 </Badge>
-                                {item.ocupado && (
-                                  <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-orange-500 text-white" : "bg-background"}>
-                                    EFE: {item.quadroEfe}
-                                  </Badge>
-                                )}
                                 <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
                                   {item.ocupado ? item.opcaoEfe : item.opcaoTmft}
                                 </Badge>
