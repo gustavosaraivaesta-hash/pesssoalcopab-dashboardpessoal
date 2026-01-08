@@ -676,12 +676,11 @@ const DashboardTTC = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">#</TableHead>
-                      <TableHead>Graduação</TableHead>
-                      <TableHead>Esp/Quadro</TableHead>
-                      <TableHead>Nome</TableHead>
+                      <TableHead>Militar</TableHead>
+                      <TableHead>NEO</TableHead>
+                      <TableHead>EFE</TableHead>
                       <TableHead>Idade</TableHead>
                       <TableHead>Área</TableHead>
-                      <TableHead>NEO</TableHead>
                       <TableHead className="min-w-[200px]">Tarefa Designada</TableHead>
                       <TableHead>Início</TableHead>
                       <TableHead>Término</TableHead>
@@ -691,28 +690,50 @@ const DashboardTTC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredData.map((row) => (
+                    {filteredData.map((row) => {
+                      // Check if NEO and EspQuadro are different
+                      const neoNormalized = row.neo?.trim().toUpperCase() || '';
+                      const efeNormalized = row.espQuadro?.trim().toUpperCase() || '';
+                      const isDifferentNeoEfe = !row.isVaga && neoNormalized && efeNormalized && neoNormalized !== efeNormalized;
+                      
+                      // Format military name: graduação-especialidade nome
+                      const formatMilitarName = () => {
+                        if (row.isVaga) return null;
+                        const grad = row.graduacao?.toLowerCase() || '';
+                        const esp = row.espQuadro?.toLowerCase() || '';
+                        const nome = row.nomeCompleto?.split(' ')[0] || row.nomeCompleto || '';
+                        return `${grad}-${esp} ${nome}`;
+                      };
+                      
+                      return (
                       <TableRow 
                         key={row.id}
-                        className={row.isVaga ? "bg-red-50/50 dark:bg-red-950/20" : ""}
+                        className={`${row.isVaga ? "bg-red-50/50 dark:bg-red-950/20" : ""} ${isDifferentNeoEfe ? "bg-amber-50/80 dark:bg-amber-950/30" : ""}`}
                       >
                         <TableCell className="font-medium">{row.numero}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{row.graduacao}</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">{row.espQuadro}</TableCell>
                         <TableCell className="font-medium">
                           {row.isVaga ? (
                             <span className="text-red-500 italic">VAGA ABERTA</span>
                           ) : (
-                            row.nomeCompleto
+                            <span className={isDifferentNeoEfe ? "text-amber-700 dark:text-amber-400 font-semibold" : ""}>
+                              {formatMilitarName()}
+                            </span>
                           )}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500" : ""}>
+                            {row.neo}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-orange-500" : ""}>
+                            {row.espQuadro}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-sm">{calcularIdadeAtual(row.idade)}</TableCell>
                         <TableCell>
                           <Badge variant="secondary">{row.area}</Badge>
                         </TableCell>
-                        <TableCell className="text-sm font-mono">{row.neo}</TableCell>
                         <TableCell className="text-sm">{row.tarefaDesignada}</TableCell>
                         <TableCell className="text-sm">{row.periodoInicio}</TableCell>
                         <TableCell className="text-sm">{row.termino}</TableCell>
@@ -740,7 +761,8 @@ const DashboardTTC = () => {
                         </TableCell>
                         <TableCell className="text-sm">{row.portariaAtual || '-'}</TableCell>
                       </TableRow>
-                    ))}
+                    );
+                    })}
                     
                     {filteredData.length === 0 && (
                       <TableRow>
