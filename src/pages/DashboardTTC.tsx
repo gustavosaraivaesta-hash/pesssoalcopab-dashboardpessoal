@@ -687,6 +687,7 @@ const DashboardTTC = () => {
                       <TableHead>Término</TableHead>
                       <TableHead>Tempo Restante</TableHead>
                       <TableHead className="text-center">Renovações</TableHead>
+                      <TableHead>Portaria Atual</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -737,12 +738,13 @@ const DashboardTTC = () => {
                             </Badge>
                           )}
                         </TableCell>
+                        <TableCell className="text-sm">{row.portariaAtual || '-'}</TableCell>
                       </TableRow>
                     ))}
                     
                     {filteredData.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
                           Nenhum registro encontrado
                         </TableCell>
                       </TableRow>
