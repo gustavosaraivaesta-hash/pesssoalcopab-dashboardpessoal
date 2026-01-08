@@ -1716,20 +1716,42 @@ const DashboardPracas = () => {
                     </div>
 
                     <div className="space-y-3">
-                      {items.map((item) => (
+                      {items.map((item) => {
+                        // Check if NEO (quadroTmft) and EFE (quadroEfe) are different
+                        const neoNormalized = (item.quadroTmft || '').trim().toUpperCase();
+                        const efeNormalized = (item.quadroEfe || '').trim().toUpperCase();
+                        const isDifferentNeoEfe = item.ocupado && neoNormalized && efeNormalized && neoNormalized !== efeNormalized;
+                        
+                        // Format military name: graduação-especialidade nome
+                        const formatMilitarName = () => {
+                          if (!item.nome || item.nome.toUpperCase() === 'VAGO') return null;
+                          const grad = (item.ocupado ? item.postoEfe : item.postoTmft)?.toLowerCase() || '';
+                          const esp = (item.ocupado ? item.quadroEfe : item.quadroTmft)?.toLowerCase() || '';
+                          const primeiroNome = item.nome.split(' ')[0] || item.nome;
+                          return `${grad}-${esp} ${primeiroNome}`;
+                        };
+                        
+                        return (
                         <div
                           key={item.id}
-                          className="border-l-4 border-l-blue-500 bg-card rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
+                          className={`border-l-4 ${isDifferentNeoEfe ? 'border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20' : 'border-l-blue-500 bg-card'} rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow`}
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <h4 className="text-base font-bold text-foreground">
-                                {item.nome || `NEO ${item.neo} - VAZIO`}
+                              <h4 className={`text-base font-bold ${isDifferentNeoEfe ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}`}>
+                                {item.ocupado && item.nome && item.nome.toUpperCase() !== 'VAGO' 
+                                  ? formatMilitarName() 
+                                  : item.nome || `NEO ${item.neo} - VAZIO`}
                               </h4>
                               <p className="text-sm text-muted-foreground">{item.cargo}</p>
                               <p className="text-xs text-blue-600 mt-1">
                                 NEO: {item.neo} - {item.cargo}
                               </p>
+                              {isDifferentNeoEfe && (
+                                <p className="text-xs text-amber-600 mt-1 font-medium">
+                                  ⚠️ NEO ({item.quadroTmft}) ≠ EFE ({item.quadroEfe})
+                                </p>
+                              )}
                             </div>
                             <div className="flex flex-col items-end gap-2">
                               <Badge
@@ -1746,10 +1768,15 @@ const DashboardPracas = () => {
                                 <Badge variant="outline" className="bg-background">
                                   {item.ocupado ? item.postoEfe : item.postoTmft}
                                 </Badge>
-                                <Badge variant="outline" className="bg-background">
-                                  {item.ocupado ? item.quadroEfe : item.quadroTmft}
+                                <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500 text-white" : "bg-background"}>
+                                  NEO: {item.quadroTmft}
                                 </Badge>
-                                <Badge variant="outline" className="bg-green-100 border-green-300">
+                                {item.ocupado && (
+                                  <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-orange-500 text-white" : "bg-background"}>
+                                    EFE: {item.quadroEfe}
+                                  </Badge>
+                                )}
+                                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
                                   {item.ocupado ? item.opcaoEfe : item.opcaoTmft}
                                 </Badge>
                                 <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-300">
@@ -1759,7 +1786,8 @@ const DashboardPracas = () => {
                             </div>
                           </div>
                         </div>
-                      ))}
+                      );
+                      })}
                     </div>
                   </div>
                 ))}
