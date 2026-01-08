@@ -1597,8 +1597,8 @@ const DashboardPracas = () => {
                   // Format military name: graduação-especialidade nome
                   const formatMilitarName = () => {
                     if (!item.nome || item.nome.toUpperCase() === 'VAGO') return "VAGO";
-                    const grad = (item.ocupado ? item.postoEfe : item.postoTmft)?.toLowerCase() || '';
-                    const esp = (item.ocupado ? item.quadroEfe : item.quadroTmft)?.toLowerCase() || '';
+                    const grad = (item.ocupado ? item.postoEfe : item.postoTmft)?.toUpperCase() || '';
+                    const esp = (item.ocupado ? item.quadroEfe : item.quadroTmft)?.toUpperCase() || '';
                     const primeiroNome = item.nome.split(' ')[0] || item.nome;
                     return `${grad}-${esp} ${primeiroNome}`;
                   };
@@ -1753,8 +1753,8 @@ const DashboardPracas = () => {
                         // Format military name: graduação-especialidade nome
                         const formatMilitarName = () => {
                           if (!item.nome || item.nome.toUpperCase() === 'VAGO') return null;
-                          const grad = (item.ocupado ? item.postoEfe : item.postoTmft)?.toLowerCase() || '';
-                          const esp = (item.ocupado ? item.quadroEfe : item.quadroTmft)?.toLowerCase() || '';
+                          const grad = (item.ocupado ? item.postoEfe : item.postoTmft)?.toUpperCase() || '';
+                          const esp = (item.ocupado ? item.quadroEfe : item.quadroTmft)?.toUpperCase() || '';
                           const primeiroNome = item.nome.split(' ')[0] || item.nome;
                           return `${grad}-${esp} ${primeiroNome}`;
                         };

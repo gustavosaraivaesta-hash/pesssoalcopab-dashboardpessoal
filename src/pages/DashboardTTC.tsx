@@ -699,8 +699,8 @@ const DashboardTTC = () => {
                       // Format military name: graduação-especialidade nome
                       const formatMilitarName = () => {
                         if (row.isVaga) return null;
-                        const grad = row.graduacao?.toLowerCase() || '';
-                        const esp = row.espQuadro?.toLowerCase() || '';
+                        const grad = row.graduacao?.toUpperCase() || '';
+                        const esp = row.espQuadro?.toUpperCase() || '';
                         const nome = row.nomeCompleto?.split(' ')[0] || row.nomeCompleto || '';
                         return `${grad}-${esp} ${nome}`;
                       };
