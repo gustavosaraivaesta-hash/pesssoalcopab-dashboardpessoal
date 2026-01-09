@@ -1592,10 +1592,16 @@ const DashboardPracas = () => {
                   const itemGraduacao =
                     selectedPostoType === "efe" ? (item.postoEfe || item.postoTmft) : item.postoTmft;
                   const isDifferentGraduacao = itemGraduacao && !selectedPostos.includes(itemGraduacao);
-                  // Check if NEO (quadroTmft) and EFE (quadroEfe) are different
-                  const neoNormalized = (item.quadroTmft || '').trim().toUpperCase();
-                  const efeNormalized = (item.quadroEfe || '').trim().toUpperCase();
-                  const isDifferentNeoEfe = item.ocupado && neoNormalized && efeNormalized && neoNormalized !== efeNormalized;
+                  // Check if NEO (postoTmft/quadroTmft) and EFE (postoEfe/quadroEfe) are different
+                  const neoQuadroNormalized = (item.quadroTmft || '').trim().toUpperCase().replace(/^-+$/, '');
+                  const efeQuadroNormalized = (item.quadroEfe || '').trim().toUpperCase().replace(/^-+$/, '');
+                  const neoPostoNormalized = (item.postoTmft || '').trim().toUpperCase().replace(/^-+$/, '');
+                  const efePostoNormalized = (item.postoEfe || '').trim().toUpperCase().replace(/^-+$/, '');
+                  
+                  // Divergência se posto OU quadro forem diferentes (ignorando vazios)
+                  const isDifferentQuadro = neoQuadroNormalized && efeQuadroNormalized && neoQuadroNormalized !== efeQuadroNormalized;
+                  const isDifferentPosto = neoPostoNormalized && efePostoNormalized && neoPostoNormalized !== efePostoNormalized;
+                  const isDifferentNeoEfe = item.ocupado && (isDifferentQuadro || isDifferentPosto);
                   
                   // Format military name: graduação-especialidade nome
                   const formatMilitarName = () => {
@@ -1687,7 +1693,7 @@ const DashboardPracas = () => {
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
                     {isDifferentNeoEfe && (
                       <p className="text-xs mt-1 font-medium text-amber-700">
-                        ⚠️ NEO ({item.quadroTmft || "vazio"}) ≠ EFE ({item.quadroEfe || "vazio"})
+                        ⚠️ NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE ({item.postoEfe || "?"}/{item.quadroEfe || "-"})
                       </p>
                     )}
                     {isDifferentGraduacao && !isDifferentNeoEfe && (
@@ -1770,10 +1776,16 @@ const DashboardPracas = () => {
 
                     <div className="space-y-3">
                       {items.map((item) => {
-                        // Check if NEO (quadroTmft) and EFE (quadroEfe) are different
-                        const neoNormalized = (item.quadroTmft || '').trim().toUpperCase();
-                        const efeNormalized = (item.quadroEfe || '').trim().toUpperCase();
-                        const isDifferentNeoEfe = item.ocupado && neoNormalized && efeNormalized && neoNormalized !== efeNormalized;
+                        // Check if NEO (postoTmft/quadroTmft) and EFE (postoEfe/quadroEfe) are different
+                        const neoQuadroNormalized = (item.quadroTmft || '').trim().toUpperCase().replace(/^-+$/, '');
+                        const efeQuadroNormalized = (item.quadroEfe || '').trim().toUpperCase().replace(/^-+$/, '');
+                        const neoPostoNormalized = (item.postoTmft || '').trim().toUpperCase().replace(/^-+$/, '');
+                        const efePostoNormalized = (item.postoEfe || '').trim().toUpperCase().replace(/^-+$/, '');
+                        
+                        // Divergência se posto OU quadro forem diferentes (ignorando vazios)
+                        const isDifferentQuadro = neoQuadroNormalized && efeQuadroNormalized && neoQuadroNormalized !== efeQuadroNormalized;
+                        const isDifferentPosto = neoPostoNormalized && efePostoNormalized && neoPostoNormalized !== efePostoNormalized;
+                        const isDifferentNeoEfe = item.ocupado && (isDifferentQuadro || isDifferentPosto);
                         
                         // Format military name: graduação-especialidade nome
                         const formatMilitarName = () => {
@@ -1829,7 +1841,7 @@ const DashboardPracas = () => {
                               </p>
                               {isDifferentNeoEfe && (
                                 <p className="text-xs text-amber-600 mt-1 font-medium">
-                                  ⚠️ NEO ({item.quadroTmft || "vazio"}) ≠ EFE ({item.quadroEfe || "vazio"})
+                                  ⚠️ NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE ({item.postoEfe || "?"}/{item.quadroEfe || "-"})
                                 </p>
                               )}
                             </div>
