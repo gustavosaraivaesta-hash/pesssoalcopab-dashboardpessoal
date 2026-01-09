@@ -703,9 +703,12 @@ const DashboardTTC = () => {
                         const grad = (row.graduacao || '').trim().toUpperCase();
                         const esp = (row.espQuadro || '').trim().toUpperCase();
                         const nome = row.nomeCompleto?.split(' ')[0] || row.nomeCompleto || '';
+                        
+                        // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
+                        const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
 
                         if (!grad) return nome;
-                        return `${grad}${esp ? `-${esp}` : ""} ${nome}`;
+                        return `${grad}${isValidEsp ? `-${esp}` : ""} ${nome}`;
                       };
                       
                       return (
