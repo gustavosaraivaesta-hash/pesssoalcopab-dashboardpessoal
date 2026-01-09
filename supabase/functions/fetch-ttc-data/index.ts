@@ -78,15 +78,17 @@ serve(async (req) => {
         const nomeCompleto = String(cells[3]?.v || '').trim();
         // Use formatted value (.f) for date to get DD/MM/YYYY instead of Date() object
         const idade = String(cells[4]?.f || cells[4]?.v || '').trim();
-        const area = String(cells[5]?.v || '').trim();
-        const neo = String(cells[6]?.v || '').trim();
-        const tarefaDesignada = String(cells[7]?.v || '').trim();
-        const portariaAtual = String(cells[8]?.v || '').trim();
-        const periodoInicio = String(cells[9]?.f || cells[9]?.v || '').trim();
-        const termino = String(cells[10]?.f || cells[10]?.v || '').trim();
-        const qtdRenovacoes = Number(cells[11]?.v || 0);
+        // OM is in column 5
+        const omFromCell = String(cells[5]?.v || '').trim();
+        const area = String(cells[6]?.v || '').trim();
+        const neo = String(cells[7]?.v || '').trim();
+        const tarefaDesignada = String(cells[8]?.v || '').trim();
+        const portariaAtual = String(cells[9]?.v || '').trim();
+        const periodoInicio = String(cells[10]?.f || cells[10]?.v || '').trim();
+        const termino = String(cells[11]?.f || cells[11]?.v || '').trim();
+        const qtdRenovacoes = Number(cells[12]?.v || 0);
         
-        console.log(`${sheet.om} Row ${i}: numero=${numero}, grad=${graduacao}, nome=${nomeCompleto?.substring(0, 20)}, portaria=${portariaAtual?.substring(0, 20)}`);
+        console.log(`${sheet.om} Row ${i}: numero=${numero}, grad=${graduacao}, om=${omFromCell}, nome=${nomeCompleto?.substring(0, 20)}`);
         
         // Skip summary rows (VAGAS, CONTRATADOS, etc) - check in multiple columns
         const isHeaderOrSummary = 
@@ -117,7 +119,7 @@ serve(async (req) => {
           nomeCompleto.toUpperCase().includes('VAGA ABERTA');
         
         transformedData.push({
-          id: `TTC-${sheet.om}-${i + 1}`,
+          id: `TTC-${omFromCell || sheet.om}-${i + 1}`,
           numero: numero,
           graduacao: graduacao,
           espQuadro: espQuadro,
@@ -132,10 +134,10 @@ serve(async (req) => {
           portariaAtual: portariaAtual,
           isVaga: isVaga,
           ocupado: !isVaga,
-          om: sheet.om,
+          om: omFromCell || sheet.om, // Use OM from cell, fallback to sheet name
         });
         
-        console.log(`Added ${sheet.om} row ${i}: isVaga=${isVaga}`);
+        console.log(`Added ${omFromCell || sheet.om} row ${i}: isVaga=${isVaga}`);
       }
     }
     
