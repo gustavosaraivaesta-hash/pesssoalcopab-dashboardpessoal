@@ -676,6 +676,7 @@ const DashboardTTC = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">#</TableHead>
+                      <TableHead>OM</TableHead>
                       <TableHead>Militar</TableHead>
                       <TableHead>NEO</TableHead>
                       <TableHead>EFE</TableHead>
@@ -717,6 +718,9 @@ const DashboardTTC = () => {
                         className={`${row.isVaga ? "bg-red-50/50 dark:bg-red-950/20" : ""} ${isDifferentNeoEfe ? "bg-amber-50/80 dark:bg-amber-950/30" : ""}`}
                       >
                         <TableCell className="font-medium">{row.numero}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{row.om}</Badge>
+                        </TableCell>
                         <TableCell className="font-medium">
                           {row.isVaga ? (
                             <span className="text-red-500 italic">VAGA ABERTA</span>
@@ -772,7 +776,7 @@ const DashboardTTC = () => {
                     
                     {filteredData.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
                           Nenhum registro encontrado
                         </TableCell>
                       </TableRow>
