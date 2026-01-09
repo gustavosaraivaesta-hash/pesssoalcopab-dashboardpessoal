@@ -1599,21 +1599,41 @@ const DashboardPracas = () => {
                   
                   // Format military name: graduação-especialidade nome
                   const formatMilitarName = () => {
-                    if (!item.nome || item.nome.toUpperCase() === 'VAGO') return "VAGO";
+                    if (!item.nome || item.nome.toUpperCase() === "VAGO") return "VAGO";
 
-                    const gradRaw = (item.ocupado ? item.postoEfe : item.postoTmft) || item.postoEfe || item.postoTmft || "";
-                    const espRaw = (item.ocupado ? item.quadroEfe : item.quadroTmft) || item.quadroEfe || item.quadroTmft || "";
+                    // When user clicked EFE bars, show EFE identity; otherwise show TMFT identity
+                    const gradRaw =
+                      selectedPostoType === "efe"
+                        ? (item.postoEfe || item.postoTmft)
+                        : (item.postoTmft || item.postoEfe);
 
-                    const grad = String(gradRaw).trim().toUpperCase();
-                    const esp = String(espRaw).trim().toUpperCase();
-                    const primeiroNome = item.nome.split(' ')[0] || item.nome;
-                    
+                    const espRaw =
+                      selectedPostoType === "efe"
+                        ? (item.quadroEfe || item.quadroTmft)
+                        : (item.quadroTmft || item.quadroEfe);
+
+                    const grad = String(gradRaw || "")
+                      .trim()
+                      .toUpperCase()
+                      .replace(/-+$/g, "");
+
+                    const esp = String(espRaw || "")
+                      .trim()
+                      .toUpperCase()
+                      .replace(/^-+|-+$/g, "");
+
+                    const primeiroNome = item.nome.split(" ")[0] || item.nome;
+
                     // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
-                    const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
+                    const isValidEsp =
+                      esp &&
+                      esp !== "-" &&
+                      !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
 
                     if (!grad) return primeiroNome;
                     return `${grad}${isValidEsp ? `-${esp}` : ""} ${primeiroNome}`;
                   };
+
                   
                   return (
                   <div
@@ -1646,7 +1666,9 @@ const DashboardPracas = () => {
                         {item.postoEfe || item.postoTmft}
                       </Badge>
                       <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500 text-white text-xs" : "text-xs"}>
-                        {item.quadroTmft || "-"}
+                        {(selectedPostoType === "efe"
+                          ? (item.quadroEfe || item.quadroTmft)
+                          : (item.quadroTmft || item.quadroEfe)) || "-"}
                       </Badge>
                       {(item.opcaoEfe || item.opcaoTmft) && (
                         <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
@@ -1759,21 +1781,33 @@ const DashboardPracas = () => {
                         
                         // Format military name: graduação-especialidade nome
                         const formatMilitarName = () => {
-                          if (!item.nome || item.nome.toUpperCase() === 'VAGO') return null;
+                          if (!item.nome || item.nome.toUpperCase() === "VAGO") return null;
 
-                          const gradRaw = (item.ocupado ? item.postoEfe : item.postoTmft) || item.postoEfe || item.postoTmft || "";
-                          const espRaw = (item.ocupado ? item.quadroEfe : item.quadroTmft) || item.quadroEfe || item.quadroTmft || "";
+                          const gradRaw = item.ocupado ? (item.postoEfe || item.postoTmft) : (item.postoTmft || item.postoEfe);
+                          const espRaw = item.ocupado ? (item.quadroEfe || item.quadroTmft) : (item.quadroTmft || item.quadroEfe);
 
-                          const grad = String(gradRaw).trim().toUpperCase();
-                          const esp = String(espRaw).trim().toUpperCase();
-                          const primeiroNome = item.nome.split(' ')[0] || item.nome;
-                          
+                          const grad = String(gradRaw || "")
+                            .trim()
+                            .toUpperCase()
+                            .replace(/-+$/g, "");
+
+                          const esp = String(espRaw || "")
+                            .trim()
+                            .toUpperCase()
+                            .replace(/^-+|-+$/g, "");
+
+                          const primeiroNome = item.nome.split(" ")[0] || item.nome;
+
                           // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
-                          const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
+                          const isValidEsp =
+                            esp &&
+                            esp !== "-" &&
+                            !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
 
                           if (!grad) return primeiroNome;
                           return `${grad}${isValidEsp ? `-${esp}` : ""} ${primeiroNome}`;
                         };
+
                         
                         return (
                         <div
