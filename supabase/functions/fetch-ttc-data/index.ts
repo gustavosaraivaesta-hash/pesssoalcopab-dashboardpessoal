@@ -18,14 +18,21 @@ serve(async (req) => {
     const spreadsheetId = '19EgecXxuBQ89DsrqPDOsuIgnQMvXrH8GIPA5lshdxj0';
     const timestamp = new Date().getTime();
     
-    // Define sheets to fetch: COPAB, BAMRJ, BAMRJ-MD, CMM, DepCMRJ, CDAM
+    // Define sheets to fetch: COPAB, BAMRJ, BAMRJ-MD, CMM, DepCMRJ, CDAM, DepSMRJ, CSupAB, DepSIMRJ, DepMSMRJ, DepFMRJ, CDU-BAMRJ, CDU-1DN
     const sheets = [
       { gid: '0', om: 'COPAB' },
       { gid: '547569905', om: 'BAMRJ' },
       { gid: '154665766', om: 'BAMRJ-MD' },
       { gid: '1749082479', om: 'CMM' },
       { gid: '919754932', om: 'DepCMRJ' },
-      { gid: '685247309', om: 'CDAM' }
+      { gid: '685247309', om: 'CDAM' },
+      { gid: '574141254', om: 'DepSMRJ' },
+      { gid: '1707329984', om: 'CSupAB' },
+      { gid: '1658474975', om: 'DepSIMRJ' },
+      { gid: '1363048908', om: 'DepMSMRJ' },
+      { gid: '1332613865', om: 'DepFMRJ' },
+      { gid: '1877515617', om: 'CDU-BAMRJ' },
+      { gid: '810810540', om: 'CDU-1DN' }
     ];
     
     const transformedData: any[] = [];
