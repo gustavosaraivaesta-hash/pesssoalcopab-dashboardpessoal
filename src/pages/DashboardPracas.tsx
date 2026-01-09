@@ -491,8 +491,8 @@ const DashboardPracas = () => {
 
     const grouped = filteredData.reduce(
       (acc, item) => {
-        // Contar TMFT por posto
-        const postoTmft = item.postoTmft;
+        // TMFT: contar a posição pelo postoTmft
+        const postoTmft = String(item.postoTmft || "").trim();
         if (postoTmft) {
           if (!acc[postoTmft]) {
             acc[postoTmft] = { name: postoTmft, tmft: 0, efe: 0 };
@@ -500,13 +500,15 @@ const DashboardPracas = () => {
           acc[postoTmft].tmft += 1;
         }
 
-        // Contar EFE apenas se ocupado
-        if (item.ocupado && item.postoEfe) {
-          const postoEfe = item.postoEfe;
-          if (!acc[postoEfe]) {
-            acc[postoEfe] = { name: postoEfe, tmft: 0, efe: 0 };
+        // EFE: contar o efetivo pelo postoEfe (se vazio, usar postoTmft como fallback)
+        if (item.ocupado) {
+          const postoEfe = String(item.postoEfe || item.postoTmft || "").trim();
+          if (postoEfe) {
+            if (!acc[postoEfe]) {
+              acc[postoEfe] = { name: postoEfe, tmft: 0, efe: 0 };
+            }
+            acc[postoEfe].efe += 1;
           }
-          acc[postoEfe].efe += 1;
         }
 
         return acc;
@@ -644,10 +646,11 @@ const DashboardPracas = () => {
       if (selectedPostoType === "tmft") {
         // TMFT: mostrar todos os NEOs daquele posto (postoTmft)
         return selectedPostos.includes(item.postoTmft);
-      } else {
-        // EFE: mostrar apenas os ocupados daquele posto (postoEfe)
-        return item.ocupado && selectedPostos.includes(item.postoEfe);
       }
+
+      // EFE: mostrar apenas os ocupados daquele posto (postoEfe; fallback para postoTmft)
+      const postoEfe = String(item.postoEfe || item.postoTmft || "").trim();
+      return item.ocupado && selectedPostos.includes(postoEfe);
     });
   }, [filteredData, selectedPostos, selectedPostoType]);
 
@@ -1586,9 +1589,9 @@ const DashboardPracas = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {personnelForSelectedPostos.map((item, index) => {
-                  const itemGraduacao = selectedPostoType === "efe" ? item.postoEfe : item.postoTmft;
+                  const itemGraduacao =
+                    selectedPostoType === "efe" ? (item.postoEfe || item.postoTmft) : item.postoTmft;
                   const isDifferentGraduacao = itemGraduacao && !selectedPostos.includes(itemGraduacao);
-                  
                   // Check if NEO (quadroTmft) and EFE (quadroEfe) are different
                   const neoNormalized = (item.quadroTmft || '').trim().toUpperCase();
                   const efeNormalized = (item.quadroEfe || '').trim().toUpperCase();
