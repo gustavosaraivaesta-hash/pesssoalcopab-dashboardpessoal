@@ -1687,7 +1687,7 @@ const DashboardPracas = () => {
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
                     {isDifferentNeoEfe && (
                       <p className="text-xs mt-1 font-medium text-amber-700">
-                        ⚠️ NEO ({item.quadroTmft || "vazio"}) ≠ TMFT ({item.quadroEfe || "vazio"})
+                        ⚠️ NEO ({item.quadroTmft || "vazio"}) ≠ EFE ({item.quadroEfe || "vazio"})
                       </p>
                     )}
                     {isDifferentGraduacao && !isDifferentNeoEfe && (
@@ -1829,7 +1829,7 @@ const DashboardPracas = () => {
                               </p>
                               {isDifferentNeoEfe && (
                                 <p className="text-xs text-amber-600 mt-1 font-medium">
-                                  ⚠️ NEO ({item.quadroTmft || "vazio"}) ≠ TMFT ({item.quadroEfe || "vazio"})
+                                  ⚠️ NEO ({item.quadroTmft || "vazio"}) ≠ EFE ({item.quadroEfe || "vazio"})
                                 </p>
                               )}
                             </div>
