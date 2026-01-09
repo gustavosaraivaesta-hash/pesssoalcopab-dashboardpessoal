@@ -1454,9 +1454,12 @@ const DashboardOM = () => {
                     const grad = String(gradRaw).trim().toUpperCase();
                     const esp = String(espRaw).trim().toUpperCase();
                     const primeiroNome = item.nome.split(' ')[0] || item.nome;
+                    
+                    // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
+                    const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
 
                     if (!grad) return primeiroNome;
-                    return `${grad}${esp ? `-${esp}` : ""} ${primeiroNome}`;
+                    return `${grad}${isValidEsp ? `-${esp}` : ""} ${primeiroNome}`;
                   };
                   
                   return (
@@ -1559,9 +1562,12 @@ const DashboardOM = () => {
                     const grad = String(gradRaw).trim().toUpperCase();
                     const esp = String(espRaw).trim().toUpperCase();
                     const primeiroNome = item.nome.split(' ')[0] || item.nome;
+                    
+                    // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
+                    const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
 
                     if (!grad) return primeiroNome;
-                    return `${grad}${esp ? `-${esp}` : ""} ${primeiroNome}`;
+                    return `${grad}${isValidEsp ? `-${esp}` : ""} ${primeiroNome}`;
                   };
                   
                   return (
@@ -1696,9 +1702,12 @@ const DashboardOM = () => {
                     const grad = String(gradRaw).trim().toUpperCase();
                     const esp = String(espRaw).trim().toUpperCase();
                     const primeiroNome = item.nome.split(' ')[0] || item.nome;
+                    
+                    // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
+                    const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
 
                     if (!grad) return primeiroNome;
-                    return `${grad}${esp ? `-${esp}` : ""} ${primeiroNome}`;
+                    return `${grad}${isValidEsp ? `-${esp}` : ""} ${primeiroNome}`;
                   };
                   
                   return (
@@ -1819,9 +1828,12 @@ const DashboardOM = () => {
                           const grad = String(gradRaw).trim().toUpperCase();
                           const esp = String(espRaw).trim().toUpperCase();
                           const primeiroNome = item.nome.split(' ')[0] || item.nome;
+                          
+                          // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
+                          const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
 
                           if (!grad) return primeiroNome;
-                          return `${grad}${esp ? `-${esp}` : ""} ${primeiroNome}`;
+                          return `${grad}${isValidEsp ? `-${esp}` : ""} ${primeiroNome}`;
                         };
                         
                         return (
