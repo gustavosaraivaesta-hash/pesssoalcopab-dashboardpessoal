@@ -1601,16 +1601,9 @@ const DashboardPracas = () => {
                   const formatMilitarName = () => {
                     if (!item.nome || item.nome.toUpperCase() === "VAGO") return "VAGO";
 
-                    // When user clicked EFE bars, show EFE identity; otherwise show TMFT identity
-                    const gradRaw =
-                      selectedPostoType === "efe"
-                        ? (item.postoEfe || item.postoTmft)
-                        : (item.postoTmft || item.postoEfe);
-
-                    const espRaw =
-                      selectedPostoType === "efe"
-                        ? (item.quadroEfe || item.quadroTmft)
-                        : (item.quadroTmft || item.quadroEfe);
+                    // Sempre priorizar a identidade TMFT (graduação/quadro) como referência da vaga
+                    const gradRaw = item.postoTmft || item.postoEfe || "";
+                    const espRaw = item.quadroTmft || item.quadroEfe || "";
 
                     const grad = String(gradRaw || "")
                       .trim()
@@ -1633,6 +1626,7 @@ const DashboardPracas = () => {
                     if (!grad) return primeiroNome;
                     return `${grad}${isValidEsp ? `-${esp}` : ""} ${primeiroNome}`;
                   };
+
 
                   
                   return (
@@ -1663,12 +1657,10 @@ const DashboardPracas = () => {
                         );
                       })()}
                       <Badge variant="outline" className="text-xs">
-                        {item.postoEfe || item.postoTmft}
+                        {item.postoTmft || item.postoEfe}
                       </Badge>
                       <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500 text-white text-xs" : "text-xs"}>
-                        {(selectedPostoType === "efe"
-                          ? (item.quadroEfe || item.quadroTmft)
-                          : (item.quadroTmft || item.quadroEfe)) || "-"}
+                        {(item.quadroTmft || item.quadroEfe) || "-"}
                       </Badge>
                       {(item.opcaoEfe || item.opcaoTmft) && (
                         <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
@@ -1783,8 +1775,9 @@ const DashboardPracas = () => {
                         const formatMilitarName = () => {
                           if (!item.nome || item.nome.toUpperCase() === "VAGO") return null;
 
-                          const gradRaw = item.ocupado ? (item.postoEfe || item.postoTmft) : (item.postoTmft || item.postoEfe);
-                          const espRaw = item.ocupado ? (item.quadroEfe || item.quadroTmft) : (item.quadroTmft || item.quadroEfe);
+                          // Sempre priorizar a identidade TMFT (graduação/quadro) como referência da vaga
+                          const gradRaw = item.postoTmft || item.postoEfe || "";
+                          const espRaw = item.quadroTmft || item.quadroEfe || "";
 
                           const grad = String(gradRaw || "")
                             .trim()
@@ -1807,6 +1800,7 @@ const DashboardPracas = () => {
                           if (!grad) return primeiroNome;
                           return `${grad}${isValidEsp ? `-${esp}` : ""} ${primeiroNome}`;
                         };
+
 
                         
                         return (
