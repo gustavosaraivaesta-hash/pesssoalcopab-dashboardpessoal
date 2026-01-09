@@ -1617,7 +1617,7 @@ const DashboardPracas = () => {
                       .replace(/^-+$/, "") // "-" sozinho = vazio
                       .replace(/^-+|-+$/g, "");
 
-                    const primeiroNome = item.nome.split(" ")[0] || item.nome;
+                    const nomeCompleto = String(item.nome || "").trim().toUpperCase();
 
                     // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
                     // E regra: para MN, não exibir especialidade (ex: "MN-MR" -> "MN")
@@ -1627,8 +1627,8 @@ const DashboardPracas = () => {
                       esp !== "-" &&
                       !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
 
-                    if (!grad) return primeiroNome;
-                    return `${grad}${isValidEsp ? `-${esp}` : ""} ${primeiroNome}`;
+                    if (!grad) return nomeCompleto;
+                    return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}`;
                   };
 
 
@@ -1795,7 +1795,7 @@ const DashboardPracas = () => {
                             .replace(/^-+$/, "") // "-" sozinho = vazio
                             .replace(/^-+|-+$/g, "");
 
-                          const primeiroNome = item.nome.split(" ")[0] || item.nome;
+                          const nomeCompleto = String(item.nome || "").trim().toUpperCase();
 
                           // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
                           // E regra: para MN, não exibir especialidade (ex: "MN-MR" -> "MN")
@@ -1805,8 +1805,8 @@ const DashboardPracas = () => {
                             esp !== "-" &&
                             !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
 
-                          if (!grad) return primeiroNome;
-                          return `${grad}${isValidEsp ? `-${esp}` : ""} ${primeiroNome}`;
+                          if (!grad) return nomeCompleto;
+                          return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}`;
                         };
 
 
