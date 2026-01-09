@@ -430,34 +430,29 @@ const DashboardOM = () => {
 
     const grouped = filteredData.reduce(
       (acc, item) => {
-        // Para quantidade: usar opcaoTmft para agrupar
-        const opcaoTmft = item.opcaoTmft || "";
-        let postoTmft = item.postoTmft;
-        postoTmft = normalizePosto(postoTmft);
-
-        // Para EFE: usar opcaoEfe para agrupar (apenas se ocupado)
-        const opcaoEfe = item.ocupado ? (item.opcaoEfe || "") : "";
-        let postoEfe = item.ocupado ? normalizePosto(item.postoEfe) : null;
-
-        // Contabiliza Quantidade por postoTmft (baseado em opcaoTmft)
-        if (postoTmft && opcaoTmft) {
+        // TMFT: contar a posição pelo postoTmft
+        const postoTmft = normalizePosto(String(item.postoTmft || "").trim());
+        if (postoTmft) {
           if (!acc[postoTmft]) {
             acc[postoTmft] = { name: postoTmft, quantidade: 0, efe: 0 };
           }
           acc[postoTmft].quantidade += 1;
         }
 
-        // Contabiliza EFE por postoEfe (baseado em opcaoEfe)
-        if (postoEfe && opcaoEfe) {
-          if (!acc[postoEfe]) {
-            acc[postoEfe] = { name: postoEfe, quantidade: 0, efe: 0 };
+        // EFE: contar o efetivo pelo postoEfe (se vazio, usar postoTmft como fallback)
+        if (item.ocupado) {
+          const postoEfe = normalizePosto(String(item.postoEfe || item.postoTmft || "").trim());
+          if (postoEfe) {
+            if (!acc[postoEfe]) {
+              acc[postoEfe] = { name: postoEfe, quantidade: 0, efe: 0 };
+            }
+            acc[postoEfe].efe += 1;
           }
-          acc[postoEfe].efe += 1;
         }
 
         return acc;
       },
-      {} as Record<string, { name: string; quantidade: 0; efe: 0 }>,
+      {} as Record<string, { name: string; quantidade: number; efe: number }>,
     );
 
     const values = Object.values(grouped).filter((item) => item.quantidade > 0 || item.efe > 0);
@@ -554,7 +549,7 @@ const DashboardOM = () => {
     if (selectedPostos.length === 0) return [];
 
     return filteredData.filter((item) => {
-      let posto = item.ocupado ? item.postoEfe : item.postoTmft;
+      let posto = item.postoTmft;
       // Normalize posto names for comparison
       if (posto === "CONTRA-ALMIRANTE") posto = "C ALTE";
       if (posto === "1TEN") posto = "1T";
@@ -569,7 +564,7 @@ const DashboardOM = () => {
 
     return filteredData.filter((item) => {
       if (!item.ocupado) return false;
-      let postoEfe = item.postoEfe;
+      let postoEfe = item.postoEfe || item.postoTmft;
       if (postoEfe === "CONTRA-ALMIRANTE") postoEfe = "C ALTE";
       if (postoEfe === "1TEN") postoEfe = "1T";
       if (postoEfe === "2TEN") postoEfe = "2T";
