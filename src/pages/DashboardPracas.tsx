@@ -1601,9 +1601,9 @@ const DashboardPracas = () => {
                   const formatMilitarName = () => {
                     if (!item.nome || item.nome.toUpperCase() === "VAGO") return "VAGO";
 
-                    // Sempre priorizar a identidade TMFT (graduação/quadro) como referência da vaga
-                    const gradRaw = item.postoTmft || item.postoEfe || "";
-                    const espRaw = item.quadroTmft || item.quadroEfe || "";
+                    // Mostrar a identidade do militar ocupante (EFE), não do cargo (TMFT)
+                    const gradRaw = item.postoEfe || item.postoTmft || "";
+                    const espRaw = item.quadroEfe || item.quadroTmft || "";
 
                     const grad = String(gradRaw || "")
                       .trim()
@@ -1775,9 +1775,9 @@ const DashboardPracas = () => {
                         const formatMilitarName = () => {
                           if (!item.nome || item.nome.toUpperCase() === "VAGO") return null;
 
-                          // Sempre priorizar a identidade TMFT (graduação/quadro) como referência da vaga
-                          const gradRaw = item.postoTmft || item.postoEfe || "";
-                          const espRaw = item.quadroTmft || item.quadroEfe || "";
+                          // Mostrar a identidade do militar ocupante (EFE), não do cargo (TMFT)
+                          const gradRaw = item.postoEfe || item.postoTmft || "";
+                          const espRaw = item.quadroEfe || item.quadroTmft || "";
 
                           const grad = String(gradRaw || "")
                             .trim()
