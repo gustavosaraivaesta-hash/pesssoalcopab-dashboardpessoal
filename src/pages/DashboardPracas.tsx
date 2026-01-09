@@ -1608,11 +1608,13 @@ const DashboardPracas = () => {
                     const grad = String(gradRaw || "")
                       .trim()
                       .toUpperCase()
+                      .replace(/^-+$/, "") // "-" sozinho = vazio
                       .replace(/-+$/g, "");
 
                     const esp = String(espRaw || "")
                       .trim()
                       .toUpperCase()
+                      .replace(/^-+$/, "") // "-" sozinho = vazio
                       .replace(/^-+|-+$/g, "");
 
                     const primeiroNome = item.nome.split(" ")[0] || item.nome;
@@ -1782,11 +1784,13 @@ const DashboardPracas = () => {
                           const grad = String(gradRaw || "")
                             .trim()
                             .toUpperCase()
+                            .replace(/^-+$/, "") // "-" sozinho = vazio
                             .replace(/-+$/g, "");
 
                           const esp = String(espRaw || "")
                             .trim()
                             .toUpperCase()
+                            .replace(/^-+$/, "") // "-" sozinho = vazio
                             .replace(/^-+|-+$/g, "");
 
                           const primeiroNome = item.nome.split(" ")[0] || item.nome;
