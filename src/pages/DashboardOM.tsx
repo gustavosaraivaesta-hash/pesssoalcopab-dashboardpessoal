@@ -1452,10 +1452,16 @@ const DashboardOM = () => {
                   // Format military name: graduação-especialidade nome
                   const formatMilitarName = () => {
                     if (!item.nome || item.nome.toUpperCase() === 'VAGO') return "VAGO";
-                    const grad = (item.ocupado ? item.postoEfe : item.postoTmft)?.toUpperCase() || '';
-                    const esp = (item.ocupado ? item.quadroEfe : item.quadroTmft)?.toUpperCase() || '';
+
+                    const gradRaw = (item.ocupado ? item.postoEfe : item.postoTmft) || item.postoEfe || item.postoTmft || "";
+                    const espRaw = (item.ocupado ? item.quadroEfe : item.quadroTmft) || item.quadroEfe || item.quadroTmft || "";
+
+                    const grad = String(gradRaw).trim().toUpperCase();
+                    const esp = String(espRaw).trim().toUpperCase();
                     const primeiroNome = item.nome.split(' ')[0] || item.nome;
-                    return `${grad}-${esp} ${primeiroNome}`;
+
+                    if (!grad) return primeiroNome;
+                    return `${grad}${esp ? `-${esp}` : ""} ${primeiroNome}`;
                   };
                   
                   return (
@@ -1551,10 +1557,16 @@ const DashboardOM = () => {
                   // Format military name: graduação-especialidade nome
                   const formatMilitarName = () => {
                     if (!item.nome || item.nome.toUpperCase() === 'VAGO') return "VAGO";
-                    const grad = item.postoEfe?.toUpperCase() || '';
-                    const esp = item.quadroEfe?.toUpperCase() || '';
+
+                    const gradRaw = item.postoEfe || item.postoTmft || "";
+                    const espRaw = item.quadroEfe || item.quadroTmft || "";
+
+                    const grad = String(gradRaw).trim().toUpperCase();
+                    const esp = String(espRaw).trim().toUpperCase();
                     const primeiroNome = item.nome.split(' ')[0] || item.nome;
-                    return `${grad}-${esp} ${primeiroNome}`;
+
+                    if (!grad) return primeiroNome;
+                    return `${grad}${esp ? `-${esp}` : ""} ${primeiroNome}`;
                   };
                   
                   return (
@@ -1682,10 +1694,16 @@ const DashboardOM = () => {
                   // Format military name: graduação-especialidade nome
                   const formatMilitarName = () => {
                     if (!item.nome || item.nome.toUpperCase() === 'VAGO') return "VAGO";
-                    const grad = (item.ocupado ? item.postoEfe : item.postoTmft)?.toUpperCase() || '';
-                    const esp = (item.ocupado ? item.quadroEfe : item.quadroTmft)?.toUpperCase() || '';
+
+                    const gradRaw = (item.ocupado ? item.postoEfe : item.postoTmft) || item.postoEfe || item.postoTmft || "";
+                    const espRaw = (item.ocupado ? item.quadroEfe : item.quadroTmft) || item.quadroEfe || item.quadroTmft || "";
+
+                    const grad = String(gradRaw).trim().toUpperCase();
+                    const esp = String(espRaw).trim().toUpperCase();
                     const primeiroNome = item.nome.split(' ')[0] || item.nome;
-                    return `${grad}-${esp} ${primeiroNome}`;
+
+                    if (!grad) return primeiroNome;
+                    return `${grad}${esp ? `-${esp}` : ""} ${primeiroNome}`;
                   };
                   
                   return (
@@ -1799,10 +1817,16 @@ const DashboardOM = () => {
                         // Format military name: graduação-especialidade nome
                         const formatMilitarName = () => {
                           if (!item.nome || item.nome.toUpperCase() === 'VAGO') return null;
-                          const grad = (item.ocupado ? item.postoEfe : item.postoTmft)?.toUpperCase() || '';
-                          const esp = (item.ocupado ? item.quadroEfe : item.quadroTmft)?.toUpperCase() || '';
+
+                          const gradRaw = (item.ocupado ? item.postoEfe : item.postoTmft) || item.postoEfe || item.postoTmft || "";
+                          const espRaw = (item.ocupado ? item.quadroEfe : item.quadroTmft) || item.quadroEfe || item.quadroTmft || "";
+
+                          const grad = String(gradRaw).trim().toUpperCase();
+                          const esp = String(espRaw).trim().toUpperCase();
                           const primeiroNome = item.nome.split(' ')[0] || item.nome;
-                          return `${grad}-${esp} ${primeiroNome}`;
+
+                          if (!grad) return primeiroNome;
+                          return `${grad}${esp ? `-${esp}` : ""} ${primeiroNome}`;
                         };
                         
                         return (

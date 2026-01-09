@@ -699,10 +699,13 @@ const DashboardTTC = () => {
                       // Format military name: graduação-especialidade nome
                       const formatMilitarName = () => {
                         if (row.isVaga) return null;
-                        const grad = row.graduacao?.toUpperCase() || '';
-                        const esp = row.espQuadro?.toUpperCase() || '';
+
+                        const grad = (row.graduacao || '').trim().toUpperCase();
+                        const esp = (row.espQuadro || '').trim().toUpperCase();
                         const nome = row.nomeCompleto?.split(' ')[0] || row.nomeCompleto || '';
-                        return `${grad}-${esp} ${nome}`;
+
+                        if (!grad) return nome;
+                        return `${grad}${esp ? `-${esp}` : ""} ${nome}`;
                       };
                       
                       return (
@@ -723,6 +726,11 @@ const DashboardTTC = () => {
                         <TableCell className="text-sm">
                           <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500" : ""}>
                             {row.neo}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <Badge variant={isDifferentNeoEfe ? "default" : "outline"}>
+                            {row.espQuadro || "-"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm">{calcularIdadeAtual(row.idade)}</TableCell>
