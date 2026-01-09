@@ -1620,8 +1620,10 @@ const DashboardPracas = () => {
                     const primeiroNome = item.nome.split(" ")[0] || item.nome;
 
                     // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
+                    // E regra: para MN, não exibir especialidade (ex: "MN-MR" -> "MN")
                     const isValidEsp =
                       esp &&
+                      grad !== "MN" &&
                       esp !== "-" &&
                       !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
 
@@ -1796,8 +1798,10 @@ const DashboardPracas = () => {
                           const primeiroNome = item.nome.split(" ")[0] || item.nome;
 
                           // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
+                          // E regra: para MN, não exibir especialidade (ex: "MN-MR" -> "MN")
                           const isValidEsp =
                             esp &&
+                            grad !== "MN" &&
                             esp !== "-" &&
                             !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
 
