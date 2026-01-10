@@ -478,7 +478,10 @@ const DashboardTTC = () => {
                 <Users className="h-5 w-5 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{summary.total}</div>
+                <div className="text-3xl font-bold">{filteredSummary.total}</div>
+                {hasActiveFilters && (
+                  <p className="text-xs text-muted-foreground mt-1">de {summary.total} total</p>
+                )}
               </CardContent>
             </Card>
             
@@ -488,9 +491,9 @@ const DashboardTTC = () => {
                 <UserCheck className="h-5 w-5 text-green-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-green-600">{summary.contratados}</div>
+                <div className="text-3xl font-bold text-green-600">{filteredSummary.contratados}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {summary.total > 0 ? ((summary.contratados / summary.total) * 100).toFixed(1) : 0}% preenchido
+                  {filteredSummary.total > 0 ? ((filteredSummary.contratados / filteredSummary.total) * 100).toFixed(1) : 0}% preenchido
                 </p>
               </CardContent>
             </Card>
@@ -501,7 +504,10 @@ const DashboardTTC = () => {
                 <UserX className="h-5 w-5 text-red-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-red-600">{summary.vagasAbertas}</div>
+                <div className="text-3xl font-bold text-red-600">{filteredSummary.vagasAbertas}</div>
+                {hasActiveFilters && (
+                  <p className="text-xs text-muted-foreground mt-1">de {summary.vagasAbertas} total</p>
+                )}
               </CardContent>
             </Card>
           </div>
