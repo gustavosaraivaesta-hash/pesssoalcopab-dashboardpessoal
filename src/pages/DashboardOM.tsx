@@ -22,6 +22,7 @@ import {
   Filter,
   Wifi,
   WifiOff,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -1020,33 +1021,35 @@ const DashboardOM = () => {
       {/* Header */}
       <div className="border-b bg-card p-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold mb-2">Dashboard OFICIAIS </h1>
-              {isOnline ? (
-                <Badge variant="outline" className="flex items-center gap-1 text-green-600 border-green-600">
-                  <Wifi className="h-3 w-3" />
-                  Online
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="flex items-center gap-1 text-orange-600 border-orange-600">
-                  <WifiOff className="h-3 w-3" />
-                  Offline
-                </Badge>
-              )}
-              {isUsingCache && (
-                <Badge variant="secondary" className="text-xs">
-                  Dados do cache
-                </Badge>
-              )}
+          <div className="flex items-center gap-4">
+            <Button onClick={() => navigate("/")} variant="outline" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar
+            </Button>
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold">Dashboard OFICIAIS</h1>
+                {isOnline ? (
+                  <Badge variant="outline" className="flex items-center gap-1 text-green-600 border-green-600">
+                    <Wifi className="h-3 w-3" />
+                    Online
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="flex items-center gap-1 text-orange-600 border-orange-600">
+                    <WifiOff className="h-3 w-3" />
+                    Offline
+                  </Badge>
+                )}
+                {isUsingCache && (
+                  <Badge variant="secondary" className="text-xs">
+                    Dados do cache
+                  </Badge>
+                )}
+              </div>
+              <p className="text-muted-foreground">Centro de Operações do Abastecimento</p>
             </div>
-            <p className="text-muted-foreground">Centro de Operações do Abastecimento</p>
           </div>
           <div className="flex gap-3">
-            <Button onClick={() => navigate("/")} variant="outline">
-              <Home className="mr-2 h-4 w-4" />
-              Início
-            </Button>
             <Button onClick={handleLogout} variant="destructive">
               Sair
             </Button>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, Award, FileDown, X, ChevronDown } from "lucide-react";
+import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, Award, FileDown, X, ChevronDown, ArrowLeft } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
@@ -492,7 +492,8 @@ const DashboardTTC = () => {
                   size="sm"
                   onClick={() => navigate("/")}
                 >
-                  ← Voltar
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Voltar
                 </Button>
                 <div>
                   <h1 className="text-xl font-bold text-foreground">Dashboard TTC</h1>
