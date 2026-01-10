@@ -21,6 +21,7 @@ import {
   Filter,
   Wifi,
   WifiOff,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList, Legend, Brush } from "recharts";
@@ -1112,33 +1113,35 @@ const DashboardPracas = () => {
       {/* Header */}
       <div className="border-b bg-card p-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Dashboard PRAÇAS </h1>
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <Button onClick={() => navigate("/")} variant="outline" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar
+            </Button>
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold">Dashboard PRAÇAS</h1>
+                {isOnline ? (
+                  <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+                    <Wifi className="h-3 w-3 mr-1" />
+                    Online
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/30">
+                    <WifiOff className="h-3 w-3 mr-1" />
+                    Offline
+                  </Badge>
+                )}
+                {isUsingCache && (
+                  <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">
+                    Dados em cache
+                  </Badge>
+                )}
+              </div>
               <p className="text-muted-foreground">Centro de Operações do Abastecimento - Praças</p>
-              {isOnline ? (
-                <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
-                  <Wifi className="h-3 w-3 mr-1" />
-                  Online
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/30">
-                  <WifiOff className="h-3 w-3 mr-1" />
-                  Offline
-                </Badge>
-              )}
-              {isUsingCache && (
-                <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">
-                  Dados em cache
-                </Badge>
-              )}
             </div>
           </div>
           <div className="flex gap-3">
-            <Button onClick={() => navigate("/")} variant="outline">
-              <Home className="mr-2 h-4 w-4" />
-              Início
-            </Button>
             <Button onClick={handleLogout} variant="destructive">
               Sair
             </Button>
