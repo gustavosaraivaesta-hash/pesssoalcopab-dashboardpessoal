@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, Award, FileDown } from "lucide-react";
+import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, Award, FileDown, X, ChevronDown } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { TTCData, TTCSummary } from "@/types/ttc";
 import militaryBg from "@/assets/military-background.png";
 import { toast } from "sonner";
@@ -149,13 +152,13 @@ const DashboardTTC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterOM, setFilterOM] = useState<string>("all");
-  const [filterArea, setFilterArea] = useState<string>("all");
-  const [filterGraduacao, setFilterGraduacao] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterEspQuadro, setFilterEspQuadro] = useState<string>("all");
-  const [filterRenovacoes, setFilterRenovacoes] = useState<string>("all");
-  const [filterCategoria, setFilterCategoria] = useState<string>("all");
+  const [filterOM, setFilterOM] = useState<string[]>([]);
+  const [filterArea, setFilterArea] = useState<string[]>([]);
+  const [filterGraduacao, setFilterGraduacao] = useState<string[]>([]);
+  const [filterStatus, setFilterStatus] = useState<string[]>([]);
+  const [filterEspQuadro, setFilterEspQuadro] = useState<string[]>([]);
+  const [filterRenovacoes, setFilterRenovacoes] = useState<string[]>([]);
+  const [filterCategoria, setFilterCategoria] = useState<string[]>([]);
   
   // Lista de graduações de oficiais
   const graduacoesOficiais = ["CMG", "CF", "CC", "CT", "1T", "2T", "GM", "ASP"];
@@ -286,41 +289,40 @@ const DashboardTTC = () => {
       );
     }
     
-    if (filterOM !== "all") {
-      data = data.filter(d => d.om === filterOM);
+    if (filterOM.length > 0) {
+      data = data.filter(d => filterOM.includes(d.om));
     }
     
-    if (filterArea !== "all") {
-      data = data.filter(d => d.area === filterArea);
+    if (filterArea.length > 0) {
+      data = data.filter(d => filterArea.includes(d.area));
     }
     
-    if (filterGraduacao !== "all") {
-      data = data.filter(d => d.graduacao === filterGraduacao);
+    if (filterGraduacao.length > 0) {
+      data = data.filter(d => filterGraduacao.includes(d.graduacao));
     }
     
-    if (filterStatus !== "all") {
-      if (filterStatus === "contratado") {
-        data = data.filter(d => !d.isVaga);
-      } else if (filterStatus === "vaga") {
-        data = data.filter(d => d.isVaga);
-      }
+    if (filterStatus.length > 0) {
+      data = data.filter(d => {
+        if (filterStatus.includes("contratado") && !d.isVaga) return true;
+        if (filterStatus.includes("vaga") && d.isVaga) return true;
+        return false;
+      });
     }
     
-    if (filterEspQuadro !== "all") {
-      data = data.filter(d => d.espQuadro === filterEspQuadro);
+    if (filterEspQuadro.length > 0) {
+      data = data.filter(d => filterEspQuadro.includes(d.espQuadro));
     }
     
-    if (filterRenovacoes !== "all") {
-      const renovacoesNum = parseInt(filterRenovacoes);
-      data = data.filter(d => d.qtdRenovacoes === renovacoesNum);
+    if (filterRenovacoes.length > 0) {
+      data = data.filter(d => filterRenovacoes.includes(String(d.qtdRenovacoes)));
     }
     
-    if (filterCategoria !== "all") {
-      if (filterCategoria === "oficial") {
-        data = data.filter(d => isOficial(d.graduacao));
-      } else if (filterCategoria === "praca") {
-        data = data.filter(d => !isOficial(d.graduacao));
-      }
+    if (filterCategoria.length > 0) {
+      data = data.filter(d => {
+        if (filterCategoria.includes("oficial") && isOficial(d.graduacao)) return true;
+        if (filterCategoria.includes("praca") && !isOficial(d.graduacao)) return true;
+        return false;
+      });
     }
     
     return data;
@@ -337,17 +339,80 @@ const DashboardTTC = () => {
   // Clear all filters
   const clearFilters = () => {
     setSearchTerm("");
-    setFilterOM("all");
-    setFilterArea("all");
-    setFilterGraduacao("all");
-    setFilterStatus("all");
-    setFilterEspQuadro("all");
-    setFilterRenovacoes("all");
-    setFilterCategoria("all");
+    setFilterOM([]);
+    setFilterArea([]);
+    setFilterGraduacao([]);
+    setFilterStatus([]);
+    setFilterEspQuadro([]);
+    setFilterRenovacoes([]);
+    setFilterCategoria([]);
   };
 
-  const hasActiveFilters = searchTerm || filterOM !== "all" || filterArea !== "all" || filterGraduacao !== "all" || 
-    filterStatus !== "all" || filterEspQuadro !== "all" || filterRenovacoes !== "all" || filterCategoria !== "all";
+  const hasActiveFilters = searchTerm || filterOM.length > 0 || filterArea.length > 0 || filterGraduacao.length > 0 || 
+    filterStatus.length > 0 || filterEspQuadro.length > 0 || filterRenovacoes.length > 0 || filterCategoria.length > 0;
+
+  // Toggle filter value helper
+  const toggleFilter = (
+    currentValues: string[], 
+    setValue: React.Dispatch<React.SetStateAction<string[]>>, 
+    value: string
+  ) => {
+    if (currentValues.includes(value)) {
+      setValue(currentValues.filter(v => v !== value));
+    } else {
+      setValue([...currentValues, value]);
+    }
+  };
+
+  // Multi-select filter component
+  const MultiSelectFilter = ({ 
+    label, 
+    options, 
+    selectedValues, 
+    onToggle 
+  }: { 
+    label: string; 
+    options: { value: string; label: string }[]; 
+    selectedValues: string[]; 
+    onToggle: (value: string) => void;
+  }) => (
+    <div>
+      <label className="text-sm font-medium text-muted-foreground mb-2 block">{label}</label>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-full justify-between">
+            <span className="truncate">
+              {selectedValues.length === 0 
+                ? `Todos` 
+                : selectedValues.length === 1 
+                  ? options.find(o => o.value === selectedValues[0])?.label || selectedValues[0]
+                  : `${selectedValues.length} selecionados`}
+            </span>
+            <ChevronDown className="h-4 w-4 ml-2 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-56 p-0 bg-popover" align="start">
+          <ScrollArea className="h-[200px]">
+            <div className="p-2 space-y-1">
+              {options.map(option => (
+                <div 
+                  key={option.value} 
+                  className="flex items-center space-x-2 p-2 hover:bg-accent rounded cursor-pointer"
+                  onClick={() => onToggle(option.value)}
+                >
+                  <Checkbox 
+                    checked={selectedValues.includes(option.value)} 
+                    onCheckedChange={() => onToggle(option.value)}
+                  />
+                  <span className="text-sm">{option.label}</span>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
 
   // Chart data - using FILTERED data (blue colors)
   const statusChartData = useMemo(() => [
@@ -601,108 +666,60 @@ const DashboardTTC = () => {
                   />
                 </div>
                 
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">OM</label>
-                  <Select value={filterOM} onValueChange={setFilterOM}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas as OMs</SelectItem>
-                      {filterOptions.oms.map(om => (
-                        <SelectItem key={om} value={om}>{om}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <MultiSelectFilter
+                  label="OM"
+                  options={filterOptions.oms.map(om => ({ value: om, label: om }))}
+                  selectedValues={filterOM}
+                  onToggle={(value) => toggleFilter(filterOM, setFilterOM, value)}
+                />
                 
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Status</label>
-                  <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="contratado">Contratados</SelectItem>
-                      <SelectItem value="vaga">Vagas Abertas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <MultiSelectFilter
+                  label="Status"
+                  options={[
+                    { value: "contratado", label: "Contratados" },
+                    { value: "vaga", label: "Vagas Abertas" }
+                  ]}
+                  selectedValues={filterStatus}
+                  onToggle={(value) => toggleFilter(filterStatus, setFilterStatus, value)}
+                />
                 
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Área</label>
-                  <Select value={filterArea} onValueChange={setFilterArea}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas as áreas</SelectItem>
-                      {filterOptions.areas.map(area => (
-                        <SelectItem key={area} value={area}>{area}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <MultiSelectFilter
+                  label="Área"
+                  options={filterOptions.areas.map(area => ({ value: area, label: area }))}
+                  selectedValues={filterArea}
+                  onToggle={(value) => toggleFilter(filterArea, setFilterArea, value)}
+                />
                 
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Graduação</label>
-                  <Select value={filterGraduacao} onValueChange={setFilterGraduacao}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas as graduações</SelectItem>
-                      {filterOptions.graduacoes.map(grad => (
-                        <SelectItem key={grad} value={grad}>{grad}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <MultiSelectFilter
+                  label="Graduação"
+                  options={filterOptions.graduacoes.map(grad => ({ value: grad, label: grad }))}
+                  selectedValues={filterGraduacao}
+                  onToggle={(value) => toggleFilter(filterGraduacao, setFilterGraduacao, value)}
+                />
                 
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">ESP/Quadro</label>
-                  <Select value={filterEspQuadro} onValueChange={setFilterEspQuadro}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      {filterOptions.espQuadros.map(esp => (
-                        <SelectItem key={esp} value={esp}>{esp}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <MultiSelectFilter
+                  label="ESP/Quadro"
+                  options={filterOptions.espQuadros.map(esp => ({ value: esp, label: esp }))}
+                  selectedValues={filterEspQuadro}
+                  onToggle={(value) => toggleFilter(filterEspQuadro, setFilterEspQuadro, value)}
+                />
                 
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Renovações</label>
-                  <Select value={filterRenovacoes} onValueChange={setFilterRenovacoes}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      {filterOptions.renovacoes.map(ren => (
-                        <SelectItem key={ren} value={String(ren)}>{ren}x renovações</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <MultiSelectFilter
+                  label="Renovações"
+                  options={filterOptions.renovacoes.map(ren => ({ value: String(ren), label: `${ren}x renovações` }))}
+                  selectedValues={filterRenovacoes}
+                  onToggle={(value) => toggleFilter(filterRenovacoes, setFilterRenovacoes, value)}
+                />
                 
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Categoria</label>
-                  <Select value={filterCategoria} onValueChange={setFilterCategoria}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      <SelectItem value="oficial">Oficial</SelectItem>
-                      <SelectItem value="praca">Praça</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <MultiSelectFilter
+                  label="Categoria"
+                  options={[
+                    { value: "oficial", label: "Oficiais" },
+                    { value: "praca", label: "Praças" }
+                  ]}
+                  selectedValues={filterCategoria}
+                  onToggle={(value) => toggleFilter(filterCategoria, setFilterCategoria, value)}
+                />
               </div>
               
               {hasActiveFilters && (
