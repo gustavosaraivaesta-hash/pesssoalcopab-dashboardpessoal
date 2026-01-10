@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, Award } from "lucide-react";
+import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, Award, FileDown } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -223,6 +225,43 @@ const DashboardTTC = () => {
     navigate("/login");
   };
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF({ orientation: "landscape" });
+    
+    // Header
+    doc.setFontSize(18);
+    doc.text("Dashboard TTC - Tempo de Trabalho Complementar", 14, 22);
+    
+    doc.setFontSize(10);
+    doc.text(`Data de exportação: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 14, 30);
+    doc.text(`Total: ${filteredSummary.total} | Contratados: ${filteredSummary.contratados} | Vagas Abertas: ${filteredSummary.vagasAbertas}`, 14, 36);
+    
+    // Table data
+    const tableData = filteredData.map(item => [
+      item.om,
+      item.graduacao,
+      item.nomeCompleto || "VAGA",
+      item.espQuadro,
+      item.area,
+      item.tarefaDesignada,
+      item.qtdRenovacoes.toString(),
+      calcularTempoRestante(item.termino).texto,
+      item.isVaga ? "VAGA" : "CONTRATADO"
+    ]);
+    
+    autoTable(doc, {
+      head: [["OM", "Grad", "Nome", "Esp/Quadro", "Área", "Tarefa", "Renov.", "Tempo Rest.", "Status"]],
+      body: tableData,
+      startY: 42,
+      styles: { fontSize: 7, cellPadding: 1.5 },
+      headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+      alternateRowStyles: { fillColor: [240, 240, 240] },
+    });
+    
+    doc.save(`dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
+    toast.success("PDF exportado com sucesso!");
+  };
+
   // Filter options
   const filterOptions = useMemo(() => {
     const oms = Array.from(new Set(ttcData.map(d => d.om).filter(Boolean))).sort();
@@ -410,6 +449,15 @@ const DashboardTTC = () => {
                 >
                   <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
                   Atualizar
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPDF}
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  PDF
                 </Button>
                 
                 <Button variant="destructive" size="sm" onClick={handleLogout}>
