@@ -349,16 +349,16 @@ const DashboardTTC = () => {
   const hasActiveFilters = searchTerm || filterOM !== "all" || filterArea !== "all" || filterGraduacao !== "all" || 
     filterStatus !== "all" || filterEspQuadro !== "all" || filterRenovacoes !== "all" || filterCategoria !== "all";
 
-  // Chart data - using blue colors
+  // Chart data - using FILTERED data (blue colors)
   const statusChartData = useMemo(() => [
-    { name: "Contratados", value: summary.contratados, fill: "#3b82f6" },
-    { name: "Vagas Abertas", value: summary.vagasAbertas, fill: "#93c5fd" },
-  ], [summary]);
+    { name: "Contratados", value: filteredSummary.contratados, fill: "#3b82f6" },
+    { name: "Vagas Abertas", value: filteredSummary.vagasAbertas, fill: "#93c5fd" },
+  ], [filteredSummary]);
 
   const areaChartData = useMemo(() => {
     const byArea = new Map<string, { contratados: number; vagas: number }>();
     
-    ttcData.forEach(d => {
+    filteredData.forEach(d => {
       const area = d.area || "Sem Área";
       if (!byArea.has(area)) {
         byArea.set(area, { contratados: 0, vagas: 0 });
@@ -376,12 +376,12 @@ const DashboardTTC = () => {
       contratados: data.contratados,
       vagas: data.vagas,
     }));
-  }, [ttcData]);
+  }, [filteredData]);
 
   const renovacoesChartData = useMemo(() => {
     const byRenovacoes = new Map<number, number>();
     
-    ttcData.filter(d => !d.isVaga).forEach(d => {
+    filteredData.filter(d => !d.isVaga).forEach(d => {
       const renovacoes = d.qtdRenovacoes;
       byRenovacoes.set(renovacoes, (byRenovacoes.get(renovacoes) || 0) + 1);
     });
@@ -392,7 +392,7 @@ const DashboardTTC = () => {
         renovacoes: `${renovacoes}x`,
         quantidade: count,
       }));
-  }, [ttcData]);
+  }, [filteredData]);
 
   const chartConfig = {
     contratados: { label: "Contratados", color: "#3b82f6" },
