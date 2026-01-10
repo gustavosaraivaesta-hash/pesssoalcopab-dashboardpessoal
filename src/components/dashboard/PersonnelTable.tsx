@@ -83,7 +83,7 @@ export const PersonnelTable = ({ data, categoria }: PersonnelTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="font-bold">Categoria</TableHead>
+              <TableHead className="font-bold sticky left-0 bg-card z-20 min-w-[140px]">Categoria</TableHead>
               {allOMs.map((om) => (
                 <TableHead key={om} colSpan={3} className="text-center font-bold border-l border-border">
                   {om}
@@ -91,7 +91,7 @@ export const PersonnelTable = ({ data, categoria }: PersonnelTableProps) => {
               ))}
             </TableRow>
             <TableRow>
-              <TableHead></TableHead>
+              <TableHead className="sticky left-0 bg-card z-20 min-w-[140px]"></TableHead>
               {allOMs.map((om) => (
                 <>
                   <TableHead key={`${om}-tmft`} className="text-center border-l border-border">
@@ -110,7 +110,7 @@ export const PersonnelTable = ({ data, categoria }: PersonnelTableProps) => {
           <TableBody>
             {tableData.map((row) => (
               <TableRow key={row.categoria}>
-                <TableCell className="font-semibold">{row.categoria}</TableCell>
+                <TableCell className="font-semibold sticky left-0 bg-card z-10 min-w-[140px]">{row.categoria}</TableCell>
                 {allOMs.map((om) => (
                   <>
                     <TableCell key={`${om}-tmft`} className="text-center border-l border-border">
@@ -138,7 +138,7 @@ export const PersonnelTable = ({ data, categoria }: PersonnelTableProps) => {
             ))}
             {/* Total Row */}
             <TableRow className="bg-blue-600 text-white font-bold">
-              <TableCell className="font-bold">{totals.categoria}</TableCell>
+              <TableCell className="font-bold sticky left-0 bg-blue-600 z-10 min-w-[140px]">{totals.categoria}</TableCell>
               {allOMs.map((om) => (
                 <>
                   <TableCell key={`${om}-tmft`} className="text-center border-l border-white/20">
