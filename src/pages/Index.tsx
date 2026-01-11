@@ -619,7 +619,7 @@ const Index = () => {
               </Button>
               <Button variant="secondary" onClick={() => navigate("/dashboard-om")}>
                 <FileText size={18} className="mr-2" />
-                OFICIAIS
+                Dashboard de Oficiais
               </Button>
               <Button variant="secondary" onClick={() => navigate("/dashboard-ttc")}>
                 <FileText size={18} className="mr-2" />
