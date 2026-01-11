@@ -239,37 +239,81 @@ const DashboardTTC = () => {
     doc.text(`Data de exportação: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 14, 30);
     doc.text(`Total: ${filteredSummary.total} | Contratados: ${filteredSummary.contratados} | Vagas Abertas: ${filteredSummary.vagasAbertas}`, 14, 36);
     
-    // Table data
-    const tableData = filteredData.map(item => [
-      item.om,
-      item.graduacao,
-      item.nomeCompleto || "VAGO",
-      item.espQuadro,
-      item.area,
-      item.tarefaDesignada,
-      item.qtdRenovacoes.toString(),
-      calcularTempoRestante(item.termino).texto,
-      item.isVaga ? "VAGO" : "CONTRATADO"
-    ]);
+    // Group data by OM
+    const groupedByOM: { [key: string]: typeof filteredData } = {};
+    filteredData.forEach(item => {
+      const om = item.om || "Sem OM";
+      if (!groupedByOM[om]) {
+        groupedByOM[om] = [];
+      }
+      groupedByOM[om].push(item);
+    });
     
-    // Track which rows are "VAGO" for styling
-    const vagaRowIndexes = filteredData.map((item, index) => item.isVaga ? index : -1).filter(i => i !== -1);
+    // Sort OMs alphabetically
+    const sortedOMs = Object.keys(groupedByOM).sort();
     
-    autoTable(doc, {
-      head: [["OM", "Grad", "Nome", "Esp/Quadro", "Área", "Tarefa", "Renov.", "Tempo Rest.", "Status"]],
-      body: tableData,
-      startY: 42,
-      styles: { fontSize: 7, cellPadding: 1.5 },
-      headStyles: { fillColor: [37, 99, 235], textColor: 255 },
-      alternateRowStyles: { fillColor: [240, 240, 240] },
-      didParseCell: (data) => {
-        // Highlight VAGO rows in red
-        if (data.section === 'body' && vagaRowIndexes.includes(data.row.index)) {
-          data.cell.styles.fillColor = [254, 202, 202]; // Light red background
-          data.cell.styles.textColor = [153, 27, 27]; // Dark red text
-          data.cell.styles.fontStyle = 'bold';
-        }
-      },
+    let currentY = 42;
+    
+    sortedOMs.forEach((om, omIndex) => {
+      const omData = groupedByOM[om];
+      
+      // Check if we need a new page
+      if (currentY > 180) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      // OM Section Header
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(37, 99, 235);
+      doc.text(`${om}`, 14, currentY);
+      
+      // OM Summary
+      const omContratados = omData.filter(d => !d.isVaga).length;
+      const omVagas = omData.filter(d => d.isVaga).length;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Total: ${omData.length} | Contratados: ${omContratados} | Vagas: ${omVagas}`, 14, currentY + 5);
+      doc.setTextColor(0, 0, 0);
+      
+      currentY += 8;
+      
+      // Table data for this OM
+      const tableData = omData.map(item => [
+        item.graduacao,
+        item.nomeCompleto || "VAGO",
+        item.espQuadro,
+        item.area,
+        item.tarefaDesignada,
+        item.qtdRenovacoes.toString(),
+        calcularTempoRestante(item.termino).texto,
+        item.isVaga ? "VAGO" : "CONTRATADO"
+      ]);
+      
+      // Track which rows are "VAGO" for styling
+      const vagaRowIndexes = omData.map((item, index) => item.isVaga ? index : -1).filter(i => i !== -1);
+      
+      autoTable(doc, {
+        head: [["Grad", "Nome", "Esp/Quadro", "Área", "Tarefa", "Renov.", "Tempo Rest.", "Status"]],
+        body: tableData,
+        startY: currentY,
+        styles: { fontSize: 7, cellPadding: 1.5 },
+        headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+        alternateRowStyles: { fillColor: [240, 240, 240] },
+        didParseCell: (data) => {
+          // Highlight VAGO rows in red
+          if (data.section === 'body' && vagaRowIndexes.includes(data.row.index)) {
+            data.cell.styles.fillColor = [254, 202, 202]; // Light red background
+            data.cell.styles.textColor = [153, 27, 27]; // Dark red text
+            data.cell.styles.fontStyle = 'bold';
+          }
+        },
+      });
+      
+      // Get the final Y position after the table
+      currentY = (doc as any).lastAutoTable.finalY + 10;
     });
     
     doc.save(`dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
