@@ -243,14 +243,17 @@ const DashboardTTC = () => {
     const tableData = filteredData.map(item => [
       item.om,
       item.graduacao,
-      item.nomeCompleto || "VAGA",
+      item.nomeCompleto || "VAGO",
       item.espQuadro,
       item.area,
       item.tarefaDesignada,
       item.qtdRenovacoes.toString(),
       calcularTempoRestante(item.termino).texto,
-      item.isVaga ? "VAGA" : "CONTRATADO"
+      item.isVaga ? "VAGO" : "CONTRATADO"
     ]);
+    
+    // Track which rows are "VAGO" for styling
+    const vagaRowIndexes = filteredData.map((item, index) => item.isVaga ? index : -1).filter(i => i !== -1);
     
     autoTable(doc, {
       head: [["OM", "Grad", "Nome", "Esp/Quadro", "Área", "Tarefa", "Renov.", "Tempo Rest.", "Status"]],
@@ -259,6 +262,14 @@ const DashboardTTC = () => {
       styles: { fontSize: 7, cellPadding: 1.5 },
       headStyles: { fillColor: [37, 99, 235], textColor: 255 },
       alternateRowStyles: { fillColor: [240, 240, 240] },
+      didParseCell: (data) => {
+        // Highlight VAGO rows in red
+        if (data.section === 'body' && vagaRowIndexes.includes(data.row.index)) {
+          data.cell.styles.fillColor = [254, 202, 202]; // Light red background
+          data.cell.styles.textColor = [153, 27, 27]; // Dark red text
+          data.cell.styles.fontStyle = 'bold';
+        }
+      },
     });
     
     doc.save(`dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
