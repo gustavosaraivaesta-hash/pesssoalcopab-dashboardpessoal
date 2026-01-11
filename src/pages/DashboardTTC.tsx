@@ -787,15 +787,17 @@ const DashboardTTC = () => {
                       return (
                       <TableRow 
                         key={row.id}
-                        className={`${row.isVaga ? "bg-red-50/50 dark:bg-red-950/20" : ""} ${isDifferentNeoEfe ? "bg-amber-50/80 dark:bg-amber-950/30" : ""}`}
+                        className={`${row.isVaga ? "bg-red-100 dark:bg-red-950/40 border-l-4 border-l-red-500" : ""} ${isDifferentNeoEfe ? "bg-amber-50/80 dark:bg-amber-950/30" : ""}`}
                       >
-                        <TableCell className="font-medium">{row.numero}</TableCell>
+                        <TableCell className={`font-medium ${row.isVaga ? "text-red-600 font-bold" : ""}`}>{row.numero}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{row.om}</Badge>
+                          <Badge variant={row.isVaga ? "destructive" : "outline"} className={row.isVaga ? "bg-red-500" : ""}>
+                            {row.om}
+                          </Badge>
                         </TableCell>
                         <TableCell className="font-medium">
                           {row.isVaga ? (
-                            <span className="text-red-500 italic">VAGA ABERTA</span>
+                            <span className="text-red-600 font-bold italic">VAGO</span>
                           ) : (
                             <span className={isDifferentNeoEfe ? "text-amber-700 dark:text-amber-400 font-semibold" : ""}>
                               {formatMilitarName()}
