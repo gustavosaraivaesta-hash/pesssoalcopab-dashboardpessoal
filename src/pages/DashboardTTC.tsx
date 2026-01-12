@@ -830,7 +830,7 @@ const DashboardTTC = () => {
 
                         const grad = (row.graduacao || '').trim().toUpperCase();
                         const esp = (row.espQuadro || '').trim().toUpperCase();
-                        const nome = row.nomeCompleto?.split(' ')[0] || row.nomeCompleto || '';
+                        const nome = row.nomeCompleto || '';
                         
                         // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
                         const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
