@@ -160,11 +160,22 @@ const DashboardTTC = () => {
   const [filterRenovacoes, setFilterRenovacoes] = useState<string[]>([]);
   const [filterCategoria, setFilterCategoria] = useState<string[]>([]);
   
-  // Lista de graduações de oficiais
-  const graduacoesOficiais = ["CMG", "CF", "CC", "CT", "1T", "2T", "GM", "ASP"];
+  // Lista de graduações de oficiais (todos os postos de oficiais da Marinha)
+  const graduacoesOficiais = [
+    "AE", "VA", "CA", "CMG", "CF", "CC", "CT", "1T", "2T", "GM", "ASP",
+    // Oficiais RM2 e outros quadros
+    "1T-RM2", "2T-RM2", "CT-RM2", "CC-RM2", "CF-RM2", "CMG-RM2"
+  ];
   
   const isOficial = (graduacao: string): boolean => {
-    return graduacoesOficiais.includes(graduacao?.toUpperCase());
+    if (!graduacao) return false;
+    const grad = graduacao.toUpperCase().trim();
+    // Verifica se começa com algum posto de oficial
+    return graduacoesOficiais.some(posto => 
+      grad === posto || 
+      grad.startsWith(posto + "-") || 
+      grad.startsWith(posto + " ")
+    );
   };
   
   const isOnline = useOnlineStatus();
