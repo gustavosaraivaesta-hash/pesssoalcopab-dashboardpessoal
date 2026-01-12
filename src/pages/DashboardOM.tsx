@@ -1442,10 +1442,18 @@ const DashboardOM = () => {
                   const itemGraduacao = item.postoTmft;
                   const isDifferentGraduacao = itemGraduacao && !selectedPostos.includes(itemGraduacao);
                   
-                  // Check if NEO (quadroTmft) and EFE (quadroEfe) are different
-                  const neoNormalized = (item.quadroTmft || '').trim().toUpperCase();
-                  const efeNormalized = (item.quadroEfe || '').trim().toUpperCase();
-                  const isDifferentNeoEfe = item.ocupado && neoNormalized && efeNormalized && neoNormalized !== efeNormalized;
+                  // Check if posto TMFT and posto EFE are different
+                  const postoTmftNorm = (item.postoTmft || '').trim().toUpperCase();
+                  const postoEfeNorm = (item.postoEfe || '').trim().toUpperCase();
+                  const isDifferentPosto = item.ocupado && postoTmftNorm && postoEfeNorm && postoTmftNorm !== postoEfeNorm;
+                  
+                  // Check if quadro TMFT and quadro EFE are different
+                  const quadroTmftNorm = (item.quadroTmft || '').trim().toUpperCase();
+                  const quadroEfeNorm = (item.quadroEfe || '').trim().toUpperCase();
+                  const isDifferentQuadro = item.ocupado && quadroTmftNorm && quadroEfeNorm && quadroTmftNorm !== quadroEfeNorm;
+                  
+                  // Highlight if posto OR quadro are different
+                  const isDifferentNeoEfe = isDifferentPosto || isDifferentQuadro;
                   
                   // Format military name: graduação-especialidade nome
                   const formatMilitarName = () => {
@@ -1550,10 +1558,18 @@ const DashboardOM = () => {
                   const itemGraduacao = item.postoEfe;
                   const isDifferentGraduacao = itemGraduacao && !selectedPostosEfe.includes(itemGraduacao);
                   
-                  // Check if NEO (quadroTmft) and EFE (quadroEfe) are different
-                  const neoNormalized = (item.quadroTmft || '').trim().toUpperCase();
-                  const efeNormalized = (item.quadroEfe || '').trim().toUpperCase();
-                  const isDifferentNeoEfe = item.ocupado && neoNormalized && efeNormalized && neoNormalized !== efeNormalized;
+                  // Check if posto TMFT and posto EFE are different
+                  const postoTmftNorm = (item.postoTmft || '').trim().toUpperCase();
+                  const postoEfeNorm = (item.postoEfe || '').trim().toUpperCase();
+                  const isDifferentPosto = item.ocupado && postoTmftNorm && postoEfeNorm && postoTmftNorm !== postoEfeNorm;
+                  
+                  // Check if quadro TMFT and quadro EFE are different
+                  const quadroTmftNorm = (item.quadroTmft || '').trim().toUpperCase();
+                  const quadroEfeNorm = (item.quadroEfe || '').trim().toUpperCase();
+                  const isDifferentQuadro = item.ocupado && quadroTmftNorm && quadroEfeNorm && quadroTmftNorm !== quadroEfeNorm;
+                  
+                  // Highlight if posto OR quadro are different
+                  const isDifferentNeoEfe = isDifferentPosto || isDifferentQuadro;
                   
                   // Format military name: graduação-especialidade nome
                   const formatMilitarName = () => {
@@ -1690,10 +1706,18 @@ const DashboardOM = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {personnelForSelectedCorpos.map((item, index) => {
-                  // Check if NEO (quadroTmft) and EFE (quadroEfe) are different
-                  const neoNormalized = (item.quadroTmft || '').trim().toUpperCase();
-                  const efeNormalized = (item.quadroEfe || '').trim().toUpperCase();
-                  const isDifferentNeoEfe = item.ocupado && neoNormalized && efeNormalized && neoNormalized !== efeNormalized;
+                  // Check if posto TMFT and posto EFE are different
+                  const postoTmftNorm = (item.postoTmft || '').trim().toUpperCase();
+                  const postoEfeNorm = (item.postoEfe || '').trim().toUpperCase();
+                  const isDifferentPosto = item.ocupado && postoTmftNorm && postoEfeNorm && postoTmftNorm !== postoEfeNorm;
+                  
+                  // Check if quadro TMFT and quadro EFE are different
+                  const quadroTmftNorm = (item.quadroTmft || '').trim().toUpperCase();
+                  const quadroEfeNorm = (item.quadroEfe || '').trim().toUpperCase();
+                  const isDifferentQuadro = item.ocupado && quadroTmftNorm && quadroEfeNorm && quadroTmftNorm !== quadroEfeNorm;
+                  
+                  // Highlight if posto OR quadro are different
+                  const isDifferentNeoEfe = isDifferentPosto || isDifferentQuadro;
                   
                   // Format military name: graduação-especialidade nome
                   const formatMilitarName = () => {
@@ -1816,10 +1840,18 @@ const DashboardOM = () => {
 
                     <div className="space-y-3">
                       {items.map((item) => {
-                        // Check if NEO (quadroTmft) and EFE (quadroEfe) are different
-                        const neoNormalized = (item.quadroTmft || '').trim().toUpperCase();
-                        const efeNormalized = (item.quadroEfe || '').trim().toUpperCase();
-                        const isDifferentNeoEfe = item.ocupado && neoNormalized && efeNormalized && neoNormalized !== efeNormalized;
+                        // Check if posto TMFT and posto EFE are different
+                        const postoTmftNorm = (item.postoTmft || '').trim().toUpperCase();
+                        const postoEfeNorm = (item.postoEfe || '').trim().toUpperCase();
+                        const isDifferentPosto = item.ocupado && postoTmftNorm && postoEfeNorm && postoTmftNorm !== postoEfeNorm;
+                        
+                        // Check if quadro TMFT and quadro EFE are different
+                        const quadroTmftNorm = (item.quadroTmft || '').trim().toUpperCase();
+                        const quadroEfeNorm = (item.quadroEfe || '').trim().toUpperCase();
+                        const isDifferentQuadro = item.ocupado && quadroTmftNorm && quadroEfeNorm && quadroTmftNorm !== quadroEfeNorm;
+                        
+                        // Highlight if posto OR quadro are different
+                        const isDifferentNeoEfe = isDifferentPosto || isDifferentQuadro;
                         
                         // Format military name: graduação-especialidade nome
                         const formatMilitarName = () => {
