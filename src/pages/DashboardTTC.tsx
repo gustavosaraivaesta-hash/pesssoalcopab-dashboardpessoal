@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, Award, FileDown, X, ChevronDown, ArrowLeft } from "lucide-react";
+import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, Award, FileDown, X, ChevronDown, ArrowLeft, CalendarIcon } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { TTCData, TTCSummary } from "@/types/ttc";
 import militaryBg from "@/assets/military-background.png";
 import { toast } from "sonner";
@@ -19,7 +20,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOnlineStatus } from "@/hooks/useOfflineCache";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend } from "recharts";
-import { differenceInYears, differenceInMonths, differenceInDays, parse, isValid, addYears, addMonths, isBefore, isAfter } from "date-fns";
+import { differenceInYears, differenceInMonths, differenceInDays, parse, isValid, addYears, addMonths, isBefore, isAfter, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 // Calculates current age from birth date string with years, months, and days
 const calcularIdadeAtual = (idadeOuData: string): string => {
@@ -159,6 +162,10 @@ const DashboardTTC = () => {
   const [filterEspQuadro, setFilterEspQuadro] = useState<string[]>([]);
   const [filterRenovacoes, setFilterRenovacoes] = useState<string[]>([]);
   const [filterCategoria, setFilterCategoria] = useState<string[]>([]);
+  const [filterDataInicioFrom, setFilterDataInicioFrom] = useState<Date | undefined>(undefined);
+  const [filterDataInicioTo, setFilterDataInicioTo] = useState<Date | undefined>(undefined);
+  const [filterDataTerminoFrom, setFilterDataTerminoFrom] = useState<Date | undefined>(undefined);
+  const [filterDataTerminoTo, setFilterDataTerminoTo] = useState<Date | undefined>(undefined);
   
   // Lista de graduações de oficiais (todos os postos de oficiais da Marinha)
   const graduacoesOficiais = [
@@ -391,8 +398,32 @@ const DashboardTTC = () => {
       });
     }
     
+    // Filtro de data de início
+    if (filterDataInicioFrom || filterDataInicioTo) {
+      data = data.filter(d => {
+        const dataInicio = parseDataFlexivel(d.periodoInicio);
+        if (!dataInicio) return false;
+        
+        if (filterDataInicioFrom && isBefore(dataInicio, filterDataInicioFrom)) return false;
+        if (filterDataInicioTo && isAfter(dataInicio, filterDataInicioTo)) return false;
+        return true;
+      });
+    }
+    
+    // Filtro de data de término
+    if (filterDataTerminoFrom || filterDataTerminoTo) {
+      data = data.filter(d => {
+        const dataTermino = parseDataFlexivel(d.termino);
+        if (!dataTermino) return false;
+        
+        if (filterDataTerminoFrom && isBefore(dataTermino, filterDataTerminoFrom)) return false;
+        if (filterDataTerminoTo && isAfter(dataTermino, filterDataTerminoTo)) return false;
+        return true;
+      });
+    }
+    
     return data;
-  }, [ttcData, searchTerm, filterOM, filterArea, filterGraduacao, filterStatus, filterEspQuadro, filterRenovacoes, filterCategoria]);
+  }, [ttcData, searchTerm, filterOM, filterArea, filterGraduacao, filterStatus, filterEspQuadro, filterRenovacoes, filterCategoria, filterDataInicioFrom, filterDataInicioTo, filterDataTerminoFrom, filterDataTerminoTo]);
 
   // Filtered summary
   const filteredSummary = useMemo(() => {
@@ -412,10 +443,15 @@ const DashboardTTC = () => {
     setFilterEspQuadro([]);
     setFilterRenovacoes([]);
     setFilterCategoria([]);
+    setFilterDataInicioFrom(undefined);
+    setFilterDataInicioTo(undefined);
+    setFilterDataTerminoFrom(undefined);
+    setFilterDataTerminoTo(undefined);
   };
 
   const hasActiveFilters = searchTerm || filterOM.length > 0 || filterArea.length > 0 || filterGraduacao.length > 0 || 
-    filterStatus.length > 0 || filterEspQuadro.length > 0 || filterRenovacoes.length > 0 || filterCategoria.length > 0;
+    filterStatus.length > 0 || filterEspQuadro.length > 0 || filterRenovacoes.length > 0 || filterCategoria.length > 0 ||
+    filterDataInicioFrom || filterDataInicioTo || filterDataTerminoFrom || filterDataTerminoTo;
 
   // Toggle filter value helper
   const toggleFilter = (
@@ -787,6 +823,153 @@ const DashboardTTC = () => {
                   selectedValues={filterCategoria}
                   onToggle={(value) => toggleFilter(filterCategoria, setFilterCategoria, value)}
                 />
+              </div>
+              
+              {/* Date Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 pt-4 border-t border-border">
+                {/* Data Início - De */}
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Início (De)</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !filterDataInicioFrom && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filterDataInicioFrom ? format(filterDataInicioFrom, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione...</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={filterDataInicioFrom}
+                        onSelect={setFilterDataInicioFrom}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                        locale={ptBR}
+                      />
+                      {filterDataInicioFrom && (
+                        <div className="p-2 border-t">
+                          <Button variant="ghost" size="sm" className="w-full" onClick={() => setFilterDataInicioFrom(undefined)}>
+                            Limpar
+                          </Button>
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                {/* Data Início - Até */}
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Início (Até)</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !filterDataInicioTo && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filterDataInicioTo ? format(filterDataInicioTo, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione...</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={filterDataInicioTo}
+                        onSelect={setFilterDataInicioTo}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                        locale={ptBR}
+                      />
+                      {filterDataInicioTo && (
+                        <div className="p-2 border-t">
+                          <Button variant="ghost" size="sm" className="w-full" onClick={() => setFilterDataInicioTo(undefined)}>
+                            Limpar
+                          </Button>
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                {/* Data Término - De */}
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Término (De)</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !filterDataTerminoFrom && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filterDataTerminoFrom ? format(filterDataTerminoFrom, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione...</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={filterDataTerminoFrom}
+                        onSelect={setFilterDataTerminoFrom}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                        locale={ptBR}
+                      />
+                      {filterDataTerminoFrom && (
+                        <div className="p-2 border-t">
+                          <Button variant="ghost" size="sm" className="w-full" onClick={() => setFilterDataTerminoFrom(undefined)}>
+                            Limpar
+                          </Button>
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                {/* Data Término - Até */}
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Término (Até)</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !filterDataTerminoTo && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filterDataTerminoTo ? format(filterDataTerminoTo, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione...</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={filterDataTerminoTo}
+                        onSelect={setFilterDataTerminoTo}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                        locale={ptBR}
+                      />
+                      {filterDataTerminoTo && (
+                        <div className="p-2 border-t">
+                          <Button variant="ghost" size="sm" className="w-full" onClick={() => setFilterDataTerminoTo(undefined)}>
+                            Limpar
+                          </Button>
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
               
               {hasActiveFilters && (
