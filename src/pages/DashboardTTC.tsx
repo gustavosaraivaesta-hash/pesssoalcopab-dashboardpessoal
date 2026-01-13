@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, Award, FileDown, X, ChevronDown, ArrowLeft, CalendarIcon } from "lucide-react";
+import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, Award, FileDown, X, ChevronDown, ArrowLeft } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { DatePickerWithSelectors } from "@/components/ui/date-picker-with-selectors";
 import { TTCData, TTCSummary } from "@/types/ttc";
 import militaryBg from "@/assets/military-background.png";
 import { toast } from "sonner";
@@ -830,145 +830,41 @@ const DashboardTTC = () => {
                 {/* Data Início - De */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Início (De)</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !filterDataInicioFrom && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {filterDataInicioFrom ? format(filterDataInicioFrom, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione...</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={filterDataInicioFrom}
-                        onSelect={setFilterDataInicioFrom}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                        locale={ptBR}
-                      />
-                      {filterDataInicioFrom && (
-                        <div className="p-2 border-t">
-                          <Button variant="ghost" size="sm" className="w-full" onClick={() => setFilterDataInicioFrom(undefined)}>
-                            Limpar
-                          </Button>
-                        </div>
-                      )}
-                    </PopoverContent>
-                  </Popover>
+                  <DatePickerWithSelectors
+                    date={filterDataInicioFrom}
+                    onDateChange={setFilterDataInicioFrom}
+                    placeholder="Selecione..."
+                  />
                 </div>
                 
                 {/* Data Início - Até */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Início (Até)</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !filterDataInicioTo && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {filterDataInicioTo ? format(filterDataInicioTo, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione...</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={filterDataInicioTo}
-                        onSelect={setFilterDataInicioTo}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                        locale={ptBR}
-                      />
-                      {filterDataInicioTo && (
-                        <div className="p-2 border-t">
-                          <Button variant="ghost" size="sm" className="w-full" onClick={() => setFilterDataInicioTo(undefined)}>
-                            Limpar
-                          </Button>
-                        </div>
-                      )}
-                    </PopoverContent>
-                  </Popover>
+                  <DatePickerWithSelectors
+                    date={filterDataInicioTo}
+                    onDateChange={setFilterDataInicioTo}
+                    placeholder="Selecione..."
+                  />
                 </div>
                 
                 {/* Data Término - De */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Término (De)</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !filterDataTerminoFrom && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {filterDataTerminoFrom ? format(filterDataTerminoFrom, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione...</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={filterDataTerminoFrom}
-                        onSelect={setFilterDataTerminoFrom}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                        locale={ptBR}
-                      />
-                      {filterDataTerminoFrom && (
-                        <div className="p-2 border-t">
-                          <Button variant="ghost" size="sm" className="w-full" onClick={() => setFilterDataTerminoFrom(undefined)}>
-                            Limpar
-                          </Button>
-                        </div>
-                      )}
-                    </PopoverContent>
-                  </Popover>
+                  <DatePickerWithSelectors
+                    date={filterDataTerminoFrom}
+                    onDateChange={setFilterDataTerminoFrom}
+                    placeholder="Selecione..."
+                  />
                 </div>
                 
                 {/* Data Término - Até */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Término (Até)</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !filterDataTerminoTo && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {filterDataTerminoTo ? format(filterDataTerminoTo, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione...</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={filterDataTerminoTo}
-                        onSelect={setFilterDataTerminoTo}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                        locale={ptBR}
-                      />
-                      {filterDataTerminoTo && (
-                        <div className="p-2 border-t">
-                          <Button variant="ghost" size="sm" className="w-full" onClick={() => setFilterDataTerminoTo(undefined)}>
-                            Limpar
-                          </Button>
-                        </div>
-                      )}
-                    </PopoverContent>
-                  </Popover>
+                  <DatePickerWithSelectors
+                    date={filterDataTerminoTo}
+                    onDateChange={setFilterDataTerminoTo}
+                    placeholder="Selecione..."
+                  />
                 </div>
               </div>
               
