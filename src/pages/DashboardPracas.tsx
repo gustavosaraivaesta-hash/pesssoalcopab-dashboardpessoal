@@ -22,7 +22,9 @@ import {
   Wifi,
   WifiOff,
   ArrowLeft,
+  Search,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList, Legend, Brush } from "recharts";
 import jsPDF from "jspdf";
@@ -141,6 +143,7 @@ const DashboardPracas = () => {
   const [showOnlyExtraLotacao, setShowOnlyExtraLotacao] = useState(false);
   const [selectedPostos, setSelectedPostos] = useState<string[]>([]);
   const [isUsingCache, setIsUsingCache] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   // selectedOMsForVagos is now used for both vagos list and top especialidades chart
 
   const chartRef = useRef<HTMLDivElement>(null);
@@ -344,8 +347,22 @@ const DashboardPracas = () => {
       filtered = filtered.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO");
     }
 
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((item) => 
+        item.nome?.toLowerCase().includes(query) ||
+        item.cargo?.toLowerCase().includes(query) ||
+        item.setor?.toLowerCase().includes(query) ||
+        item.postoTmft?.toLowerCase().includes(query) ||
+        item.postoEfe?.toLowerCase().includes(query) ||
+        item.quadroTmft?.toLowerCase().includes(query) ||
+        item.quadroEfe?.toLowerCase().includes(query)
+      );
+    }
+
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedQuadrosEfe, selectedOpcoes, statusFilter, showOnlyExtraLotacao]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedQuadrosEfe, selectedOpcoes, statusFilter, showOnlyExtraLotacao, searchQuery]);
 
   const toggleOM = (om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
@@ -370,6 +387,7 @@ const DashboardPracas = () => {
     setSelectedOpcoes([]);
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
+    setSearchQuery("");
   };
 
   const handleStatusCardClick = (status: "all" | "ocupados" | "vagos") => {
@@ -1176,7 +1194,7 @@ const DashboardPracas = () => {
                 Filtros
               </h3>
               <div className="flex items-center gap-2">
-                {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0 || selectedOpcoes.length > 0) && (
+                {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0 || selectedOpcoes.length > 0 || searchQuery) && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     Limpar Filtros
                   </Button>
@@ -1190,6 +1208,17 @@ const DashboardPracas = () => {
                   Exportar PDF
                 </Button>
               </div>
+            </div>
+
+            {/* Quick Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisa rápida por nome, cargo, setor, posto ou especialidade..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

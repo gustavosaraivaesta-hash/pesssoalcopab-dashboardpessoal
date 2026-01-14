@@ -23,7 +23,9 @@ import {
   Wifi,
   WifiOff,
   ArrowLeft,
+  Search,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   BarChart,
@@ -160,6 +162,7 @@ const DashboardOM = () => {
   const [selectedPostosEfe, setSelectedPostosEfe] = useState<string[]>([]);
   const [selectedCorpos, setSelectedCorpos] = useState<string[]>([]);
   const [isUsingCache, setIsUsingCache] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const chartRef = useRef<HTMLDivElement>(null);
   
@@ -330,8 +333,22 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO");
     }
 
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((item) => 
+        item.nome?.toLowerCase().includes(query) ||
+        item.cargo?.toLowerCase().includes(query) ||
+        item.setor?.toLowerCase().includes(query) ||
+        item.postoTmft?.toLowerCase().includes(query) ||
+        item.postoEfe?.toLowerCase().includes(query) ||
+        item.quadroTmft?.toLowerCase().includes(query) ||
+        item.quadroEfe?.toLowerCase().includes(query)
+      );
+    }
+
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, statusFilter, showOnlyExtraLotacao]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, statusFilter, showOnlyExtraLotacao, searchQuery]);
 
   const toggleOM = (om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
@@ -352,6 +369,7 @@ const DashboardOM = () => {
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
     setSelectedCorpos([]);
+    setSearchQuery("");
   };
 
   const handleStatusCardClick = (status: "all" | "ocupados" | "vagos") => {
@@ -1067,7 +1085,7 @@ const DashboardOM = () => {
                 Filtros
               </h3>
               <div className="flex items-center gap-2">
-                {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0) && (
+                {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0 || searchQuery) && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     Limpar Filtros
                   </Button>
@@ -1081,6 +1099,17 @@ const DashboardOM = () => {
                   Exportar PDF
                 </Button>
               </div>
+            </div>
+
+            {/* Quick Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisa rápida por nome, cargo, setor, posto ou quadro..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
