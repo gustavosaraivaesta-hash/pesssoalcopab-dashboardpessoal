@@ -127,10 +127,12 @@ const DashboardPracas = () => {
   const [cursoData, setCursoData] = useState<CursoRecord[]>([]);
   const [availableOMs, setAvailableOMs] = useState<string[]>([]);
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
+  const [availableQuadrosEfe, setAvailableQuadrosEfe] = useState<string[]>([]);
   const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedQuadros, setSelectedQuadros] = useState<string[]>([]);
+  const [selectedQuadrosEfe, setSelectedQuadrosEfe] = useState<string[]>([]);
   const [selectedOpcoes, setSelectedOpcoes] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("efetivo");
   const [lastUpdate, setLastUpdate] = useState<string>("");
@@ -175,11 +177,14 @@ const DashboardPracas = () => {
       
       const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
       const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
-      // Extrair especialidades diretamente dos dados em cache
+      // Extrair especialidades TMFT diretamente dos dados em cache
       const quadrosFromData = [...new Set(data.map((item: any) => item.quadroTmft).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"))];
+      // Extrair especialidades EFETIVO diretamente dos dados em cache
+      const quadrosEfeFromData = [...new Set(data.map((item: any) => item.quadroEfe).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"))];
       
       setAvailableOMs(getAvailableOMsForUser(oms as string[]));
       setAvailableQuadros(quadrosFromData as string[]);
+      setAvailableQuadrosEfe(quadrosEfeFromData as string[]);
       setAvailableOpcoes(opcoes as string[]);
       
       const cacheTime = getCacheTimestamp();
@@ -274,9 +279,12 @@ const DashboardPracas = () => {
         const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
 
         setAvailableOMs(getAvailableOMsForUser(oms as string[]));
-        // Extrair especialidades diretamente dos dados atuais da planilha
+        // Extrair especialidades TMFT diretamente dos dados atuais da planilha
         const quadrosFromData = [...new Set(data.map((item: any) => item.quadroTmft).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"))];
         setAvailableQuadros(quadrosFromData as string[]);
+        // Extrair especialidades EFETIVO diretamente dos dados atuais da planilha
+        const quadrosEfeFromData = [...new Set(data.map((item: any) => item.quadroEfe).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"))];
+        setAvailableQuadrosEfe(quadrosEfeFromData as string[]);
         setAvailableOpcoes(opcoes as string[]);
         setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
       }
@@ -318,6 +326,10 @@ const DashboardPracas = () => {
       filtered = filtered.filter((item) => selectedQuadros.includes(item.quadroTmft));
     }
 
+    if (selectedQuadrosEfe.length > 0) {
+      filtered = filtered.filter((item) => selectedQuadrosEfe.includes(item.quadroEfe));
+    }
+
     if (selectedOpcoes.length > 0) {
       filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
     }
@@ -333,7 +345,7 @@ const DashboardPracas = () => {
     }
 
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, statusFilter, showOnlyExtraLotacao]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedQuadrosEfe, selectedOpcoes, statusFilter, showOnlyExtraLotacao]);
 
   const toggleOM = (om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
@@ -343,6 +355,10 @@ const DashboardPracas = () => {
     setSelectedQuadros((prev) => (prev.includes(quadro) ? prev.filter((q) => q !== quadro) : [...prev, quadro]));
   };
 
+  const toggleQuadroEfe = (quadro: string) => {
+    setSelectedQuadrosEfe((prev) => (prev.includes(quadro) ? prev.filter((q) => q !== quadro) : [...prev, quadro]));
+  };
+
   const toggleOpcao = (opcao: string) => {
     setSelectedOpcoes((prev) => (prev.includes(opcao) ? prev.filter((o) => o !== opcao) : [...prev, opcao]));
   };
@@ -350,6 +366,7 @@ const DashboardPracas = () => {
   const clearFilters = () => {
     setSelectedOMs([]);
     setSelectedQuadros([]);
+    setSelectedQuadrosEfe([]);
     setSelectedOpcoes([]);
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
@@ -1159,7 +1176,7 @@ const DashboardPracas = () => {
                 Filtros
               </h3>
               <div className="flex items-center gap-2">
-                {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0) && (
+                {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0 || selectedOpcoes.length > 0) && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     Limpar Filtros
                   </Button>
@@ -1175,7 +1192,7 @@ const DashboardPracas = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* OM Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -1202,10 +1219,10 @@ const DashboardPracas = () => {
                 </div>
               </div>
 
-              {/* Especialidade Filter */}
+              {/* Especialidade TMFT Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium">Especialidade</h4>
+                  <h4 className="text-sm font-medium">Especialidade TMFT</h4>
                   {selectedQuadros.length > 0 && (
                     <Badge variant="outline" className="text-xs">
                       {selectedQuadros.length} selecionado(s)
@@ -1221,6 +1238,32 @@ const DashboardPracas = () => {
                         onCheckedChange={() => toggleQuadro(quadro)}
                       />
                       <label htmlFor={`quadro-${quadro}`} className="text-xs cursor-pointer">
+                        {quadro}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Especialidade EFETIVO Filter */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Especialidade EFETIVO</h4>
+                  {selectedQuadrosEfe.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {selectedQuadrosEfe.length} selecionado(s)
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-4 gap-1 p-2 border rounded-lg bg-muted/30 max-h-48 overflow-y-auto">
+                  {availableQuadrosEfe.map((quadro) => (
+                    <div key={`efe-${quadro}`} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`quadro-efe-${quadro}`}
+                        checked={selectedQuadrosEfe.includes(quadro)}
+                        onCheckedChange={() => toggleQuadroEfe(quadro)}
+                      />
+                      <label htmlFor={`quadro-efe-${quadro}`} className="text-xs cursor-pointer">
                         {quadro}
                       </label>
                     </div>
