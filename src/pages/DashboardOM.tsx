@@ -1548,7 +1548,7 @@ const DashboardOM = () => {
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
                     {isDifferentNeoEfe && (
                       <p className="text-xs mt-1 font-medium text-amber-700">
-                        ⚠️ NEO ({item.quadroTmft}) ≠ EFE ({item.quadroEfe})
+                        ⚠️ NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE ({item.postoEfe || "?"}/{item.quadroEfe || "-"})
                       </p>
                     )}
                     {isDifferentGraduacao && !isDifferentNeoEfe && (
@@ -1662,7 +1662,7 @@ const DashboardOM = () => {
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
                     {isDifferentNeoEfe && (
                       <p className="text-xs mt-1 font-medium text-amber-700">
-                        ⚠️ NEO ({item.quadroTmft}) ≠ EFE ({item.quadroEfe})
+                        ⚠️ NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE ({item.postoEfe || "?"}/{item.quadroEfe || "-"})
                       </p>
                     )}
                     {isDifferentGraduacao && !isDifferentNeoEfe && (
