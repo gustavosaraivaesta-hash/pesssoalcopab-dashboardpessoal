@@ -26,26 +26,28 @@ async function authenticateRequest(req: Request): Promise<{ userId: string; role
   });
 
   const token = authHeader.replace('Bearer ', '');
-  const { data, error } = await supabase.auth.getUser(token);
+  const { data, error } = await supabase.auth.getClaims(token);
   
-  if (error || !data.user) {
+  if (error || !data?.claims) {
     console.error('Auth error:', error);
     return null;
   }
+
+  const userId = data.claims.sub as string;
 
   // Get user role from database
   const { data: roleData, error: roleError } = await supabase
     .from('user_roles')
     .select('role')
-    .eq('user_id', data.user.id)
+    .eq('user_id', userId)
     .single();
 
   if (roleError || !roleData) {
-    console.log('No role found for user:', data.user.id);
-    return { userId: data.user.id, role: 'COPAB' }; // Default role
+    console.log('No role found for user:', userId);
+    return { userId, role: 'COPAB' }; // Default role
   }
 
-  return { userId: data.user.id, role: roleData.role };
+  return { userId, role: roleData.role };
 }
 
 interface PersonnelRecord {

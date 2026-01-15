@@ -20,19 +20,21 @@ async function authenticateRequest(req: Request): Promise<{ userId: string; role
   });
 
   const token = authHeader.replace('Bearer ', '');
-  const { data, error } = await supabase.auth.getUser(token);
+  const { data, error } = await supabase.auth.getClaims(token);
   
-  if (error || !data.user) {
+  if (error || !data?.claims) {
     return null;
   }
+
+  const userId = data.claims.sub as string;
 
   const { data: roleData } = await supabase
     .from('user_roles')
     .select('role')
-    .eq('user_id', data.user.id)
+    .eq('user_id', userId)
     .single();
 
-  return { userId: data.user.id, role: roleData?.role || 'COPAB' };
+  return { userId, role: roleData?.role || 'COPAB' };
 }
 
 // OMs allowed for CSUPAB role
