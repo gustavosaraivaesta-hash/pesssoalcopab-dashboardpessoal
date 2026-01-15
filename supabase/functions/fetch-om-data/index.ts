@@ -1,9 +1,52 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Helper function to authenticate request and get user role
+async function authenticateRequest(req: Request): Promise<{ userId: string; role: string } | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing Supabase environment variables');
+    return null;
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+
+  const token = authHeader.replace('Bearer ', '');
+  const { data, error } = await supabase.auth.getUser(token);
+  
+  if (error || !data.user) {
+    console.error('Auth error:', error);
+    return null;
+  }
+
+  // Get user role from database
+  const { data: roleData, error: roleError } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', data.user.id)
+    .single();
+
+  if (roleError || !roleData) {
+    console.log('No role found for user:', data.user.id);
+    return { userId: data.user.id, role: 'COPAB' }; // Default role
+  }
+
+  return { userId: data.user.id, role: roleData.role };
+}
 
 interface PersonnelRecord {
   id: string;
@@ -100,6 +143,9 @@ const SHEET_CONFIGS = [
   { gid: '2140319620', omName: 'DEPSIMRJ' },
   { gid: '1727648610', omName: 'DepSMRJ' },
 ];
+
+// OMs allowed for CSUPAB role
+const CSUPAB_ALLOWED_OMS = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
 
 // Helper function to convert "-" to empty string
 const normalizeValue = (val: string): string => {
@@ -281,15 +327,10 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
         }
       }
 
-      // Check if it's a desembarque/embarque data row
-      // Layouts seen in sheets:
-      // - PRAÇAS (older): POSTO | QUADRO | CARGO | NOME | OPÇÃO | DESTINO | MÊS/ANO | DOCUMENTO
-      // - OFICIAIS (common): POSTO | CORPO | QUADRO | CARGO | NOME | OPÇÃO | DESTINO | MÊS/ANO | DOCUMENTO
       if ((currentSection === 'DESEMBARQUE' || currentSection === 'EMBARQUE') && validPostos.includes(firstCell)) {
         const posto = firstCell;
         const header = currentSection === 'DESEMBARQUE' ? desembarqueHeader : embarqueHeader;
 
-        // Prefer header-based mapping when available
         if (header && Object.keys(header).length > 0) {
           const corpo = header.corpo !== undefined ? cellStr(header.corpo) : '';
           const quadro = header.quadro !== undefined ? cellStr(header.quadro) : '';
@@ -302,14 +343,11 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
 
           if (nome && currentSection === 'DESEMBARQUE') {
             desembarqueData.push({ posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName });
-            console.log(`${omName} Desembarque: ${nome} - Destino: ${destino} - Mês/Ano: ${mesAno}`);
           }
           if (nome && currentSection === 'EMBARQUE') {
             embarqueData.push({ posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName });
-            console.log(`${omName} Embarque: ${nome} - Destino: ${destino} - Mês/Ano: ${mesAno}`);
           }
         } else {
-          // Fallback to index-based mapping
           const hasCorpoColumn = Boolean(cellStr(8)) || cells.length >= 9;
 
           const corpo = hasCorpoColumn ? cellStr(1) : '';
@@ -323,16 +361,13 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
 
           if (nome && currentSection === 'DESEMBARQUE') {
             desembarqueData.push({ posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName });
-            console.log(`${omName} Desembarque: ${nome} - Destino: ${destino} - Mês/Ano: ${mesAno}`);
           }
           if (nome && currentSection === 'EMBARQUE') {
             embarqueData.push({ posto, corpo, quadro, opcao, cargo, nome, destino, mesAno, documento, om: omName });
-            console.log(`${omName} Embarque: ${nome} - Destino: ${destino} - Mês/Ano: ${mesAno}`);
           }
         }
       }
 
-      // Check if it's a TRRM data row
       if (currentSection === 'TRRM' && validPostos.includes(firstCell)) {
         const posto = firstCell;
         const corpo = String(cells[1]?.v || '').trim();
@@ -346,11 +381,9 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           trrmData.push({
             posto, corpo, quadro, opcao, cargo, nome, epocaPrevista, om: omName
           });
-          console.log(`${omName} TRRM: ${nome} - ${epocaPrevista} - Opção: ${opcao}`);
         }
       }
       
-      // Check if it's a CONCURSO data row
       if (currentSection === 'CONCURSO' && validPostos.includes(firstCell)) {
         const posto = firstCell;
         const corpo = String(cells[1]?.v || '').trim();
@@ -364,11 +397,9 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           concursoData.push({
             posto, corpo, quadro, opcao, cargo, nome, anoPrevisto, om: omName
           });
-          console.log(`${omName} Concurso C-EMOS: ${nome} - ${anoPrevisto} - Opção: ${opcao}`);
         }
       }
       
-      // Check if it's a DESTAQUES data row
       if (currentSection === 'DESTAQUES' && validPostos.includes(firstCell)) {
         const posto = firstCell;
         const corpo = String(cells[1]?.v || '').trim();
@@ -384,11 +415,9 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           destaquesData.push({
             posto, corpo, quadro, opcao, cargo, nome, emOutraOm, deOutraOm, periodo, om: omName
           });
-          console.log(`${omName} Destaque: ${nome} - Opção: ${opcao}`);
         }
       }
       
-      // Check if it's a LICENÇAS data row
       if (currentSection === 'LICENCAS' && validPostos.includes(firstCell)) {
         const posto = firstCell;
         const corpo = String(cells[1]?.v || '').trim();
@@ -402,11 +431,9 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           licencasData.push({
             posto, corpo, quadro, opcao, cargo, nome, emOutraOm: '', deOutraOm: '', periodo: motivo, om: omName
           });
-          console.log(`${omName} Licença: ${nome} - Opção: ${opcao}`);
         }
       }
       
-      // Check if it's an EXTRA LOTAÇÃO row (has POSTO but no NEO)
       if (currentSection === 'TABELA_MESTRA' && validPostos.includes(firstCell)) {
         const postoEfe = firstCell;
         const corpoEfe = String(cells[1]?.v || '').trim();
@@ -437,13 +464,10 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           personnelData.push(extraRecord);
           if (quadroEfe) quadros.add(quadroEfe);
           if (opcaoEfe) opcoes.add(opcaoEfe);
-          console.log(`${omName} EXTRA LOTAÇÃO: ${nome} - ${postoEfe} ${corpoEfe} ${quadroEfe}`);
         }
       }
       
-      // Check if it's a TABELA_MESTRA row with data but empty NEO (EXTRA LOTAÇÃO)
       if (currentSection === 'TABELA_MESTRA' && !isValidNeo) {
-        // Check if there's nome data in column 12 (standard TABELA_MESTRA format)
         const nome = String(cells[12]?.v || '').trim();
         const postoEfe = String(cells[8]?.v || '').trim();
         
@@ -477,7 +501,6 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           personnelData.push(extraRecord);
           if (quadroEfe) quadros.add(quadroEfe);
           if (opcaoEfe) opcoes.add(opcaoEfe);
-          console.log(`${omName} EXTRA LOTAÇÃO (empty NEO): ${nome} - ${postoEfe} ${corpoEfe} ${quadroEfe}`);
         }
       }
       continue;
@@ -499,13 +522,10 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     const opcaoEfe = normalizeValue(String(cells[11]?.v || ''));
     const nome = normalizeValue(String(cells[12]?.v || ''));
     
-    // Skip summary rows (contain percentages like "100%", "71%", etc.)
     if (tipoSetor.includes('%') || setor.includes('%') || cargo.includes('%')) {
-      console.log(`${omName} Skipping summary row NEO=${neoString}: ${tipoSetor}`);
       continue;
     }
     
-    // Skip header rows
     if (tipoSetor === 'TIPO SETOR' || setor === 'SETOR') {
       continue;
     }
@@ -531,16 +551,14 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       quadroEfe,
       opcaoEfe,
       nome,
-      // Importante: "VAGO" não conta como ocupado
       ocupado: nomeUpper.length > 0 && nomeUpper !== 'VAZIO' && nomeUpper !== 'VAGO',
       om: omName,
     };
     
     personnelData.push(record);
-    console.log(`${omName} Personnel NEO=${neoString}: ${nome || 'VAGO'} - ${tipoSetor}/${setor} - ${cargo}`);
   }
 
-  console.log(`${omName}: Processed ${personnelData.length} personnel, ${desembarqueData.length} desembarque, ${embarqueData.length} embarque, ${trrmData.length} TRRM, ${licencasData.length} licenças, ${destaquesData.length} destaques, ${concursoData.length} concurso`);
+  console.log(`${omName}: Processed ${personnelData.length} personnel`);
   
   return {
     personnel: personnelData,
@@ -562,13 +580,28 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate request
+    const auth = await authenticateRequest(req);
+    if (!auth) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Authenticated user: ${auth.userId}, role: ${auth.role}`);
     console.log('Fetching OM detailed data from multiple sheets...');
     
     const spreadsheetId = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
     
+    // Filter sheets based on user role
+    const allowedConfigs = auth.role === 'CSUPAB' 
+      ? SHEET_CONFIGS.filter(config => CSUPAB_ALLOWED_OMS.has(config.omName.toUpperCase()))
+      : SHEET_CONFIGS;
+    
     // Fetch all sheets in parallel
     const results = await Promise.all(
-      SHEET_CONFIGS.map(config => 
+      allowedConfigs.map(config => 
         fetchSheetData(spreadsheetId, config.gid, config.omName)
       )
     );
@@ -599,20 +632,9 @@ serve(async (req) => {
       result.opcoes.forEach(o => allOpcoes.add(o));
     }
     
-    // Get unique OMs from data
     allPersonnel.forEach(p => allOMs.add(p.om));
     
-    console.log(`Total: ${allPersonnel.length} personnel, ${allDesembarque.length} desembarque, ${allEmbarque.length} embarque, ${allTrrm.length} TRRM, ${allLicencas.length} licenças, ${allDestaques.length} destaques, ${allConcurso.length} concurso from ${allOMs.size} OMs`);
-
-    // Debug específico: postos existentes em COpAb (para validar ausência do "2T")
-    const copabRows = allPersonnel.filter((p) => String(p.om || "") === "COpAb");
-    const copabPostosTmft = Array.from(
-      new Set(copabRows.map((p) => String((p as any).postoTmft || "").trim()).filter(Boolean)),
-    ).sort();
-    const copabPostosEfe = Array.from(
-      new Set(copabRows.map((p) => String((p as any).postoEfe || "").trim()).filter(Boolean)),
-    ).sort();
-    console.log(`COpAb debug: rows=${copabRows.length}, postoTmft=[${copabPostosTmft.join(", ")}], postoEfe=[${copabPostosEfe.join(", ")}]`);
+    console.log(`Total: ${allPersonnel.length} personnel from ${allOMs.size} OMs for role ${auth.role}`);
 
     return new Response(
       JSON.stringify({
@@ -628,13 +650,6 @@ serve(async (req) => {
         opcoes: Array.from(allOpcoes).sort(),
         oms: Array.from(allOMs).sort(),
         lastUpdate: new Date().toLocaleTimeString('pt-BR'),
-        debug: {
-          copab: {
-            rows: copabRows.length,
-            postos_tmft: copabPostosTmft,
-            postos_efe: copabPostosEfe,
-          },
-        },
       }),
       { 
         headers: { 

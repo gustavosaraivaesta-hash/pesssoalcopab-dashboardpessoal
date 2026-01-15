@@ -1,9 +1,52 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Helper function to authenticate request and get user role
+async function authenticateRequest(req: Request): Promise<{ userId: string; role: string } | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing Supabase environment variables');
+    return null;
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+
+  const token = authHeader.replace('Bearer ', '');
+  const { data, error } = await supabase.auth.getUser(token);
+  
+  if (error || !data.user) {
+    console.error('Auth error:', error);
+    return null;
+  }
+
+  // Get user role from database
+  const { data: roleData, error: roleError } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', data.user.id)
+    .single();
+
+  if (roleError || !roleData) {
+    console.log('No role found for user:', data.user.id);
+    return { userId: data.user.id, role: 'COPAB' }; // Default role
+  }
+
+  return { userId: data.user.id, role: roleData.role };
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -12,6 +55,16 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate request
+    const auth = await authenticateRequest(req);
+    if (!auth) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Authenticated user: ${auth.userId}, role: ${auth.role}`);
     console.log('Fetching data from Google Sheets...');
     
     // Extract spreadsheet ID from the URL
@@ -106,6 +159,12 @@ serve(async (req) => {
     const especialidadeMap: { [key: string]: string } = {};
     const especialidadesData: any[] = [];
     
+    // Helper function to convert "-" to empty string
+    const normalizeValue = (val: any): string => {
+      const str = String(val || '').trim();
+      return str === '-' ? '' : str;
+    };
+    
     if (sheet3Data.table.rows && sheet3Data.table.rows.length > 1) {
       console.log('Processing especialidades from Page 3...');
       
@@ -153,12 +212,6 @@ serve(async (req) => {
     
     console.log('Raw sheets data received');
     
-// Helper function to convert "-" to empty string
-    const normalizeValue = (val: any): string => {
-      const str = String(val || '').trim();
-      return str === '-' ? '' : str;
-    };
-    
     const transformedData: any[] = [];
     
     // Define OMs and their column positions (TMFT, EXI, DIF)
@@ -176,8 +229,16 @@ serve(async (req) => {
       { name: 'CDU-BAMRJ', startCol: 31 },
       { name: 'CDU-1DN', startCol: 34 },
     ];
+
+    // OMs allowed for CSUPAB role
+    const csupabAllowedOMs = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
     
-    console.log(`Processing ${oms.length} OMs:`, oms.map(om => om.name).join(', '));
+    // Filter OMs based on user role
+    const allowedOMs = auth.role === 'CSUPAB' 
+      ? oms.filter(om => csupabAllowedOMs.has(om.name.toUpperCase()))
+      : oms;
+    
+    console.log(`Processing ${allowedOMs.length} OMs for role ${auth.role}:`, allowedOMs.map(om => om.name).join(', '));
     
     // Function to process sheet data
     const processSheetData = (sheetsData: any, categoria: "PRAÇAS" | "OFICIAIS") => {
@@ -195,12 +256,10 @@ serve(async (req) => {
         const cells = rows[i].c || [];
         const graduacao = cells[0]?.v || '';
         
-        console.log(`${categoria} - Row ${i}: graduacao = "${graduacao}"`);
-        
         if (!graduacao || graduacao === 'FORÇA DE TRABALHO') continue;
         
         // Create one record for each OM
-        oms.forEach(om => {
+        allowedOMs.forEach(om => {
           const tmft = Number(cells[om.startCol]?.v || 0);
           const exi = Number(cells[om.startCol + 1]?.v || 0);
           const dif = Number(cells[om.startCol + 2]?.v || 0);
@@ -237,7 +296,6 @@ serve(async (req) => {
     processSheetData(sheetsDataPracas, "PRAÇAS");
     
     // Override PRAÇAS values for CSUPAB OMs using Page 4 (gid=1141691969)
-    // OMs: CSUPAB, DEPCMRJ, DEPFMRJ, DEPMSMRJ, DEPSIMRJ, DEPSMRJ
     const csupabOms = ["CSupAb", "DepCMRJ", "DepFMRJ", "DepMSMRJ", "DepSIMRJ", "DepSMRJ"];
     const csupabOmsSet = new Set(csupabOms);
 
@@ -264,7 +322,7 @@ serve(async (req) => {
         const especialidade = normalizeValue(especialidadeMap[graduacao] || graduacao);
         const graduacaoNorm = normalizeValue(graduacao);
 
-        oms.forEach((om) => {
+        allowedOMs.forEach((om) => {
           if (!csupabOmsSet.has(om.name)) return;
 
           const tmft = Number(cells[om.startCol]?.v || 0);
@@ -293,7 +351,7 @@ serve(async (req) => {
 
       console.log(`CSUPAB override done. Before=${before}, After=${transformedData.length}`);
     }
-    console.log(`Transformed ${transformedData.length} records`);
+    console.log(`Transformed ${transformedData.length} records for role ${auth.role}`);
     
     return new Response(
       JSON.stringify({ 

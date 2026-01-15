@@ -1,4 +1,42 @@
 // Edge function for fetching PRAÇAS data
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
+
+// Helper function to authenticate request and get user role
+async function authenticateRequest(req: Request): Promise<{ userId: string; role: string } | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return null;
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+
+  const token = authHeader.replace('Bearer ', '');
+  const { data, error } = await supabase.auth.getUser(token);
+  
+  if (error || !data.user) {
+    return null;
+  }
+
+  const { data: roleData } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', data.user.id)
+    .single();
+
+  return { userId: data.user.id, role: roleData?.role || 'COPAB' };
+}
+
+// OMs allowed for CSUPAB role
+const CSUPAB_ALLOWED_OMS = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
 
 interface PersonnelRecord {
   id: string;
@@ -527,7 +565,22 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate request
+    const auth = await authenticateRequest(req);
+    if (!auth) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Authenticated user: ${auth.userId}, role: ${auth.role}`);
     console.log('Fetching PRAÇAS data from all OMs...');
+    
+    // Filter sheets based on user role
+    const allowedConfigs = auth.role === 'CSUPAB' 
+      ? SHEET_CONFIGS.filter(config => CSUPAB_ALLOWED_OMS.has(config.omName.toUpperCase()))
+      : SHEET_CONFIGS;
     
     const spreadsheetId = '13YC7pfsERAJxdwzWPN12tTdNOVhlT_bbZXZigDZvalA';
     

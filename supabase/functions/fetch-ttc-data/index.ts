@@ -1,9 +1,52 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Helper function to authenticate request and get user role
+async function authenticateRequest(req: Request): Promise<{ userId: string; role: string } | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing Supabase environment variables');
+    return null;
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+
+  const token = authHeader.replace('Bearer ', '');
+  const { data, error } = await supabase.auth.getUser(token);
+  
+  if (error || !data.user) {
+    console.error('Auth error:', error);
+    return null;
+  }
+
+  // Get user role from database
+  const { data: roleData, error: roleError } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', data.user.id)
+    .single();
+
+  if (roleError || !roleData) {
+    console.log('No role found for user:', data.user.id);
+    return { userId: data.user.id, role: 'COPAB' }; // Default role
+  }
+
+  return { userId: data.user.id, role: roleData.role };
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -12,13 +55,23 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate request
+    const auth = await authenticateRequest(req);
+    if (!auth) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Authenticated user: ${auth.userId}, role: ${auth.role}`);
     console.log('Fetching TTC data from Google Sheets...');
     
     // Spreadsheet ID for TTC data
     const spreadsheetId = '19EgecXxuBQ89DsrqPDOsuIgnQMvXrH8GIPA5lshdxj0';
     const timestamp = new Date().getTime();
     
-    // Define sheets to fetch: COPAB, BAMRJ, BAMRJ-MD, CMM, DepCMRJ, CDAM, DepSMRJ, CSupAB, DepSIMRJ, DepMSMRJ, DepFMRJ, CDU-BAMRJ, CDU-1DN
+    // Define sheets to fetch
     const sheets = [
       { gid: '0', om: 'COPAB' },
       { gid: '547569905', om: 'BAMRJ' },
@@ -34,11 +87,19 @@ serve(async (req) => {
       { gid: '1877515617', om: 'CDU-BAMRJ' },
       { gid: '810810540', om: 'CDU-1DN' }
     ];
+
+    // OMs allowed for CSUPAB role
+    const csupabAllowedOMs = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
+    
+    // Filter sheets based on user role
+    const allowedSheets = auth.role === 'CSUPAB' 
+      ? sheets.filter(s => csupabAllowedOMs.has(s.om.toUpperCase()))
+      : sheets;
     
     const transformedData: any[] = [];
     
     // Fetch data from all sheets
-    for (const sheet of sheets) {
+    for (const sheet of allowedSheets) {
       const sheetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=${sheet.gid}&tqx=out:json&timestamp=${timestamp}`;
       
       console.log(`Calling Google Sheets API for ${sheet.om} data...`);
@@ -59,37 +120,18 @@ serve(async (req) => {
       const jsonString = text.substring(47).slice(0, -2);
       const sheetsData = JSON.parse(jsonString);
       
-      console.log(`Raw ${sheet.om} data received`);
-      
       const rows = sheetsData.table.rows || [];
       
       console.log(`Processing ${rows.length} ${sheet.om} rows`);
       
-      // Process all rows; we will skip header/summary rows by content
       for (let i = 0; i < rows.length; i++) {
         const cells = rows[i].c || [];
-        
-        // Column mapping based on the spreadsheet structure:
-        // 0: Number (#) or CONTR. / RENOVAÇÃO
-        // 1: Graduação (SO, etc)
-        // 2: ESP/QUADRO (CAP / QAP / PL, etc)
-        // 3: Nome Completo
-        // 4: Data Nasc. (Idade)
-        // 5: Área
-        // 6: NEO
-        // 7: Tarefa Designada
-        // 8: Portaria Atual (PORT XX/2025 DO...)
-        // 9: Período Início
-        // 10: Término
-        // 11: Quantidade Renovações
         
         const numero = cells[0]?.v ?? '';
         const graduacao = String(cells[1]?.v || '').trim();
         const espQuadro = String(cells[2]?.v || '').trim();
         const nomeCompleto = String(cells[3]?.v || '').trim();
-        // Use formatted value (.f) for date to get DD/MM/YYYY instead of Date() object
         const idade = String(cells[4]?.f || cells[4]?.v || '').trim();
-        // OM is in column 5
         const omFromCell = String(cells[5]?.v || '').trim();
         const area = String(cells[6]?.v || '').trim();
         const neo = String(cells[7]?.v || '').trim();
@@ -99,9 +141,7 @@ serve(async (req) => {
         const termino = String(cells[11]?.f || cells[11]?.v || '').trim();
         const qtdRenovacoes = Number(cells[12]?.v || 0);
         
-        console.log(`${sheet.om} Row ${i}: numero=${numero}, grad=${graduacao}, om=${omFromCell}, nome=${nomeCompleto?.substring(0, 20)}`);
-        
-        // Skip summary rows (VAGAS, CONTRATADOS, etc) - check in multiple columns
+        // Skip summary rows
         const isHeaderOrSummary = 
           graduacao.toUpperCase() === 'VAGAS' || 
           graduacao.toUpperCase() === 'CONTRATADOS' ||
@@ -111,17 +151,14 @@ serve(async (req) => {
           nomeCompleto.toUpperCase().includes('NOME COMPLETO');
         
         if (isHeaderOrSummary) {
-          console.log(`Skipping ${sheet.om} row ${i}: header or summary row`);
           continue;
         }
         
-        // Skip completely empty rows (no numero, no graduacao, no nome, no tarefa)
+        // Skip completely empty rows
         if (!numero && !graduacao && !nomeCompleto && !tarefaDesignada) {
-          console.log(`Skipping ${sheet.om} row ${i}: empty row`);
           continue;
         }
         
-        // Determine if this is an open position (VAGA)
         const isVaga = !nomeCompleto || 
           nomeCompleto.toUpperCase() === 'VAGO' || 
           nomeCompleto.toUpperCase() === 'VAZIA' || 
@@ -145,10 +182,8 @@ serve(async (req) => {
           portariaAtual: portariaAtual,
           isVaga: isVaga,
           ocupado: !isVaga,
-          om: omFromCell || sheet.om, // Use OM from cell, fallback to sheet name
+          om: omFromCell || sheet.om,
         });
-        
-        console.log(`Added ${omFromCell || sheet.om} row ${i}: isVaga=${isVaga}`);
       }
     }
     
@@ -157,8 +192,7 @@ serve(async (req) => {
     const totalContratados = transformedData.filter(d => !d.isVaga).length;
     const totalVagasAbertas = transformedData.filter(d => d.isVaga).length;
     
-    console.log(`Transformed ${transformedData.length} TTC records total`);
-    console.log(`Summary: Total=${totalVagas}, Contratados=${totalContratados}, Vagas Abertas=${totalVagasAbertas}`);
+    console.log(`Transformed ${transformedData.length} TTC records for role ${auth.role}`);
     
     return new Response(
       JSON.stringify({ 
