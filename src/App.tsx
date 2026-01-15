@@ -10,6 +10,7 @@ import DashboardPracas from "./pages/DashboardPracas";
 import DashboardTTC from "./pages/DashboardTTC";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
+import AuthGuard from "./components/AuthGuard";
 
 const queryClient = new QueryClient();
 
@@ -21,10 +22,10 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard-om" element={<DashboardOM />} />
-          <Route path="/dashboard-pracas" element={<DashboardPracas />} />
-          <Route path="/dashboard-ttc" element={<DashboardTTC />} />
+          <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
+          <Route path="/dashboard-om" element={<AuthGuard><DashboardOM /></AuthGuard>} />
+          <Route path="/dashboard-pracas" element={<AuthGuard><DashboardPracas /></AuthGuard>} />
+          <Route path="/dashboard-ttc" element={<AuthGuard><DashboardTTC /></AuthGuard>} />
           <Route path="/install" element={<Install />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

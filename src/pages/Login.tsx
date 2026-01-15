@@ -1,50 +1,78 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield } from "lucide-react";
+import { Shield, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import backgroundImage from "@/assets/military-background.png";
 
 const Login = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/");
+      }
+      setCheckingAuth(false);
+    };
+    
+    checkAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        navigate("/");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    const upperUsername = username.toUpperCase();
-    const upperPassword = password.toUpperCase();
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
 
-    // CSUPAB user - restricted access to specific OMs
-    if (upperUsername === "CSUPAB" && upperPassword === "CSUPAB01") {
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("currentUser", "CSUPAB");
-      toast.success("Login realizado com sucesso!");
-      navigate("/");
-      return;
+      if (error) {
+        console.error("Login error:", error);
+        toast.error(error.message || "Erro ao fazer login");
+        return;
+      }
+
+      if (data.user) {
+        toast.success("Login realizado com sucesso!");
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Erro ao fazer login");
+    } finally {
+      setLoading(false);
     }
-
-    // COPAB user - full access
-    if (
-      (upperUsername === "COPAB" && upperPassword === "COPAB031") ||
-      upperUsername === "COPAB" ||
-      upperPassword === "COPAB01" ||
-      upperPassword === "COPAB02" ||
-      upperPassword === "COPAB031"
-    ) {
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("currentUser", "COPAB");
-      toast.success("Login realizado com sucesso!");
-      navigate("/");
-      return;
-    }
-
-    toast.error("Usuário ou senha incorretos");
   };
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
@@ -67,17 +95,18 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-white">
-                Usuário
+              <Label htmlFor="email" className="text-white">
+                Email
               </Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Digite seu usuário"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Digite seu email"
                 className="bg-white/90 border-white/50 text-black"
                 required
+                disabled={loading}
               />
             </div>
             <div className="space-y-2">
@@ -92,10 +121,22 @@ const Login = () => {
                 placeholder="Digite sua senha"
                 className="bg-white/90 border-white/50 text-black"
                 required
+                disabled={loading}
               />
             </div>
-            <Button type="submit" className="w-full bg-white text-blue-600 hover:bg-white/90">
-              Entrar
+            <Button 
+              type="submit" 
+              className="w-full bg-white text-blue-600 hover:bg-white/90"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Entrando...
+                </>
+              ) : (
+                "Entrar"
+              )}
             </Button>
           </form>
         </CardContent>
