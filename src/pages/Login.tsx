@@ -9,8 +9,14 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import backgroundImage from "@/assets/military-background.png";
 
+// Convert username to email format for Supabase Auth
+const usernameToEmail = (username: string): string => {
+  const normalizedUsername = username.trim().toLowerCase();
+  return `${normalizedUsername}@copab.marinha.mil.br`;
+};
+
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -43,8 +49,11 @@ const Login = () => {
     setLoading(true);
 
     try {
+      // Convert username to email format (case-insensitive)
+      const email = usernameToEmail(username);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email,
         password: password,
       });
 
@@ -95,15 +104,15 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">
-                Email
+              <Label htmlFor="username" className="text-white">
+                Login
               </Label>
               <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Digite seu email"
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Digite seu login (ex: COPAB)"
                 className="bg-white/90 border-white/50 text-black"
                 required
                 disabled={loading}
