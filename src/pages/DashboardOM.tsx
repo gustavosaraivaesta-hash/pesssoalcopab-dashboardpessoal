@@ -212,6 +212,15 @@ const DashboardOM = () => {
     setLastUpdate(rawResult.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
   };
 
+  const invokeFunction = async <T,>(name: string, ms = 25000) => {
+    return await Promise.race([
+      supabase.functions.invoke<T>(name),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout ao chamar ${name}`)), ms),
+      ),
+    ]);
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -219,7 +228,7 @@ const DashboardOM = () => {
 
       // Check if offline using navigator.onLine for real-time status
       const currentlyOnline = navigator.onLine;
-      
+
       if (!currentlyOnline) {
         console.log("Offline mode - attempting to load from cache");
         const cachedData = getFromCache();
@@ -240,7 +249,7 @@ const DashboardOM = () => {
         }
       }
 
-      const { data: result, error } = await supabase.functions.invoke("fetch-om-data");
+      const { data: result, error } = await invokeFunction<any>("fetch-om-data");
 
       if (error) {
         console.error("Error fetching OM data:", error);
@@ -259,7 +268,7 @@ const DashboardOM = () => {
 
       if (result) {
         console.log("Received OM data:", result);
-        
+
         // Save raw data to cache before filtering
         const cacheData: CachedOMData = {
           data: result.data || [],
@@ -274,7 +283,7 @@ const DashboardOM = () => {
         };
         saveToCache(cacheData);
         setIsUsingCache(false);
-        
+
         applyUserFiltering(result);
       }
     } catch (error) {
