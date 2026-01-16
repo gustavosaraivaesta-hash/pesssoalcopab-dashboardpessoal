@@ -241,10 +241,18 @@ const Index = () => {
     try {
       console.log("Fetching data from PRAÇAS and OFICIAIS edge functions...");
       
+      const invoke = (name: string, ms = 25000) =>
+        Promise.race([
+          supabase.functions.invoke(name),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`Timeout ao chamar ${name}`)), ms),
+          ),
+        ]);
+
       // Fetch both PRAÇAS and OFICIAIS data in parallel
       const [pracasResponse, oficiaisResponse] = await Promise.all([
-        supabase.functions.invoke("fetch-pracas-data"),
-        supabase.functions.invoke("fetch-om-data"),
+        invoke("fetch-pracas-data"),
+        invoke("fetch-om-data"),
       ]);
 
       let allMilitaryData: MilitaryData[] = [];

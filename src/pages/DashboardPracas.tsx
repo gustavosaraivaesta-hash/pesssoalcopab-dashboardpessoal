@@ -200,6 +200,15 @@ const DashboardPracas = () => {
     return false;
   };
 
+  const invokeFunction = async <T,>(name: string, ms = 25000) => {
+    return await Promise.race([
+      supabase.functions.invoke<T>(name),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout ao chamar ${name}`)), ms),
+      ),
+    ]);
+  };
+
   const fetchData = async () => {
     // If offline, try to load from cache
     if (!navigator.onLine) {
@@ -217,7 +226,7 @@ const DashboardPracas = () => {
       setLoading(true);
       console.log("Fetching PRAÇAS data...");
 
-      const { data: result, error } = await supabase.functions.invoke("fetch-pracas-data");
+      const { data: result, error } = await invokeFunction<any>("fetch-pracas-data");
 
       if (error) {
         console.error("Error fetching PRAÇAS data:", error);
