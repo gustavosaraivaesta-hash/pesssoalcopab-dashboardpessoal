@@ -34,7 +34,7 @@ export const getUserRole = async (): Promise<string | null> => {
     return roleData.role;
   } catch (error) {
     console.error("Error getting user role:", error);
-    return null;
+    return "COPAB";
   }
 };
 

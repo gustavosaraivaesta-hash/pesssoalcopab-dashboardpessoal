@@ -189,20 +189,29 @@ const DashboardTTC = () => {
   
   const isOnline = useOnlineStatus();
 
+  const invokeFunction = async <T,>(name: string, ms = 25000) => {
+    return await Promise.race([
+      supabase.functions.invoke<T>(name),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout ao chamar ${name}`)), ms),
+      ),
+    ]);
+  };
+
   const fetchData = async (showToast = false) => {
     if (showToast) setIsRefreshing(true);
-    
+
     try {
       console.log("Fetching TTC data...");
-      
-      const response = await supabase.functions.invoke("fetch-ttc-data");
-      
+
+      const response = await invokeFunction<any>("fetch-ttc-data");
+
       if (response.error) {
         console.error("Error fetching TTC data:", response.error);
         toast.error("Erro ao carregar dados TTC");
         return;
       }
-      
+
       const data = response.data?.data || [];
       const summaryData = response.data?.summary || { total: 0, contratados: 0, vagasAbertas: 0 };
       
