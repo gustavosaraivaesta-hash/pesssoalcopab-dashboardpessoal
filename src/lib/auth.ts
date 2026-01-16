@@ -28,7 +28,7 @@ export const getUserRole = async (): Promise<string | null> => {
 
     if (error || !roleData) {
       console.log("Auth - No role found for user:", user.id);
-      return null;
+      return "COPAB"; // Default role
     }
 
     return roleData.role;
