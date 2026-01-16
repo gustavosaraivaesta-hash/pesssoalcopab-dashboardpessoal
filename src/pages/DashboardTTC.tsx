@@ -18,6 +18,7 @@ import militaryBg from "@/assets/military-background.png";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useOnlineStatus } from "@/hooks/useOfflineCache";
+import { useAuth } from "@/hooks/useAuth";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend } from "recharts";
 import { differenceInYears, differenceInMonths, differenceInDays, parse, isValid, addYears, addMonths, isBefore, isAfter, format } from "date-fns";
@@ -150,6 +151,7 @@ const calcularTempoRestante = (terminoStr: string): { texto: string; status: 'no
 
 const DashboardTTC = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [ttcData, setTtcData] = useState<TTCData[]>([]);
   const [summary, setSummary] = useState<TTCSummary>({ total: 0, contratados: 0, vagasAbertas: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -222,28 +224,26 @@ const DashboardTTC = () => {
   };
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem("isAuthenticated");
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-    
     fetchData();
-    
+
     // Auto-refresh every 2 minutes
     const interval = setInterval(() => {
       console.log("Auto-refreshing TTC data...");
       fetchData();
     }, 120000);
-    
-    return () => clearInterval(interval);
-  }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("currentUser");
-    toast.success("Logout realizado com sucesso!");
-    navigate("/login");
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Logout realizado com sucesso!");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Erro ao realizar logout");
+    }
   };
 
   const handleExportPDF = () => {

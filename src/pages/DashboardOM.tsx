@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
 import { useOfflineCache, useOnlineStatus } from "@/hooks/useOfflineCache";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -138,6 +139,7 @@ interface CachedOMData {
 
 const DashboardOM = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [personnelData, setPersonnelData] = useState<PersonnelRecord[]>([]);
   const [desembarqueData, setDesembarqueData] = useState<DesembarqueRecord[]>([]);
   const [embarqueData, setEmbarqueData] = useState<DesembarqueRecord[]>([]);
@@ -293,18 +295,12 @@ const DashboardOM = () => {
   };
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem("isAuthenticated");
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-
     fetchData();
 
     // Auto-sync every 5 minutes
     const interval = setInterval(fetchData, 300000);
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, []);
 
   const filteredData = useMemo(() => {
     let filtered = personnelData;
@@ -1020,10 +1016,14 @@ const DashboardOM = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("currentUser");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Erro ao realizar logout");
+    }
   };
 
   if (loading) {

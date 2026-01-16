@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getAllowedOMs, getAvailableOMsForUser, filterDataForCurrentUser } from "@/lib/auth";
 import { useOfflineCache, useOnlineStatus } from "@/hooks/useOfflineCache";
+import { useAuth } from "@/hooks/useAuth";
 
 // Função para detectar mudanças nos dados
 const detectChanges = (oldData: MilitaryData[], newData: MilitaryData[]): string[] => {
@@ -63,6 +64,7 @@ const detectChanges = (oldData: MilitaryData[], newData: MilitaryData[]): string
 
 const Index = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const chartRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState({
     categoria: "TODOS" as "TODOS" | "PRAÇAS" | "OFICIAIS",
@@ -361,12 +363,6 @@ const Index = () => {
   };
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem("isAuthenticated");
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-
     // Initial fetch
     fetchData();
 
@@ -377,13 +373,17 @@ const Index = () => {
     }, 120000); // 2 minutos
 
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("currentUser");
-    toast.success("Logout realizado com sucesso!");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Logout realizado com sucesso!");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Erro ao realizar logout");
+    }
   };
 
   const filterOptions = useMemo(() => {
