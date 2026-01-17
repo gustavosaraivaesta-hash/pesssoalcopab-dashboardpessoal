@@ -177,8 +177,39 @@ serve(async (req) => {
       
       console.log(`Processing ${rows.length} ${sheet.om} rows`);
       
+      // Track current section (OFICIAL or PRAÇA) based on section headers
+      let currentSection: 'OFICIAL' | 'PRAÇA' | null = null;
+      
       for (let i = 0; i < rows.length; i++) {
         const cells = rows[i].c || [];
+        
+        // Get all cell values to check for section headers
+        const cell0 = String(cells[0]?.v || '').trim().toUpperCase();
+        const cell1 = String(cells[1]?.v || '').trim().toUpperCase();
+        const cell2 = String(cells[2]?.v || '').trim().toUpperCase();
+        const cell3 = String(cells[3]?.v || '').trim().toUpperCase();
+        
+        // Check if this row is a section header (OFICIAL or PRAÇA)
+        const rowText = `${cell0} ${cell1} ${cell2} ${cell3}`;
+        
+        // Detect OFICIAL section header
+        if (cell0 === 'OFICIAL' || cell1 === 'OFICIAL' || 
+            (rowText.includes('OFICIAL') && !rowText.includes('SUBOFICIAL') && 
+             (rowText.includes('POSTO') || rowText.includes('CORPO') || rowText.includes('QUADRO')))) {
+          currentSection = 'OFICIAL';
+          console.log(`${sheet.om}: Detected OFICIAL section at row ${i + 1}`);
+          continue;
+        }
+        
+        // Detect PRAÇA section header
+        if (cell0 === 'PRAÇA' || cell1 === 'PRAÇA' || cell0 === 'PRACA' || cell1 === 'PRACA' ||
+            (rowText.includes('PRAÇA') || rowText.includes('PRACA')) && 
+             (rowText.includes('GRADUAÇÃO') || rowText.includes('GRADUACAO') || 
+              rowText.includes('ESP') || rowText.includes('QUADRO'))) {
+          currentSection = 'PRAÇA';
+          console.log(`${sheet.om}: Detected PRAÇA section at row ${i + 1}`);
+          continue;
+        }
         
         const numero = cells[0]?.v ?? '';
         const graduacao = String(cells[1]?.v || '').trim();
@@ -194,16 +225,19 @@ serve(async (req) => {
         const termino = String(cells[11]?.f || cells[11]?.v || '').trim();
         const qtdRenovacoes = Number(cells[12]?.v || 0);
         
-        // Skip summary rows
-        const isHeaderOrSummary = 
+        // Skip header rows (column titles)
+        const isHeaderRow = 
           graduacao.toUpperCase() === 'VAGAS' || 
           graduacao.toUpperCase() === 'CONTRATADOS' ||
           graduacao.toUpperCase() === 'GRADUAÇÃO' ||
           graduacao.toUpperCase().includes('GRADUAÇÃO') ||
+          graduacao.toUpperCase().includes('POSTO') ||
           espQuadro.toUpperCase().includes('ESP/QUADRO') ||
-          nomeCompleto.toUpperCase().includes('NOME COMPLETO');
+          espQuadro.toUpperCase().includes('CORPO') ||
+          nomeCompleto.toUpperCase().includes('NOME COMPLETO') ||
+          nomeCompleto.toUpperCase().includes('DATA NASC');
         
-        if (isHeaderOrSummary) {
+        if (isHeaderRow) {
           continue;
         }
         
@@ -219,8 +253,12 @@ serve(async (req) => {
           nomeCompleto.toUpperCase() === 'VAGA' ||
           nomeCompleto.toUpperCase().includes('VAGA ABERTA');
         
-        // Determine tipo based on graduação
-        const tipo = getTipoPessoal(graduacao);
+        // Determine tipo: first try graduação, then fallback to current section
+        let tipo = getTipoPessoal(graduacao);
+        if (tipo === 'INDEFINIDO' && currentSection) {
+          tipo = currentSection;
+          console.log(`${sheet.om} row ${i + 1}: Using section ${currentSection} for empty/unknown graduação "${graduacao}"`);
+        }
         
         transformedData.push({
           id: `TTC-${omFromCell || sheet.om}-${i + 1}`,
