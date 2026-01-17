@@ -1531,7 +1531,7 @@ const DashboardOM = () => {
                         </Badge>
                       )}
                       <Badge variant="outline" className="text-xs">
-                        {item.postoEfe || item.postoTmft}
+                        {item.postoTmft || item.postoEfe}
                       </Badge>
                       <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500 text-white text-xs" : "text-xs"}>
                         {item.quadroTmft || "-"}
