@@ -90,6 +90,57 @@ serve(async (req) => {
       { gid: '810810540', om: 'CDU-1DN' }
     ];
 
+    // Graduações de Oficiais (case-insensitive)
+    const graduacoesOficiais = new Set([
+      'CMG', 'CF', 'CC', 'CT', '1T', '2T', 'GM',
+      'CAPITÃO DE MAR E GUERRA', 'CAPITÃO DE FRAGATA', 'CAPITÃO DE CORVETA',
+      'CAPITÃO-TENENTE', 'PRIMEIRO-TENENTE', 'SEGUNDO-TENENTE', 'GUARDA-MARINHA',
+      'CMG-RM1', 'CF-RM1', 'CC-RM1', 'CT-RM1', '1T-RM1', '2T-RM1',
+      'CMG-RM2', 'CF-RM2', 'CC-RM2', 'CT-RM2', '1T-RM2', '2T-RM2',
+      'CMG(RM1)', 'CF(RM1)', 'CC(RM1)', 'CT(RM1)', '1T(RM1)', '2T(RM1)',
+      'CMG(RM2)', 'CF(RM2)', 'CC(RM2)', 'CT(RM2)', '1T(RM2)', '2T(RM2)'
+    ]);
+    
+    // Graduações de Praças (case-insensitive)
+    const graduacoesPracas = new Set([
+      'SO', 'SG', '1SG', '2SG', '3SG', 'CB', 'MN', 'SD',
+      'SUBOFICIAL', 'PRIMEIRO-SARGENTO', 'SEGUNDO-SARGENTO', 'TERCEIRO-SARGENTO',
+      'CABO', 'MARINHEIRO', 'SOLDADO',
+      'SO-RM1', 'SG-RM1', '1SG-RM1', '2SG-RM1', '3SG-RM1', 'CB-RM1', 'MN-RM1',
+      'SO-RM2', 'SG-RM2', '1SG-RM2', '2SG-RM2', '3SG-RM2', 'CB-RM2', 'MN-RM2',
+      'SO(RM1)', 'SG(RM1)', '1SG(RM1)', '2SG(RM1)', '3SG(RM1)', 'CB(RM1)', 'MN(RM1)',
+      'SO(RM2)', 'SG(RM2)', '1SG(RM2)', '2SG(RM2)', '3SG(RM2)', 'CB(RM2)', 'MN(RM2)'
+    ]);
+    
+    // Function to determine tipo (Praça ou Oficial)
+    function getTipoPessoal(graduacao: string): 'OFICIAL' | 'PRAÇA' | 'INDEFINIDO' {
+      const gradUpper = graduacao.toUpperCase().trim();
+      
+      // Check if it's an oficial
+      for (const grad of graduacoesOficiais) {
+        if (gradUpper === grad.toUpperCase() || gradUpper.startsWith(grad.toUpperCase())) {
+          return 'OFICIAL';
+        }
+      }
+      
+      // Check if it's a praça
+      for (const grad of graduacoesPracas) {
+        if (gradUpper === grad.toUpperCase() || gradUpper.startsWith(grad.toUpperCase())) {
+          return 'PRAÇA';
+        }
+      }
+      
+      // Additional heuristic: check for common patterns
+      if (/^(CMG|CF|CC|CT|1T|2T|GM)/i.test(gradUpper)) {
+        return 'OFICIAL';
+      }
+      if (/^(SO|1SG|2SG|3SG|CB|MN|SD)/i.test(gradUpper)) {
+        return 'PRAÇA';
+      }
+      
+      return 'INDEFINIDO';
+    }
+
     // OMs allowed for CSUPAB role
     const csupabAllowedOMs = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
     
@@ -168,6 +219,9 @@ serve(async (req) => {
           nomeCompleto.toUpperCase() === 'VAGA' ||
           nomeCompleto.toUpperCase().includes('VAGA ABERTA');
         
+        // Determine tipo based on graduação
+        const tipo = getTipoPessoal(graduacao);
+        
         transformedData.push({
           id: `TTC-${omFromCell || sheet.om}-${i + 1}`,
           numero: numero,
@@ -185,14 +239,29 @@ serve(async (req) => {
           isVaga: isVaga,
           ocupado: !isVaga,
           om: omFromCell || sheet.om,
+          tipo: tipo,
         });
       }
     }
     
-    // Calculate summary
+    // Calculate summary with tipo breakdown
     const totalVagas = transformedData.length;
     const totalContratados = transformedData.filter(d => !d.isVaga).length;
     const totalVagasAbertas = transformedData.filter(d => d.isVaga).length;
+    
+    // Breakdown by tipo
+    const oficiais = transformedData.filter(d => d.tipo === 'OFICIAL');
+    const pracas = transformedData.filter(d => d.tipo === 'PRAÇA');
+    
+    const totalOficiais = oficiais.length;
+    const oficiaisContratados = oficiais.filter(d => !d.isVaga).length;
+    const oficiaisVagasAbertas = oficiais.filter(d => d.isVaga).length;
+    
+    const totalPracas = pracas.length;
+    const pracasContratados = pracas.filter(d => !d.isVaga).length;
+    const pracasVagasAbertas = pracas.filter(d => d.isVaga).length;
+    
+    console.log(`Transformed ${transformedData.length} TTC records (${totalOficiais} oficiais, ${totalPracas} praças) for role ${auth.role}`);
     
     console.log(`Transformed ${transformedData.length} TTC records for role ${auth.role}`);
     
@@ -202,7 +271,17 @@ serve(async (req) => {
         summary: {
           total: totalVagas,
           contratados: totalContratados,
-          vagasAbertas: totalVagasAbertas
+          vagasAbertas: totalVagasAbertas,
+          oficiais: {
+            total: totalOficiais,
+            contratados: oficiaisContratados,
+            vagasAbertas: oficiaisVagasAbertas
+          },
+          pracas: {
+            total: totalPracas,
+            contratados: pracasContratados,
+            vagasAbertas: pracasVagasAbertas
+          }
         }
       }),
       {
