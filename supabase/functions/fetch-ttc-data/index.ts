@@ -144,10 +144,29 @@ serve(async (req) => {
     // OMs allowed for CSUPAB role
     const csupabAllowedOMs = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
     
+    // Get allowed OMs based on user role
+    function getAllowedOMsForRole(role: string): string[] | 'all' {
+      // COPAB sees everything
+      if (role === 'COPAB') return 'all';
+      
+      // CSUPAB sees specific OMs under its command
+      if (role === 'CSUPAB') return [...csupabAllowedOMs];
+      
+      // Individual OMs only see their own data
+      return [role];
+    }
+    
+    const allowedOMs = getAllowedOMsForRole(auth.role);
+    
     // Filter sheets based on user role
-    const allowedSheets = auth.role === 'CSUPAB' 
-      ? sheets.filter(s => csupabAllowedOMs.has(s.om.toUpperCase()))
-      : sheets;
+    const allowedSheets = allowedOMs === 'all'
+      ? sheets
+      : sheets.filter(s => {
+          const omUpper = s.om.toUpperCase();
+          return allowedOMs.some(allowed => allowed.toUpperCase() === omUpper);
+        });
+    
+    console.log(`Role ${auth.role} has access to ${allowedSheets.length} OMs: ${allowedSheets.map(s => s.om).join(', ')}`);
     
     const transformedData: any[] = [];
     

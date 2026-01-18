@@ -149,6 +149,18 @@ const SHEET_CONFIGS = [
 // OMs allowed for CSUPAB role
 const CSUPAB_ALLOWED_OMS = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
 
+// Get allowed OMs based on user role
+function getAllowedOMsForRole(role: string): string[] | 'all' {
+  // COPAB sees everything
+  if (role === 'COPAB') return 'all';
+  
+  // CSUPAB sees specific OMs under its command
+  if (role === 'CSUPAB') return [...CSUPAB_ALLOWED_OMS];
+  
+  // Individual OMs only see their own data
+  return [role];
+}
+
 // Helper function to convert "-" to empty string
 const normalizeValue = (val: string): string => {
   const str = val.trim();
@@ -597,9 +609,16 @@ serve(async (req) => {
     const spreadsheetId = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
     
     // Filter sheets based on user role
-    const allowedConfigs = auth.role === 'CSUPAB' 
-      ? SHEET_CONFIGS.filter(config => CSUPAB_ALLOWED_OMS.has(config.omName.toUpperCase()))
-      : SHEET_CONFIGS;
+    const allowedOMs = getAllowedOMsForRole(auth.role);
+    
+    const allowedConfigs = allowedOMs === 'all'
+      ? SHEET_CONFIGS
+      : SHEET_CONFIGS.filter(config => {
+          const omUpper = config.omName.toUpperCase();
+          return allowedOMs.some(allowed => allowed.toUpperCase() === omUpper);
+        });
+    
+    console.log(`Role ${auth.role} has access to ${allowedConfigs.length} OMs: ${allowedConfigs.map(c => c.omName).join(', ')}`);
     
     // Fetch all sheets in parallel
     const results = await Promise.all(

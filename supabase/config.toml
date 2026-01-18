@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.fetch-ttc-data]
 verify_jwt = false
+
+[functions.provision-om-users]
+verify_jwt = false
