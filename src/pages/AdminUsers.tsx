@@ -119,7 +119,7 @@ const AdminUsers = () => {
     { om: "DEPSMRJ", login: "DEPSMRJ", senha: "DEPSMRJ01" },
     { om: "DEPSIMRJ", login: "DEPSIMRJ", senha: "DEPSIMRJ01" },
     { om: "DEPMSMRJ", login: "DEPMSMRJ", senha: "DEPMSMRJ01" },
-    { om: ["DEPFMRJ", "CDU-BAMRJ", "CDU-1DN"], login: "DEPFMRJ", senha: "DEPFMRJ01" },
+    { om: "DEPFMRJ", login: "DEPFMRJ", senha: "DEPFMRJ01" },
     { om: "CDU-BAMRJ", login: "CDU-BAMRJ", senha: "CDU-BAMRJ01" },
     { om: "CDU-1DN", login: "CDU-1DN", senha: "CDU-1DN01" },
   ];
@@ -218,7 +218,7 @@ const AdminUsers = () => {
                 <TableRow className="bg-blue-50 dark:bg-blue-950">
                   <TableCell className="font-medium">CSUPAB</TableCell>
                   <TableCell>CSUPAB</TableCell>
-                  <TableCell>****</TableCell>
+                  <TableCell>CSUPAB01</TableCell>
                   <TableCell>
                     <Badge className="bg-yellow-600">OMs Subordinadas</Badge>
                   </TableCell>
