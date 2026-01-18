@@ -39,10 +39,7 @@ const AdminUsers = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => navigate("/")}
-              className="w-full bg-white text-red-600 hover:bg-white/90"
-            >
+            <Button onClick={() => navigate("/")} className="w-full bg-white text-red-600 hover:bg-white/90">
               Voltar ao Dashboard
             </Button>
           </CardContent>
@@ -56,8 +53,10 @@ const AdminUsers = () => {
     setResults(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (!session) {
         toast.error("Você precisa estar logado para executar esta ação");
         return;
@@ -76,7 +75,7 @@ const AdminUsers = () => {
       }
 
       setResults(data.results);
-      
+
       const { created, updated, errors } = data.summary;
       toast.success(`Usuários provisionados: ${created} criados, ${updated} atualizados, ${errors} erros`);
     } catch (err) {
@@ -90,11 +89,23 @@ const AdminUsers = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "created":
-        return <Badge className="bg-green-500"><CheckCircle size={14} className="mr-1" /> Criado</Badge>;
+        return (
+          <Badge className="bg-green-500">
+            <CheckCircle size={14} className="mr-1" /> Criado
+          </Badge>
+        );
       case "updated":
-        return <Badge className="bg-blue-500"><CheckCircle size={14} className="mr-1" /> Atualizado</Badge>;
+        return (
+          <Badge className="bg-blue-500">
+            <CheckCircle size={14} className="mr-1" /> Atualizado
+          </Badge>
+        );
       case "error":
-        return <Badge className="bg-red-500"><XCircle size={14} className="mr-1" /> Erro</Badge>;
+        return (
+          <Badge className="bg-red-500">
+            <XCircle size={14} className="mr-1" /> Erro
+          </Badge>
+        );
       default:
         return <Badge>{status}</Badge>;
     }
@@ -108,7 +119,7 @@ const AdminUsers = () => {
     { om: "DEPSMRJ", login: "DEPSMRJ", senha: "DEPSMRJ01" },
     { om: "DEPSIMRJ", login: "DEPSIMRJ", senha: "DEPSIMRJ01" },
     { om: "DEPMSMRJ", login: "DEPMSMRJ", senha: "DEPMSMRJ01" },
-    { om: "DEPFMRJ", login: "DEPFMRJ", senha: "DEPFMRJ01" },
+    { om: ["DEPFMRJ", "CDU-BAMRJ", "CDU-1DN"], login: "DEPFMRJ", senha: "DEPFMRJ01" },
     { om: "CDU-BAMRJ", login: "CDU-BAMRJ", senha: "CDU-BAMRJ01" },
     { om: "CDU-1DN", login: "CDU-1DN", senha: "CDU-1DN01" },
   ];
@@ -119,7 +130,7 @@ const AdminUsers = () => {
         className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20"
         style={{ backgroundImage: `url(${backgroundImage})` }}
       />
-      
+
       <div className="relative z-10 max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
           <Button variant="outline" size="icon" onClick={() => navigate("/")}>
@@ -135,16 +146,12 @@ const AdminUsers = () => {
               Provisionar Usuários por OM
             </CardTitle>
             <CardDescription>
-              Cria ou atualiza usuários para cada Organização Militar com as credenciais padrão.
-              Cada OM terá acesso apenas aos seus próprios dados.
+              Cria ou atualiza usuários para cada Organização Militar com as credenciais padrão. Cada OM terá acesso
+              apenas aos seus próprios dados.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={handleProvisionUsers} 
-              disabled={loading}
-              className="mb-4"
-            >
+            <Button onClick={handleProvisionUsers} disabled={loading} className="mb-4">
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -172,9 +179,7 @@ const AdminUsers = () => {
                     <TableRow key={result.om}>
                       <TableCell className="font-medium">{result.om}</TableCell>
                       <TableCell>{getStatusBadge(result.status)}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {result.error || "-"}
-                      </TableCell>
+                      <TableCell className="text-muted-foreground">{result.error || "-"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -187,8 +192,8 @@ const AdminUsers = () => {
           <CardHeader>
             <CardTitle>Credenciais das OMs</CardTitle>
             <CardDescription>
-              Login e senha padrão para cada Organização Militar.
-              Além destas, COPAB e CSUPAB possuem níveis de acesso diferenciados.
+              Login e senha padrão para cada Organização Militar. Além destas, COPAB e CSUPAB possuem níveis de acesso
+              diferenciados.
             </CardDescription>
           </CardHeader>
           <CardContent>
