@@ -5,13 +5,45 @@ export interface UserAccess {
   allowedOMs: string[] | "all";
 }
 
+// All available OMs in the system
+export const ALL_OMS = [
+  "COPAB",
+  "CSUPAB",
+  "BAMRJ",
+  "CMM",
+  "DEPCMRJ",
+  "CDAM",
+  "DEPSMRJ",
+  "DEPSIMRJ",
+  "DEPMSMRJ",
+  "DEPFMRJ",
+  "CDU-BAMRJ",
+  "CDU-1DN",
+];
+
+// CSUPAB has access to specific OMs under its command
+const CSUPAB_OMS = ["CSUPAB", "DEPCMRJ", "DEPFMRJ", "DEPMSMRJ", "DEPSIMRJ", "DEPSMRJ"];
+
 export const USER_ACCESS_CONFIG: Record<string, UserAccess> = {
-  CSUPAB: {
-    allowedOMs: ["CSUPAB", "DEPCMRJ", "DEPFMRJ", "DEPMSMRJ", "DEPSIMRJ", "DEPSMRJ"],
-  },
+  // COPAB sees everything
   COPAB: {
     allowedOMs: "all",
   },
+  // CSUPAB sees its subordinate OMs
+  CSUPAB: {
+    allowedOMs: CSUPAB_OMS,
+  },
+  // Each individual OM only sees its own data
+  BAMRJ: { allowedOMs: ["BAMRJ"] },
+  CMM: { allowedOMs: ["CMM"] },
+  DEPCMRJ: { allowedOMs: ["DEPCMRJ"] },
+  CDAM: { allowedOMs: ["CDAM"] },
+  DEPSMRJ: { allowedOMs: ["DEPSMRJ"] },
+  DEPSIMRJ: { allowedOMs: ["DEPSIMRJ"] },
+  DEPMSMRJ: { allowedOMs: ["DEPMSMRJ"] },
+  DEPFMRJ: { allowedOMs: ["DEPFMRJ"] },
+  "CDU-BAMRJ": { allowedOMs: ["CDU-BAMRJ"] },
+  "CDU-1DN": { allowedOMs: ["CDU-1DN"] },
 };
 
 // Get user role from database

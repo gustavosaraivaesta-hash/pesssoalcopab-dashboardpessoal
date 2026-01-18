@@ -235,12 +235,29 @@ serve(async (req) => {
     // OMs allowed for CSUPAB role
     const csupabAllowedOMs = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
     
-    // Filter OMs based on user role
-    const allowedOMs = auth.role === 'CSUPAB' 
-      ? oms.filter(om => csupabAllowedOMs.has(om.name.toUpperCase()))
-      : oms;
+    // Get allowed OMs based on user role
+    function getAllowedOMsForRoleLocal(role: string): string[] | 'all' {
+      // COPAB sees everything
+      if (role === 'COPAB') return 'all';
+      
+      // CSUPAB sees specific OMs under its command
+      if (role === 'CSUPAB') return [...csupabAllowedOMs];
+      
+      // Individual OMs only see their own data
+      return [role];
+    }
     
-    console.log(`Processing ${allowedOMs.length} OMs for role ${auth.role}:`, allowedOMs.map(om => om.name).join(', '));
+    const roleAllowedOMs = getAllowedOMsForRoleLocal(auth.role);
+    
+    // Filter OMs based on user role
+    const allowedOMs = roleAllowedOMs === 'all'
+      ? oms
+      : oms.filter(om => {
+          const omUpper = om.name.toUpperCase();
+          return roleAllowedOMs.some(allowed => allowed.toUpperCase() === omUpper);
+        });
+    
+    console.log(`Role ${auth.role} has access to ${allowedOMs.length} OMs: ${allowedOMs.map(om => om.name).join(', ')}`);
     
     // Function to process sheet data
     const processSheetData = (sheetsData: any, categoria: "PRAÇAS" | "OFICIAIS") => {

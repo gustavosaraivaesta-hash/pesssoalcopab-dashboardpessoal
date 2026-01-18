@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent } from "lucide-react";
+import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
@@ -64,7 +64,7 @@ const detectChanges = (oldData: MilitaryData[], newData: MilitaryData[]): string
 
 const Index = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, role } = useAuth();
   const chartRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState({
     categoria: "TODOS" as "TODOS" | "PRAÇAS" | "OFICIAIS",
@@ -636,6 +636,16 @@ const Index = () => {
               <Button variant="secondary" onClick={handleManualRefresh} disabled={isRefreshing}>
                 <RefreshCw size={18} className={`mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
                 Atualizar
+              </Button>
+              {role === "COPAB" && (
+                <Button variant="secondary" onClick={() => navigate("/admin/users")}>
+                  <Settings size={18} className="mr-2" />
+                  Admin
+                </Button>
+              )}
+              <Button variant="destructive" onClick={handleLogout}>
+                <LogOut size={18} className="mr-2" />
+                Sair
               </Button>
             </div>
           </div>

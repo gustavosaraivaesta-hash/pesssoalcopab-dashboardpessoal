@@ -53,7 +53,19 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "CSUPAB" | "COPAB"
+      app_role:
+        | "COPAB"
+        | "CSUPAB"
+        | "BAMRJ"
+        | "CMM"
+        | "DEPCMRJ"
+        | "CDAM"
+        | "DEPSMRJ"
+        | "DEPSIMRJ"
+        | "DEPMSMRJ"
+        | "DEPFMRJ"
+        | "CDU-BAMRJ"
+        | "CDU-1DN"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -181,7 +193,20 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["CSUPAB", "COPAB"],
+      app_role: [
+        "COPAB",
+        "CSUPAB",
+        "BAMRJ",
+        "CMM",
+        "DEPCMRJ",
+        "CDAM",
+        "DEPSMRJ",
+        "DEPSIMRJ",
+        "DEPMSMRJ",
+        "DEPFMRJ",
+        "CDU-BAMRJ",
+        "CDU-1DN",
+      ],
     },
   },
 } as const
