@@ -6,8 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// All OMs that need user accounts
+// All OMs that need user accounts (including CSUPAB)
 const OMS_TO_PROVISION = [
+  "CSUPAB",
   "BAMRJ",
   "CMM",
   "DEPCMRJ",
