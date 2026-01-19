@@ -43,7 +43,19 @@ const AdminUsers = () => {
   const [creatingOm, setCreatingOm] = useState(false);
   const [deletingOm, setDeletingOm] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { role } = useAuth();
+  const { role, loading: authLoading } = useAuth();
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-muted-foreground">Verificando permissões...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Only COPAB can access this page
   if (role !== "COPAB") {
