@@ -37,8 +37,8 @@ async function authenticateRequest(req: Request): Promise<{ userId: string; role
   return { userId, role: roleData?.role || 'COPAB' };
 }
 
-// OMs allowed for CSUPAB role
-const CSUPAB_ALLOWED_OMS = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
+// OMs allowed for CSUPAB role (sem DEPCMRJ)
+const CSUPAB_ALLOWED_OMS = new Set(['CSUPAB', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
 
 // Get allowed OMs based on user role
 function getAllowedOMsForRole(role: string): string[] | 'all' {
@@ -47,6 +47,9 @@ function getAllowedOMsForRole(role: string): string[] | 'all' {
   
   // CSUPAB sees specific OMs under its command
   if (role === 'CSUPAB') return [...CSUPAB_ALLOWED_OMS];
+  
+  // DEPFMRJ também vê CDU-BAMRJ e CDU-1DN
+  if (role === 'DEPFMRJ') return ['DEPFMRJ', 'CDU-BAMRJ', 'CDU-1DN'];
   
   // Individual OMs only see their own data
   return [role];

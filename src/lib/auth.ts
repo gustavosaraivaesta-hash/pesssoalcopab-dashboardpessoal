@@ -21,8 +21,8 @@ export const ALL_OMS = [
   "CDU-1DN",
 ];
 
-// CSUPAB has access to specific OMs under its command
-const CSUPAB_OMS = ["CSUPAB", "DEPCMRJ", "DEPFMRJ", "DEPMSMRJ", "DEPSIMRJ", "DEPSMRJ"];
+// CSUPAB has access to specific OMs under its command (sem DEPCMRJ)
+const CSUPAB_OMS = ["CSUPAB", "DEPFMRJ", "DEPMSMRJ", "DEPSIMRJ", "DEPSMRJ"];
 
 export const USER_ACCESS_CONFIG: Record<string, UserAccess> = {
   // COPAB sees everything
@@ -41,7 +41,8 @@ export const USER_ACCESS_CONFIG: Record<string, UserAccess> = {
   DEPSMRJ: { allowedOMs: ["DEPSMRJ"] },
   DEPSIMRJ: { allowedOMs: ["DEPSIMRJ"] },
   DEPMSMRJ: { allowedOMs: ["DEPMSMRJ"] },
-  DEPFMRJ: { allowedOMs: ["DEPFMRJ"] },
+  // DEPFMRJ também vê CDU-BAMRJ e CDU-1DN
+  DEPFMRJ: { allowedOMs: ["DEPFMRJ", "CDU-BAMRJ", "CDU-1DN"] },
   "CDU-BAMRJ": { allowedOMs: ["CDU-BAMRJ"] },
   "CDU-1DN": { allowedOMs: ["CDU-1DN"] },
 };

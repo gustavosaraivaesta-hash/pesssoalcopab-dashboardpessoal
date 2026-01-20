@@ -232,8 +232,8 @@ serve(async (req) => {
       { name: 'CDU-1DN', startCol: 34 },
     ];
 
-    // OMs allowed for CSUPAB role
-    const csupabAllowedOMs = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
+    // OMs allowed for CSUPAB role (sem DEPCMRJ)
+    const csupabAllowedOMs = new Set(['CSUPAB', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
     
     // Get allowed OMs based on user role
     function getAllowedOMsForRoleLocal(role: string): string[] | 'all' {
@@ -242,6 +242,9 @@ serve(async (req) => {
       
       // CSUPAB sees specific OMs under its command
       if (role === 'CSUPAB') return [...csupabAllowedOMs];
+      
+      // DEPFMRJ também vê CDU-BAMRJ e CDU-1DN
+      if (role === 'DEPFMRJ') return ['DEPFMRJ', 'CDU-BAMRJ', 'CDU-1DN'];
       
       // Individual OMs only see their own data
       return [role];
@@ -314,8 +317,8 @@ serve(async (req) => {
     // Process PRAÇAS data (Page 2)
     processSheetData(sheetsDataPracas, "PRAÇAS");
     
-    // Override PRAÇAS values for CSUPAB OMs using Page 4 (gid=1141691969)
-    const csupabOms = ["CSupAb", "DepCMRJ", "DepFMRJ", "DepMSMRJ", "DepSIMRJ", "DepSMRJ"];
+    // Override PRAÇAS values for CSUPAB OMs using Page 4 (gid=1141691969) - sem DepCMRJ
+    const csupabOms = ["CSupAb", "DepFMRJ", "DepMSMRJ", "DepSIMRJ", "DepSMRJ"];
     const csupabOmsSet = new Set(csupabOms);
 
     if (csupabOmsData && csupabOmsData.table && csupabOmsData.table.rows) {
