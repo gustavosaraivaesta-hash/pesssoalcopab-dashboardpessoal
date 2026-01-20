@@ -237,14 +237,16 @@ serve(async (req) => {
     
     // Get allowed OMs based on user role
     function getAllowedOMsForRoleLocal(role: string): string[] | 'all' {
+      const roleUpper = role.toUpperCase();
+      
       // COPAB sees everything
-      if (role === 'COPAB') return 'all';
+      if (roleUpper === 'COPAB') return 'all';
       
       // CSUPAB sees specific OMs under its command
-      if (role === 'CSUPAB') return [...csupabAllowedOMs];
+      if (roleUpper === 'CSUPAB') return [...csupabAllowedOMs];
       
       // DEPFMRJ também vê CDU-BAMRJ e CDU-1DN
-      if (role === 'DEPFMRJ') return ['DEPFMRJ', 'CDU-BAMRJ', 'CDU-1DN'];
+      if (roleUpper === 'DEPFMRJ') return ['DEPFMRJ', 'CDU-BAMRJ', 'CDU-1DN'];
       
       // Individual OMs only see their own data
       return [role];
@@ -261,6 +263,7 @@ serve(async (req) => {
         });
     
     console.log(`Role ${auth.role} has access to ${allowedOMs.length} OMs: ${allowedOMs.map(om => om.name).join(', ')}`);
+    console.log(`roleAllowedOMs resolved to:`, roleAllowedOMs);
     
     // Function to process sheet data
     const processSheetData = (sheetsData: any, categoria: "PRAÇAS" | "OFICIAIS") => {
