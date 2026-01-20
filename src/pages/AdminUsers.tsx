@@ -45,6 +45,36 @@ const AdminUsers = () => {
   const navigate = useNavigate();
   const { role, loading: authLoading } = useAuth();
 
+  const fetchOmUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data, error } = await supabase.functions.invoke("manage-om", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: { action: "list", om: "all" },
+      });
+
+      if (error) {
+        console.error("Error fetching OM users:", error);
+        return;
+      }
+
+      setOmUsers(data?.users || []);
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    if (role === "COPAB" && !authLoading) {
+      fetchOmUsers();
+    }
+  }, [role, authLoading]);
+
   // Show loading while checking auth
   if (authLoading) {
     return (
@@ -82,34 +112,6 @@ const AdminUsers = () => {
       </div>
     );
   }
-
-  const fetchOmUsers = async () => {
-    setLoadingUsers(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const { data, error } = await supabase.functions.invoke("manage-om", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-        body: { action: "list", om: "all" },
-      });
-
-      if (error) {
-        console.error("Error fetching OM users:", error);
-        return;
-      }
-
-      setOmUsers(data.users || []);
-    } catch (err) {
-      console.error("Error:", err);
-    } finally {
-      setLoadingUsers(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOmUsers();
-  }, []);
 
   const handleProvisionUsers = async () => {
     setLoading(true);
