@@ -113,7 +113,7 @@ serve(async (req) => {
     ]);
     
     // Function to determine tipo (Praça ou Oficial)
-    function getTipoPessoal(graduacao: string): 'OFICIAL' | 'PRAÇA' | 'INDEFINIDO' {
+    function getTipoPessoal(graduacao: string, neo?: string): 'OFICIAL' | 'PRAÇA' | 'INDEFINIDO' {
       const gradUpper = graduacao.toUpperCase().trim();
       
       // Check if it's an oficial
@@ -130,12 +130,25 @@ serve(async (req) => {
         }
       }
       
-      // Additional heuristic: check for common patterns
+      // Additional heuristic: check for common patterns in graduação
       if (/^(CMG|CF|CC|CT|1T|2T|GM)/i.test(gradUpper)) {
         return 'OFICIAL';
       }
       if (/^(SO|1SG|2SG|3SG|CB|MN|SD)/i.test(gradUpper)) {
         return 'PRAÇA';
+      }
+      
+      // NEW: Try to infer from NEO (e.g., "3CAMCSupABADM01.01" contains "CAM" indicating Capitão = Oficial)
+      if (neo) {
+        const neoUpper = neo.toUpperCase();
+        // NEO patterns for OFICIAIS: CAM (Capitão), CMG, CF, CC, CT, 1T, 2T
+        if (/\d*(CAM|CMG|CF|CC|CT|1TEN|2TEN|1T|2T)/i.test(neoUpper)) {
+          return 'OFICIAL';
+        }
+        // NEO patterns for PRAÇAS: SO, SG, CB, MN
+        if (/\d*(SO|SG|1SG|2SG|3SG|CB|MN)/i.test(neoUpper)) {
+          return 'PRAÇA';
+        }
       }
       
       return 'INDEFINIDO';
@@ -275,11 +288,13 @@ serve(async (req) => {
           nomeCompleto.toUpperCase() === 'VAGA' ||
           nomeCompleto.toUpperCase().includes('VAGA ABERTA');
         
-        // Determine tipo: first try graduação, then fallback to current section
-        let tipo = getTipoPessoal(graduacao);
+        // Determine tipo: first try graduação + NEO, then fallback to current section
+        let tipo = getTipoPessoal(graduacao, neo);
         if (tipo === 'INDEFINIDO' && currentSection) {
           tipo = currentSection;
-          console.log(`${sheet.om} row ${i + 1}: Using section ${currentSection} for empty/unknown graduação "${graduacao}"`);
+          console.log(`${sheet.om} row ${i + 1}: Using section ${currentSection} for empty/unknown graduação "${graduacao}" (NEO: ${neo})`);
+        } else if (tipo !== 'INDEFINIDO' && graduacao === '') {
+          console.log(`${sheet.om} row ${i + 1}: Inferred tipo ${tipo} from NEO "${neo}"`);
         }
         
         transformedData.push({
