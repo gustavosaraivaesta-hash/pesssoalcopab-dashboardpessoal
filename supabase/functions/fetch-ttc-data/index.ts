@@ -141,8 +141,8 @@ serve(async (req) => {
       return 'INDEFINIDO';
     }
 
-    // OMs allowed for CSUPAB role
-    const csupabAllowedOMs = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
+    // OMs allowed for CSUPAB role (sem DEPCMRJ)
+    const csupabAllowedOMs = new Set(['CSUPAB', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
     
     // Get allowed OMs based on user role
     function getAllowedOMsForRole(role: string): string[] | 'all' {
@@ -151,6 +151,9 @@ serve(async (req) => {
       
       // CSUPAB sees specific OMs under its command
       if (role === 'CSUPAB') return [...csupabAllowedOMs];
+      
+      // DEPFMRJ também vê CDU-BAMRJ e CDU-1DN
+      if (role === 'DEPFMRJ') return ['DEPFMRJ', 'CDU-BAMRJ', 'CDU-1DN'];
       
       // Individual OMs only see their own data
       return [role];
