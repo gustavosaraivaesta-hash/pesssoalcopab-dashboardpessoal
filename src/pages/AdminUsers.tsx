@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Loader2, CheckCircle, XCircle, AlertCircle, Key, Plus, Trash2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Users, Loader2, CheckCircle, XCircle, AlertCircle, Key, Plus, Trash2, Eye, EyeOff, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,9 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { ALL_OMS } from "@/lib/auth";
 import backgroundImage from "@/assets/military-background.png";
 
 interface ProvisionResult {
@@ -25,6 +28,7 @@ interface OMUser {
   om: string;
   created_at: string;
   last_sign_in: string | null;
+  additional_oms: string[];
 }
 
 const AdminUsers = () => {
@@ -34,7 +38,10 @@ const AdminUsers = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [addOmDialogOpen, setAddOmDialogOpen] = useState(false);
+  const [additionalOmsDialogOpen, setAdditionalOmsDialogOpen] = useState(false);
   const [selectedOm, setSelectedOm] = useState<string>("");
+  const [selectedUser, setSelectedUser] = useState<OMUser | null>(null);
+  const [selectedAdditionalOms, setSelectedAdditionalOms] = useState<string[]>([]);
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [newOmName, setNewOmName] = useState("");
@@ -42,6 +49,7 @@ const AdminUsers = () => {
   const [updatingPassword, setUpdatingPassword] = useState(false);
   const [creatingOm, setCreatingOm] = useState(false);
   const [deletingOm, setDeletingOm] = useState<string | null>(null);
+  const [savingAdditionalOms, setSavingAdditionalOms] = useState(false);
   const navigate = useNavigate();
   const { role, loading: authLoading } = useAuth();
 
@@ -302,6 +310,66 @@ const AdminUsers = () => {
     setPasswordDialogOpen(true);
   };
 
+  const openAdditionalOmsDialog = (user: OMUser) => {
+    setSelectedUser(user);
+    setSelectedAdditionalOms(user.additional_oms || []);
+    setAdditionalOmsDialogOpen(true);
+  };
+
+  const handleToggleAdditionalOm = (om: string) => {
+    setSelectedAdditionalOms(prev => 
+      prev.includes(om) 
+        ? prev.filter(o => o !== om)
+        : [...prev, om]
+    );
+  };
+
+  const handleSaveAdditionalOms = async () => {
+    if (!selectedUser) return;
+
+    setSavingAdditionalOms(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Você precisa estar logado");
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("manage-om", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: { 
+          action: "set-additional-oms", 
+          userId: selectedUser.id, 
+          additionalOms: selectedAdditionalOms 
+        },
+      });
+
+      if (error) {
+        toast.error("Erro ao salvar OMs: " + error.message);
+        return;
+      }
+
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      toast.success("OMs adicionais atualizadas com sucesso!");
+      setAdditionalOmsDialogOpen(false);
+      fetchOmUsers();
+    } catch (err) {
+      console.error("Error:", err);
+      toast.error("Erro ao salvar OMs adicionais");
+    } finally {
+      setSavingAdditionalOms(false);
+    }
+  };
+
+  // Get available OMs to add (excluding the user's primary OM)
+  const getAvailableOmsForUser = (user: OMUser) => {
+    return ALL_OMS.filter(om => om !== user.om);
+  };
+
   return (
     <div className="min-h-screen p-4 relative">
       <div
@@ -439,6 +507,7 @@ const AdminUsers = () => {
                   <TableRow>
                     <TableHead>OM</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>OMs Adicionais</TableHead>
                     <TableHead>Último Login</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
@@ -448,6 +517,19 @@ const AdminUsers = () => {
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.om}</TableCell>
                       <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {user.additional_oms && user.additional_oms.length > 0 ? (
+                            user.additional_oms.map(om => (
+                              <Badge key={om} variant="secondary" className="text-xs">
+                                {om}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-muted-foreground">
                         {user.last_sign_in 
                           ? new Date(user.last_sign_in).toLocaleDateString('pt-BR', { 
@@ -464,10 +546,19 @@ const AdminUsers = () => {
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => openAdditionalOmsDialog(user)}
+                            title="Gerenciar OMs Adicionais"
+                          >
+                            <Settings className="h-4 w-4 mr-1" />
+                            OMs
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => openPasswordDialog(user.om)}
                           >
                             <Key className="h-4 w-4 mr-1" />
-                            Alterar Senha
+                            Senha
                           </Button>
                           <Button
                             variant="destructive"
@@ -487,7 +578,7 @@ const AdminUsers = () => {
                   ))}
                   {omUsers.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                         Nenhuma OM cadastrada. Clique em "Provisionar Usuários" para criar.
                       </TableCell>
                     </TableRow>
@@ -537,6 +628,59 @@ const AdminUsers = () => {
               <Button onClick={handleUpdatePassword} disabled={updatingPassword}>
                 {updatingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Key className="mr-2 h-4 w-4" />}
                 Atualizar Senha
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Additional OMs Dialog */}
+        <Dialog open={additionalOmsDialogOpen} onOpenChange={setAdditionalOmsDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Gerenciar OMs Adicionais - {selectedUser?.om}</DialogTitle>
+              <DialogDescription>
+                Selecione as OMs que este usuário pode visualizar além da sua OM principal.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Label className="text-sm font-medium mb-3 block">OMs disponíveis:</Label>
+              <ScrollArea className="h-[300px] border rounded-md p-3">
+                <div className="space-y-2">
+                  {selectedUser && getAvailableOmsForUser(selectedUser).map(om => (
+                    <div key={om} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`om-${om}`}
+                        checked={selectedAdditionalOms.includes(om)}
+                        onCheckedChange={() => handleToggleAdditionalOm(om)}
+                      />
+                      <label
+                        htmlFor={`om-${om}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {om}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+              {selectedAdditionalOms.length > 0 && (
+                <div className="mt-3">
+                  <Label className="text-sm text-muted-foreground">Selecionadas ({selectedAdditionalOms.length}):</Label>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {selectedAdditionalOms.map(om => (
+                      <Badge key={om} variant="secondary">{om}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAdditionalOmsDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveAdditionalOms} disabled={savingAdditionalOms}>
+                {savingAdditionalOms ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                Salvar
               </Button>
             </DialogFooter>
           </DialogContent>

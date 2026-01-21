@@ -59,19 +59,142 @@ serve(async (req) => {
       );
     }
 
-    const { action, om, password } = await req.json();
+    const { action, om, password, userId, additionalOms } = await req.json();
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Handle additional OMs management
+    if (action === 'add-additional-om') {
+      if (!userId || !om) {
+        return new Response(
+          JSON.stringify({ error: 'userId and om are required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { error: insertError } = await adminClient
+        .from('user_additional_oms')
+        .insert({ user_id: userId, om: om.toUpperCase() });
+
+      if (insertError) {
+        if (insertError.code === '23505') {
+          return new Response(
+            JSON.stringify({ error: `OM ${om} já está atribuída a este usuário` }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        return new Response(
+          JSON.stringify({ error: `Failed to add OM: ${insertError.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`Added additional OM ${om} to user ${userId}`);
+      return new Response(
+        JSON.stringify({ success: true, message: `OM ${om} adicionada com sucesso` }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+
+    if (action === 'remove-additional-om') {
+      if (!userId || !om) {
+        return new Response(
+          JSON.stringify({ error: 'userId and om are required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { error: deleteError } = await adminClient
+        .from('user_additional_oms')
+        .delete()
+        .eq('user_id', userId)
+        .eq('om', om.toUpperCase());
+
+      if (deleteError) {
+        return new Response(
+          JSON.stringify({ error: `Failed to remove OM: ${deleteError.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`Removed additional OM ${om} from user ${userId}`);
+      return new Response(
+        JSON.stringify({ success: true, message: `OM ${om} removida com sucesso` }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+
+    if (action === 'get-additional-oms') {
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: 'userId is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { data: oms, error: fetchError } = await adminClient
+        .from('user_additional_oms')
+        .select('om')
+        .eq('user_id', userId);
+
+      if (fetchError) {
+        return new Response(
+          JSON.stringify({ error: `Failed to fetch OMs: ${fetchError.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, additionalOms: oms?.map(o => o.om) || [] }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+
+    if (action === 'set-additional-oms') {
+      if (!userId || !Array.isArray(additionalOms)) {
+        return new Response(
+          JSON.stringify({ error: 'userId and additionalOms array are required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Delete all existing additional OMs for this user
+      await adminClient
+        .from('user_additional_oms')
+        .delete()
+        .eq('user_id', userId);
+
+      // Insert new additional OMs
+      if (additionalOms.length > 0) {
+        const { error: insertError } = await adminClient
+          .from('user_additional_oms')
+          .insert(additionalOms.map(om => ({ user_id: userId, om: om.toUpperCase() })));
+
+        if (insertError) {
+          return new Response(
+            JSON.stringify({ error: `Failed to set OMs: ${insertError.message}` }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
+      console.log(`Set additional OMs for user ${userId}: ${additionalOms.join(', ')}`);
+      return new Response(
+        JSON.stringify({ success: true, message: `OMs adicionais atualizadas com sucesso` }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+
+    // Original actions that require om parameter
     if (!action || !om) {
       return new Response(
         JSON.stringify({ error: 'Action and OM are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
     const email = `${om.toLowerCase().replace(/[^a-z0-9-]/g, '')}@copab.marinha.mil.br`;
     const defaultPassword = password || `${om.toUpperCase()}01`;
@@ -138,7 +261,13 @@ serve(async (req) => {
         );
       }
 
-      // Delete role first
+      // Delete additional OMs first
+      await adminClient
+        .from('user_additional_oms')
+        .delete()
+        .eq('user_id', existingUser.id);
+
+      // Delete role
       await adminClient
         .from('user_roles')
         .delete()
@@ -162,17 +291,32 @@ serve(async (req) => {
       );
 
     } else if (action === 'list') {
-      // List all OM users
+      // List all OM users with their additional OMs
       const { data: existingUsers } = await adminClient.auth.admin.listUsers();
-      const omUsers = existingUsers?.users?.filter(u => 
+      const omUsersList = existingUsers?.users?.filter(u => 
         u.email?.endsWith('@copab.marinha.mil.br')
-      ).map(u => ({
+      ) || [];
+
+      // Get additional OMs for all users
+      const { data: allAdditionalOms } = await adminClient
+        .from('user_additional_oms')
+        .select('user_id, om');
+
+      const additionalOmsMap = new Map<string, string[]>();
+      allAdditionalOms?.forEach(item => {
+        const existing = additionalOmsMap.get(item.user_id) || [];
+        existing.push(item.om);
+        additionalOmsMap.set(item.user_id, existing);
+      });
+
+      const omUsers = omUsersList.map(u => ({
         id: u.id,
         email: u.email,
         om: u.email?.split('@')[0].toUpperCase(),
         created_at: u.created_at,
         last_sign_in: u.last_sign_in_at,
-      })) || [];
+        additional_oms: additionalOmsMap.get(u.id) || [],
+      }));
 
       return new Response(
         JSON.stringify({ success: true, users: omUsers }),
@@ -181,7 +325,7 @@ serve(async (req) => {
 
     } else {
       return new Response(
-        JSON.stringify({ error: 'Invalid action. Use: create, delete, or list' }),
+        JSON.stringify({ error: 'Invalid action. Use: create, delete, list, add-additional-om, remove-additional-om, get-additional-oms, set-additional-oms' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
