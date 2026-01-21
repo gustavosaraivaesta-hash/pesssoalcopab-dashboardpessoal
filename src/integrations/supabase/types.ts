@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      user_additional_oms: {
+        Row: {
+          created_at: string
+          id: string
+          om: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          om: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          om?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -40,6 +61,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_allowed_oms: { Args: { _user_id: string }; Returns: string[] }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
