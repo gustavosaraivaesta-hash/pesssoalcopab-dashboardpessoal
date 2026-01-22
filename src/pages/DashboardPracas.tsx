@@ -146,6 +146,8 @@ const DashboardPracas = () => {
   const [selectedPostos, setSelectedPostos] = useState<string[]>([]);
   const [isUsingCache, setIsUsingCache] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [showNeoComparison, setShowNeoComparison] = useState(false);
+  const [neoComparisonFilter, setNeoComparisonFilter] = useState<"all" | "fora" | "na">("all");
   // selectedOMsForVagos is now used for both vagos list and top especialidades chart
 
   const chartRef = useRef<HTMLDivElement>(null);
@@ -366,8 +368,22 @@ const DashboardPracas = () => {
       );
     }
 
+    // Apply NEO comparison filter (Fora da NEO / Na NEO)
+    if (neoComparisonFilter !== "all" && selectedQuadros.length > 0 && statusFilter === "ocupados") {
+      filtered = filtered.filter((item) => {
+        const especialidadeTmft = (item.quadroTmft || "").trim().toUpperCase();
+        const especialidadeEfe = (item.quadroEfe || "").trim().toUpperCase();
+        if (neoComparisonFilter === "fora") {
+          return especialidadeTmft !== especialidadeEfe;
+        } else if (neoComparisonFilter === "na") {
+          return especialidadeTmft === especialidadeEfe;
+        }
+        return true;
+      });
+    }
+
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedQuadrosEfe, selectedOpcoes, statusFilter, showOnlyExtraLotacao, searchQuery]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedQuadrosEfe, selectedOpcoes, statusFilter, showOnlyExtraLotacao, searchQuery, neoComparisonFilter]);
 
   const toggleOM = (om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
@@ -393,10 +409,30 @@ const DashboardPracas = () => {
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
     setSearchQuery("");
+    setShowNeoComparison(false);
+    setNeoComparisonFilter("all");
   };
 
   const handleStatusCardClick = (status: "all" | "ocupados" | "vagos") => {
     setStatusFilter((prev) => (prev === status ? "all" : status));
+    // Reset NEO comparison when clicking on other status cards
+    if (status !== "ocupados") {
+      setShowNeoComparison(false);
+      setNeoComparisonFilter("all");
+    }
+  };
+
+  const handleEfetivoCardClick = () => {
+    // Toggle efetivo filter
+    setStatusFilter((prev) => (prev === "ocupados" ? "all" : "ocupados"));
+    
+    // Only show NEO comparison if especialidade TMFT is selected
+    if (selectedQuadros.length > 0) {
+      setShowNeoComparison((prev) => !prev || statusFilter !== "ocupados");
+    } else {
+      setShowNeoComparison(false);
+    }
+    setNeoComparisonFilter("all");
   };
 
   const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TTC"];
@@ -408,6 +444,19 @@ const DashboardPracas = () => {
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
     const totalExtraLotacao = filteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
+    
+    // Calculate "Fora da NEO" and "Na NEO" - only for occupied positions with TMFT specialty filter
+    const ocupados = regularData.filter((item) => item.ocupado);
+    const foraDaNeo = ocupados.filter((item) => {
+      const especialidadeTmft = (item.quadroTmft || "").trim().toUpperCase();
+      const especialidadeEfe = (item.quadroEfe || "").trim().toUpperCase();
+      return especialidadeTmft !== especialidadeEfe;
+    }).length;
+    const naNeo = ocupados.filter((item) => {
+      const especialidadeTmft = (item.quadroTmft || "").trim().toUpperCase();
+      const especialidadeEfe = (item.quadroEfe || "").trim().toUpperCase();
+      return especialidadeTmft === especialidadeEfe;
+    }).length;
 
     return {
       totalTMFT,
@@ -415,6 +464,8 @@ const DashboardPracas = () => {
       totalDIF,
       percentualPreenchimento,
       totalExtraLotacao,
+      foraDaNeo,
+      naNeo,
     };
   }, [filteredData]);
 
@@ -1358,14 +1409,16 @@ const DashboardPracas = () => {
 
           <Card
             className={`bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${statusFilter === "ocupados" ? "ring-2 ring-green-500 ring-offset-2" : ""}`}
-            onClick={() => handleStatusCardClick("ocupados")}
+            onClick={handleEfetivoCardClick}
           >
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">EFETIVO</p>
                   <p className="text-4xl font-bold text-green-900 dark:text-green-100">{metrics.totalEXI}</p>
-                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">Cargos ocupados</p>
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                    Cargos ocupados {selectedQuadros.length > 0 && "(Clique para ver Na/Fora da NEO)"}
+                  </p>
                 </div>
                 <UserCheck className="h-8 w-8 text-green-500" />
               </div>
@@ -1452,7 +1505,42 @@ const DashboardPracas = () => {
           </Card>
         </div>
 
-        {/* Vagos por OM */}
+        {/* Cards "Fora da NEO" e "Na NEO" - aparecem quando especialidade TMFT é filtrada e EFETIVO é clicado */}
+        {showNeoComparison && selectedQuadros.length > 0 && statusFilter === "ocupados" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card
+              className={`bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${neoComparisonFilter === "fora" ? "ring-2 ring-amber-500 ring-offset-2" : ""}`}
+              onClick={() => setNeoComparisonFilter((prev) => prev === "fora" ? "all" : "fora")}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-1">FORA DA NEO</p>
+                    <p className="text-4xl font-bold text-amber-900 dark:text-amber-100">{metrics.foraDaNeo}</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Especialidade TMFT ≠ EFETIVO</p>
+                  </div>
+                  <UserX className="h-8 w-8 text-amber-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              className={`bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 border-emerald-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${neoComparisonFilter === "na" ? "ring-2 ring-emerald-500 ring-offset-2" : ""}`}
+              onClick={() => setNeoComparisonFilter((prev) => prev === "na" ? "all" : "na")}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">NA NEO</p>
+                    <p className="text-4xl font-bold text-emerald-900 dark:text-emerald-100">{metrics.naNeo}</p>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">Especialidade TMFT = EFETIVO</p>
+                  </div>
+                  <UserCheck className="h-8 w-8 text-emerald-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
         <Card className="border-red-200 bg-gradient-to-br from-red-50/50 to-background" data-chart="vagas-om">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-700">
