@@ -27,7 +27,19 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList, Legend, Brush } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  LabelList,
+  Legend,
+  Brush,
+} from "recharts";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
@@ -152,7 +164,7 @@ const DashboardPracas = () => {
   // selectedOMsForVagos is now used for both vagos list and top especialidades chart
 
   const chartRef = useRef<HTMLDivElement>(null);
-  
+
   const { getFromCache, saveToCache, getCacheTimestamp } = useOfflineCache<{
     data: PersonnelRecord[];
     desembarque: DesembarqueRecord[];
@@ -163,7 +175,7 @@ const DashboardPracas = () => {
     concurso: CursoRecord[];
     quadros: string[];
     lastUpdate: string;
-  }>('pracas_data');
+  }>("pracas_data");
 
   const loadFromCache = () => {
     const cachedData = getFromCache();
@@ -173,7 +185,7 @@ const DashboardPracas = () => {
         if (allowedOMs === "all") return arr;
         return arr.filter((item: any) => allowedOMs.includes(item.om));
       };
-      
+
       const data = filterByOM(cachedData.data || []) as PersonnelRecord[];
       setPersonnelData(data);
       setDesembarqueData(filterByOM(cachedData.desembarque || []) as DesembarqueRecord[]);
@@ -182,19 +194,31 @@ const DashboardPracas = () => {
       setLicencasData(filterByOM(cachedData.licencas || []) as LicencaRecord[]);
       setDestaquesData(filterByOM(cachedData.destaques || []) as DestaqueRecord[]);
       setCursoData(filterByOM(cachedData.concurso || []) as CursoRecord[]);
-      
+
       const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
       const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
       // Extrair especialidades TMFT diretamente dos dados em cache
-      const quadrosFromData = [...new Set(data.map((item: any) => item.quadroTmft).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"))];
+      const quadrosFromData = [
+        ...new Set(
+          data
+            .map((item: any) => item.quadroTmft)
+            .filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"),
+        ),
+      ];
       // Extrair especialidades EFETIVO diretamente dos dados em cache
-      const quadrosEfeFromData = [...new Set(data.map((item: any) => item.quadroEfe).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"))];
-      
+      const quadrosEfeFromData = [
+        ...new Set(
+          data
+            .map((item: any) => item.quadroEfe)
+            .filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"),
+        ),
+      ];
+
       setAvailableOMs(getAvailableOMsForUser(oms as string[]));
       setAvailableQuadros(quadrosFromData as string[]);
       setAvailableQuadrosEfe(quadrosEfeFromData as string[]);
       setAvailableOpcoes(opcoes as string[]);
-      
+
       const cacheTime = getCacheTimestamp();
       setLastUpdate(cacheTime ? cacheTime.toLocaleString("pt-BR") : "Cache");
       setIsUsingCache(true);
@@ -206,9 +230,7 @@ const DashboardPracas = () => {
   const invokeFunction = async <T,>(name: string, ms = 25000) => {
     return await Promise.race([
       supabase.functions.invoke<T>(name),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(`Timeout ao chamar ${name}`)), ms),
-      ),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`Timeout ao chamar ${name}`)), ms)),
     ]);
   };
 
@@ -245,7 +267,7 @@ const DashboardPracas = () => {
 
       if (result) {
         console.log("Received PRAÇAS data:", result);
-        
+
         // Save raw data to cache before filtering
         saveToCache({
           data: result.data || [],
@@ -259,30 +281,30 @@ const DashboardPracas = () => {
           lastUpdate: result.lastUpdate || new Date().toLocaleTimeString("pt-BR"),
         });
         setIsUsingCache(false);
-        
+
         // Apply user access filtering
         const allowedOMs = getAllowedOMs();
         console.log("DashboardPracas - allowedOMs:", allowedOMs);
-        
+
         const rawData = result.data || [];
         console.log("DashboardPracas - rawData count:", rawData.length);
         console.log("DashboardPracas - unique OMs in data:", [...new Set(rawData.map((item: any) => item.om))]);
-        
+
         const filterByOM = (arr: any[]): any[] => {
           if (allowedOMs === "all") return arr;
           return arr.filter((item: any) => allowedOMs.includes(item.om));
         };
-        
+
         const data = filterByOM(rawData) as PersonnelRecord[];
         console.log("DashboardPracas - filtered data count:", data.length);
-        
+
         const desembarque = filterByOM(result.desembarque || []) as DesembarqueRecord[];
         const embarque = filterByOM(result.embarque || []) as DesembarqueRecord[];
         const trrm = filterByOM(result.trrm || []) as TrrmRecord[];
         const licencas = filterByOM(result.licencas || []) as LicencaRecord[];
         const destaques = filterByOM(result.destaques || []) as DestaqueRecord[];
         const curso = filterByOM(result.concurso || []) as CursoRecord[];
-        
+
         setPersonnelData(data);
         setDesembarqueData(desembarque);
         setEmbarqueData(embarque);
@@ -297,10 +319,22 @@ const DashboardPracas = () => {
 
         setAvailableOMs(getAvailableOMsForUser(oms as string[]));
         // Extrair especialidades TMFT diretamente dos dados atuais da planilha
-        const quadrosFromData = [...new Set(data.map((item: any) => item.quadroTmft).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"))];
+        const quadrosFromData = [
+          ...new Set(
+            data
+              .map((item: any) => item.quadroTmft)
+              .filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"),
+          ),
+        ];
         setAvailableQuadros(quadrosFromData as string[]);
         // Extrair especialidades EFETIVO diretamente dos dados atuais da planilha
-        const quadrosEfeFromData = [...new Set(data.map((item: any) => item.quadroEfe).filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"))];
+        const quadrosEfeFromData = [
+          ...new Set(
+            data
+              .map((item: any) => item.quadroEfe)
+              .filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"),
+          ),
+        ];
         setAvailableQuadrosEfe(quadrosEfeFromData as string[]);
         setAvailableOpcoes(opcoes as string[]);
         setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
@@ -358,19 +392,29 @@ const DashboardPracas = () => {
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter((item) => 
-        item.nome?.toLowerCase().includes(query) ||
-        item.cargo?.toLowerCase().includes(query) ||
-        item.setor?.toLowerCase().includes(query) ||
-        item.postoTmft?.toLowerCase().includes(query) ||
-        item.postoEfe?.toLowerCase().includes(query) ||
-        item.quadroTmft?.toLowerCase().includes(query) ||
-        item.quadroEfe?.toLowerCase().includes(query)
+      filtered = filtered.filter(
+        (item) =>
+          item.nome?.toLowerCase().includes(query) ||
+          item.cargo?.toLowerCase().includes(query) ||
+          item.setor?.toLowerCase().includes(query) ||
+          item.postoTmft?.toLowerCase().includes(query) ||
+          item.postoEfe?.toLowerCase().includes(query) ||
+          item.quadroTmft?.toLowerCase().includes(query) ||
+          item.quadroEfe?.toLowerCase().includes(query),
       );
     }
 
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedQuadrosEfe, selectedOpcoes, statusFilter, showOnlyExtraLotacao, searchQuery]);
+  }, [
+    personnelData,
+    selectedOMs,
+    selectedQuadros,
+    selectedQuadrosEfe,
+    selectedOpcoes,
+    statusFilter,
+    showOnlyExtraLotacao,
+    searchQuery,
+  ]);
 
   const toggleOM = (om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
@@ -414,7 +458,7 @@ const DashboardPracas = () => {
   const handleEfetivoCardClick = () => {
     // Toggle efetivo filter
     setStatusFilter((prev) => (prev === "ocupados" ? "all" : "ocupados"));
-    
+
     // Show NEO comparison if especialidade TMFT OR especialidade EFETIVO is selected
     if (selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0) {
       setShowNeoComparison((prev) => !prev || statusFilter !== "ocupados");
@@ -428,41 +472,42 @@ const DashboardPracas = () => {
   // Personnel for "Fora da NEO" and "Na NEO" cards - independent from main filters
   const neoComparisonPersonnel = useMemo(() => {
     if (!showNeoPersonnel || (selectedQuadros.length === 0 && selectedQuadrosEfe.length === 0)) return [];
-    
+
     // Filter from base data with current filters applied, but always show ocupados
     let baseData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
-    
+
     if (selectedOMs.length > 0) {
       baseData = baseData.filter((item) => selectedOMs.includes(item.om));
     }
-    
+
     // Apply especialidade TMFT filter if selected
     if (selectedQuadros.length > 0) {
       baseData = baseData.filter((item) => selectedQuadros.includes(item.quadroTmft));
     }
-    
+
     // Apply especialidade EFETIVO filter if selected
     if (selectedQuadrosEfe.length > 0) {
       baseData = baseData.filter((item) => selectedQuadrosEfe.includes(item.quadroEfe));
     }
-    
+
     if (selectedOpcoes.length > 0) {
       baseData = baseData.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
     }
-    
+
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      baseData = baseData.filter((item) => 
-        item.nome?.toLowerCase().includes(query) ||
-        item.cargo?.toLowerCase().includes(query) ||
-        item.setor?.toLowerCase().includes(query) ||
-        item.postoTmft?.toLowerCase().includes(query) ||
-        item.postoEfe?.toLowerCase().includes(query) ||
-        item.quadroTmft?.toLowerCase().includes(query) ||
-        item.quadroEfe?.toLowerCase().includes(query)
+      baseData = baseData.filter(
+        (item) =>
+          item.nome?.toLowerCase().includes(query) ||
+          item.cargo?.toLowerCase().includes(query) ||
+          item.setor?.toLowerCase().includes(query) ||
+          item.postoTmft?.toLowerCase().includes(query) ||
+          item.postoEfe?.toLowerCase().includes(query) ||
+          item.quadroTmft?.toLowerCase().includes(query) ||
+          item.quadroEfe?.toLowerCase().includes(query),
       );
     }
-    
+
     return baseData.filter((item) => {
       const especialidadeTmft = (item.quadroTmft || "").trim().toUpperCase();
       const especialidadeEfe = (item.quadroEfe || "").trim().toUpperCase();
@@ -483,7 +528,7 @@ const DashboardPracas = () => {
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
     const totalExtraLotacao = filteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
-    
+
     // Calculate "Fora da NEO" and "Na NEO" - only for occupied positions with TMFT specialty filter
     const ocupados = regularData.filter((item) => item.ocupado);
     const foraDaNeo = ocupados.filter((item) => {
@@ -716,9 +761,7 @@ const DashboardPracas = () => {
   const topEspecialidadesVagos = useMemo(() => {
     if (selectedOMsForVagos.length === 0) return [];
 
-    const vagosData = baseFilteredForVagos.filter(
-      (item) => selectedOMsForVagos.includes(item.om) && !item.ocupado
-    );
+    const vagosData = baseFilteredForVagos.filter((item) => selectedOMsForVagos.includes(item.om) && !item.ocupado);
 
     // Agrupar por especialidade (quadroTmft)
     const grouped = vagosData.reduce(
@@ -730,7 +773,7 @@ const DashboardPracas = () => {
         acc[especialidade].vagos += 1;
         return acc;
       },
-      {} as Record<string, { especialidade: string; vagos: number }>
+      {} as Record<string, { especialidade: string; vagos: number }>,
     );
 
     // Ordenar por quantidade de vagos e pegar top 5
@@ -745,7 +788,7 @@ const DashboardPracas = () => {
   const handlePostoTmftClick = (data: any) => {
     if (data && data.name) {
       const isAlreadySelected = selectedPostos.includes(data.name) && selectedPostoType === "tmft";
-      
+
       if (isAlreadySelected) {
         setSelectedPostos((prev) => prev.filter((p) => p !== data.name));
         setSelectedPostoType(null);
@@ -759,7 +802,7 @@ const DashboardPracas = () => {
   const handlePostoEfeClick = (data: any) => {
     if (data && data.name) {
       const isAlreadySelected = selectedPostos.includes(data.name) && selectedPostoType === "efe";
-      
+
       if (isAlreadySelected) {
         setSelectedPostos((prev) => prev.filter((p) => p !== data.name));
         setSelectedPostoType(null);
@@ -969,12 +1012,12 @@ const DashboardPracas = () => {
           headStyles: { fillColor: [41, 128, 185], textColor: 255 },
           margin: { left: 14, right: 14 },
           didParseCell: (data) => {
-            if (data.section === 'body') {
+            if (data.section === "body") {
               const nome = data.row.raw?.[5];
               const setor = data.row.raw?.[1];
               const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
               const setorStr = setor ? setor.toString().trim().toUpperCase() : "";
-              
+
               // Destaque amarelo para EXTRA LOTAÇÃO
               if (setorStr.includes("EXTRA LOTA") || setorStr === "EXTRA LOTAÇÃO") {
                 data.cell.styles.fillColor = [254, 240, 138];
@@ -984,6 +1027,9 @@ const DashboardPracas = () => {
               else if (!nome || nome === "VAGO" || nome === "-" || nomeStr === "" || nomeStr === "VAZIO") {
                 data.cell.styles.fillColor = [254, 202, 202];
                 data.cell.styles.textColor = [127, 29, 29];
+              } else if (tmft && efetivo && tmft !== efetivo) {
+                data.cell.styles.fillColor = [253, 186, 116]; // laranja
+                data.cell.styles.textColor = [124, 45, 18];
               }
             }
           },
@@ -999,7 +1045,7 @@ const DashboardPracas = () => {
       if (filteredDesembarque.length > 0) {
         yPosition += 8;
         yPosition = checkNewPage(yPosition, 30);
-        
+
         pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("PREVISÃO DE DESEMBARQUE", pageWidth / 2, yPosition, { align: "center" });
@@ -1011,7 +1057,7 @@ const DashboardPracas = () => {
 
           const estimatedHeight = 15 + omDesembarque.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
-          
+
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
           pdf.text(om, 14, yPosition);
@@ -1044,7 +1090,7 @@ const DashboardPracas = () => {
       if (filteredTrrm.length > 0) {
         yPosition += 8;
         yPosition = checkNewPage(yPosition, 30);
-        
+
         pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("PREVISÃO DE TRRM", pageWidth / 2, yPosition, { align: "center" });
@@ -1056,7 +1102,7 @@ const DashboardPracas = () => {
 
           const estimatedHeight = 15 + omTrrm.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
-          
+
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
           pdf.text(om, 14, yPosition);
@@ -1087,7 +1133,7 @@ const DashboardPracas = () => {
       if (filteredLicencas.length > 0) {
         yPosition += 8;
         yPosition = checkNewPage(yPosition, 30);
-        
+
         pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("LICENÇAS", pageWidth / 2, yPosition, { align: "center" });
@@ -1099,7 +1145,7 @@ const DashboardPracas = () => {
 
           const estimatedHeight = 15 + omLicencas.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
-          
+
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
           pdf.text(om, 14, yPosition);
@@ -1130,7 +1176,7 @@ const DashboardPracas = () => {
       if (filteredDestaques.length > 0) {
         yPosition += 8;
         yPosition = checkNewPage(yPosition, 30);
-        
+
         pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("DESTAQUES", pageWidth / 2, yPosition, { align: "center" });
@@ -1142,7 +1188,7 @@ const DashboardPracas = () => {
 
           const estimatedHeight = 15 + omDestaques.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
-          
+
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
           pdf.text(om, 14, yPosition);
@@ -1175,7 +1221,7 @@ const DashboardPracas = () => {
       if (filteredCurso.length > 0) {
         yPosition += 8;
         yPosition = checkNewPage(yPosition, 30);
-        
+
         pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
         pdf.text("PREVISÃO DE CURSO", pageWidth / 2, yPosition, { align: "center" });
@@ -1187,7 +1233,7 @@ const DashboardPracas = () => {
 
           const estimatedHeight = 15 + omCurso.length * 4;
           yPosition = checkNewPage(yPosition, estimatedHeight);
-          
+
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
           pdf.text(om, 14, yPosition);
@@ -1293,7 +1339,11 @@ const DashboardPracas = () => {
                 Filtros
               </h3>
               <div className="flex items-center gap-2">
-                {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0 || selectedOpcoes.length > 0 || searchQuery) && (
+                {(selectedOMs.length > 0 ||
+                  selectedQuadros.length > 0 ||
+                  selectedQuadrosEfe.length > 0 ||
+                  selectedOpcoes.length > 0 ||
+                  searchQuery) && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     Limpar Filtros
                   </Button>
@@ -1456,7 +1506,9 @@ const DashboardPracas = () => {
                   <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">EFETIVO</p>
                   <p className="text-4xl font-bold text-green-900 dark:text-green-100">{metrics.totalEXI}</p>
                   <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                    Cargos ocupados {(selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0) && "(Clique para ver Na/Fora da NEO)"}
+                    Cargos ocupados{" "}
+                    {(selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0) &&
+                      "(Clique para ver Na/Fora da NEO)"}
                   </p>
                 </div>
                 <UserCheck className="h-8 w-8 text-green-500" />
@@ -1480,49 +1532,61 @@ const DashboardPracas = () => {
             </CardContent>
           </Card>
 
-          <Card className={`bg-gradient-to-br ${
-            metrics.percentualPreenchimento >= 90 
-              ? "from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200" 
-              : metrics.percentualPreenchimento >= 70 
-                ? "from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200"
-                : "from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200"
-          }`}>
+          <Card
+            className={`bg-gradient-to-br ${
+              metrics.percentualPreenchimento >= 90
+                ? "from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200"
+                : metrics.percentualPreenchimento >= 70
+                  ? "from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200"
+                  : "from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200"
+            }`}
+          >
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className={`text-sm font-medium mb-1 ${
-                    metrics.percentualPreenchimento >= 90 
-                      ? "text-green-700 dark:text-green-300" 
-                      : metrics.percentualPreenchimento >= 70 
-                        ? "text-amber-700 dark:text-amber-300"
-                        : "text-red-700 dark:text-red-300"
-                  }`}>ATENDIMENTO</p>
-                  <p className={`text-4xl font-bold ${
-                    metrics.percentualPreenchimento >= 90 
-                      ? "text-green-900 dark:text-green-100" 
-                      : metrics.percentualPreenchimento >= 70 
-                        ? "text-amber-900 dark:text-amber-100"
-                        : "text-red-900 dark:text-red-100"
-                  }`}>
+                  <p
+                    className={`text-sm font-medium mb-1 ${
+                      metrics.percentualPreenchimento >= 90
+                        ? "text-green-700 dark:text-green-300"
+                        : metrics.percentualPreenchimento >= 70
+                          ? "text-amber-700 dark:text-amber-300"
+                          : "text-red-700 dark:text-red-300"
+                    }`}
+                  >
+                    ATENDIMENTO
+                  </p>
+                  <p
+                    className={`text-4xl font-bold ${
+                      metrics.percentualPreenchimento >= 90
+                        ? "text-green-900 dark:text-green-100"
+                        : metrics.percentualPreenchimento >= 70
+                          ? "text-amber-900 dark:text-amber-100"
+                          : "text-red-900 dark:text-red-100"
+                    }`}
+                  >
                     {metrics.percentualPreenchimento.toFixed(0)}%
                   </p>
-                  <p className={`text-xs mt-1 ${
-                    metrics.percentualPreenchimento >= 90 
-                      ? "text-green-600 dark:text-green-400" 
-                      : metrics.percentualPreenchimento >= 70 
-                        ? "text-amber-600 dark:text-amber-400"
-                        : "text-red-600 dark:text-red-400"
-                  }`}>
+                  <p
+                    className={`text-xs mt-1 ${
+                      metrics.percentualPreenchimento >= 90
+                        ? "text-green-600 dark:text-green-400"
+                        : metrics.percentualPreenchimento >= 70
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-red-600 dark:text-red-400"
+                    }`}
+                  >
                     Situação: {metrics.totalDIF < 0 ? metrics.totalDIF : `+${metrics.totalDIF}`}
                   </p>
                 </div>
-                <TrendingUp className={`h-8 w-8 ${
-                  metrics.percentualPreenchimento >= 90 
-                    ? "text-green-500" 
-                    : metrics.percentualPreenchimento >= 70 
-                      ? "text-amber-500"
-                      : "text-red-500"
-                }`} />
+                <TrendingUp
+                  className={`h-8 w-8 ${
+                    metrics.percentualPreenchimento >= 90
+                      ? "text-green-500"
+                      : metrics.percentualPreenchimento >= 70
+                        ? "text-amber-500"
+                        : "text-red-500"
+                  }`}
+                />
               </div>
             </CardContent>
           </Card>
@@ -1545,48 +1609,56 @@ const DashboardPracas = () => {
         </div>
 
         {/* Cards "Fora da NEO" e "Na NEO" - aparecem quando especialidade TMFT ou EFETIVO é filtrada e EFETIVO é clicado */}
-        {showNeoComparison && (selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0) && statusFilter === "ocupados" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card
-              className={`bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${showNeoPersonnel === "fora" ? "ring-2 ring-amber-500 ring-offset-2" : ""}`}
-              onClick={() => setShowNeoPersonnel((prev) => prev === "fora" ? null : "fora")}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-1">FORA DA NEO</p>
-                    <p className="text-4xl font-bold text-amber-900 dark:text-amber-100">{metrics.foraDaNeo}</p>
-                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Especialidade TMFT ≠ EFETIVO</p>
+        {showNeoComparison &&
+          (selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0) &&
+          statusFilter === "ocupados" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card
+                className={`bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${showNeoPersonnel === "fora" ? "ring-2 ring-amber-500 ring-offset-2" : ""}`}
+                onClick={() => setShowNeoPersonnel((prev) => (prev === "fora" ? null : "fora"))}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-1">FORA DA NEO</p>
+                      <p className="text-4xl font-bold text-amber-900 dark:text-amber-100">{metrics.foraDaNeo}</p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Especialidade TMFT ≠ EFETIVO</p>
+                    </div>
+                    <UserX className="h-8 w-8 text-amber-500" />
                   </div>
-                  <UserX className="h-8 w-8 text-amber-500" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card
-              className={`bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 border-emerald-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${showNeoPersonnel === "na" ? "ring-2 ring-emerald-500 ring-offset-2" : ""}`}
-              onClick={() => setShowNeoPersonnel((prev) => prev === "na" ? null : "na")}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">NA NEO</p>
-                    <p className="text-4xl font-bold text-emerald-900 dark:text-emerald-100">{metrics.naNeo}</p>
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">Especialidade TMFT = EFETIVO</p>
+              <Card
+                className={`bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 border-emerald-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${showNeoPersonnel === "na" ? "ring-2 ring-emerald-500 ring-offset-2" : ""}`}
+                onClick={() => setShowNeoPersonnel((prev) => (prev === "na" ? null : "na"))}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">NA NEO</p>
+                      <p className="text-4xl font-bold text-emerald-900 dark:text-emerald-100">{metrics.naNeo}</p>
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                        Especialidade TMFT = EFETIVO
+                      </p>
+                    </div>
+                    <UserCheck className="h-8 w-8 text-emerald-500" />
                   </div>
-                  <UserCheck className="h-8 w-8 text-emerald-500" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
         {/* Lista de militares Fora da NEO ou Na NEO */}
         {showNeoPersonnel && neoComparisonPersonnel.length > 0 && (
-          <Card className={`border-2 ${showNeoPersonnel === "fora" ? "border-amber-300 bg-gradient-to-br from-amber-50/50 to-background" : "border-emerald-300 bg-gradient-to-br from-emerald-50/50 to-background"}`}>
+          <Card
+            className={`border-2 ${showNeoPersonnel === "fora" ? "border-amber-300 bg-gradient-to-br from-amber-50/50 to-background" : "border-emerald-300 bg-gradient-to-br from-emerald-50/50 to-background"}`}
+          >
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className={`flex items-center gap-2 ${showNeoPersonnel === "fora" ? "text-amber-700" : "text-emerald-700"}`}>
+                <CardTitle
+                  className={`flex items-center gap-2 ${showNeoPersonnel === "fora" ? "text-amber-700" : "text-emerald-700"}`}
+                >
                   {showNeoPersonnel === "fora" ? <UserX className="h-5 w-5" /> : <UserCheck className="h-5 w-5" />}
                   {showNeoPersonnel === "fora" ? "Militares FORA DA NEO" : "Militares NA NEO"}
                   <Badge variant="outline" className="ml-2">
@@ -1603,10 +1675,24 @@ const DashboardPracas = () => {
                 {neoComparisonPersonnel.map((item, index) => {
                   const formatMilitarName = () => {
                     if (!item.nome || item.nome.toUpperCase() === "VAGO") return "VAGO";
-                    const grad = String(item.postoEfe || item.postoTmft || "").trim().toUpperCase().replace(/^-+$/, "").replace(/-+$/g, "");
-                    const esp = String(item.quadroEfe || item.quadroTmft || "").trim().toUpperCase().replace(/^-+$/, "").replace(/^-+|-+$/g, "");
-                    const nomeCompleto = String(item.nome || "").trim().toUpperCase();
-                    const isValidEsp = esp && grad !== "MN" && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
+                    const grad = String(item.postoEfe || item.postoTmft || "")
+                      .trim()
+                      .toUpperCase()
+                      .replace(/^-+$/, "")
+                      .replace(/-+$/g, "");
+                    const esp = String(item.quadroEfe || item.quadroTmft || "")
+                      .trim()
+                      .toUpperCase()
+                      .replace(/^-+$/, "")
+                      .replace(/^-+|-+$/g, "");
+                    const nomeCompleto = String(item.nome || "")
+                      .trim()
+                      .toUpperCase();
+                    const isValidEsp =
+                      esp &&
+                      grad !== "MN" &&
+                      esp !== "-" &&
+                      !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
                     if (!grad) return nomeCompleto;
                     return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}`;
                   };
@@ -1634,7 +1720,9 @@ const DashboardPracas = () => {
                           {item.om}
                         </Badge>
                       </div>
-                      <p className={`font-semibold text-sm uppercase ${showNeoPersonnel === "fora" ? "text-amber-800" : "text-emerald-800"}`}>
+                      <p
+                        className={`font-semibold text-sm uppercase ${showNeoPersonnel === "fora" ? "text-amber-800" : "text-emerald-800"}`}
+                      >
                         {formatMilitarName()}
                       </p>
                       <p className="text-xs text-muted-foreground">{item.cargo}</p>
@@ -1671,7 +1759,11 @@ const DashboardPracas = () => {
                   onClick={(e) => e && e.activePayload && handleVagosBarClick(e.activePayload[0]?.payload)}
                 >
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis type="number" className="text-xs" domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]} />
+                  <XAxis
+                    type="number"
+                    className="text-xs"
+                    domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]}
+                  />
                   <YAxis dataKey="om" type="category" className="text-xs" width={120} />
                   <Tooltip
                     formatter={(value: number, name: string) => [value, name === "vagos" ? "Vagos" : name]}
@@ -1770,7 +1862,11 @@ const DashboardPracas = () => {
                     contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
                   />
                   <Bar dataKey="vagos" name="NEO Vagos" fill="#f97316" radius={[0, 4, 4, 0]}>
-                    <LabelList dataKey="vagos" position="right" style={{ fontWeight: "bold", fontSize: "12px", fill: "#c2410c" }} />
+                    <LabelList
+                      dataKey="vagos"
+                      position="right"
+                      style={{ fontWeight: "bold", fontSize: "12px", fill: "#c2410c" }}
+                    />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -1797,20 +1893,20 @@ const DashboardPracas = () => {
                 />
                 <Tooltip
                   formatter={(value: number, name: string) => [value, name === "tmft" ? "TMFT" : "Efetivo"]}
-                  contentStyle={{ 
-                    backgroundColor: "hsl(var(--card))", 
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
                     border: "1px solid hsl(var(--border))",
                     borderRadius: "8px",
-                    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)"
+                    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
                   }}
                   labelStyle={{ fontWeight: "bold", marginBottom: "4px" }}
                 />
                 <Legend wrapperStyle={{ paddingTop: "10px" }} />
-                <Bar 
-                  dataKey="tmft" 
-                  name="TMFT" 
-                  fill="#93c5fd" 
-                  cursor="pointer" 
+                <Bar
+                  dataKey="tmft"
+                  name="TMFT"
+                  fill="#93c5fd"
+                  cursor="pointer"
                   onClick={handlePostoTmftClick}
                   minPointSize={8}
                   radius={[4, 4, 0, 0]}
@@ -1819,14 +1915,14 @@ const DashboardPracas = () => {
                     dataKey="tmft"
                     position="top"
                     style={{ fontWeight: "bold", fontSize: "11px", fill: "#1e40af" }}
-                    formatter={(value: number) => value > 0 ? value : ""}
+                    formatter={(value: number) => (value > 0 ? value : "")}
                   />
                 </Bar>
-                <Bar 
-                  dataKey="efe" 
-                  name="EFE" 
-                  fill="#ef4444" 
-                  cursor="pointer" 
+                <Bar
+                  dataKey="efe"
+                  name="EFE"
+                  fill="#ef4444"
+                  cursor="pointer"
                   onClick={handlePostoEfeClick}
                   minPointSize={8}
                   radius={[4, 4, 0, 0]}
@@ -1835,12 +1931,12 @@ const DashboardPracas = () => {
                     dataKey="efe"
                     position="top"
                     style={{ fontWeight: "bold", fontSize: "11px", fill: "#b91c1c" }}
-                    formatter={(value: number) => value > 0 ? value : ""}
+                    formatter={(value: number) => (value > 0 ? value : "")}
                   />
                 </Bar>
-                <Brush 
-                  dataKey="name" 
-                  height={30} 
+                <Brush
+                  dataKey="name"
+                  height={30}
                   stroke="hsl(var(--primary))"
                   fill="hsl(var(--muted))"
                   travellerWidth={10}
@@ -1872,20 +1968,21 @@ const DashboardPracas = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {personnelForSelectedPostos.map((item, index) => {
-                  const itemGraduacao =
-                    selectedPostoType === "efe" ? (item.postoEfe || item.postoTmft) : item.postoTmft;
+                  const itemGraduacao = selectedPostoType === "efe" ? item.postoEfe || item.postoTmft : item.postoTmft;
                   const isDifferentGraduacao = itemGraduacao && !selectedPostos.includes(itemGraduacao);
                   // Check if NEO (postoTmft/quadroTmft) and EFE (postoEfe/quadroEfe) are different
-                  const neoQuadroNormalized = (item.quadroTmft || '').trim().toUpperCase().replace(/^-+$/, '');
-                  const efeQuadroNormalized = (item.quadroEfe || '').trim().toUpperCase().replace(/^-+$/, '');
-                  const neoPostoNormalized = (item.postoTmft || '').trim().toUpperCase().replace(/^-+$/, '');
-                  const efePostoNormalized = (item.postoEfe || '').trim().toUpperCase().replace(/^-+$/, '');
-                  
+                  const neoQuadroNormalized = (item.quadroTmft || "").trim().toUpperCase().replace(/^-+$/, "");
+                  const efeQuadroNormalized = (item.quadroEfe || "").trim().toUpperCase().replace(/^-+$/, "");
+                  const neoPostoNormalized = (item.postoTmft || "").trim().toUpperCase().replace(/^-+$/, "");
+                  const efePostoNormalized = (item.postoEfe || "").trim().toUpperCase().replace(/^-+$/, "");
+
                   // Divergência se posto OU quadro forem diferentes (ignorando vazios)
-                  const isDifferentQuadro = neoQuadroNormalized && efeQuadroNormalized && neoQuadroNormalized !== efeQuadroNormalized;
-                  const isDifferentPosto = neoPostoNormalized && efePostoNormalized && neoPostoNormalized !== efePostoNormalized;
+                  const isDifferentQuadro =
+                    neoQuadroNormalized && efeQuadroNormalized && neoQuadroNormalized !== efeQuadroNormalized;
+                  const isDifferentPosto =
+                    neoPostoNormalized && efePostoNormalized && neoPostoNormalized !== efePostoNormalized;
                   const isDifferentNeoEfe = item.ocupado && (isDifferentQuadro || isDifferentPosto);
-                  
+
                   // Format military name: graduação-especialidade nome
                   const formatMilitarName = () => {
                     if (!item.nome || item.nome.toUpperCase() === "VAGO") return "VAGO";
@@ -1906,7 +2003,9 @@ const DashboardPracas = () => {
                       .replace(/^-+$/, "") // "-" sozinho = vazio
                       .replace(/^-+|-+$/g, "");
 
-                    const nomeCompleto = String(item.nome || "").trim().toUpperCase();
+                    const nomeCompleto = String(item.nome || "")
+                      .trim()
+                      .toUpperCase();
 
                     // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
                     // E regra: para MN, não exibir especialidade (ex: "MN-MR" -> "MN")
@@ -1920,71 +2019,73 @@ const DashboardPracas = () => {
                     return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}`;
                   };
 
-
-                  
                   return (
-                  <div
-                    key={`posto-${index}`}
-                    className={`p-3 border rounded-lg ${
-                      isDifferentNeoEfe
-                        ? "bg-amber-50 border-amber-400 border-2"
-                        : item.tipoSetor === "EXTRA LOTAÇÃO"
-                          ? "bg-orange-100/50 border-orange-200"
-                          : item.ocupado
-                            ? "bg-green-100/50 border-green-200"
-                            : "bg-red-100/50 border-red-200"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      {(() => {
-                        const neoRaw = String(item.neo ?? "").trim();
-                        if (!neoRaw || neoRaw === "0") return null;
-                        const neoText = neoRaw.toUpperCase().startsWith("NEO")
-                          ? neoRaw
-                          : `NEO ${neoRaw}`;
+                    <div
+                      key={`posto-${index}`}
+                      className={`p-3 border rounded-lg ${
+                        isDifferentNeoEfe
+                          ? "bg-amber-50 border-amber-400 border-2"
+                          : item.tipoSetor === "EXTRA LOTAÇÃO"
+                            ? "bg-orange-100/50 border-orange-200"
+                            : item.ocupado
+                              ? "bg-green-100/50 border-green-200"
+                              : "bg-red-100/50 border-red-200"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        {(() => {
+                          const neoRaw = String(item.neo ?? "").trim();
+                          if (!neoRaw || neoRaw === "0") return null;
+                          const neoText = neoRaw.toUpperCase().startsWith("NEO") ? neoRaw : `NEO ${neoRaw}`;
 
-                        return (
-                          <Badge variant="outline" className="bg-blue-500 text-white border-blue-500 text-xs">
-                            {neoText}
-                          </Badge>
-                        );
-                      })()}
-                      <Badge variant="outline" className="text-xs">
-                        {item.postoTmft || item.postoEfe}
-                      </Badge>
-                      <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500 text-white text-xs" : "text-xs"}>
-                        {(item.quadroTmft || item.quadroEfe) || "-"}
-                      </Badge>
-                      {(item.opcaoEfe || item.opcaoTmft) && (
-                        <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
-                          {item.opcaoEfe || item.opcaoTmft}
+                          return (
+                            <Badge variant="outline" className="bg-blue-500 text-white border-blue-500 text-xs">
+                              {neoText}
+                            </Badge>
+                          );
+                        })()}
+                        <Badge variant="outline" className="text-xs">
+                          {item.postoTmft || item.postoEfe}
                         </Badge>
+                        <Badge
+                          variant={isDifferentNeoEfe ? "default" : "outline"}
+                          className={isDifferentNeoEfe ? "bg-blue-500 text-white text-xs" : "text-xs"}
+                        >
+                          {item.quadroTmft || item.quadroEfe || "-"}
+                        </Badge>
+                        {(item.opcaoEfe || item.opcaoTmft) && (
+                          <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                            {item.opcaoEfe || item.opcaoTmft}
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className="text-xs">
+                          {item.om}
+                        </Badge>
+                        {item.tipoSetor === "EXTRA LOTAÇÃO" && (
+                          <Badge className="bg-orange-500 text-white text-xs">EXTRA</Badge>
+                        )}
+                      </div>
+                      <p
+                        className={`font-semibold text-sm uppercase ${isDifferentNeoEfe ? "text-amber-700" : "text-foreground"}`}
+                      >
+                        {item.ocupado && item.nome && item.nome.toUpperCase() !== "VAGO"
+                          ? formatMilitarName()
+                          : item.nome || "VAGO"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{item.cargo}</p>
+                      <p className="text-xs text-muted-foreground">{item.setor}</p>
+                      {isDifferentNeoEfe && (
+                        <p className="text-xs mt-1 font-medium text-amber-700">
+                          ⚠️ NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE ({item.postoEfe || "?"}/
+                          {item.quadroEfe || "-"})
+                        </p>
                       )}
-                      <Badge variant="outline" className="text-xs">
-                        {item.om}
-                      </Badge>
-                      {item.tipoSetor === "EXTRA LOTAÇÃO" && (
-                        <Badge className="bg-orange-500 text-white text-xs">EXTRA</Badge>
+                      {isDifferentGraduacao && !isDifferentNeoEfe && (
+                        <p className="text-xs mt-1 font-medium text-amber-700">
+                          ⚠ Graduação diferente: {itemGraduacao}
+                        </p>
                       )}
                     </div>
-                    <p className={`font-semibold text-sm uppercase ${isDifferentNeoEfe ? 'text-amber-700' : 'text-foreground'}`}>
-                      {item.ocupado && item.nome && item.nome.toUpperCase() !== 'VAGO' 
-                        ? formatMilitarName() 
-                        : item.nome || "VAGO"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{item.cargo}</p>
-                    <p className="text-xs text-muted-foreground">{item.setor}</p>
-                    {isDifferentNeoEfe && (
-                      <p className="text-xs mt-1 font-medium text-amber-700">
-                        ⚠️ NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE ({item.postoEfe || "?"}/{item.quadroEfe || "-"})
-                      </p>
-                    )}
-                    {isDifferentGraduacao && !isDifferentNeoEfe && (
-                      <p className="text-xs mt-1 font-medium text-amber-700">
-                        ⚠ Graduação diferente: {itemGraduacao}
-                      </p>
-                    )}
-                  </div>
                   );
                 })}
               </div>
@@ -2060,16 +2161,18 @@ const DashboardPracas = () => {
                     <div className="space-y-3">
                       {items.map((item) => {
                         // Check if NEO (postoTmft/quadroTmft) and EFE (postoEfe/quadroEfe) are different
-                        const neoQuadroNormalized = (item.quadroTmft || '').trim().toUpperCase().replace(/^-+$/, '');
-                        const efeQuadroNormalized = (item.quadroEfe || '').trim().toUpperCase().replace(/^-+$/, '');
-                        const neoPostoNormalized = (item.postoTmft || '').trim().toUpperCase().replace(/^-+$/, '');
-                        const efePostoNormalized = (item.postoEfe || '').trim().toUpperCase().replace(/^-+$/, '');
-                        
+                        const neoQuadroNormalized = (item.quadroTmft || "").trim().toUpperCase().replace(/^-+$/, "");
+                        const efeQuadroNormalized = (item.quadroEfe || "").trim().toUpperCase().replace(/^-+$/, "");
+                        const neoPostoNormalized = (item.postoTmft || "").trim().toUpperCase().replace(/^-+$/, "");
+                        const efePostoNormalized = (item.postoEfe || "").trim().toUpperCase().replace(/^-+$/, "");
+
                         // Divergência se posto OU quadro forem diferentes (ignorando vazios)
-                        const isDifferentQuadro = neoQuadroNormalized && efeQuadroNormalized && neoQuadroNormalized !== efeQuadroNormalized;
-                        const isDifferentPosto = neoPostoNormalized && efePostoNormalized && neoPostoNormalized !== efePostoNormalized;
+                        const isDifferentQuadro =
+                          neoQuadroNormalized && efeQuadroNormalized && neoQuadroNormalized !== efeQuadroNormalized;
+                        const isDifferentPosto =
+                          neoPostoNormalized && efePostoNormalized && neoPostoNormalized !== efePostoNormalized;
                         const isDifferentNeoEfe = item.ocupado && (isDifferentQuadro || isDifferentPosto);
-                        
+
                         // Format military name: graduação-especialidade nome
                         const formatMilitarName = () => {
                           if (!item.nome || item.nome.toUpperCase() === "VAGO") return null;
@@ -2090,7 +2193,9 @@ const DashboardPracas = () => {
                             .replace(/^-+$/, "") // "-" sozinho = vazio
                             .replace(/^-+|-+$/g, "");
 
-                          const nomeCompleto = String(item.nome || "").trim().toUpperCase();
+                          const nomeCompleto = String(item.nome || "")
+                            .trim()
+                            .toUpperCase();
 
                           // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
                           // E regra: para MN, não exibir especialidade (ex: "MN-MR" -> "MN")
@@ -2104,59 +2209,63 @@ const DashboardPracas = () => {
                           return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}`;
                         };
 
-
-                        
                         return (
-                        <div
-                          key={item.id}
-                          className={`border-l-4 ${isDifferentNeoEfe ? 'border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20' : 'border-l-blue-500 bg-card'} rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className={`text-base font-bold ${isDifferentNeoEfe ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}`}>
-                                {item.ocupado && item.nome && item.nome.toUpperCase() !== 'VAGO' 
-                                  ? formatMilitarName() 
-                                  : item.nome || `NEO ${item.neo} - VAZIO`}
-                              </h4>
-                              <p className="text-sm text-muted-foreground">{item.cargo}</p>
-                              <p className="text-xs text-blue-600 mt-1">
-                                NEO: {item.neo} - {item.cargo}
-                              </p>
-                              {isDifferentNeoEfe && (
-                                <p className="text-xs text-amber-600 mt-1 font-medium">
-                                  ⚠️ NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE ({item.postoEfe || "?"}/{item.quadroEfe || "-"})
+                          <div
+                            key={item.id}
+                            className={`border-l-4 ${isDifferentNeoEfe ? "border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20" : "border-l-blue-500 bg-card"} rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow`}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h4
+                                  className={`text-base font-bold ${isDifferentNeoEfe ? "text-amber-700 dark:text-amber-400" : "text-foreground"}`}
+                                >
+                                  {item.ocupado && item.nome && item.nome.toUpperCase() !== "VAGO"
+                                    ? formatMilitarName()
+                                    : item.nome || `NEO ${item.neo} - VAZIO`}
+                                </h4>
+                                <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                                <p className="text-xs text-blue-600 mt-1">
+                                  NEO: {item.neo} - {item.cargo}
                                 </p>
-                              )}
-                            </div>
-                            <div className="flex flex-col items-end gap-2">
-                              <Badge
-                                variant={item.ocupado ? "default" : "destructive"}
-                                className={
-                                  item.ocupado
-                                    ? "bg-green-100 text-green-700 border border-green-300 hover:bg-green-100"
-                                    : "bg-red-100 text-red-700 border border-red-300 hover:bg-red-100"
-                                }
-                              >
-                                {item.ocupado ? "Ocupado" : "Vago"}
-                              </Badge>
-                              <div className="flex gap-2 flex-wrap">
-                                <Badge variant="outline" className="bg-background">
-                                  {item.ocupado ? item.postoEfe : item.postoTmft}
+                                {isDifferentNeoEfe && (
+                                  <p className="text-xs text-amber-600 mt-1 font-medium">
+                                    ⚠️ NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE (
+                                    {item.postoEfe || "?"}/{item.quadroEfe || "-"})
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex flex-col items-end gap-2">
+                                <Badge
+                                  variant={item.ocupado ? "default" : "destructive"}
+                                  className={
+                                    item.ocupado
+                                      ? "bg-green-100 text-green-700 border border-green-300 hover:bg-green-100"
+                                      : "bg-red-100 text-red-700 border border-red-300 hover:bg-red-100"
+                                  }
+                                >
+                                  {item.ocupado ? "Ocupado" : "Vago"}
                                 </Badge>
-                                <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500 text-white" : "bg-background"}>
-                                  NEO: {item.quadroTmft}
-                                </Badge>
-                                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                                  {item.ocupado ? item.opcaoEfe : item.opcaoTmft}
-                                </Badge>
-                                <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-300">
-                                  {item.om}
-                                </Badge>
+                                <div className="flex gap-2 flex-wrap">
+                                  <Badge variant="outline" className="bg-background">
+                                    {item.ocupado ? item.postoEfe : item.postoTmft}
+                                  </Badge>
+                                  <Badge
+                                    variant={isDifferentNeoEfe ? "default" : "outline"}
+                                    className={isDifferentNeoEfe ? "bg-blue-500 text-white" : "bg-background"}
+                                  >
+                                    NEO: {item.quadroTmft}
+                                  </Badge>
+                                  <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                                    {item.ocupado ? item.opcaoEfe : item.opcaoTmft}
+                                  </Badge>
+                                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-300">
+                                    {item.om}
+                                  </Badge>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      );
+                        );
                       })}
                     </div>
                   </div>
@@ -2227,9 +2336,7 @@ const DashboardPracas = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhuma previsão de embarque encontrada.
-                  </div>
+                  <div className="text-center py-8 text-muted-foreground">Nenhuma previsão de embarque encontrada.</div>
                 )}
               </div>
             )}
