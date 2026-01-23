@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent, Settings } from "lucide-react";
+import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent, Settings, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { TotalsChart } from "@/components/dashboard/TotalsChart";
@@ -81,6 +82,10 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isUsingCache, setIsUsingCache] = useState(false);
+  
+  // NEO Comparison states
+  const [showNeoComparison, setShowNeoComparison] = useState(false);
+  const [showNeoPersonnel, setShowNeoPersonnel] = useState<"fora" | "na" | null>(null);
 
   const isOnline = useOnlineStatus();
   const { getFromCache, saveToCache, clearCache, getCacheTimestamp } = useOfflineCache<MilitaryData[]>('copab_data');
@@ -559,15 +564,155 @@ const Index = () => {
     // Porcentagem de ocupação (EXI/TMFT)
     const occupancyPercent = totalTMFT > 0 ? ((totalEXI / totalTMFT) * 100).toFixed(1) : "0.0";
 
+    // NEO comparison counts (when specialty filter is active)
+    let foraDaNeo = 0;
+    let naNeo = 0;
+
+    if (filters.especialidade.length > 0) {
+      const categoriaSelecionada = filters.categoria;
+      const candidates: any[] =
+        categoriaSelecionada === "PRAÇAS"
+          ? rawPersonnel.pracas
+          : categoriaSelecionada === "OFICIAIS"
+            ? rawPersonnel.oficiais
+            : [...rawPersonnel.pracas, ...rawPersonnel.oficiais];
+
+      // Filter by OM
+      let baseData = candidates;
+      if (filters.om.length > 0) {
+        baseData = baseData.filter((p) => filters.om.includes(String(p.om || "").trim()));
+      }
+
+      // Filter by especialidade (TMFT)
+      baseData = baseData.filter((p) => {
+        const esp = String(p.quadroTmft || p.especialidadeTmft || "").trim();
+        return filters.especialidade.includes(esp);
+      });
+
+      // Exclude EXTRA LOTAÇÃO
+      baseData = baseData.filter((p) => {
+        const tipoSetor = String(p.tipoSetor || "").trim().toUpperCase();
+        return tipoSetor !== "EXTRA LOTAÇÃO" && !Boolean(p.isExtraLotacao);
+      });
+
+      // Only count occupied (efetivo)
+      const ocupados = baseData.filter((p) => {
+        const nomeUpper = String(p.nome || "").trim().toUpperCase();
+        const isVagoByNome = !nomeUpper || nomeUpper === "VAGO" || nomeUpper === "VAZIO";
+        const isVagoByFlag = Boolean(p.isVago);
+        let ocupado: boolean;
+        if (typeof p.ocupado === "boolean") {
+          ocupado = p.ocupado;
+        } else if (typeof p.ocupado === "number") {
+          ocupado = p.ocupado !== 0;
+        } else if (typeof p.ocupado === "string") {
+          const v = p.ocupado.trim().toUpperCase();
+          if (["TRUE", "SIM", "S", "YES", "1", "X", "OCUPADO"].includes(v)) ocupado = true;
+          else if (["FALSE", "NÃO", "NAO", "N", "NO", "0", "VAGO", "VAZIO", ""].includes(v)) ocupado = false;
+          else ocupado = true;
+        } else {
+          ocupado = true;
+        }
+        if (isVagoByFlag || isVagoByNome) ocupado = false;
+        return ocupado;
+      });
+
+      foraDaNeo = ocupados.filter((item) => {
+        const especialidadeTmft = (item.quadroTmft || item.especialidadeTmft || "").trim().toUpperCase();
+        const especialidadeEfe = (item.quadroEfe || item.especialidadeEfe || "").trim().toUpperCase();
+        return especialidadeTmft !== especialidadeEfe;
+      }).length;
+
+      naNeo = ocupados.filter((item) => {
+        const especialidadeTmft = (item.quadroTmft || item.especialidadeTmft || "").trim().toUpperCase();
+        const especialidadeEfe = (item.quadroEfe || item.especialidadeEfe || "").trim().toUpperCase();
+        return especialidadeTmft === especialidadeEfe;
+      }).length;
+    }
+
     return {
       totalTMFT,
       totalEXI,
       totalDIF,
       occupancyPercent,
+      foraDaNeo,
+      naNeo,
     };
-  }, [filteredData]);
+  }, [filteredData, filters.especialidade, filters.categoria, filters.om, rawPersonnel]);
+
+  // NEO comparison personnel list
+  const neoComparisonPersonnel = useMemo(() => {
+    if (!showNeoPersonnel || filters.especialidade.length === 0) return [];
+
+    const categoriaSelecionada = filters.categoria;
+    const candidates: any[] =
+      categoriaSelecionada === "PRAÇAS"
+        ? rawPersonnel.pracas
+        : categoriaSelecionada === "OFICIAIS"
+          ? rawPersonnel.oficiais
+          : [...rawPersonnel.pracas, ...rawPersonnel.oficiais];
+
+    // Filter by OM
+    let baseData = candidates;
+    if (filters.om.length > 0) {
+      baseData = baseData.filter((p) => filters.om.includes(String(p.om || "").trim()));
+    }
+
+    // Filter by especialidade (TMFT)
+    baseData = baseData.filter((p) => {
+      const esp = String(p.quadroTmft || p.especialidadeTmft || "").trim();
+      return filters.especialidade.includes(esp);
+    });
+
+    // Exclude EXTRA LOTAÇÃO
+    baseData = baseData.filter((p) => {
+      const tipoSetor = String(p.tipoSetor || "").trim().toUpperCase();
+      return tipoSetor !== "EXTRA LOTAÇÃO" && !Boolean(p.isExtraLotacao);
+    });
+
+    // Only count occupied (efetivo)
+    const ocupados = baseData.filter((p) => {
+      const nomeUpper = String(p.nome || "").trim().toUpperCase();
+      const isVagoByNome = !nomeUpper || nomeUpper === "VAGO" || nomeUpper === "VAZIO";
+      const isVagoByFlag = Boolean(p.isVago);
+      let ocupado: boolean;
+      if (typeof p.ocupado === "boolean") {
+        ocupado = p.ocupado;
+      } else if (typeof p.ocupado === "number") {
+        ocupado = p.ocupado !== 0;
+      } else if (typeof p.ocupado === "string") {
+        const v = p.ocupado.trim().toUpperCase();
+        if (["TRUE", "SIM", "S", "YES", "1", "X", "OCUPADO"].includes(v)) ocupado = true;
+        else if (["FALSE", "NÃO", "NAO", "N", "NO", "0", "VAGO", "VAZIO", ""].includes(v)) ocupado = false;
+        else ocupado = true;
+      } else {
+        ocupado = true;
+      }
+      if (isVagoByFlag || isVagoByNome) ocupado = false;
+      return ocupado;
+    });
+
+    return ocupados.filter((item) => {
+      const especialidadeTmft = (item.quadroTmft || item.especialidadeTmft || "").trim().toUpperCase();
+      const especialidadeEfe = (item.quadroEfe || item.especialidadeEfe || "").trim().toUpperCase();
+      return showNeoPersonnel === "fora" ? especialidadeTmft !== especialidadeEfe : especialidadeTmft === especialidadeEfe;
+    });
+  }, [showNeoPersonnel, filters.especialidade, filters.categoria, filters.om, rawPersonnel]);
+
+  const handleEfetivoCardClick = () => {
+    if (filters.especialidade.length > 0) {
+      setShowNeoComparison(!showNeoComparison);
+      if (showNeoComparison) {
+        setShowNeoPersonnel(null);
+      }
+    }
+  };
 
   const handleFilterChange = (filterType: string, values: string[] | "TODOS" | "PRAÇAS" | "OFICIAIS") => {
+    // Reset NEO comparison when filters change
+    setShowNeoComparison(false);
+    setShowNeoPersonnel(null);
+    
     if (filterType === "categoria") {
       // Limpar filtros de pessoal ao trocar de categoria
       setFilters((prev) => ({
@@ -667,7 +812,17 @@ const Index = () => {
         {/* Métricas principais */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <MetricsCard title="Total TMFT" value={metrics.totalTMFT} icon={Shield} variant="default" />
-          <MetricsCard title="Total EXI" value={metrics.totalEXI} icon={Users} variant="success" />
+          <div 
+            onClick={handleEfetivoCardClick}
+            className={`${filters.especialidade.length > 0 ? "cursor-pointer" : ""} ${showNeoComparison ? "ring-2 ring-green-500 rounded-lg" : ""}`}
+          >
+            <MetricsCard 
+              title="Total EXI" 
+              value={metrics.totalEXI} 
+              icon={Users} 
+              variant="success"
+            />
+          </div>
           <MetricsCard
             title="Total DIF"
             value={metrics.totalDIF}
@@ -688,6 +843,112 @@ const Index = () => {
           />
           <MetricsCard title="Extra Lotação" value={extraLotacaoTotal} icon={Users} variant="warning" />
         </div>
+
+        {/* NEO Comparison Cards */}
+        {showNeoComparison && filters.especialidade.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div
+              onClick={() => setShowNeoPersonnel(showNeoPersonnel === "fora" ? null : "fora")}
+              className={`cursor-pointer transition-all ${showNeoPersonnel === "fora" ? "ring-2 ring-orange-500" : ""}`}
+            >
+              <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <X size={20} />
+                    FORA DA NEO
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{metrics.foraDaNeo}</div>
+                  <p className="text-sm opacity-80">Especialidade TMFT ≠ EFE</p>
+                </CardContent>
+              </Card>
+            </div>
+            <div
+              onClick={() => setShowNeoPersonnel(showNeoPersonnel === "na" ? null : "na")}
+              className={`cursor-pointer transition-all ${showNeoPersonnel === "na" ? "ring-2 ring-green-500" : ""}`}
+            >
+              <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Users size={20} />
+                    NA NEO
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{metrics.naNeo}</div>
+                  <p className="text-sm opacity-80">Especialidade TMFT = EFE</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* NEO Comparison Personnel List */}
+        {showNeoPersonnel && neoComparisonPersonnel.length > 0 && (
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users size={20} />
+                {showNeoPersonnel === "fora" ? "Militares FORA DA NEO" : "Militares NA NEO"}
+                <Badge variant="outline" className="ml-2">
+                  {neoComparisonPersonnel.length} militar(es)
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {neoComparisonPersonnel.map((person, index) => {
+                  const nome = String(person.nome || "").trim();
+                  const om = String(person.om || "").trim();
+                  const postoTmft = String(person.postoTmft || "").trim();
+                  const postoEfe = String(person.postoEfe || "").trim();
+                  const quadroTmft = String(person.quadroTmft || person.especialidadeTmft || "").trim();
+                  const quadroEfe = String(person.quadroEfe || person.especialidadeEfe || "").trim();
+                  const cargo = String(person.cargo || "").trim();
+                  const setor = String(person.setor || "").trim();
+
+                  return (
+                    <Card 
+                      key={`${nome}-${index}`} 
+                      className={`border-l-4 ${showNeoPersonnel === "fora" ? "border-l-orange-500" : "border-l-green-500"}`}
+                    >
+                      <CardContent className="p-4">
+                        <div className="font-medium text-sm text-muted-foreground mb-1">
+                          {postoTmft || postoEfe}
+                        </div>
+                        <div className="font-semibold">{nome}</div>
+                        <div className="text-sm text-muted-foreground mt-1">OM: {om}</div>
+                        <div className="text-xs mt-2 space-y-1">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">NEO:</span>
+                            <span className="font-medium">{quadroTmft || "-"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">EFE:</span>
+                            <span className="font-medium">{quadroEfe || "-"}</span>
+                          </div>
+                          {cargo && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Cargo:</span>
+                              <span className="font-medium">{cargo}</span>
+                            </div>
+                          )}
+                          {setor && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Setor:</span>
+                              <span className="font-medium">{setor}</span>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Gráfico de Totais */}
         <div ref={chartRef}>
