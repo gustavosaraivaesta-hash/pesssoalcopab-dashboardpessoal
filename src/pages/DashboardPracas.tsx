@@ -415,8 +415,8 @@ const DashboardPracas = () => {
     // Toggle efetivo filter
     setStatusFilter((prev) => (prev === "ocupados" ? "all" : "ocupados"));
     
-    // Only show NEO comparison if especialidade TMFT is selected
-    if (selectedQuadros.length > 0) {
+    // Show NEO comparison if especialidade TMFT OR especialidade EFETIVO is selected
+    if (selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0) {
       setShowNeoComparison((prev) => !prev || statusFilter !== "ocupados");
     } else {
       setShowNeoComparison(false);
@@ -427,7 +427,7 @@ const DashboardPracas = () => {
 
   // Personnel for "Fora da NEO" and "Na NEO" cards - independent from main filters
   const neoComparisonPersonnel = useMemo(() => {
-    if (!showNeoPersonnel || selectedQuadros.length === 0) return [];
+    if (!showNeoPersonnel || (selectedQuadros.length === 0 && selectedQuadrosEfe.length === 0)) return [];
     
     // Filter from base data with current filters applied, but always show ocupados
     let baseData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
@@ -436,8 +436,14 @@ const DashboardPracas = () => {
       baseData = baseData.filter((item) => selectedOMs.includes(item.om));
     }
     
+    // Apply especialidade TMFT filter if selected
     if (selectedQuadros.length > 0) {
       baseData = baseData.filter((item) => selectedQuadros.includes(item.quadroTmft));
+    }
+    
+    // Apply especialidade EFETIVO filter if selected
+    if (selectedQuadrosEfe.length > 0) {
+      baseData = baseData.filter((item) => selectedQuadrosEfe.includes(item.quadroEfe));
     }
     
     if (selectedOpcoes.length > 0) {
@@ -466,7 +472,7 @@ const DashboardPracas = () => {
         return especialidadeTmft === especialidadeEfe;
       }
     });
-  }, [showNeoPersonnel, personnelData, selectedOMs, selectedQuadros, selectedOpcoes, searchQuery]);
+  }, [showNeoPersonnel, personnelData, selectedOMs, selectedQuadros, selectedQuadrosEfe, selectedOpcoes, searchQuery]);
 
   const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TTC"];
 
@@ -1450,7 +1456,7 @@ const DashboardPracas = () => {
                   <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">EFETIVO</p>
                   <p className="text-4xl font-bold text-green-900 dark:text-green-100">{metrics.totalEXI}</p>
                   <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                    Cargos ocupados {selectedQuadros.length > 0 && "(Clique para ver Na/Fora da NEO)"}
+                    Cargos ocupados {(selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0) && "(Clique para ver Na/Fora da NEO)"}
                   </p>
                 </div>
                 <UserCheck className="h-8 w-8 text-green-500" />
@@ -1538,8 +1544,8 @@ const DashboardPracas = () => {
           </Card>
         </div>
 
-        {/* Cards "Fora da NEO" e "Na NEO" - aparecem quando especialidade TMFT é filtrada e EFETIVO é clicado */}
-        {showNeoComparison && selectedQuadros.length > 0 && statusFilter === "ocupados" && (
+        {/* Cards "Fora da NEO" e "Na NEO" - aparecem quando especialidade TMFT ou EFETIVO é filtrada e EFETIVO é clicado */}
+        {showNeoComparison && (selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0) && statusFilter === "ocupados" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card
               className={`bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${showNeoPersonnel === "fora" ? "ring-2 ring-amber-500 ring-offset-2" : ""}`}
