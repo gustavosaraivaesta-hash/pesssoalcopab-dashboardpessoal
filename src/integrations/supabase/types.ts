@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      personnel_history: {
+        Row: {
+          action_type: Database["public"]["Enums"]["request_type"]
+          archived_at: string
+          archived_by: string
+          id: string
+          om: string
+          personnel_data: Json
+          request_id: string | null
+        }
+        Insert: {
+          action_type: Database["public"]["Enums"]["request_type"]
+          archived_at?: string
+          archived_by: string
+          id?: string
+          om: string
+          personnel_data: Json
+          request_id?: string | null
+        }
+        Update: {
+          action_type?: Database["public"]["Enums"]["request_type"]
+          archived_at?: string
+          archived_by?: string
+          id?: string
+          om?: string
+          personnel_data?: Json
+          request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personnel_history_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "personnel_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personnel_requests: {
+        Row: {
+          created_at: string
+          id: string
+          justification: string
+          original_data: Json | null
+          personnel_data: Json
+          request_type: Database["public"]["Enums"]["request_type"]
+          requested_by: string
+          requesting_om: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          target_om: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          justification: string
+          original_data?: Json | null
+          personnel_data: Json
+          request_type: Database["public"]["Enums"]["request_type"]
+          requested_by: string
+          requesting_om: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          target_om?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          justification?: string
+          original_data?: Json | null
+          personnel_data?: Json
+          request_type?: Database["public"]["Enums"]["request_type"]
+          requested_by?: string
+          requesting_om?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          target_om?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_additional_oms: {
         Row: {
           created_at: string
@@ -66,6 +155,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      get_user_role_text: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -88,6 +178,8 @@ export type Database = {
         | "DEPFMRJ"
         | "CDU-BAMRJ"
         | "CDU-1DN"
+      request_status: "PENDENTE" | "EM_ANALISE" | "APROVADO" | "REJEITADO"
+      request_type: "INCLUSAO" | "ALTERACAO" | "EXCLUSAO"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -229,6 +321,8 @@ export const Constants = {
         "CDU-BAMRJ",
         "CDU-1DN",
       ],
+      request_status: ["PENDENTE", "EM_ANALISE", "APROVADO", "REJEITADO"],
+      request_type: ["INCLUSAO", "ALTERACAO", "EXCLUSAO"],
     },
   },
 } as const
