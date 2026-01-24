@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.manage-om]
 verify_jwt = false
+
+[functions.manage-personnel-requests]
+verify_jwt = false

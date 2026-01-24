@@ -9,6 +9,9 @@ import DashboardOM from "./pages/DashboardOM";
 import DashboardPracas from "./pages/DashboardPracas";
 import DashboardTTC from "./pages/DashboardTTC";
 import AdminUsers from "./pages/AdminUsers";
+import Solicitacoes from "./pages/Solicitacoes";
+import AdminSolicitacoes from "./pages/AdminSolicitacoes";
+import AdminHistorico from "./pages/AdminHistorico";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
@@ -28,6 +31,9 @@ const App = () => (
           <Route path="/dashboard-pracas" element={<AuthGuard><DashboardPracas /></AuthGuard>} />
           <Route path="/dashboard-ttc" element={<AuthGuard><DashboardTTC /></AuthGuard>} />
           <Route path="/admin/users" element={<AuthGuard><AdminUsers /></AuthGuard>} />
+          <Route path="/solicitacoes" element={<AuthGuard><Solicitacoes /></AuthGuard>} />
+          <Route path="/admin/solicitacoes" element={<AuthGuard><AdminSolicitacoes /></AuthGuard>} />
+          <Route path="/admin/historico" element={<AuthGuard><AdminHistorico /></AuthGuard>} />
           <Route path="/install" element={<Install />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

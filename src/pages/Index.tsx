@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent, Settings, X } from "lucide-react";
+import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent, Settings, X, ClipboardList, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -782,11 +782,25 @@ const Index = () => {
                 <RefreshCw size={18} className={`mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
                 Atualizar
               </Button>
+              <Button variant="secondary" onClick={() => navigate("/solicitacoes")}>
+                <ClipboardList size={18} className="mr-2" />
+                Solicitações
+              </Button>
               {role === "COPAB" && (
-                <Button variant="secondary" onClick={() => navigate("/admin/users")}>
-                  <Settings size={18} className="mr-2" />
-                  Admin
-                </Button>
+                <>
+                  <Button variant="secondary" onClick={() => navigate("/admin/solicitacoes")}>
+                    <Settings size={18} className="mr-2" />
+                    Gestão
+                  </Button>
+                  <Button variant="secondary" onClick={() => navigate("/admin/historico")}>
+                    <Archive size={18} className="mr-2" />
+                    Histórico
+                  </Button>
+                  <Button variant="secondary" onClick={() => navigate("/admin/users")}>
+                    <Settings size={18} className="mr-2" />
+                    Usuários
+                  </Button>
+                </>
               )}
               <Button variant="destructive" onClick={handleLogout}>
                 <LogOut size={18} className="mr-2" />
