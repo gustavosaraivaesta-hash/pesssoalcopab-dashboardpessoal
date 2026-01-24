@@ -1027,9 +1027,16 @@ const DashboardPracas = () => {
               else if (!nome || nome === "VAGO" || nome === "-" || nomeStr === "" || nomeStr === "VAZIO") {
                 data.cell.styles.fillColor = [254, 202, 202];
                 data.cell.styles.textColor = [127, 29, 29];
-              } else if (tmft && efetivo && tmft !== efetivo) {
-                data.cell.styles.fillColor = [253, 186, 116]; // laranja
-                data.cell.styles.textColor = [124, 45, 18];
+              } else {
+                // Verificar se especialidade TMFT difere da EFE (Fora da NEO)
+                const quadroTmft = data.row.raw?.[4]; // ESP TMFT (coluna 4)
+                const quadroEfe = data.row.raw?.[7];  // ESP EFETIVO (coluna 7)
+                const tmftStr = quadroTmft ? quadroTmft.toString().trim().toUpperCase() : "";
+                const efeStr = quadroEfe ? quadroEfe.toString().trim().toUpperCase() : "";
+                if (tmftStr && efeStr && tmftStr !== efeStr && efeStr !== "-") {
+                  data.cell.styles.fillColor = [253, 186, 116]; // laranja - Fora da NEO
+                  data.cell.styles.textColor = [124, 45, 18];
+                }
               }
             }
           },
