@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, FileText, Clock, CheckCircle2, XCircle, ArrowLeft, RefreshCw } from "lucide-react";
+import { Plus, FileText, Clock, CheckCircle2, XCircle, ArrowLeft, RefreshCw, Search, User, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,12 +11,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 type RequestType = "INCLUSAO" | "ALTERACAO" | "EXCLUSAO";
 type RequestStatus = "PENDENTE" | "EM_ANALISE" | "APROVADO" | "REJEITADO";
+
+interface PersonnelRecord {
+  nome: string;
+  nip?: string;
+  posto: string;
+  especialidade: string;
+  setor?: string;
+  om?: string;
+  ocupado?: string;
+  corpoTmft?: string;
+  corpoEfetivo?: string;
+}
 
 interface PersonnelRequest {
   id: string;
@@ -54,6 +67,13 @@ export default function Solicitacoes() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | RequestStatus>("all");
 
+  // Personnel data from NEO
+  const [personnelData, setPersonnelData] = useState<PersonnelRecord[]>([]);
+  const [isLoadingPersonnel, setIsLoadingPersonnel] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPersonnel, setSelectedPersonnel] = useState<PersonnelRecord | null>(null);
+  const [showPersonnelSearch, setShowPersonnelSearch] = useState(false);
+
   // Form state
   const [formType, setFormType] = useState<RequestType>("INCLUSAO");
   const [formData, setFormData] = useState({
@@ -61,10 +81,56 @@ export default function Solicitacoes() {
     nip: "",
     posto: "",
     especialidade: "",
+    setor: "",
     om: "",
     justification: "",
   });
+  const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch personnel data from NEO
+  const fetchPersonnelData = async () => {
+    setIsLoadingPersonnel(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("fetch-pracas-data", {
+        body: {},
+      });
+
+      if (error) throw error;
+      setPersonnelData(data.personnel || []);
+    } catch (error) {
+      console.error("Error fetching personnel data:", error);
+      toast.error("Erro ao carregar dados do efetivo");
+    } finally {
+      setIsLoadingPersonnel(false);
+    }
+  };
+
+  // When dialog opens for ALTERACAO/EXCLUSAO, fetch personnel data
+  useEffect(() => {
+    if (isDialogOpen && (formType === "ALTERACAO" || formType === "EXCLUSAO")) {
+      if (personnelData.length === 0) {
+        fetchPersonnelData();
+      }
+      setShowPersonnelSearch(true);
+    } else {
+      setShowPersonnelSearch(false);
+    }
+  }, [isDialogOpen, formType]);
+
+  // Filter personnel based on search
+  const filteredPersonnel = useMemo(() => {
+    if (!searchQuery.trim()) return personnelData.slice(0, 20);
+    const query = searchQuery.toLowerCase();
+    return personnelData
+      .filter(p => 
+        p.nome?.toLowerCase().includes(query) ||
+        p.nip?.toLowerCase().includes(query) ||
+        p.posto?.toLowerCase().includes(query) ||
+        p.especialidade?.toLowerCase().includes(query)
+      )
+      .slice(0, 20);
+  }, [personnelData, searchQuery]);
 
   const fetchRequests = async () => {
     setIsLoading(true);
@@ -89,19 +155,61 @@ export default function Solicitacoes() {
     }
   }, [authLoading, isAuthenticated]);
 
+  // Select a personnel from search results
+  const handleSelectPersonnel = (personnel: PersonnelRecord) => {
+    setSelectedPersonnel(personnel);
+    setOriginalData({
+      nome: personnel.nome,
+      nip: personnel.nip || "",
+      posto: personnel.posto,
+      especialidade: personnel.especialidade,
+      setor: personnel.setor || "",
+      om: personnel.om || role,
+    });
+    
+    // Pre-fill form with personnel data
+    setFormData({
+      nome: personnel.nome || "",
+      nip: personnel.nip || "",
+      posto: personnel.posto || "",
+      especialidade: personnel.especialidade || "",
+      setor: personnel.setor || "",
+      om: personnel.om || role || "",
+      justification: formData.justification,
+    });
+    
+    setShowPersonnelSearch(false);
+    setSearchQuery("");
+  };
+
+  const resetForm = () => {
+    setFormData({ nome: "", nip: "", posto: "", especialidade: "", setor: "", om: "", justification: "" });
+    setSelectedPersonnel(null);
+    setOriginalData(null);
+    setSearchQuery("");
+    setShowPersonnelSearch(false);
+  };
+
   const handleSubmit = async () => {
     if (!formData.nome || !formData.justification) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
     }
 
+    // For ALTERACAO/EXCLUSAO, require selecting a personnel first
+    if ((formType === "ALTERACAO" || formType === "EXCLUSAO") && !originalData) {
+      toast.error("Selecione um militar da NEO para continuar");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const personnelData = {
+      const personnelDataPayload = {
         nome: formData.nome,
         nip: formData.nip,
         posto: formData.posto,
         especialidade: formData.especialidade,
+        setor: formData.setor,
         om: formData.om || role,
       };
 
@@ -109,7 +217,8 @@ export default function Solicitacoes() {
         body: {
           action: "create",
           request_type: formType,
-          personnel_data: personnelData,
+          personnel_data: personnelDataPayload,
+          original_data: originalData,
           justification: formData.justification,
         },
       });
@@ -118,7 +227,7 @@ export default function Solicitacoes() {
 
       toast.success("Solicitação criada com sucesso!");
       setIsDialogOpen(false);
-      setFormData({ nome: "", nip: "", posto: "", especialidade: "", om: "", justification: "" });
+      resetForm();
       fetchRequests();
     } catch (error) {
       console.error("Error creating request:", error);
@@ -166,92 +275,261 @@ export default function Solicitacoes() {
               <RefreshCw className="h-4 w-4 mr-2" />
               Atualizar
             </Button>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) resetForm();
+            }}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
                   Nova Solicitação
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-lg">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Nova Solicitação</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
                     <Label>Tipo de Solicitação</Label>
-                    <Select value={formType} onValueChange={(v) => setFormType(v as RequestType)}>
+                    <Select value={formType} onValueChange={(v) => {
+                      setFormType(v as RequestType);
+                      resetForm();
+                    }}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="INCLUSAO">Inclusão</SelectItem>
-                        <SelectItem value="ALTERACAO">Alteração</SelectItem>
-                        <SelectItem value="EXCLUSAO">Exclusão</SelectItem>
+                        <SelectItem value="INCLUSAO">
+                          <div className="flex items-center gap-2">
+                            <Plus className="h-4 w-4" />
+                            Inclusão - Adicionar novo militar
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="ALTERACAO">
+                          <div className="flex items-center gap-2">
+                            <Edit className="h-4 w-4" />
+                            Alteração - Modificar dados existentes
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="EXCLUSAO">
+                          <div className="flex items-center gap-2">
+                            <Trash2 className="h-4 w-4" />
+                            Exclusão - Remover militar
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Nome *</Label>
-                      <Input
-                        value={formData.nome}
-                        onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
-                        placeholder="Nome completo"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>NIP</Label>
-                      <Input
-                        value={formData.nip}
-                        onChange={(e) => setFormData(prev => ({ ...prev, nip: e.target.value }))}
-                        placeholder="Número de identificação"
-                      />
-                    </div>
-                  </div>
+                  {/* Personnel Search for ALTERACAO/EXCLUSAO */}
+                  {(formType === "ALTERACAO" || formType === "EXCLUSAO") && (
+                    <Card className="border-dashed border-2">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Search className="h-4 w-4" />
+                          {selectedPersonnel ? "Militar Selecionado" : "Buscar Militar na NEO"}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {selectedPersonnel ? (
+                          <div className="space-y-2">
+                            <div className="p-3 bg-muted rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium">{selectedPersonnel.nome}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {selectedPersonnel.posto} - {selectedPersonnel.especialidade}
+                                    {selectedPersonnel.setor && ` | ${selectedPersonnel.setor}`}
+                                  </p>
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedPersonnel(null);
+                                    setOriginalData(null);
+                                    setShowPersonnelSearch(true);
+                                  }}
+                                >
+                                  Trocar
+                                </Button>
+                              </div>
+                            </div>
+                            {formType === "ALTERACAO" && (
+                              <p className="text-xs text-muted-foreground">
+                                Modifique os campos abaixo com os novos dados
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                placeholder="Digite nome, NIP, posto ou especialidade..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9"
+                              />
+                            </div>
+                            
+                            {isLoadingPersonnel ? (
+                              <div className="flex items-center justify-center py-4">
+                                <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
+                              </div>
+                            ) : (
+                              <ScrollArea className="h-48">
+                                <div className="space-y-1">
+                                  {filteredPersonnel.length === 0 ? (
+                                    <p className="text-center text-sm text-muted-foreground py-4">
+                                      Nenhum militar encontrado
+                                    </p>
+                                  ) : (
+                                    filteredPersonnel.map((person, idx) => (
+                                      <button
+                                        key={idx}
+                                        className="w-full text-left p-2 rounded hover:bg-muted transition-colors flex items-center gap-3"
+                                        onClick={() => handleSelectPersonnel(person)}
+                                      >
+                                        <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                                        <div className="min-w-0 flex-1">
+                                          <p className="font-medium truncate">{person.nome}</p>
+                                          <p className="text-xs text-muted-foreground">
+                                            {person.posto} - {person.especialidade}
+                                            {person.setor && ` | ${person.setor}`}
+                                          </p>
+                                        </div>
+                                      </button>
+                                    ))
+                                  )}
+                                </div>
+                              </ScrollArea>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Posto/Graduação</Label>
-                      <Input
-                        value={formData.posto}
-                        onChange={(e) => setFormData(prev => ({ ...prev, posto: e.target.value }))}
-                        placeholder="Ex: 3SG, CB, SD"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Especialidade</Label>
-                      <Input
-                        value={formData.especialidade}
-                        onChange={(e) => setFormData(prev => ({ ...prev, especialidade: e.target.value }))}
-                        placeholder="Ex: MO, MQ, ET"
-                      />
-                    </div>
-                  </div>
+                  {/* Form Fields */}
+                  {(formType === "INCLUSAO" || selectedPersonnel) && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Nome *</Label>
+                          <Input
+                            value={formData.nome}
+                            onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
+                            placeholder="Nome completo"
+                            disabled={formType === "EXCLUSAO"}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>NIP</Label>
+                          <Input
+                            value={formData.nip}
+                            onChange={(e) => setFormData(prev => ({ ...prev, nip: e.target.value }))}
+                            placeholder="Número de identificação"
+                            disabled={formType === "EXCLUSAO"}
+                          />
+                        </div>
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label>Justificativa *</Label>
-                    <Textarea
-                      value={formData.justification}
-                      onChange={(e) => setFormData(prev => ({ ...prev, justification: e.target.value }))}
-                      placeholder="Descreva o motivo da solicitação..."
-                      rows={3}
-                    />
-                  </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Posto/Graduação</Label>
+                          <Input
+                            value={formData.posto}
+                            onChange={(e) => setFormData(prev => ({ ...prev, posto: e.target.value }))}
+                            placeholder="Ex: 3SG, CB, SD"
+                            disabled={formType === "EXCLUSAO"}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Especialidade</Label>
+                          <Input
+                            value={formData.especialidade}
+                            onChange={(e) => setFormData(prev => ({ ...prev, especialidade: e.target.value }))}
+                            placeholder="Ex: MO, MQ, ET"
+                            disabled={formType === "EXCLUSAO"}
+                          />
+                        </div>
+                      </div>
 
-                  <Button 
-                    className="w-full" 
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Plus className="h-4 w-4 mr-2" />
-                    )}
-                    Enviar Solicitação
-                  </Button>
+                      <div className="space-y-2">
+                        <Label>Setor</Label>
+                        <Input
+                          value={formData.setor}
+                          onChange={(e) => setFormData(prev => ({ ...prev, setor: e.target.value }))}
+                          placeholder="Ex: Divisão de Eletrônica"
+                          disabled={formType === "EXCLUSAO"}
+                        />
+                      </div>
+
+                      {/* Show original vs new data for ALTERACAO */}
+                      {formType === "ALTERACAO" && originalData && (
+                        <Card className="bg-muted/50">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm">Comparação de Dados</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p className="font-medium text-muted-foreground mb-1">Dados Atuais (NEO)</p>
+                                <div className="space-y-1">
+                                  <p><span className="text-muted-foreground">Nome:</span> {originalData.nome}</p>
+                                  <p><span className="text-muted-foreground">Posto:</span> {originalData.posto}</p>
+                                  <p><span className="text-muted-foreground">Especialidade:</span> {originalData.especialidade}</p>
+                                  <p><span className="text-muted-foreground">Setor:</span> {originalData.setor || "-"}</p>
+                                </div>
+                              </div>
+                              <div>
+                                <p className="font-medium text-primary mb-1">Novos Dados</p>
+                                <div className="space-y-1">
+                                  <p className={formData.nome !== originalData.nome ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Nome:</span> {formData.nome}
+                                  </p>
+                                  <p className={formData.posto !== originalData.posto ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Posto:</span> {formData.posto}
+                                  </p>
+                                  <p className={formData.especialidade !== originalData.especialidade ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Especialidade:</span> {formData.especialidade}
+                                  </p>
+                                  <p className={formData.setor !== originalData.setor ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Setor:</span> {formData.setor || "-"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      <div className="space-y-2">
+                        <Label>Justificativa *</Label>
+                        <Textarea
+                          value={formData.justification}
+                          onChange={(e) => setFormData(prev => ({ ...prev, justification: e.target.value }))}
+                          placeholder="Descreva o motivo da solicitação..."
+                          rows={3}
+                        />
+                      </div>
+
+                      <Button 
+                        className="w-full" 
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Plus className="h-4 w-4 mr-2" />
+                        )}
+                        Enviar Solicitação
+                      </Button>
+                    </>
+                  )}
                 </div>
               </DialogContent>
             </Dialog>
