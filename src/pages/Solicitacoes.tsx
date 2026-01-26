@@ -20,15 +20,23 @@ type RequestType = "INCLUSAO" | "ALTERACAO" | "EXCLUSAO";
 type RequestStatus = "PENDENTE" | "EM_ANALISE" | "APROVADO" | "REJEITADO";
 
 interface PersonnelRecord {
+  id: string;
+  neo: string;
+  tipoSetor: string;
+  setor: string;
+  cargo: string;
+  postoTmft: string;
+  especialidadeTmft: string;
+  opcaoTmft: string;
   nome: string;
-  nip?: string;
-  posto: string;
-  especialidade: string;
-  setor?: string;
-  om?: string;
-  ocupado?: string;
-  corpoTmft?: string;
-  corpoEfetivo?: string;
+  postoEfe: string;
+  especialidadeEfe: string;
+  opcaoEfe: string;
+  om: string;
+  isVago: boolean;
+  isExtraLotacao: boolean;
+  quadroTmft?: string;
+  quadroEfe?: string;
 }
 
 interface PersonnelRequest {
@@ -77,10 +85,13 @@ export default function Solicitacoes() {
   // Form state
   const [formType, setFormType] = useState<RequestType>("INCLUSAO");
   const [formData, setFormData] = useState({
+    neo: "",
+    cargo: "",
+    postoTmft: "",
+    quadroTmft: "",
+    especialidadeTmft: "",
+    opcaoTmft: "",
     nome: "",
-    nip: "",
-    posto: "",
-    especialidade: "",
     setor: "",
     om: "",
     justification: "",
@@ -125,9 +136,10 @@ export default function Solicitacoes() {
     return personnelData
       .filter(p => 
         p.nome?.toLowerCase().includes(query) ||
-        p.nip?.toLowerCase().includes(query) ||
-        p.posto?.toLowerCase().includes(query) ||
-        p.especialidade?.toLowerCase().includes(query)
+        p.neo?.toLowerCase().includes(query) ||
+        p.postoTmft?.toLowerCase().includes(query) ||
+        p.especialidadeTmft?.toLowerCase().includes(query) ||
+        p.cargo?.toLowerCase().includes(query)
       )
       .slice(0, 20);
   }, [personnelData, searchQuery]);
@@ -159,20 +171,26 @@ export default function Solicitacoes() {
   const handleSelectPersonnel = (personnel: PersonnelRecord) => {
     setSelectedPersonnel(personnel);
     setOriginalData({
+      neo: personnel.neo,
+      cargo: personnel.cargo,
+      postoTmft: personnel.postoTmft,
+      quadroTmft: personnel.quadroTmft || "",
+      especialidadeTmft: personnel.especialidadeTmft,
+      opcaoTmft: personnel.opcaoTmft,
       nome: personnel.nome,
-      nip: personnel.nip || "",
-      posto: personnel.posto,
-      especialidade: personnel.especialidade,
-      setor: personnel.setor || "",
+      setor: personnel.setor,
       om: personnel.om || role,
     });
     
     // Pre-fill form with personnel data
     setFormData({
+      neo: personnel.neo || "",
+      cargo: personnel.cargo || "",
+      postoTmft: personnel.postoTmft || "",
+      quadroTmft: personnel.quadroTmft || "",
+      especialidadeTmft: personnel.especialidadeTmft || "",
+      opcaoTmft: personnel.opcaoTmft || "",
       nome: personnel.nome || "",
-      nip: personnel.nip || "",
-      posto: personnel.posto || "",
-      especialidade: personnel.especialidade || "",
       setor: personnel.setor || "",
       om: personnel.om || role || "",
       justification: formData.justification,
@@ -183,7 +201,11 @@ export default function Solicitacoes() {
   };
 
   const resetForm = () => {
-    setFormData({ nome: "", nip: "", posto: "", especialidade: "", setor: "", om: "", justification: "" });
+    setFormData({ 
+      neo: "", cargo: "", postoTmft: "", quadroTmft: "", 
+      especialidadeTmft: "", opcaoTmft: "", nome: "", 
+      setor: "", om: "", justification: "" 
+    });
     setSelectedPersonnel(null);
     setOriginalData(null);
     setSearchQuery("");
@@ -205,10 +227,13 @@ export default function Solicitacoes() {
     setIsSubmitting(true);
     try {
       const personnelDataPayload = {
+        neo: formData.neo,
+        cargo: formData.cargo,
+        postoTmft: formData.postoTmft,
+        quadroTmft: formData.quadroTmft,
+        especialidadeTmft: formData.especialidadeTmft,
+        opcaoTmft: formData.opcaoTmft,
         nome: formData.nome,
-        nip: formData.nip,
-        posto: formData.posto,
-        especialidade: formData.especialidade,
         setor: formData.setor,
         om: formData.om || role,
       };
@@ -339,8 +364,8 @@ export default function Solicitacoes() {
                                 <div>
                                   <p className="font-medium">{selectedPersonnel.nome}</p>
                                   <p className="text-sm text-muted-foreground">
-                                    {selectedPersonnel.posto} - {selectedPersonnel.especialidade}
-                                    {selectedPersonnel.setor && ` | ${selectedPersonnel.setor}`}
+                                    NEO: {selectedPersonnel.neo} | {selectedPersonnel.postoTmft} - {selectedPersonnel.especialidadeTmft}
+                                    {selectedPersonnel.cargo && ` | ${selectedPersonnel.cargo}`}
                                   </p>
                                 </div>
                                 <Button 
@@ -367,13 +392,12 @@ export default function Solicitacoes() {
                             <div className="relative">
                               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                               <Input
-                                placeholder="Digite nome, NIP, posto ou especialidade..."
+                                placeholder="Digite nome, NEO, cargo ou especialidade..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-9"
                               />
                             </div>
-                            
                             {isLoadingPersonnel ? (
                               <div className="flex items-center justify-center py-4">
                                 <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -396,8 +420,8 @@ export default function Solicitacoes() {
                                         <div className="min-w-0 flex-1">
                                           <p className="font-medium truncate">{person.nome}</p>
                                           <p className="text-xs text-muted-foreground">
-                                            {person.posto} - {person.especialidade}
-                                            {person.setor && ` | ${person.setor}`}
+                                            NEO: {person.neo} | {person.postoTmft} - {person.especialidadeTmft}
+                                            {person.cargo && ` | ${person.cargo}`}
                                           </p>
                                         </div>
                                       </button>
@@ -417,20 +441,20 @@ export default function Solicitacoes() {
                     <>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Nome *</Label>
+                          <Label>NEO *</Label>
                           <Input
-                            value={formData.nome}
-                            onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
-                            placeholder="Nome completo"
-                            disabled={formType === "EXCLUSAO"}
+                            value={formData.neo}
+                            onChange={(e) => setFormData(prev => ({ ...prev, neo: e.target.value }))}
+                            placeholder="Número da NEO"
+                            disabled={formType === "EXCLUSAO" || formType === "ALTERACAO"}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>NIP</Label>
+                          <Label>Cargo/Incumbência</Label>
                           <Input
-                            value={formData.nip}
-                            onChange={(e) => setFormData(prev => ({ ...prev, nip: e.target.value }))}
-                            placeholder="Número de identificação"
+                            value={formData.cargo}
+                            onChange={(e) => setFormData(prev => ({ ...prev, cargo: e.target.value }))}
+                            placeholder="Ex: Auxiliar de Enfermagem"
                             disabled={formType === "EXCLUSAO"}
                           />
                         </div>
@@ -438,31 +462,52 @@ export default function Solicitacoes() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Posto/Graduação</Label>
+                          <Label>Graduação</Label>
                           <Input
-                            value={formData.posto}
-                            onChange={(e) => setFormData(prev => ({ ...prev, posto: e.target.value }))}
+                            value={formData.postoTmft}
+                            onChange={(e) => setFormData(prev => ({ ...prev, postoTmft: e.target.value }))}
                             placeholder="Ex: 3SG, CB, SD"
                             disabled={formType === "EXCLUSAO"}
                           />
                         </div>
                         <div className="space-y-2">
+                          <Label>Quadro</Label>
+                          <Input
+                            value={formData.quadroTmft}
+                            onChange={(e) => setFormData(prev => ({ ...prev, quadroTmft: e.target.value }))}
+                            placeholder="Ex: QT, RM"
+                            disabled={formType === "EXCLUSAO"}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
                           <Label>Especialidade</Label>
                           <Input
-                            value={formData.especialidade}
-                            onChange={(e) => setFormData(prev => ({ ...prev, especialidade: e.target.value }))}
+                            value={formData.especialidadeTmft}
+                            onChange={(e) => setFormData(prev => ({ ...prev, especialidadeTmft: e.target.value }))}
                             placeholder="Ex: MO, MQ, ET"
+                            disabled={formType === "EXCLUSAO"}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Opção</Label>
+                          <Input
+                            value={formData.opcaoTmft}
+                            onChange={(e) => setFormData(prev => ({ ...prev, opcaoTmft: e.target.value }))}
+                            placeholder="Ex: 1, 2, 3"
                             disabled={formType === "EXCLUSAO"}
                           />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Setor</Label>
+                        <Label>Nome *</Label>
                         <Input
-                          value={formData.setor}
-                          onChange={(e) => setFormData(prev => ({ ...prev, setor: e.target.value }))}
-                          placeholder="Ex: Divisão de Eletrônica"
+                          value={formData.nome}
+                          onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
+                          placeholder="Nome completo"
                           disabled={formType === "EXCLUSAO"}
                         />
                       </div>
@@ -478,26 +523,36 @@ export default function Solicitacoes() {
                               <div>
                                 <p className="font-medium text-muted-foreground mb-1">Dados Atuais (NEO)</p>
                                 <div className="space-y-1">
+                                  <p><span className="text-muted-foreground">NEO:</span> {originalData.neo}</p>
+                                  <p><span className="text-muted-foreground">Cargo:</span> {originalData.cargo || "-"}</p>
+                                  <p><span className="text-muted-foreground">Graduação:</span> {originalData.postoTmft}</p>
+                                  <p><span className="text-muted-foreground">Quadro:</span> {originalData.quadroTmft || "-"}</p>
+                                  <p><span className="text-muted-foreground">Especialidade:</span> {originalData.especialidadeTmft}</p>
+                                  <p><span className="text-muted-foreground">Opção:</span> {originalData.opcaoTmft || "-"}</p>
                                   <p><span className="text-muted-foreground">Nome:</span> {originalData.nome}</p>
-                                  <p><span className="text-muted-foreground">Posto:</span> {originalData.posto}</p>
-                                  <p><span className="text-muted-foreground">Especialidade:</span> {originalData.especialidade}</p>
-                                  <p><span className="text-muted-foreground">Setor:</span> {originalData.setor || "-"}</p>
                                 </div>
                               </div>
                               <div>
                                 <p className="font-medium text-primary mb-1">Novos Dados</p>
                                 <div className="space-y-1">
+                                  <p><span className="text-muted-foreground">NEO:</span> {formData.neo}</p>
+                                  <p className={formData.cargo !== originalData.cargo ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Cargo:</span> {formData.cargo || "-"}
+                                  </p>
+                                  <p className={formData.postoTmft !== originalData.postoTmft ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Graduação:</span> {formData.postoTmft}
+                                  </p>
+                                  <p className={formData.quadroTmft !== originalData.quadroTmft ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Quadro:</span> {formData.quadroTmft || "-"}
+                                  </p>
+                                  <p className={formData.especialidadeTmft !== originalData.especialidadeTmft ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Especialidade:</span> {formData.especialidadeTmft}
+                                  </p>
+                                  <p className={formData.opcaoTmft !== originalData.opcaoTmft ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Opção:</span> {formData.opcaoTmft || "-"}
+                                  </p>
                                   <p className={formData.nome !== originalData.nome ? "text-primary font-medium" : ""}>
                                     <span className="text-muted-foreground">Nome:</span> {formData.nome}
-                                  </p>
-                                  <p className={formData.posto !== originalData.posto ? "text-primary font-medium" : ""}>
-                                    <span className="text-muted-foreground">Posto:</span> {formData.posto}
-                                  </p>
-                                  <p className={formData.especialidade !== originalData.especialidade ? "text-primary font-medium" : ""}>
-                                    <span className="text-muted-foreground">Especialidade:</span> {formData.especialidade}
-                                  </p>
-                                  <p className={formData.setor !== originalData.setor ? "text-primary font-medium" : ""}>
-                                    <span className="text-muted-foreground">Setor:</span> {formData.setor || "-"}
                                   </p>
                                 </div>
                               </div>
