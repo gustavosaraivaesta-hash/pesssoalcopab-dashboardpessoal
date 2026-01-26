@@ -62,10 +62,14 @@ export default function AdminHistorico() {
   };
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated && isCopab) {
-      fetchHistory();
+    if (!authLoading && isAuthenticated && role) {
+      if (isCopab) {
+        fetchHistory();
+      } else {
+        setIsLoading(false);
+      }
     }
-  }, [authLoading, isAuthenticated, isCopab, filterOm]);
+  }, [authLoading, isAuthenticated, role, isCopab, filterOm]);
 
   // Filter by search term
   const filteredHistory = history.filter(record => {

@@ -81,10 +81,14 @@ export default function AdminSolicitacoes() {
   };
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated && isCopab) {
-      fetchRequests();
+    if (!authLoading && isAuthenticated && role) {
+      if (isCopab) {
+        fetchRequests();
+      } else {
+        setIsLoading(false);
+      }
     }
-  }, [authLoading, isAuthenticated, isCopab, filterOm]);
+  }, [authLoading, isAuthenticated, role, isCopab, filterOm]);
 
   const handleReview = async (decision: "APROVADO" | "REJEITADO") => {
     if (!selectedRequest) return;
