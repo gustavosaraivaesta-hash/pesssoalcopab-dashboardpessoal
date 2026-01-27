@@ -255,33 +255,58 @@ serve(async (req) => {
         );
       }
 
-      // If approved and it's an ALTERACAO or EXCLUSAO, archive the original data
-      if (decision === 'APROVADO' && ['ALTERACAO', 'EXCLUSAO'].includes(existingRequest.request_type)) {
-        const dataToArchive = existingRequest.request_type === 'ALTERACAO' 
-          ? existingRequest.original_data 
-          : existingRequest.personnel_data;
+      // If approved, archive the data and trigger sheet sync
+      if (decision === 'APROVADO') {
+        // Archive original data for ALTERACAO/EXCLUSAO
+        if (['ALTERACAO', 'EXCLUSAO'].includes(existingRequest.request_type)) {
+          const dataToArchive = existingRequest.request_type === 'ALTERACAO' 
+            ? existingRequest.original_data 
+            : existingRequest.personnel_data;
 
-        if (dataToArchive) {
-          const { error: archiveError } = await adminClient
-            .from('personnel_history')
-            .insert({
-              request_id: id,
-              action_type: existingRequest.request_type,
-              personnel_data: dataToArchive,
-              om: existingRequest.requesting_om,
-              archived_by: auth.user.id
-            });
+          if (dataToArchive) {
+            const { error: archiveError } = await adminClient
+              .from('personnel_history')
+              .insert({
+                request_id: id,
+                action_type: existingRequest.request_type,
+                personnel_data: dataToArchive,
+                om: existingRequest.requesting_om,
+                archived_by: auth.user.id
+              });
 
-          if (archiveError) {
-            console.error('Archive error:', archiveError);
-            // Don't fail the whole operation, just log
+            if (archiveError) {
+              console.error('Archive error:', archiveError);
+            }
           }
+        }
+
+        // Trigger Google Sheets sync for approved requests
+        try {
+          const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+          const syncResponse = await fetch(`${supabaseUrl}/functions/v1/sync-sheets`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': req.headers.get('Authorization') || ''
+            },
+            body: JSON.stringify({ action: 'sync', request_id: id })
+          });
+          
+          const syncResult = await syncResponse.json();
+          console.log(`Sheet sync result for request ${id}:`, syncResult);
+        } catch (syncError) {
+          console.error('Sheet sync error:', syncError);
+          // Don't fail the approval, just log the sync error
         }
       }
 
       console.log(`Request ${id} ${decision} by user ${auth.user.id}`);
       return new Response(
-        JSON.stringify({ success: true, request: updatedRequest }),
+        JSON.stringify({ 
+          success: true, 
+          request: updatedRequest,
+          sheetSyncTriggered: decision === 'APROVADO'
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
