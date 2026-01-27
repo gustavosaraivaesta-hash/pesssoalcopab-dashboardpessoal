@@ -86,6 +86,9 @@ const Index = () => {
   // NEO Comparison states
   const [showNeoComparison, setShowNeoComparison] = useState(false);
   const [showNeoPersonnel, setShowNeoPersonnel] = useState<"fora" | "na" | null>(null);
+  
+  // Pending requests count for COpAb
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
 
   const isOnline = useOnlineStatus();
   const { getFromCache, saveToCache, clearCache, getCacheTimestamp } = useOfflineCache<MilitaryData[]>('copab_data');
@@ -387,6 +390,32 @@ const Index = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Fetch pending requests count for COpAb
+  useEffect(() => {
+    const fetchPendingRequests = async () => {
+      if (role !== "COPAB") return;
+      
+      try {
+        const { data, error } = await supabase.functions.invoke("manage-personnel-requests", {
+          body: { action: "list" },
+        });
+
+        if (!error && data?.requests) {
+          const pending = data.requests.filter((r: any) => r.status === "PENDENTE").length;
+          setPendingRequestsCount(pending);
+        }
+      } catch (error) {
+        console.error("Error fetching pending requests:", error);
+      }
+    };
+
+    fetchPendingRequests();
+    
+    // Auto-refresh pending count every 30 seconds
+    const interval = setInterval(fetchPendingRequests, 30000);
+    return () => clearInterval(interval);
+  }, [role]);
 
   const handleLogout = async () => {
     try {
@@ -857,6 +886,40 @@ const Index = () => {
           />
           <MetricsCard title="Extra Lotação" value={extraLotacaoTotal} icon={Users} variant="warning" />
         </div>
+
+        {/* Card de Solicitações Pendentes - Apenas para COpAb */}
+        {role === "COPAB" && pendingRequestsCount > 0 && (
+          <Card 
+            className="bg-gradient-to-r from-amber-500 to-orange-500 text-white cursor-pointer hover:shadow-lg transition-all"
+            onClick={() => navigate("/admin/solicitacoes")}
+          >
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white/20 rounded-full p-3">
+                    <ClipboardList className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold">Solicitações Pendentes</h3>
+                    <p className="text-sm opacity-90">
+                      {pendingRequestsCount} {pendingRequestsCount === 1 ? 'solicitação aguarda' : 'solicitações aguardam'} análise
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  variant="secondary" 
+                  className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate("/admin/solicitacoes");
+                  }}
+                >
+                  Analisar Agora
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* NEO Comparison Cards */}
         {showNeoComparison && filters.especialidade.length > 0 && (

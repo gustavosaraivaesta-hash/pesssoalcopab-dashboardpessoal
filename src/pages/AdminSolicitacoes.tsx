@@ -81,12 +81,20 @@ export default function AdminSolicitacoes() {
   };
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated && role) {
-      if (isCopab) {
-        fetchRequests();
-      } else {
-        setIsLoading(false);
-      }
+    // Se ainda está carregando auth, não faz nada
+    if (authLoading) return;
+    
+    // Se não está autenticado ou não tem role, para o loading
+    if (!isAuthenticated || !role) {
+      setIsLoading(false);
+      return;
+    }
+    
+    // Se é COpAb, busca os dados
+    if (isCopab) {
+      fetchRequests();
+    } else {
+      setIsLoading(false);
     }
   }, [authLoading, isAuthenticated, role, isCopab, filterOm]);
 
