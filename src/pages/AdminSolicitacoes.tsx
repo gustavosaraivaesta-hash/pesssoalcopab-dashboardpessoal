@@ -128,7 +128,14 @@ export default function AdminSolicitacoes() {
 
       if (error) throw error;
 
-      toast.success(`Solicitação ${decision === "APROVADO" ? "aprovada" : "rejeitada"} com sucesso!`);
+      if (decision === "APROVADO") {
+        toast.success("Solicitação aprovada! Alteração registrada para sincronização com a planilha.", {
+          duration: 5000,
+        });
+      } else {
+        toast.success("Solicitação rejeitada com sucesso!");
+      }
+      
       setSelectedRequest(null);
       setReviewNotes("");
       fetchRequests();
