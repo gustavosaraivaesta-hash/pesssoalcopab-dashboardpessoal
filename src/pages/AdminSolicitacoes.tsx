@@ -340,7 +340,7 @@ export default function AdminSolicitacoes() {
                                 }}
                               >
                                 <Eye className="h-4 w-4 mr-1" />
-                                Analisar
+                                Analisar Agora
                               </Button>
                             </div>
                           </TableCell>
