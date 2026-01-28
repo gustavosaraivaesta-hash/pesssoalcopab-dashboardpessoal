@@ -908,7 +908,7 @@ const Index = () => {
                 </div>
                 <Button 
                   variant="secondary" 
-                  className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                  className="bg-white/90 hover:bg-white text-orange-600 font-semibold border-0 shadow-sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate("/admin/solicitacoes");
