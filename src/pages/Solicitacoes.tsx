@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, FileText, Clock, CheckCircle2, XCircle, ArrowLeft, RefreshCw, Search, User, Edit, Trash2 } from "lucide-react";
+import { Plus, FileText, Clock, CheckCircle2, XCircle, ArrowLeft, RefreshCw, Search, User, Edit, Trash2, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -296,8 +296,8 @@ export default function Solicitacoes() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={fetchRequests}>
-              <RefreshCw className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="sm" onClick={fetchRequests} disabled={isLoading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
               Atualizar
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={(open) => {
@@ -593,6 +593,40 @@ export default function Solicitacoes() {
       </header>
 
       <main className="p-6 space-y-6">
+        {/* Card de Solicitações Pendentes - Apenas para COpAb */}
+        {role === "COPAB" && stats.pendentes > 0 && (
+          <Card 
+            className="bg-gradient-to-r from-amber-500 to-orange-500 text-white cursor-pointer hover:shadow-lg transition-all"
+            onClick={() => navigate("/admin/solicitacoes")}
+          >
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white/20 rounded-full p-3">
+                    <ClipboardList className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold">Solicitações Pendentes</h3>
+                    <p className="text-sm opacity-90">
+                      {stats.pendentes} {stats.pendentes === 1 ? 'solicitação aguarda' : 'solicitações aguardam'} análise
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  variant="secondary" 
+                  className="bg-white/90 hover:bg-white text-orange-600 font-semibold border-0 shadow-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate("/admin/solicitacoes");
+                  }}
+                >
+                  Analisar Agora
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
@@ -603,19 +637,19 @@ export default function Solicitacoes() {
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-yellow-600">{stats.pendentes}</div>
+              <div className="text-2xl font-bold text-amber-600">{stats.pendentes}</div>
               <p className="text-xs text-muted-foreground">Pendentes</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-green-600">{stats.aprovados}</div>
+              <div className="text-2xl font-bold text-emerald-600">{stats.aprovados}</div>
               <p className="text-xs text-muted-foreground">Aprovadas</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-red-600">{stats.rejeitados}</div>
+              <div className="text-2xl font-bold text-destructive">{stats.rejeitados}</div>
               <p className="text-xs text-muted-foreground">Rejeitadas</p>
             </CardContent>
           </Card>
