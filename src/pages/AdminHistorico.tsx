@@ -41,15 +41,24 @@ export default function AdminHistorico() {
 
   const isCopab = role === "COPAB";
 
+  const withTimeout = <T,>(promise: Promise<T>, ms = 25000) =>
+    Promise.race([
+      promise,
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms)),
+    ]);
+
   const fetchHistory = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("manage-personnel-requests", {
-        body: { 
-          action: "history",
-          om: filterOm || undefined
-        },
-      });
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("manage-personnel-requests", {
+          body: {
+            action: "history",
+            om: filterOm || undefined,
+          },
+        }),
+        25000,
+      );
 
       if (error) throw error;
       setHistory(data.history || []);

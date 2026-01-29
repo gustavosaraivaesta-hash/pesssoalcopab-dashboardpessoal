@@ -60,15 +60,24 @@ export default function AdminSolicitacoes() {
 
   const isCopab = role === "COPAB";
 
+  const withTimeout = <T,>(promise: Promise<T>, ms = 25000) =>
+    Promise.race([
+      promise,
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms)),
+    ]);
+
   const fetchRequests = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("manage-personnel-requests", {
-        body: { 
-          action: "list",
-          om: filterOm || undefined
-        },
-      });
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("manage-personnel-requests", {
+          body: {
+            action: "list",
+            om: filterOm || undefined,
+          },
+        }),
+        25000,
+      );
 
       if (error) throw error;
       setRequests(data.requests || []);
@@ -115,14 +124,17 @@ export default function AdminSolicitacoes() {
         review_notes: reviewNotes,
       });
 
-      const { data, error } = await supabase.functions.invoke("manage-personnel-requests", {
-        body: {
-          action: "review",
-          id: selectedRequest.id,
-          decision,
-          review_notes: reviewNotes,
-        },
-      });
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("manage-personnel-requests", {
+          body: {
+            action: "review",
+            id: selectedRequest.id,
+            decision,
+            review_notes: reviewNotes,
+          },
+        }),
+        25000,
+      );
 
       console.log("Review response:", data, error);
 
