@@ -25,11 +25,34 @@ const Login = () => {
   useEffect(() => {
     // Check if user is already logged in
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/");
+      // Evita travar indefinidamente em conexões lentas
+      const withTimeout = async <T,>(promise: Promise<T>, ms: number, fallback: T): Promise<T> => {
+        let t: ReturnType<typeof setTimeout> | undefined;
+        try {
+          return await Promise.race([
+            promise,
+            new Promise<T>((resolve) => {
+              t = setTimeout(() => resolve(fallback), ms);
+            }),
+          ]);
+        } finally {
+          if (t) clearTimeout(t);
+        }
+      };
+
+      try {
+        type GetSessionResult = Awaited<ReturnType<typeof supabase.auth.getSession>>;
+        const result = await withTimeout<GetSessionResult>(
+          supabase.auth.getSession(),
+          6000,
+          { data: { session: null }, error: null } as GetSessionResult,
+        );
+
+        const session = result.data?.session ?? null;
+        if (session) navigate("/");
+      } finally {
+        setCheckingAuth(false);
       }
-      setCheckingAuth(false);
     };
     
     checkAuth();
@@ -49,16 +72,33 @@ const Login = () => {
     setLoading(true);
 
     try {
+      const withTimeoutReject = async <T,>(promise: Promise<T>, ms: number): Promise<T> => {
+        let t: ReturnType<typeof setTimeout> | undefined;
+        try {
+          return await Promise.race([
+            promise,
+            new Promise<never>((_, reject) => {
+              t = setTimeout(() => reject(new Error("Timeout")), ms);
+            }),
+          ]);
+        } finally {
+          if (t) clearTimeout(t);
+        }
+      };
+
       // Convert username to email format (case-insensitive)
       const email = usernameToEmail(username);
       
       // Convert password to uppercase for case-insensitive comparison
       const normalizedPassword = password.toUpperCase();
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: normalizedPassword,
-      });
+      const { data, error } = await withTimeoutReject(
+        supabase.auth.signInWithPassword({
+          email,
+          password: normalizedPassword,
+        }),
+        15000,
+      );
 
       if (error) {
         console.error("Login error:", error);
@@ -72,7 +112,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Erro ao fazer login");
+      toast.error("Erro ao fazer login (verifique conexão/credenciais)");
     } finally {
       setLoading(false);
     }

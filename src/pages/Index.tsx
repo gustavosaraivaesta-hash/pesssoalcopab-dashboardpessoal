@@ -397,9 +397,18 @@ const Index = () => {
       if (role !== "COPAB") return;
       
       try {
-        const { data, error } = await supabase.functions.invoke("manage-personnel-requests", {
-          body: { action: "list" },
-        });
+        const withTimeout = <T,>(promise: Promise<T>, ms = 15000) =>
+          Promise.race([
+            promise,
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms)),
+          ]);
+
+        const { data, error } = await withTimeout(
+          supabase.functions.invoke("manage-personnel-requests", {
+            body: { action: "list" },
+          }),
+          15000,
+        );
 
         if (!error && data?.requests) {
           const pending = data.requests.filter((r: any) => r.status === "PENDENTE").length;

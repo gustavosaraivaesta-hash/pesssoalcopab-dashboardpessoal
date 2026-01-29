@@ -103,9 +103,18 @@ export default function Solicitacoes() {
   const fetchPersonnelData = async () => {
     setIsLoadingPersonnel(true);
     try {
-      const { data, error } = await supabase.functions.invoke("fetch-pracas-data", {
-        body: {},
-      });
+      const withTimeout = <T,>(promise: Promise<T>, ms = 25000) =>
+        Promise.race([
+          promise,
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms)),
+        ]);
+
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("fetch-pracas-data", {
+          body: {},
+        }),
+        25000,
+      );
 
       if (error) throw error;
       setPersonnelData(data.personnel || []);
@@ -147,9 +156,18 @@ export default function Solicitacoes() {
   const fetchRequests = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("manage-personnel-requests", {
-        body: { action: "list" },
-      });
+      const withTimeout = <T,>(promise: Promise<T>, ms = 25000) =>
+        Promise.race([
+          promise,
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms)),
+        ]);
+
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("manage-personnel-requests", {
+          body: { action: "list" },
+        }),
+        25000,
+      );
 
       if (error) throw error;
       setRequests(data.requests || []);
