@@ -145,11 +145,13 @@ const DashboardPracas = () => {
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
   const [availableQuadrosEfe, setAvailableQuadrosEfe] = useState<string[]>([]);
   const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
+  const [availableGraduacoes, setAvailableGraduacoes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedQuadros, setSelectedQuadros] = useState<string[]>([]);
   const [selectedQuadrosEfe, setSelectedQuadrosEfe] = useState<string[]>([]);
   const [selectedOpcoes, setSelectedOpcoes] = useState<string[]>([]);
+  const [selectedGraduacoes, setSelectedGraduacoes] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("efetivo");
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<"all" | "ocupados" | "vagos">("all");
@@ -161,6 +163,9 @@ const DashboardPracas = () => {
   const [showNeoComparison, setShowNeoComparison] = useState(false);
   const [neoComparisonFilter, setNeoComparisonFilter] = useState<"all" | "fora" | "na">("all");
   const [showNeoPersonnel, setShowNeoPersonnel] = useState<"fora" | "na" | null>(null);
+
+  // Ordem fixa das graduações de praças
+  const GRADUACAO_ORDER = ["SO", "SG", "CB", "MN", "SD"];
   // selectedOMsForVagos is now used for both vagos list and top especialidades chart
 
   const chartRef = useRef<HTMLDivElement>(null);
@@ -214,10 +219,28 @@ const DashboardPracas = () => {
         ),
       ];
 
+      // Extrair graduações disponíveis (postoTmft) para praças
+      const graduacoesFromData = [
+        ...new Set(
+          data
+            .map((item: any) => item.postoTmft)
+            .filter((g: string) => g && g.trim() !== "" && g !== "-"),
+        ),
+      ].sort((a, b) => {
+        const order = ["SO", "SG", "CB", "MN", "SD"];
+        const indexA = order.indexOf(a);
+        const indexB = order.indexOf(b);
+        if (indexA === -1 && indexB === -1) return 0;
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+        return indexA - indexB;
+      });
+
       setAvailableOMs(getAvailableOMsForUser(oms as string[]));
       setAvailableQuadros(quadrosFromData as string[]);
       setAvailableQuadrosEfe(quadrosEfeFromData as string[]);
       setAvailableOpcoes(opcoes as string[]);
+      setAvailableGraduacoes(graduacoesFromData as string[]);
 
       const cacheTime = getCacheTimestamp();
       setLastUpdate(cacheTime ? cacheTime.toLocaleString("pt-BR") : "Cache");
@@ -336,6 +359,23 @@ const DashboardPracas = () => {
           ),
         ];
         setAvailableQuadrosEfe(quadrosEfeFromData as string[]);
+        // Extrair graduações disponíveis (postoTmft) para praças
+        const graduacoesFromData = [
+          ...new Set(
+            data
+              .map((item: any) => item.postoTmft)
+              .filter((g: string) => g && g.trim() !== "" && g !== "-"),
+          ),
+        ].sort((a, b) => {
+          const order = ["SO", "SG", "CB", "MN", "SD"];
+          const indexA = order.indexOf(a);
+          const indexB = order.indexOf(b);
+          if (indexA === -1 && indexB === -1) return 0;
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          return indexA - indexB;
+        });
+        setAvailableGraduacoes(graduacoesFromData as string[]);
         setAvailableOpcoes(opcoes as string[]);
         setLastUpdate(result.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
       }
@@ -379,6 +419,11 @@ const DashboardPracas = () => {
       filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
     }
 
+    // Filtro de graduação (postoTmft)
+    if (selectedGraduacoes.length > 0) {
+      filtered = filtered.filter((item) => selectedGraduacoes.includes(item.postoTmft));
+    }
+
     if (statusFilter === "ocupados") {
       filtered = filtered.filter((item) => item.ocupado);
     } else if (statusFilter === "vagos") {
@@ -411,6 +456,7 @@ const DashboardPracas = () => {
     selectedQuadros,
     selectedQuadrosEfe,
     selectedOpcoes,
+    selectedGraduacoes,
     statusFilter,
     showOnlyExtraLotacao,
     searchQuery,
@@ -432,11 +478,16 @@ const DashboardPracas = () => {
     setSelectedOpcoes((prev) => (prev.includes(opcao) ? prev.filter((o) => o !== opcao) : [...prev, opcao]));
   };
 
+  const toggleGraduacao = (graduacao: string) => {
+    setSelectedGraduacoes((prev) => (prev.includes(graduacao) ? prev.filter((g) => g !== graduacao) : [...prev, graduacao]));
+  };
+
   const clearFilters = () => {
     setSelectedOMs([]);
     setSelectedQuadros([]);
     setSelectedQuadrosEfe([]);
     setSelectedOpcoes([]);
+    setSelectedGraduacoes([]);
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
     setSearchQuery("");
@@ -1350,6 +1401,7 @@ const DashboardPracas = () => {
                   selectedQuadros.length > 0 ||
                   selectedQuadrosEfe.length > 0 ||
                   selectedOpcoes.length > 0 ||
+                  selectedGraduacoes.length > 0 ||
                   searchQuery) && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     Limpar Filtros
@@ -1377,7 +1429,7 @@ const DashboardPracas = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {/* OM Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -1450,6 +1502,32 @@ const DashboardPracas = () => {
                       />
                       <label htmlFor={`quadro-efe-${quadro}`} className="text-xs cursor-pointer">
                         {quadro}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Graduação Filter */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Graduação</h4>
+                  {selectedGraduacoes.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {selectedGraduacoes.length} selecionado(s)
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-3 gap-1 p-2 border rounded-lg bg-muted/30">
+                  {availableGraduacoes.map((graduacao) => (
+                    <div key={graduacao} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`grad-${graduacao}`}
+                        checked={selectedGraduacoes.includes(graduacao)}
+                        onCheckedChange={() => toggleGraduacao(graduacao)}
+                      />
+                      <label htmlFor={`grad-${graduacao}`} className="text-xs cursor-pointer">
+                        {graduacao}
                       </label>
                     </div>
                   ))}

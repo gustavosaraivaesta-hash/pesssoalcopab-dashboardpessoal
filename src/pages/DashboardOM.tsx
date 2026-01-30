@@ -151,10 +151,12 @@ const DashboardOM = () => {
   const [availableOMs, setAvailableOMs] = useState<string[]>([]);
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
   const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
+  const [availablePostos, setAvailablePostos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedQuadros, setSelectedQuadros] = useState<string[]>([]);
   const [selectedOpcoes, setSelectedOpcoes] = useState<string[]>([]);
+  const [selectedPostoFilter, setSelectedPostoFilter] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("efetivo");
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -166,6 +168,9 @@ const DashboardOM = () => {
   const [selectedCorpos, setSelectedCorpos] = useState<string[]>([]);
   const [isUsingCache, setIsUsingCache] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Ordem fixa dos postos de oficiais
+  const POSTO_ORDER = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM"];
 
   const chartRef = useRef<HTMLDivElement>(null);
   
@@ -209,6 +214,23 @@ const DashboardOM = () => {
 
     setAvailableOMs(getAvailableOMsForUser(oms as string[]));
     setAvailableQuadros((rawResult.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
+    // Extrair postos disponíveis (postoTmft) para oficiais
+    const postosFromData = [
+      ...new Set(
+        data
+          .map((item: any) => item.postoTmft)
+          .filter((p: string) => p && p.trim() !== "" && p !== "-"),
+      ),
+    ].sort((a, b) => {
+      const order = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM"];
+      const indexA = order.indexOf(a);
+      const indexB = order.indexOf(b);
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+    setAvailablePostos(postosFromData as string[]);
     setAvailableOpcoes(opcoes as string[]);
     setLastUpdate(rawResult.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
   };
@@ -327,6 +349,11 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
     }
 
+    // Filtro de posto (postoTmft) para oficiais
+    if (selectedPostoFilter.length > 0) {
+      filtered = filtered.filter((item) => selectedPostoFilter.includes(item.postoTmft));
+    }
+
     // Apply status filter from card click
     if (statusFilter === "ocupados") {
       filtered = filtered.filter((item) => item.ocupado);
@@ -354,7 +381,7 @@ const DashboardOM = () => {
     }
 
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, statusFilter, showOnlyExtraLotacao, searchQuery]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, statusFilter, showOnlyExtraLotacao, searchQuery]);
 
   const toggleOM = (om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
@@ -368,10 +395,15 @@ const DashboardOM = () => {
     setSelectedOpcoes((prev) => (prev.includes(opcao) ? prev.filter((o) => o !== opcao) : [...prev, opcao]));
   };
 
+  const togglePosto = (posto: string) => {
+    setSelectedPostoFilter((prev) => (prev.includes(posto) ? prev.filter((p) => p !== posto) : [...prev, posto]));
+  };
+
   const clearFilters = () => {
     setSelectedOMs([]);
     setSelectedQuadros([]);
     setSelectedOpcoes([]);
+    setSelectedPostoFilter([]);
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
     setSelectedCorpos([]);
@@ -1095,7 +1127,7 @@ const DashboardOM = () => {
                 Filtros
               </h3>
               <div className="flex items-center gap-2">
-                {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0 || searchQuery) && (
+                {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0 || selectedPostoFilter.length > 0 || searchQuery) && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     Limpar Filtros
                   </Button>
@@ -1122,7 +1154,7 @@ const DashboardOM = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* OM Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -1143,6 +1175,32 @@ const DashboardOM = () => {
                       />
                       <label htmlFor={`om-${om}`} className="text-xs cursor-pointer">
                         {om}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Posto Filter */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Posto</h4>
+                  {selectedPostoFilter.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {selectedPostoFilter.length} selecionado(s)
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-4 gap-1 p-2 border rounded-lg bg-muted/30">
+                  {availablePostos.map((posto) => (
+                    <div key={posto} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`posto-${posto}`}
+                        checked={selectedPostoFilter.includes(posto)}
+                        onCheckedChange={() => togglePosto(posto)}
+                      />
+                      <label htmlFor={`posto-${posto}`} className="text-xs cursor-pointer">
+                        {posto}
                       </label>
                     </div>
                   ))}
