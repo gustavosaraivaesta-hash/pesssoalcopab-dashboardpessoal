@@ -180,10 +180,16 @@ export default function Solicitacoes() {
   };
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      fetchRequests();
+    if (authLoading) return;
+    
+    if (!isAuthenticated) {
+      setIsLoading(false);
+      navigate("/login");
+      return;
     }
-  }, [authLoading, isAuthenticated]);
+    
+    fetchRequests();
+  }, [authLoading, isAuthenticated, navigate]);
 
   // Select a personnel from search results
   const handleSelectPersonnel = (personnel: PersonnelRecord) => {
@@ -291,12 +297,16 @@ export default function Solicitacoes() {
     rejeitados: requests.filter(r => r.status === "REJEITADO").length,
   };
 
-  if (authLoading) {
+  if (authLoading || (!isAuthenticated && isLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <RefreshCw className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null; // Will redirect via useEffect
   }
 
   return (
