@@ -92,10 +92,18 @@ export default function AdminSolicitacoes() {
   useEffect(() => {
     // Se ainda está carregando auth, não faz nada
     if (authLoading) return;
-    
-    // Se não está autenticado ou não tem role, para o loading
-    if (!isAuthenticated || !role) {
+
+    // Se não está autenticado, redireciona para login (evita "carregando" infinito)
+    if (!isAuthenticated) {
       setIsLoading(false);
+      navigate("/login");
+      return;
+    }
+
+    // Autenticado, mas sem role (falha no backend / rede): não trava em loading
+    if (!role) {
+      setIsLoading(false);
+      toast.error("Não foi possível validar suas permissões. Faça login novamente.");
       return;
     }
     
@@ -105,7 +113,7 @@ export default function AdminSolicitacoes() {
     } else {
       setIsLoading(false);
     }
-  }, [authLoading, isAuthenticated, role, isCopab, filterOm]);
+  }, [authLoading, isAuthenticated, role, isCopab, filterOm, navigate]);
 
   const handleReview = async (decision: "APROVADO" | "REJEITADO") => {
     if (!selectedRequest) return;
