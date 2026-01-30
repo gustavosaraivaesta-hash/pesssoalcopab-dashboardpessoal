@@ -39,12 +39,24 @@ export const useAuth = () => {
       }
     };
 
-    const resolveRole = async (): Promise<string> => {
+    const resolveRole = async (): Promise<string | null> => {
       const cached = getCachedUserRole();
-      const role = await withTimeout(getUserRole(), 6000, (cached ?? "COPAB") as any);
-      const finalRole = (role as any) ?? cached ?? "COPAB";
-      setCachedUserRole(finalRole);
-      return finalRole;
+      const fallback: string | null = cached ?? null;
+
+      try {
+        const role = await withTimeout<string | null>(
+          // Se o backend falhar (401/500/offline), não pode travar o app em loading
+          getUserRole().then((r) => (r as any) ?? null).catch(() => fallback),
+          6000,
+          fallback,
+        );
+
+        const finalRole = role ?? fallback;
+        if (finalRole) setCachedUserRole(finalRole);
+        return finalRole;
+      } catch {
+        return fallback;
+      }
     };
 
     // Set up auth state listener FIRST
@@ -55,7 +67,12 @@ export const useAuth = () => {
       if (!isMounted) return;
 
       if (session?.user) {
-        const role = await resolveRole();
+        let role: string | null = null;
+        try {
+          role = await resolveRole();
+        } catch {
+          role = getCachedUserRole() ?? null;
+        }
         if (!isMounted) return;
 
         setAuthState({
@@ -95,7 +112,12 @@ export const useAuth = () => {
       const session = result.data?.session ?? null;
 
       if (session?.user) {
-        const role = await resolveRole();
+        let role: string | null = null;
+        try {
+          role = await resolveRole();
+        } catch {
+          role = getCachedUserRole() ?? null;
+        }
         if (!isMounted) return;
 
         setAuthState({
