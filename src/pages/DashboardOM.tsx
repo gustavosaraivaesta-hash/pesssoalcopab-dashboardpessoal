@@ -334,7 +334,8 @@ const DashboardOM = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredData = useMemo(() => {
+  // Base filtered data for metrics calculation (independent of card clicks)
+  const baseFilteredData = useMemo(() => {
     let filtered = personnelData;
 
     if (selectedOMs.length > 0) {
@@ -354,18 +355,6 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
     }
 
-    // Apply status filter from card click
-    if (statusFilter === "ocupados") {
-      filtered = filtered.filter((item) => item.ocupado);
-    } else if (statusFilter === "vagos") {
-      filtered = filtered.filter((item) => !item.ocupado);
-    }
-
-    // Apply EXTRA LOTAÇÃO filter
-    if (showOnlyExtraLotacao) {
-      filtered = filtered.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO");
-    }
-
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -381,7 +370,26 @@ const DashboardOM = () => {
     }
 
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, statusFilter, showOnlyExtraLotacao, searchQuery]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, searchQuery]);
+
+  // Filtered data for display (applies status filter and extra lotação for drill-down)
+  const filteredData = useMemo(() => {
+    let filtered = baseFilteredData;
+
+    // Apply status filter from card click
+    if (statusFilter === "ocupados") {
+      filtered = filtered.filter((item) => item.ocupado);
+    } else if (statusFilter === "vagos") {
+      filtered = filtered.filter((item) => !item.ocupado);
+    }
+
+    // Apply EXTRA LOTAÇÃO filter
+    if (showOnlyExtraLotacao) {
+      filtered = filtered.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO");
+    }
+
+    return filtered;
+  }, [baseFilteredData, statusFilter, showOnlyExtraLotacao]);
 
   const toggleOM = (om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
@@ -416,13 +424,14 @@ const DashboardOM = () => {
 
   const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TTC"];
 
+  // Metrics calculated from baseFilteredData (independent of card clicks)
   const metrics = useMemo(() => {
-    const regularData = filteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+    const regularData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
     const totalTMFT = regularData.length;
     const totalEXI = regularData.filter((item) => item.ocupado).length;
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
-    const totalExtraLotacao = filteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
+    const totalExtraLotacao = baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
     // ATENDIMENTO TOTAL = (Extra Lotação + Efetivo) / TMFT * 100
     const atendimentoTotal = totalTMFT > 0 ? ((totalExtraLotacao + totalEXI) / totalTMFT) * 100 : 0;
 
@@ -434,7 +443,7 @@ const DashboardOM = () => {
       totalExtraLotacao,
       atendimentoTotal,
     };
-  }, [filteredData]);
+  }, [baseFilteredData]);
 
   // Group data by setor
   const groupedBySetor = useMemo(() => {
