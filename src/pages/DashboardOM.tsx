@@ -423,6 +423,8 @@ const DashboardOM = () => {
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
     const totalExtraLotacao = filteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
+    // ATENDIMENTO TOTAL = (Extra Lotação + Efetivo) / TMFT * 100
+    const atendimentoTotal = totalTMFT > 0 ? ((totalExtraLotacao + totalEXI) / totalTMFT) * 100 : 0;
 
     return {
       totalTMFT,
@@ -430,6 +432,7 @@ const DashboardOM = () => {
       totalDIF,
       percentualPreenchimento,
       totalExtraLotacao,
+      atendimentoTotal,
     };
   }, [filteredData]);
 
@@ -1263,7 +1266,7 @@ const DashboardOM = () => {
         </Card>
 
         {/* Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card
             className={`bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 border-blue-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${statusFilter === "all" ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
             onClick={() => handleStatusCardClick("all")}
@@ -1354,6 +1357,53 @@ const DashboardOM = () => {
                     : metrics.percentualPreenchimento >= 70 
                       ? "text-amber-500"
                       : "text-red-500"
+                }`} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className={`bg-gradient-to-br ${
+            metrics.atendimentoTotal >= 100
+              ? "from-cyan-50 to-cyan-100 dark:from-cyan-950/20 dark:to-cyan-900/20 border-cyan-200"
+              : metrics.atendimentoTotal >= 90
+                ? "from-teal-50 to-teal-100 dark:from-teal-950/20 dark:to-teal-900/20 border-teal-200"
+                : "from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200"
+          }`}>
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className={`text-sm font-medium mb-1 ${
+                    metrics.atendimentoTotal >= 100
+                      ? "text-cyan-700 dark:text-cyan-300"
+                      : metrics.atendimentoTotal >= 90
+                        ? "text-teal-700 dark:text-teal-300"
+                        : "text-amber-700 dark:text-amber-300"
+                  }`}>ATEND. TOTAL</p>
+                  <p className={`text-4xl font-bold ${
+                    metrics.atendimentoTotal >= 100
+                      ? "text-cyan-900 dark:text-cyan-100"
+                      : metrics.atendimentoTotal >= 90
+                        ? "text-teal-900 dark:text-teal-100"
+                        : "text-amber-900 dark:text-amber-100"
+                  }`}>
+                    {metrics.atendimentoTotal.toFixed(0)}%
+                  </p>
+                  <p className={`text-xs mt-1 ${
+                    metrics.atendimentoTotal >= 100
+                      ? "text-cyan-600 dark:text-cyan-400"
+                      : metrics.atendimentoTotal >= 90
+                        ? "text-teal-600 dark:text-teal-400"
+                        : "text-amber-600 dark:text-amber-400"
+                  }`}>
+                    (Extra + EFE) / TMFT
+                  </p>
+                </div>
+                <TrendingUp className={`h-8 w-8 ${
+                  metrics.atendimentoTotal >= 100
+                    ? "text-cyan-500"
+                    : metrics.atendimentoTotal >= 90
+                      ? "text-teal-500"
+                      : "text-amber-500"
                 }`} />
               </div>
             </CardContent>
