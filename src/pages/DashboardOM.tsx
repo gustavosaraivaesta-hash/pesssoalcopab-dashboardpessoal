@@ -214,11 +214,11 @@ const DashboardOM = () => {
 
     setAvailableOMs(getAvailableOMsForUser(oms as string[]));
     setAvailableQuadros((rawResult.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
-    // Extrair postos disponíveis (postoTmft) para oficiais
+    // Extrair postos disponíveis (postoEfe) para oficiais
     const postosFromData = [
       ...new Set(
         data
-          .map((item: any) => item.postoTmft)
+          .map((item: any) => item.postoEfe)
           .filter((p: string) => p && p.trim() !== "" && p !== "-"),
       ),
     ].sort((a, b) => {
@@ -349,9 +349,9 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
     }
 
-    // Filtro de posto (postoTmft) para oficiais
+    // Filtro de posto (postoEfe) para oficiais
     if (selectedPostoFilter.length > 0) {
-      filtered = filtered.filter((item) => selectedPostoFilter.includes(item.postoTmft));
+      filtered = filtered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
     }
 
     // Apply status filter from card click
