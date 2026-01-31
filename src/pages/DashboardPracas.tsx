@@ -223,7 +223,7 @@ const DashboardPracas = () => {
       const graduacoesFromData = [
         ...new Set(
           data
-            .map((item: any) => item.postoTmft)
+            .map((item: any) => item.postoEfe)
             .filter((g: string) => g && g.trim() !== "" && g !== "-"),
         ),
       ].sort((a, b) => {
@@ -359,11 +359,11 @@ const DashboardPracas = () => {
           ),
         ];
         setAvailableQuadrosEfe(quadrosEfeFromData as string[]);
-        // Extrair graduações disponíveis (postoTmft) para praças
+        // Extrair graduações disponíveis (postoEfe) para praças
         const graduacoesFromData = [
           ...new Set(
             data
-              .map((item: any) => item.postoTmft)
+              .map((item: any) => item.postoEfe)
               .filter((g: string) => g && g.trim() !== "" && g !== "-"),
           ),
         ].sort((a, b) => {
@@ -419,9 +419,9 @@ const DashboardPracas = () => {
       filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
     }
 
-    // Filtro de graduação (postoTmft)
+    // Filtro de graduação (postoEfe)
     if (selectedGraduacoes.length > 0) {
-      filtered = filtered.filter((item) => selectedGraduacoes.includes(item.postoTmft));
+      filtered = filtered.filter((item) => selectedGraduacoes.includes(item.postoEfe));
     }
 
     if (statusFilter === "ocupados") {
