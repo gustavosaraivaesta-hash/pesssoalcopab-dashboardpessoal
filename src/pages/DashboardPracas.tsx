@@ -767,23 +767,8 @@ const DashboardPracas = () => {
     });
   }, [filteredData]);
 
-  const baseFilteredForVagos = useMemo(() => {
-    let filtered = personnelData;
-
-    if (selectedOMs.length > 0) {
-      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
-    }
-
-    if (selectedQuadros.length > 0) {
-      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadroTmft));
-    }
-
-    if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
-    }
-
-    return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes]);
+  // Use baseFilteredData for vagas chart (applies all filters)
+  const baseFilteredForVagos = baseFilteredData;
 
   const chartDataVagosByOM = useMemo(() => {
     const grouped = baseFilteredForVagos.reduce(
