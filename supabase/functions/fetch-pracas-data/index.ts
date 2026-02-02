@@ -15,26 +15,27 @@ async function authenticateRequest(req: Request): Promise<{ userId: string; role
     return null;
   }
 
+  // IMPORTANTE (Lovable Cloud com verify_jwt=false): validar o token explicitamente
+  const token = authHeader.replace('Bearer ', '').trim();
+
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     global: { headers: { Authorization: authHeader } }
   });
 
-  const token = authHeader.replace('Bearer ', '');
-  const { data, error } = await supabase.auth.getClaims(token);
+  const { data: { user }, error } = await supabase.auth.getUser(token);
   
-  if (error || !data?.claims) {
+  if (error || !user) {
+    console.error('Auth error:', error);
     return null;
   }
-
-  const userId = data.claims.sub as string;
 
   const { data: roleData } = await supabase
     .from('user_roles')
     .select('role')
-    .eq('user_id', userId)
+    .eq('user_id', user.id)
     .single();
 
-  return { userId, role: roleData?.role || 'COPAB' };
+  return { userId: user.id, role: roleData?.role || 'COPAB' };
 }
 
 // OMs allowed for CSUPAB role (sem DEPCMRJ)
