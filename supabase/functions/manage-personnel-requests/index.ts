@@ -122,7 +122,8 @@ serve(async (req) => {
 
       let query = adminClient
         .from('personnel_requests')
-        .select('*', { count: 'exact' });
+        // IMPORTANTE: evitar count='exact' (pode ser lento e causar timeout quando a tabela cresce)
+        .select('*');
 
       // If not COPAB, only show own requests
       if (!auth.isCopab) {
@@ -145,7 +146,7 @@ serve(async (req) => {
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
-      const { data: requests, error: listError, count } = await query;
+      const { data: requests, error: listError } = await query;
 
       if (listError) {
         return new Response(
@@ -155,7 +156,7 @@ serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ success: true, requests, total: count }),
+        JSON.stringify({ success: true, requests, total: Array.isArray(requests) ? requests.length : 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }

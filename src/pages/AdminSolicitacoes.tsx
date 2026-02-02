@@ -51,7 +51,8 @@ export default function AdminSolicitacoes() {
   const [requests, setRequests] = useState<PersonnelRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"all" | RequestStatus>("PENDENTE");
-  const [filterOm, setFilterOm] = useState<string>("");
+  const ALL_OMS_VALUE = "__ALL__";
+  const [filterOm, setFilterOm] = useState<string>(ALL_OMS_VALUE);
 
   // Review dialog state
   const [selectedRequest, setSelectedRequest] = useState<PersonnelRequest | null>(null);
@@ -74,7 +75,7 @@ export default function AdminSolicitacoes() {
         supabase.functions.invoke("manage-personnel-requests", {
           body: {
             action: "list",
-            om: filterOm || undefined,
+            om: filterOm === ALL_OMS_VALUE ? undefined : filterOm,
           },
         }),
         25000,
@@ -89,6 +90,16 @@ export default function AdminSolicitacoes() {
       setIsLoading(false);
     }
   };
+
+  // Fail-safe: evita ficar preso em loading infinito por qualquer razão
+  useEffect(() => {
+    if (!isLoading) return;
+    const t = setTimeout(() => {
+      setIsLoading(false);
+      toast.error("Tempo excedido ao carregar solicitações. Tente atualizar.");
+    }, 30000);
+    return () => clearTimeout(t);
+  }, [isLoading]);
 
   useEffect(() => {
     // Se ainda está carregando auth, não faz nada
@@ -265,7 +276,7 @@ export default function AdminSolicitacoes() {
                 <SelectValue placeholder="Filtrar por OM" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as OMs</SelectItem>
+                <SelectItem value={ALL_OMS_VALUE}>Todas as OMs</SelectItem>
                 {uniqueOms.map(om => (
                   <SelectItem key={om} value={om}>{om}</SelectItem>
                 ))}
