@@ -13,6 +13,9 @@ async function authenticateUser(req: Request) {
     return null;
   }
 
+  // IMPORTANTE (Lovable Cloud com verify_jwt=false): validar o token explicitamente
+  const token = authHeader.replace('Bearer ', '').trim();
+
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
   
@@ -24,7 +27,7 @@ async function authenticateUser(req: Request) {
     global: { headers: { Authorization: authHeader } }
   });
 
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const { data: { user }, error } = await supabase.auth.getUser(token);
   
   if (error || !user) {
     return null;
@@ -358,7 +361,8 @@ serve(async (req) => {
 
       let query = adminClient
         .from('personnel_history')
-        .select('*', { count: 'exact' });
+        // IMPORTANTE: evitar count='exact' (pode ser lento e causar timeout quando a tabela cresce)
+        .select('*');
 
       // If not COPAB, only show own OM's history
       if (!auth.isCopab) {
@@ -371,7 +375,7 @@ serve(async (req) => {
         .order('archived_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
-      const { data: history, error: historyError, count } = await query;
+      const { data: history, error: historyError } = await query;
 
       if (historyError) {
         return new Response(
@@ -381,7 +385,7 @@ serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ success: true, history, total: count }),
+        JSON.stringify({ success: true, history, total: Array.isArray(history) ? history.length : 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
