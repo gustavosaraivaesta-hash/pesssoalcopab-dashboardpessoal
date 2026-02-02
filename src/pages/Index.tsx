@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent, Settings, X, ClipboardList, Archive } from "lucide-react";
+import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent, Settings, X, ClipboardList, Archive, Lock, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { TotalsChart } from "@/components/dashboard/TotalsChart";
@@ -89,6 +93,37 @@ const Index = () => {
   
   // Pending requests count for COpAb
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+
+  // Admin password modal state
+  const ADMIN_PASSWORD = "COPABADMIN";
+  const [showAdminPasswordModal, setShowAdminPasswordModal] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [pendingAdminRoute, setPendingAdminRoute] = useState<string | null>(null);
+  const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
+
+  const handleAdminNavigation = (route: string) => {
+    if (isAdminUnlocked) {
+      navigate(route);
+    } else {
+      setPendingAdminRoute(route);
+      setShowAdminPasswordModal(true);
+    }
+  };
+
+  const handleAdminPasswordSubmit = () => {
+    if (adminPassword.toUpperCase() === ADMIN_PASSWORD) {
+      setIsAdminUnlocked(true);
+      setShowAdminPasswordModal(false);
+      setAdminPassword("");
+      if (pendingAdminRoute) {
+        navigate(pendingAdminRoute);
+        setPendingAdminRoute(null);
+      }
+    } else {
+      toast.error("Senha incorreta!");
+      setAdminPassword("");
+    }
+  };
 
   const isOnline = useOnlineStatus();
   const { getFromCache, saveToCache, clearCache, getCacheTimestamp } = useOfflineCache<MilitaryData[]>('copab_data');
@@ -820,26 +855,36 @@ const Index = () => {
                 <RefreshCw size={18} className={`mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
                 Atualizar
               </Button>
-              <Button variant="secondary" onClick={() => navigate("/solicitacoes")}>
-                <ClipboardList size={18} className="mr-2" />
-                Solicitações
-              </Button>
-              {role === "COPAB" && (
-                <>
-                  <Button variant="secondary" onClick={() => navigate("/admin/solicitacoes")}>
-                    <Settings size={18} className="mr-2" />
+              
+              {/* Admin Dropdown Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="secondary" className="flex items-center gap-1">
+                    <Lock size={18} className="mr-1" />
+                    Admin
+                    <ChevronDown size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => handleAdminNavigation("/solicitacoes")}>
+                    <ClipboardList size={16} className="mr-2" />
+                    Solicitações
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/solicitacoes")}>
+                    <Settings size={16} className="mr-2" />
                     Gestão
-                  </Button>
-                  <Button variant="secondary" onClick={() => navigate("/admin/historico")}>
-                    <Archive size={18} className="mr-2" />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/historico")}>
+                    <Archive size={16} className="mr-2" />
                     Histórico
-                  </Button>
-                  <Button variant="secondary" onClick={() => navigate("/admin/users")}>
-                    <Settings size={18} className="mr-2" />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/users")}>
+                    <Users size={16} className="mr-2" />
                     Usuários
-                  </Button>
-                </>
-              )}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Button variant="destructive" onClick={handleLogout}>
                 <LogOut size={18} className="mr-2" />
                 Sair
@@ -848,6 +893,44 @@ const Index = () => {
           </div>
         </div>
       </header>
+
+      {/* Admin Password Modal */}
+      <Dialog open={showAdminPasswordModal} onOpenChange={setShowAdminPasswordModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Acesso Administrativo
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="admin-password">Digite a senha de administrador</Label>
+              <Input
+                id="admin-password"
+                type="password"
+                placeholder="Senha..."
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAdminPasswordSubmit()}
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowAdminPasswordModal(false);
+              setAdminPassword("");
+              setPendingAdminRoute(null);
+            }}>
+              Cancelar
+            </Button>
+            <Button onClick={handleAdminPasswordSubmit}>
+              Entrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 space-y-6 relative z-10">
