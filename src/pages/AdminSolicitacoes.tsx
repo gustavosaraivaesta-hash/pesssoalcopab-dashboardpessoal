@@ -494,6 +494,10 @@ export default function AdminSolicitacoes() {
                     {renderFieldComparison("Quadro TMFT", selectedRequest.original_data?.quadroTmft, selectedRequest.personnel_data?.quadroTmft)}
                     {renderFieldComparison("Especialidade TMFT", selectedRequest.original_data?.especialidadeTmft, selectedRequest.personnel_data?.especialidadeTmft)}
                     {renderFieldComparison("Opção TMFT", selectedRequest.original_data?.opcaoTmft, selectedRequest.personnel_data?.opcaoTmft)}
+                    {renderFieldComparison("Posto/Grad. Efetivo", selectedRequest.original_data?.postoEfe, selectedRequest.personnel_data?.postoEfe)}
+                    {renderFieldComparison("Quadro Efetivo", selectedRequest.original_data?.quadroEfe, selectedRequest.personnel_data?.quadroEfe)}
+                    {renderFieldComparison("Especialidade Efetivo", selectedRequest.original_data?.especialidadeEfe, selectedRequest.personnel_data?.especialidadeEfe)}
+                    {renderFieldComparison("Opção Efetivo", selectedRequest.original_data?.opcaoEfe, selectedRequest.personnel_data?.opcaoEfe)}
                     {renderFieldComparison("OM", selectedRequest.original_data?.om, selectedRequest.personnel_data?.om)}
                   </div>
                 </div>
