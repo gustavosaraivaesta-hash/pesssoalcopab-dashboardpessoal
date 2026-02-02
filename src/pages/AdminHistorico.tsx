@@ -35,7 +35,8 @@ export default function AdminHistorico() {
   const { role, isAuthenticated, loading: authLoading } = useAuth();
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filterOm, setFilterOm] = useState<string>("");
+  const ALL_OMS_VALUE = "__ALL__";
+  const [filterOm, setFilterOm] = useState<string>(ALL_OMS_VALUE);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRecord, setSelectedRecord] = useState<HistoryRecord | null>(null);
 
@@ -54,7 +55,7 @@ export default function AdminHistorico() {
         supabase.functions.invoke("manage-personnel-requests", {
           body: {
             action: "history",
-            om: filterOm || undefined,
+            om: filterOm === ALL_OMS_VALUE ? undefined : filterOm,
           },
         }),
         25000,
@@ -69,6 +70,16 @@ export default function AdminHistorico() {
       setIsLoading(false);
     }
   };
+
+  // Fail-safe: evita ficar preso em loading infinito por qualquer razão
+  useEffect(() => {
+    if (!isLoading) return;
+    const t = setTimeout(() => {
+      setIsLoading(false);
+      toast.error("Tempo excedido ao carregar histórico. Tente atualizar.");
+    }, 30000);
+    return () => clearTimeout(t);
+  }, [isLoading]);
 
   useEffect(() => {
     // Se ainda está carregando auth, não faz nada
@@ -148,7 +159,7 @@ export default function AdminHistorico() {
                 <SelectValue placeholder="Filtrar por OM" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as OMs</SelectItem>
+                <SelectItem value={ALL_OMS_VALUE}>Todas as OMs</SelectItem>
                 {uniqueOms.map(om => (
                   <SelectItem key={om} value={om}>{om}</SelectItem>
                 ))}
