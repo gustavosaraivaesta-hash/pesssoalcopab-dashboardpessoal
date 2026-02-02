@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FilterOptions, MilitaryData } from "@/types/military";
-import { X, FileText, Filter } from "lucide-react";
+import { X, FileText, Filter, RefreshCw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -92,6 +92,8 @@ interface DashboardFiltersProps {
     totalDIF: number;
   };
   chartRef: React.RefObject<HTMLDivElement>;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 export const DashboardFilters = ({ 
@@ -100,7 +102,9 @@ export const DashboardFilters = ({
   onFilterChange,
   filteredData,
   metrics,
-  chartRef
+  chartRef,
+  onRefresh,
+  isRefreshing = false
 }: DashboardFiltersProps) => {
   const [open, setOpen] = useState(false);
 
@@ -237,31 +241,39 @@ export const DashboardFilters = ({
       {/* Filtro de Categoria Principal */}
       <Card className="shadow-card bg-gradient-card">
         <CardContent className="p-4">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-foreground">Visualizar:</span>
-            <div className="flex gap-2">
-              <Button
-                variant={selectedFilters.categoria === "TODOS" ? "default" : "outline"}
-                onClick={() => onFilterChange("categoria", "TODOS")}
-                className="font-semibold"
-              >
-                TODOS
-              </Button>
-              <Button
-                variant={selectedFilters.categoria === "PRAÇAS" ? "default" : "outline"}
-                onClick={() => onFilterChange("categoria", "PRAÇAS")}
-                className="font-semibold"
-              >
-                PRAÇAS
-              </Button>
-              <Button
-                variant={selectedFilters.categoria === "OFICIAIS" ? "default" : "outline"}
-                onClick={() => onFilterChange("categoria", "OFICIAIS")}
-                className="font-semibold"
-              >
-                OFICIAIS
-              </Button>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium text-foreground">Visualizar:</span>
+              <div className="flex gap-2">
+                <Button
+                  variant={selectedFilters.categoria === "TODOS" ? "default" : "outline"}
+                  onClick={() => onFilterChange("categoria", "TODOS")}
+                  className="font-semibold"
+                >
+                  TODOS
+                </Button>
+                <Button
+                  variant={selectedFilters.categoria === "PRAÇAS" ? "default" : "outline"}
+                  onClick={() => onFilterChange("categoria", "PRAÇAS")}
+                  className="font-semibold"
+                >
+                  PRAÇAS
+                </Button>
+                <Button
+                  variant={selectedFilters.categoria === "OFICIAIS" ? "default" : "outline"}
+                  onClick={() => onFilterChange("categoria", "OFICIAIS")}
+                  className="font-semibold"
+                >
+                  OFICIAIS
+                </Button>
+              </div>
             </div>
+            {onRefresh && (
+              <Button variant="outline" onClick={onRefresh} disabled={isRefreshing} className="gap-2">
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                Atualizar
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

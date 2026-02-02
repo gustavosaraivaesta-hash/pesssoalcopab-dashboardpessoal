@@ -851,10 +851,6 @@ const Index = () => {
                 <FileText size={18} className="mr-2" />
                 TTC
               </Button>
-              <Button variant="secondary" onClick={handleManualRefresh} disabled={isRefreshing}>
-                <RefreshCw size={18} className={`mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
-                Atualizar
-              </Button>
               
               {/* Admin Dropdown Menu */}
               <DropdownMenu>
@@ -942,6 +938,8 @@ const Index = () => {
           filteredData={filteredData}
           metrics={metrics}
           chartRef={chartRef}
+          onRefresh={handleManualRefresh}
+          isRefreshing={isRefreshing}
         />
 
         {/* Métricas principais */}
