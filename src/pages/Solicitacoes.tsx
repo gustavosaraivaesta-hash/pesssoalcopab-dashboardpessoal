@@ -121,6 +121,8 @@ export default function Solicitacoes() {
       // The edge function returns 'data' field with personnel records
       const personnelRecords = data.data || data.personnel || [];
       
+      console.log('Raw personnel data sample:', personnelRecords.slice(0, 2));
+      
       // Map to PersonnelRecord format
       const mappedRecords: PersonnelRecord[] = personnelRecords.map((item: any, index: number) => ({
         id: item.id || `personnel-${index}`,
@@ -129,14 +131,14 @@ export default function Solicitacoes() {
         setor: item.setor || '',
         cargo: item.cargo || '',
         postoTmft: item.postoTmft || item.posto || '',
-        especialidadeTmft: item.especialidadeTmft || item.especialidade || '',
+        especialidadeTmft: item.quadroTmft || item.especialidadeTmft || item.especialidade || '',
         opcaoTmft: item.opcaoTmft || item.opcao || '',
         nome: item.nome || '',
         postoEfe: item.postoEfe || '',
-        especialidadeEfe: item.especialidadeEfe || '',
+        especialidadeEfe: item.quadroEfe || item.especialidadeEfe || '',
         opcaoEfe: item.opcaoEfe || '',
         om: item.om || '',
-        isVago: item.isVago || item.nome?.toUpperCase() === 'VAGO',
+        isVago: item.isVago || !item.ocupado || item.nome?.toUpperCase() === 'VAGO',
         isExtraLotacao: item.isExtraLotacao || false,
         quadroTmft: item.quadroTmft || item.quadro || '',
         quadroEfe: item.quadroEfe || '',
@@ -164,19 +166,23 @@ export default function Solicitacoes() {
     }
   }, [isDialogOpen, formType]);
 
-  // Filter personnel based on search
+  // Filter personnel based on search - includes NEO, name, posto, especialidade (both TMFT and EFE)
   const filteredPersonnel = useMemo(() => {
-    if (!searchQuery.trim()) return personnelData.slice(0, 20);
-    const query = searchQuery.toLowerCase();
+    // Show first 50 if no search query
+    if (!searchQuery.trim()) return personnelData.slice(0, 50);
+    
+    const query = searchQuery.toLowerCase().trim();
     return personnelData
       .filter(p => 
         p.nome?.toLowerCase().includes(query) ||
         p.neo?.toLowerCase().includes(query) ||
         p.postoTmft?.toLowerCase().includes(query) ||
+        p.postoEfe?.toLowerCase().includes(query) ||
         p.especialidadeTmft?.toLowerCase().includes(query) ||
+        p.especialidadeEfe?.toLowerCase().includes(query) ||
         p.cargo?.toLowerCase().includes(query)
       )
-      .slice(0, 20);
+      .slice(0, 50);
   }, [personnelData, searchQuery]);
 
   const fetchRequests = async () => {
