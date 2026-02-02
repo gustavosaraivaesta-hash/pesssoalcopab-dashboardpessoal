@@ -430,6 +430,17 @@ serve(async (req) => {
         );
       }
 
+      // First, delete related records in personnel_history (cascade manually)
+      const { error: historyDeleteError } = await adminClient
+        .from('personnel_history')
+        .delete()
+        .eq('request_id', id);
+
+      if (historyDeleteError) {
+        console.error('History delete error:', historyDeleteError);
+        // Continue anyway - there might be no related history records
+      }
+
       // Delete the request
       const { error: deleteError } = await adminClient
         .from('personnel_requests')
