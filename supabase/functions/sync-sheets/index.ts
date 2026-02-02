@@ -4,7 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // Spreadsheet configuration
@@ -12,8 +13,27 @@ const corsHeaders = {
 const SPREADSHEET_ID = '13YC7pfsERAJxdwzWPN12tTdNOVhlT_bbZXZigDZvalA';
 
 // Google Apps Script Web App URL for writing to sheets
-// This script will handle the actual write operations
-const APPS_SCRIPT_URL = Deno.env.get('GOOGLE_APPS_SCRIPT_URL');
+// IMPORTANT: must be the Web App URL ending with /exec (NOT the /dev URL)
+const RAW_APPS_SCRIPT_URL = Deno.env.get('GOOGLE_APPS_SCRIPT_URL') ?? '';
+
+function normalizeAppsScriptUrl(raw: string): string {
+  let url = String(raw ?? '').trim();
+
+  // Common mistake: copiar URL de teste "/dev" ao invés da URL publicada "/exec"
+  // Ex.: https://script.google.com/macros/s/XXX/dev  ->  .../exec
+  url = url.replace(/\/dev(\?|#|$)/, '/exec$1');
+  return url;
+}
+
+function isAppsScriptWebAppUrl(url: string): boolean {
+  // Expected format: https://script.google.com/macros/s/<deploymentId>/exec
+  return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/(exec|dev)(?:[?#].*)?$/.test(url);
+}
+
+function looksLikeHtml(s: string): boolean {
+  const t = (s ?? '').trim().toLowerCase();
+  return t.startsWith('<!doctype html') || t.startsWith('<html') || t.includes('<head') || t.includes('<body');
+}
 
 // Sheet names + GIDs for each OM (tabs in the spreadsheet)
 // Keep this aligned with `fetch-pracas-data`.
@@ -344,7 +364,16 @@ async function syncToSheet(
   console.log(`Planilha: ${sheetName}`);
 
   // If Apps Script URL is configured, use it for writing
-  if (APPS_SCRIPT_URL) {
+  const appsScriptUrl = normalizeAppsScriptUrl(RAW_APPS_SCRIPT_URL);
+  if (appsScriptUrl) {
+    if (!isAppsScriptWebAppUrl(appsScriptUrl)) {
+      return {
+        success: false,
+        message:
+          'URL do Apps Script inválida. Reconfigure GOOGLE_APPS_SCRIPT_URL com a URL do Aplicativo Web (terminando em /exec).',
+      };
+    }
+
     try {
       let rowNumber: number | null = null;
       let valuesToWrite: string[] | null = null;
@@ -402,7 +431,7 @@ async function syncToSheet(
 
       console.log('Enviando para Apps Script:', JSON.stringify(payload, null, 2));
 
-      const response = await fetch(APPS_SCRIPT_URL, {
+       const response = await fetch(appsScriptUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -410,14 +439,46 @@ async function syncToSheet(
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Erro Apps Script:', errorText);
-        return { success: false, message: `Erro ao atualizar planilha: ${errorText}` };
-      }
+       const contentType = response.headers.get('content-type') || '';
+       const bodyText = await response.text().catch(() => '');
 
-      const result = await response.json();
-      console.log('Resultado Apps Script:', result);
+       if (!response.ok) {
+         console.error('Erro Apps Script:', {
+           status: response.status,
+           contentType,
+           bodyPreview: bodyText.slice(0, 300),
+         });
+
+         if (looksLikeHtml(bodyText)) {
+           return {
+             success: false,
+             message:
+               'Falha ao chamar o Apps Script (URL incorreta ou não publicada). Atualize o GOOGLE_APPS_SCRIPT_URL para a URL do Aplicativo Web (terminando em /exec) e reimplante o script se necessário.',
+           };
+         }
+
+         return {
+           success: false,
+           message: `Erro ao atualizar planilha (Apps Script HTTP ${response.status}).`,
+         };
+       }
+
+       let result: any = null;
+       try {
+         result = JSON.parse(bodyText);
+       } catch (_e) {
+         console.error('Resposta Apps Script não-JSON:', {
+           contentType,
+           bodyPreview: bodyText.slice(0, 300),
+         });
+         return {
+           success: false,
+           message:
+             'Apps Script respondeu em formato inesperado. Confirme se o script retorna JSON no doPost() e se a implantação está como Aplicativo Web (/exec).',
+         };
+       }
+
+       console.log('Resultado Apps Script:', result);
 
       if (result.success) {
         return { 
@@ -477,7 +538,7 @@ async function syncToSheet(
   
   return { 
     success: true, 
-    message: APPS_SCRIPT_URL 
+      message: appsScriptUrl 
       ? `Planilha ${sheetName} atualizada automaticamente`
       : `Alteração ${action} registrada. Configure GOOGLE_APPS_SCRIPT_URL para sincronização automática.`
   };
