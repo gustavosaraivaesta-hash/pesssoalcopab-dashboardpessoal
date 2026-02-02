@@ -143,6 +143,27 @@ function isLikelyNeo(v: string): boolean {
   return /^\d+(?:\.\d+)*$/.test(s);
 }
 
+function normalizeOm(v: unknown): string {
+  return String(v ?? '').trim().toUpperCase();
+}
+
+function pickRequestOm(request: any): string {
+  const candidates = [
+    request?.target_om,
+    request?.personnel_data?.om,
+    request?.original_data?.om,
+    request?.requesting_om,
+  ];
+
+  for (const c of candidates) {
+    const om = normalizeOm(c);
+    if (!om) continue;
+    return om;
+  }
+
+  return '';
+}
+
 async function fetchSheetAsCsvRows(gid: string): Promise<string[][]> {
   const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
   const response = await fetch(csvUrl);
@@ -513,8 +534,14 @@ serve(async (req) => {
       );
     }
 
-    // Sync to the sheet - use target_om if available, otherwise requesting_om
-    const syncOm = request.target_om || request.requesting_om;
+    // Sync to the sheet
+    // Prefer:
+    // 1) request.target_om (when provided)
+    // 2) request.personnel_data.om / request.original_data.om (when COPAB cria solicitação para outra OM)
+    // 3) request.requesting_om (fallback)
+    const syncOm = pickRequestOm(request);
+    console.log(`OM escolhida para sincronização: ${syncOm || '(vazio)'}`);
+
     const result = await syncToSheet(
       request.request_type as 'INCLUSAO' | 'ALTERACAO' | 'EXCLUSAO',
       syncOm,
@@ -529,7 +556,7 @@ serve(async (req) => {
         success: result.success, 
         message: result.message,
         request_type: request.request_type,
-        om: request.requesting_om
+        om: syncOm
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: result.success ? 200 : 500 }
     );
