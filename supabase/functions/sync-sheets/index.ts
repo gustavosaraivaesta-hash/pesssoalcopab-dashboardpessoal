@@ -265,9 +265,13 @@ function mergeEfetivoUpdate(
   for (const key of allowedKeys) {
     const idx = COLUMN_MAPPING[String(key)] ? COLUMN_MAPPING[String(key)] - 1 : -1;
     if (idx < 0) continue;
-    const v = (next[key] ?? '').toString();
-    // Se vier vazio, preserva o valor atual (evita "apagar" sem intenção)
-    if (v.trim().length > 0) merged[idx] = v;
+    // Em ALTERAÇÃO, o objetivo é refletir exatamente o EFETIVO informado na solicitação.
+    // Para não "zerar" colunas por compatibilidade com solicitações antigas,
+    // só sobrescrevemos se a chave veio no payload.
+    if (Object.prototype.hasOwnProperty.call(next, key)) {
+      const v = (next[key] ?? '').toString();
+      merged[idx] = v;
+    }
   }
 
   return merged;
