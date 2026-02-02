@@ -8,26 +8,28 @@ const corsHeaders = {
 };
 
 // Spreadsheet configuration
-const SPREADSHEET_ID = '1PmxfNsLB8RQY4lWBqjxQ7EEIYJy8aMnNWLi1K-3G3lU';
+// IMPORTANT: must match the same spreadsheet used by `fetch-pracas-data`
+const SPREADSHEET_ID = '13YC7pfsERAJxdwzWPN12tTdNOVhlT_bbZXZigDZvalA';
 
 // Google Apps Script Web App URL for writing to sheets
 // This script will handle the actual write operations
 const APPS_SCRIPT_URL = Deno.env.get('GOOGLE_APPS_SCRIPT_URL');
 
-// Sheet names for each OM (tab names in the spreadsheet)
-const SHEET_NAMES: Record<string, string> = {
-  'BAMRJ': 'BAMRJ',
-  'CDU-1DN': 'CDU-1DN',
-  'CDU-BAMRJ': 'CDU-BAMRJ',
-  'CDAM': 'CDAM',
-  'CMM': 'CMM',
-  'COPAB': 'COpAb',
-  'CSUPAB': 'CSuPAb',
-  'DEPCMRJ': 'DEPCMRJ',
-  'DEPFMRJ': 'DepFMRJ',
-  'DEPMSMRJ': 'DepMSMRJ',
-  'DEPSIMRJ': 'DepSIMRJ',
-  'DEPSMRJ': 'DepSMRJ',
+// Sheet names + GIDs for each OM (tabs in the spreadsheet)
+// Keep this aligned with `fetch-pracas-data`.
+const SHEET_CONFIGS: Record<string, { sheetName: string; gid: string }> = {
+  BAMRJ: { sheetName: 'BAMRJ', gid: '280177623' },
+  'CDU-1DN': { sheetName: 'CDU-1DN', gid: '957180492' },
+  'CDU-BAMRJ': { sheetName: 'CDU-BAMRJ', gid: '1658824367' },
+  CDAM: { sheetName: 'CDAM', gid: '1650749150' },
+  CMM: { sheetName: 'CMM', gid: '1495647476' },
+  COPAB: { sheetName: 'COPAB', gid: '527671707' },
+  CSUPAB: { sheetName: 'CSUPAB', gid: '469479928' },
+  DEPCMRJ: { sheetName: 'DEPCMRJ', gid: '567760228' },
+  DEPFMRJ: { sheetName: 'DEPFMRJ', gid: '1373834755' },
+  DEPMSMRJ: { sheetName: 'DEPMSMRJ', gid: '0' },
+  DEPSIMRJ: { sheetName: 'DEPSIMRJ', gid: '295069813' },
+  DEPSMRJ: { sheetName: 'DEPSMRJ', gid: '1610199360' },
 };
 
 // Column mapping for the spreadsheet (A=1, B=2, etc)
@@ -103,77 +105,114 @@ async function authenticateUser(req: Request) {
   };
 }
 
-// Find the row number for a given NEO in the sheet using API Key (read-only)
-async function findRowByNeo(apiKey: string, sheetName: string, neo: string): Promise<number | null> {
-  try {
-    const range = `${sheetName}!A:A`;
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${apiKey}`;
-    
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`Failed to read sheet: ${response.status}`);
-      return null;
-    }
-    
-    const data = await response.json();
-    const values = data.values || [];
-    
-    for (let i = 0; i < values.length; i++) {
-      if (values[i][0] && values[i][0].toString().trim() === neo.toString().trim()) {
-        return i + 1; // Sheets are 1-indexed
-      }
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Error finding row:', error);
-    return null;
-  }
+function normalizeNeo(v: unknown): string {
+  return String(v ?? '').trim();
 }
 
-// Find the first empty row after TABELA MESTRA section
-async function findFirstEmptyRow(apiKey: string, sheetName: string): Promise<number> {
-  try {
-    const range = `${sheetName}!A:A`;
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${apiKey}`;
-    
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`Failed to read sheet: ${response.status}`);
-      return 2;
-    }
-    
-    const data = await response.json();
-    const values = data.values || [];
-    
-    let inTabelaMestra = false;
-    let lastDataRow = 1;
-    
-    for (let i = 0; i < values.length; i++) {
-      const cellValue = (values[i][0] || '').toString().toUpperCase();
-      
-      if (cellValue.includes('TABELA MESTRA') || cellValue.includes('SITUAÇÃO DA FORÇA')) {
-        inTabelaMestra = true;
-        continue;
-      }
-      
-      if (inTabelaMestra) {
-        if (cellValue.includes('PREVISÃO') || cellValue.includes('DESEMBARQUE') || 
-            cellValue.includes('TRRM') || cellValue.includes('RESUMO')) {
-          break;
-        }
-        
-        if (/^\d/.test(cellValue)) {
-          lastDataRow = i + 1;
-        }
-      }
-    }
-    
-    return lastDataRow + 1;
-  } catch (error) {
-    console.error('Error finding empty row:', error);
-    return 2;
+function isLikelyNeo(v: string): boolean {
+  const s = v.trim();
+  if (!s) return false;
+  // e.g. 01.5.0.14 or 12.0.0.3
+  return /^\d+(?:\.\d+)*$/.test(s);
+}
+
+async function fetchSheetAsCsvRows(gid: string): Promise<string[][]> {
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
+  const response = await fetch(csvUrl);
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    console.error(`Failed to fetch CSV gid=${gid}: ${response.status} ${body.slice(0, 300)}`);
+    throw new Error(`Falha ao ler planilha (gid=${gid}): ${response.status}`);
   }
+
+  const csvText = await response.text();
+
+  // Minimal CSV parser (same style as fetch-pracas-data)
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentCell = '';
+  let insideQuotes = false;
+
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+    const nextChar = csvText[i + 1];
+
+    if (char === '"') {
+      if (insideQuotes && nextChar === '"') {
+        currentCell += '"';
+        i++;
+      } else {
+        insideQuotes = !insideQuotes;
+      }
+    } else if (char === ',' && !insideQuotes) {
+      currentRow.push(currentCell.trim());
+      currentCell = '';
+    } else if ((char === '\n' || (char === '\r' && nextChar === '\n')) && !insideQuotes) {
+      currentRow.push(currentCell.trim());
+      rows.push(currentRow);
+      currentRow = [];
+      currentCell = '';
+      if (char === '\r') i++; // skip \n
+    } else {
+      currentCell += char;
+    }
+  }
+  if (currentCell.length > 0 || currentRow.length > 0) {
+    currentRow.push(currentCell.trim());
+    rows.push(currentRow);
+  }
+
+  return rows;
+}
+
+// Find the row number for a given NEO in the sheet (1-indexed)
+async function findRowByNeo(gid: string, neo: string): Promise<number | null> {
+  const rows = await fetchSheetAsCsvRows(gid);
+  const target = normalizeNeo(neo);
+  if (!target) return null;
+
+  for (let i = 0; i < rows.length; i++) {
+    const cellA = normalizeNeo(rows[i]?.[0]);
+    if (cellA && normalizeNeo(cellA) === target) {
+      return i + 1; // 1-indexed for Sheets
+    }
+  }
+  return null;
+}
+
+// Find the first empty row after the TABELA MESTRA section
+async function findFirstEmptyRow(gid: string): Promise<number> {
+  const rows = await fetchSheetAsCsvRows(gid);
+
+  let inTabelaMestra = false;
+  let lastDataRow = 1;
+
+  for (let i = 0; i < rows.length; i++) {
+    const cellValue = String(rows[i]?.[0] ?? '').toUpperCase().trim();
+
+    if (cellValue.includes('TABELA MESTRA') || cellValue.includes('SITUAÇÃO DA FORÇA')) {
+      inTabelaMestra = true;
+      continue;
+    }
+
+    if (inTabelaMestra) {
+      if (
+        cellValue.includes('PREVISÃO') ||
+        cellValue.includes('DESEMBARQUE') ||
+        cellValue.includes('EMBARQUE') ||
+        cellValue.includes('TRRM') ||
+        cellValue.includes('RESUMO')
+      ) {
+        break;
+      }
+
+      if (isLikelyNeo(cellValue)) {
+        lastDataRow = i + 1;
+      }
+    }
+  }
+
+  return lastDataRow + 1;
 }
 
 // Convert personnel data to row values
@@ -195,16 +234,11 @@ async function syncToSheet(
   personnelData: PersonnelData,
   originalData?: PersonnelData
 ): Promise<{ success: boolean; message: string }> {
-  const sheetName = SHEET_NAMES[om];
-  const apiKey = Deno.env.get('GOOGLE_SHEETS_API_KEY');
-  
-  if (!sheetName) {
+  const cfg = SHEET_CONFIGS[om];
+  if (!cfg) {
     return { success: false, message: `OM ${om} não encontrada na configuração` };
   }
-
-  if (!apiKey) {
-    return { success: false, message: 'API Key do Google Sheets não configurada' };
-  }
+  const { sheetName, gid } = cfg;
 
   console.log('='.repeat(60));
   console.log(`SINCRONIZAÇÃO GOOGLE SHEETS - ${action}`);
@@ -218,17 +252,31 @@ async function syncToSheet(
       let rowNumber: number | null = null;
       
       // For ALTERACAO and EXCLUSAO, find the row by NEO
-      if (action !== 'INCLUSAO' && personnelData.neo) {
-        rowNumber = await findRowByNeo(apiKey, sheetName, personnelData.neo);
-        if (!rowNumber) {
-          return { success: false, message: `NEO ${personnelData.neo} não encontrado na planilha ${sheetName}` };
+      if (action !== 'INCLUSAO') {
+        const candidateNeos = [
+          normalizeNeo(personnelData.neo),
+          normalizeNeo(originalData?.neo),
+        ].filter(Boolean);
+
+        for (const candidate of candidateNeos) {
+          rowNumber = await findRowByNeo(gid, candidate);
+          if (rowNumber) {
+            console.log(`Encontrado NEO ${candidate} na linha: ${rowNumber}`);
+            break;
+          }
         }
-        console.log(`Encontrado na linha: ${rowNumber}`);
+
+        if (!rowNumber) {
+          return {
+            success: false,
+            message: `NEO ${candidateNeos[0] || '(vazio)'} não encontrado na planilha ${sheetName}`,
+          };
+        }
       }
       
       // For INCLUSAO, find the first empty row
       if (action === 'INCLUSAO') {
-        rowNumber = await findFirstEmptyRow(apiKey, sheetName);
+        rowNumber = await findFirstEmptyRow(gid);
         console.log(`Nova linha: ${rowNumber}`);
       }
 
