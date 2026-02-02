@@ -460,13 +460,16 @@ export default function AdminSolicitacoes() {
                     <Plus className="h-4 w-4 text-green-600" />
                     Dados do Militar a Incluir
                   </Label>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div><span className="text-muted-foreground">Nome:</span> {selectedRequest.personnel_data?.nome}</div>
-                    <div><span className="text-muted-foreground">NIP:</span> {selectedRequest.personnel_data?.nip || "-"}</div>
-                    <div><span className="text-muted-foreground">Posto:</span> {selectedRequest.personnel_data?.posto || "-"}</div>
-                    <div><span className="text-muted-foreground">Especialidade:</span> {selectedRequest.personnel_data?.especialidade || "-"}</div>
-                    <div><span className="text-muted-foreground">Setor:</span> {selectedRequest.personnel_data?.setor || "-"}</div>
-                    <div><span className="text-muted-foreground">OM:</span> {selectedRequest.personnel_data?.om || selectedRequest.requesting_om}</div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div><span className="text-muted-foreground">Nome:</span> <span className="font-medium">{selectedRequest.personnel_data?.nome || "-"}</span></div>
+                    <div><span className="text-muted-foreground">NEO:</span> <span className="font-medium">{selectedRequest.personnel_data?.neo || "-"}</span></div>
+                    <div><span className="text-muted-foreground">Cargo:</span> <span className="font-medium">{selectedRequest.personnel_data?.cargo || "-"}</span></div>
+                    <div><span className="text-muted-foreground">Setor:</span> <span className="font-medium">{selectedRequest.personnel_data?.setor || "-"}</span></div>
+                    <div><span className="text-muted-foreground">Posto/Graduação TMFT:</span> <span className="font-medium">{selectedRequest.personnel_data?.postoTmft || "-"}</span></div>
+                    <div><span className="text-muted-foreground">Quadro TMFT:</span> <span className="font-medium">{selectedRequest.personnel_data?.quadroTmft || "-"}</span></div>
+                    <div><span className="text-muted-foreground">Especialidade TMFT:</span> <span className="font-medium">{selectedRequest.personnel_data?.especialidadeTmft || "-"}</span></div>
+                    <div><span className="text-muted-foreground">Opção TMFT:</span> <span className="font-medium">{selectedRequest.personnel_data?.opcaoTmft || "-"}</span></div>
+                    <div className="col-span-2"><span className="text-muted-foreground">OM:</span> <span className="font-medium">{selectedRequest.personnel_data?.om || selectedRequest.requesting_om}</span></div>
                   </div>
                 </div>
               )}
@@ -484,10 +487,13 @@ export default function AdminSolicitacoes() {
                       <span>Novos Dados</span>
                     </div>
                     {renderFieldComparison("Nome", selectedRequest.original_data?.nome, selectedRequest.personnel_data?.nome)}
-                    {renderFieldComparison("NIP", selectedRequest.original_data?.nip, selectedRequest.personnel_data?.nip)}
-                    {renderFieldComparison("Posto", selectedRequest.original_data?.posto, selectedRequest.personnel_data?.posto)}
-                    {renderFieldComparison("Especialidade", selectedRequest.original_data?.especialidade, selectedRequest.personnel_data?.especialidade)}
+                    {renderFieldComparison("NEO", selectedRequest.original_data?.neo, selectedRequest.personnel_data?.neo)}
+                    {renderFieldComparison("Cargo", selectedRequest.original_data?.cargo, selectedRequest.personnel_data?.cargo)}
                     {renderFieldComparison("Setor", selectedRequest.original_data?.setor, selectedRequest.personnel_data?.setor)}
+                    {renderFieldComparison("Posto/Grad. TMFT", selectedRequest.original_data?.postoTmft, selectedRequest.personnel_data?.postoTmft)}
+                    {renderFieldComparison("Quadro TMFT", selectedRequest.original_data?.quadroTmft, selectedRequest.personnel_data?.quadroTmft)}
+                    {renderFieldComparison("Especialidade TMFT", selectedRequest.original_data?.especialidadeTmft, selectedRequest.personnel_data?.especialidadeTmft)}
+                    {renderFieldComparison("Opção TMFT", selectedRequest.original_data?.opcaoTmft, selectedRequest.personnel_data?.opcaoTmft)}
                     {renderFieldComparison("OM", selectedRequest.original_data?.om, selectedRequest.personnel_data?.om)}
                   </div>
                 </div>
@@ -499,13 +505,16 @@ export default function AdminSolicitacoes() {
                     <Trash2 className="h-4 w-4" />
                     Militar a Excluir
                   </Label>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div><span className="text-muted-foreground">Nome:</span> {selectedRequest.personnel_data?.nome}</div>
-                    <div><span className="text-muted-foreground">NIP:</span> {selectedRequest.personnel_data?.nip || "-"}</div>
-                    <div><span className="text-muted-foreground">Posto:</span> {selectedRequest.personnel_data?.posto || "-"}</div>
-                    <div><span className="text-muted-foreground">Especialidade:</span> {selectedRequest.personnel_data?.especialidade || "-"}</div>
-                    <div><span className="text-muted-foreground">Setor:</span> {selectedRequest.personnel_data?.setor || "-"}</div>
-                    <div><span className="text-muted-foreground">OM:</span> {selectedRequest.personnel_data?.om || selectedRequest.requesting_om}</div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div><span className="text-muted-foreground">Nome:</span> <span className="font-medium">{selectedRequest.personnel_data?.nome || "-"}</span></div>
+                    <div><span className="text-muted-foreground">NEO:</span> <span className="font-medium">{selectedRequest.personnel_data?.neo || "-"}</span></div>
+                    <div><span className="text-muted-foreground">Cargo:</span> <span className="font-medium">{selectedRequest.personnel_data?.cargo || "-"}</span></div>
+                    <div><span className="text-muted-foreground">Setor:</span> <span className="font-medium">{selectedRequest.personnel_data?.setor || "-"}</span></div>
+                    <div><span className="text-muted-foreground">Posto/Grad. TMFT:</span> <span className="font-medium">{selectedRequest.personnel_data?.postoTmft || "-"}</span></div>
+                    <div><span className="text-muted-foreground">Quadro TMFT:</span> <span className="font-medium">{selectedRequest.personnel_data?.quadroTmft || "-"}</span></div>
+                    <div><span className="text-muted-foreground">Especialidade TMFT:</span> <span className="font-medium">{selectedRequest.personnel_data?.especialidadeTmft || "-"}</span></div>
+                    <div><span className="text-muted-foreground">Opção TMFT:</span> <span className="font-medium">{selectedRequest.personnel_data?.opcaoTmft || "-"}</span></div>
+                    <div className="col-span-2"><span className="text-muted-foreground">OM:</span> <span className="font-medium">{selectedRequest.personnel_data?.om || selectedRequest.requesting_om}</span></div>
                   </div>
                 </div>
               )}
