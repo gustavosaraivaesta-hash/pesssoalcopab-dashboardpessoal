@@ -87,10 +87,10 @@ export default function Solicitacoes() {
   const [formData, setFormData] = useState({
     neo: "",
     cargo: "",
-    postoTmft: "",
-    quadroTmft: "",
-    especialidadeTmft: "",
-    opcaoTmft: "",
+    postoEfe: "",
+    quadroEfe: "",
+    especialidadeEfe: "",
+    opcaoEfe: "",
     nome: "",
     setor: "",
     om: "",
@@ -220,26 +220,27 @@ export default function Solicitacoes() {
   // Select a personnel from search results
   const handleSelectPersonnel = (personnel: PersonnelRecord) => {
     setSelectedPersonnel(personnel);
+    // Armazena dados ORIGINAIS do efetivo (EFE) para comparação
     setOriginalData({
       neo: personnel.neo,
       cargo: personnel.cargo,
-      postoTmft: personnel.postoTmft,
-      quadroTmft: personnel.quadroTmft || "",
-      especialidadeTmft: personnel.especialidadeTmft,
-      opcaoTmft: personnel.opcaoTmft,
+      postoEfe: personnel.postoEfe || "",
+      quadroEfe: personnel.quadroEfe || "",
+      especialidadeEfe: personnel.especialidadeEfe || "",
+      opcaoEfe: personnel.opcaoEfe || "",
       nome: personnel.nome,
       setor: personnel.setor,
       om: personnel.om || role,
     });
     
-    // Pre-fill form with personnel data
+    // Pre-fill form with EFETIVO data (dados reais do militar)
     setFormData({
       neo: personnel.neo || "",
       cargo: personnel.cargo || "",
-      postoTmft: personnel.postoTmft || "",
-      quadroTmft: personnel.quadroTmft || "",
-      especialidadeTmft: personnel.especialidadeTmft || "",
-      opcaoTmft: personnel.opcaoTmft || "",
+      postoEfe: personnel.postoEfe || "",
+      quadroEfe: personnel.quadroEfe || "",
+      especialidadeEfe: personnel.especialidadeEfe || "",
+      opcaoEfe: personnel.opcaoEfe || "",
       nome: personnel.nome || "",
       setor: personnel.setor || "",
       om: personnel.om || role || "",
@@ -252,8 +253,8 @@ export default function Solicitacoes() {
 
   const resetForm = () => {
     setFormData({ 
-      neo: "", cargo: "", postoTmft: "", quadroTmft: "", 
-      especialidadeTmft: "", opcaoTmft: "", nome: "", 
+      neo: "", cargo: "", postoEfe: "", quadroEfe: "", 
+      especialidadeEfe: "", opcaoEfe: "", nome: "", 
       setor: "", om: "", justification: "" 
     });
     setSelectedPersonnel(null);
@@ -279,10 +280,10 @@ export default function Solicitacoes() {
       const personnelDataPayload = {
         neo: formData.neo,
         cargo: formData.cargo,
-        postoTmft: formData.postoTmft,
-        quadroTmft: formData.quadroTmft,
-        especialidadeTmft: formData.especialidadeTmft,
-        opcaoTmft: formData.opcaoTmft,
+        postoEfe: formData.postoEfe,
+        quadroEfe: formData.quadroEfe,
+        especialidadeEfe: formData.especialidadeEfe,
+        opcaoEfe: formData.opcaoEfe,
         nome: formData.nome,
         setor: formData.setor,
         om: formData.om || role,
@@ -414,11 +415,11 @@ export default function Solicitacoes() {
                         {selectedPersonnel ? (
                           <div className="space-y-2">
                             <div className="p-3 bg-muted rounded-lg">
-                              <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between">
                                 <div>
                                   <p className="font-medium">{selectedPersonnel.nome}</p>
                                   <p className="text-sm text-muted-foreground">
-                                    NEO: {selectedPersonnel.neo} | {selectedPersonnel.postoTmft} - {selectedPersonnel.especialidadeTmft}
+                                    NEO: {selectedPersonnel.neo} | {selectedPersonnel.postoEfe || selectedPersonnel.postoTmft} - {selectedPersonnel.especialidadeEfe || selectedPersonnel.especialidadeTmft}
                                     {selectedPersonnel.cargo && ` | ${selectedPersonnel.cargo}`}
                                   </p>
                                 </div>
@@ -474,7 +475,7 @@ export default function Solicitacoes() {
                                         <div className="min-w-0 flex-1">
                                           <p className="font-medium truncate">{person.nome}</p>
                                           <p className="text-xs text-muted-foreground">
-                                            NEO: {person.neo} | {person.postoTmft} - {person.especialidadeTmft}
+                                            NEO: {person.neo} | {person.postoEfe || person.postoTmft} - {person.especialidadeEfe || person.especialidadeTmft}
                                             {person.cargo && ` | ${person.cargo}`}
                                           </p>
                                         </div>
@@ -516,19 +517,19 @@ export default function Solicitacoes() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Graduação</Label>
+                          <Label>Graduação (Efetivo)</Label>
                           <Input
-                            value={formData.postoTmft}
-                            onChange={(e) => setFormData(prev => ({ ...prev, postoTmft: e.target.value }))}
+                            value={formData.postoEfe}
+                            onChange={(e) => setFormData(prev => ({ ...prev, postoEfe: e.target.value }))}
                             placeholder="Ex: 3SG, CB, SD"
                             disabled={formType === "EXCLUSAO"}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Quadro</Label>
+                          <Label>Quadro (Efetivo)</Label>
                           <Input
-                            value={formData.quadroTmft}
-                            onChange={(e) => setFormData(prev => ({ ...prev, quadroTmft: e.target.value }))}
+                            value={formData.quadroEfe}
+                            onChange={(e) => setFormData(prev => ({ ...prev, quadroEfe: e.target.value }))}
                             placeholder="Ex: QT, RM"
                             disabled={formType === "EXCLUSAO"}
                           />
@@ -537,20 +538,20 @@ export default function Solicitacoes() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Especialidade</Label>
+                          <Label>Especialidade (Efetivo)</Label>
                           <Input
-                            value={formData.especialidadeTmft}
-                            onChange={(e) => setFormData(prev => ({ ...prev, especialidadeTmft: e.target.value }))}
+                            value={formData.especialidadeEfe}
+                            onChange={(e) => setFormData(prev => ({ ...prev, especialidadeEfe: e.target.value }))}
                             placeholder="Ex: MO, MQ, ET"
                             disabled={formType === "EXCLUSAO"}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Opção</Label>
+                          <Label>Opção (Efetivo)</Label>
                           <Input
-                            value={formData.opcaoTmft}
-                            onChange={(e) => setFormData(prev => ({ ...prev, opcaoTmft: e.target.value }))}
-                            placeholder="Ex: 1, 2, 3"
+                            value={formData.opcaoEfe}
+                            onChange={(e) => setFormData(prev => ({ ...prev, opcaoEfe: e.target.value }))}
+                            placeholder="Ex: CARREIRA, TTC, RM2"
                             disabled={formType === "EXCLUSAO"}
                           />
                         </div>
@@ -570,19 +571,19 @@ export default function Solicitacoes() {
                       {formType === "ALTERACAO" && originalData && (
                         <Card className="bg-muted/50">
                           <CardHeader className="pb-2">
-                            <CardTitle className="text-sm">Comparação de Dados</CardTitle>
+                            <CardTitle className="text-sm">Comparação de Dados do Efetivo</CardTitle>
                           </CardHeader>
                           <CardContent>
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
-                                <p className="font-medium text-muted-foreground mb-1">Dados Atuais (NEO)</p>
+                                <p className="font-medium text-muted-foreground mb-1">Dados Atuais (Efetivo)</p>
                                 <div className="space-y-1">
                                   <p><span className="text-muted-foreground">NEO:</span> {originalData.neo}</p>
                                   <p><span className="text-muted-foreground">Cargo:</span> {originalData.cargo || "-"}</p>
-                                  <p><span className="text-muted-foreground">Graduação:</span> {originalData.postoTmft}</p>
-                                  <p><span className="text-muted-foreground">Quadro:</span> {originalData.quadroTmft || "-"}</p>
-                                  <p><span className="text-muted-foreground">Especialidade:</span> {originalData.especialidadeTmft}</p>
-                                  <p><span className="text-muted-foreground">Opção:</span> {originalData.opcaoTmft || "-"}</p>
+                                  <p><span className="text-muted-foreground">Graduação:</span> {originalData.postoEfe || "-"}</p>
+                                  <p><span className="text-muted-foreground">Quadro:</span> {originalData.quadroEfe || "-"}</p>
+                                  <p><span className="text-muted-foreground">Especialidade:</span> {originalData.especialidadeEfe || "-"}</p>
+                                  <p><span className="text-muted-foreground">Opção:</span> {originalData.opcaoEfe || "-"}</p>
                                   <p><span className="text-muted-foreground">Nome:</span> {originalData.nome}</p>
                                 </div>
                               </div>
@@ -593,17 +594,17 @@ export default function Solicitacoes() {
                                   <p className={formData.cargo !== originalData.cargo ? "text-primary font-medium" : ""}>
                                     <span className="text-muted-foreground">Cargo:</span> {formData.cargo || "-"}
                                   </p>
-                                  <p className={formData.postoTmft !== originalData.postoTmft ? "text-primary font-medium" : ""}>
-                                    <span className="text-muted-foreground">Graduação:</span> {formData.postoTmft}
+                                  <p className={formData.postoEfe !== originalData.postoEfe ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Graduação:</span> {formData.postoEfe || "-"}
                                   </p>
-                                  <p className={formData.quadroTmft !== originalData.quadroTmft ? "text-primary font-medium" : ""}>
-                                    <span className="text-muted-foreground">Quadro:</span> {formData.quadroTmft || "-"}
+                                  <p className={formData.quadroEfe !== originalData.quadroEfe ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Quadro:</span> {formData.quadroEfe || "-"}
                                   </p>
-                                  <p className={formData.especialidadeTmft !== originalData.especialidadeTmft ? "text-primary font-medium" : ""}>
-                                    <span className="text-muted-foreground">Especialidade:</span> {formData.especialidadeTmft}
+                                  <p className={formData.especialidadeEfe !== originalData.especialidadeEfe ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Especialidade:</span> {formData.especialidadeEfe || "-"}
                                   </p>
-                                  <p className={formData.opcaoTmft !== originalData.opcaoTmft ? "text-primary font-medium" : ""}>
-                                    <span className="text-muted-foreground">Opção:</span> {formData.opcaoTmft || "-"}
+                                  <p className={formData.opcaoEfe !== originalData.opcaoEfe ? "text-primary font-medium" : ""}>
+                                    <span className="text-muted-foreground">Opção:</span> {formData.opcaoEfe || "-"}
                                   </p>
                                   <p className={formData.nome !== originalData.nome ? "text-primary font-medium" : ""}>
                                     <span className="text-muted-foreground">Nome:</span> {formData.nome}
