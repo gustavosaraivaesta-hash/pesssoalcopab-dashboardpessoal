@@ -10,21 +10,9 @@ const corsHeaders = {
 // Spreadsheet configuration
 const SPREADSHEET_ID = '1PmxfNsLB8RQY4lWBqjxQ7EEIYJy8aMnNWLi1K-3G3lU';
 
-// Sheet GIDs for each OM (maps to tabs in the spreadsheet)
-const SHEET_GIDS: Record<string, string> = {
-  'BAMRJ': '280177623',
-  'CDU-1DN': '957180492',
-  'CDU-BAMRJ': '1658824367',
-  'CDAM': '1650749150',
-  'CMM': '1495647476',
-  'COPAB': '527671707',
-  'CSUPAB': '469479928',
-  'DEPCMRJ': '567760228',
-  'DEPFMRJ': '1373834755',
-  'DEPMSMRJ': '0',
-  'DEPSIMRJ': '295069813',
-  'DEPSMRJ': '1610199360',
-};
+// Google Apps Script Web App URL for writing to sheets
+// This script will handle the actual write operations
+const APPS_SCRIPT_URL = Deno.env.get('GOOGLE_APPS_SCRIPT_URL');
 
 // Sheet names for each OM (tab names in the spreadsheet)
 const SHEET_NAMES: Record<string, string> = {
@@ -40,6 +28,23 @@ const SHEET_NAMES: Record<string, string> = {
   'DEPMSMRJ': 'DepMSMRJ',
   'DEPSIMRJ': 'DepSIMRJ',
   'DEPSMRJ': 'DepSMRJ',
+};
+
+// Column mapping for the spreadsheet (A=1, B=2, etc)
+const COLUMN_MAPPING: Record<string, number> = {
+  'neo': 1,           // A - NEO
+  'nome': 2,          // B - NOME
+  'postoTmft': 3,     // C - POSTO TMFT
+  'quadroTmft': 4,    // D - QUADRO TMFT
+  'especialidadeTmft': 5, // E - ESP TMFT
+  'opcaoTmft': 6,     // F - OPÇÃO TMFT
+  'cargo': 7,         // G - CARGO
+  'setor': 8,         // H - SETOR
+  'tipoSetor': 9,     // I - TIPO SETOR
+  'postoEfe': 10,     // J - POSTO EFE
+  'quadroEfe': 11,    // K - QUADRO EFE
+  'especialidadeEfe': 12, // L - ESP EFE
+  'opcaoEfe': 13,     // M - OPÇÃO EFE
 };
 
 interface PersonnelData {
@@ -98,10 +103,9 @@ async function authenticateUser(req: Request) {
   };
 }
 
-// Find the row number for a given NEO in the sheet
+// Find the row number for a given NEO in the sheet using API Key (read-only)
 async function findRowByNeo(apiKey: string, sheetName: string, neo: string): Promise<number | null> {
   try {
-    // Read column A (NEO column) to find the row
     const range = `${sheetName}!A:A`;
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${apiKey}`;
     
@@ -127,7 +131,7 @@ async function findRowByNeo(apiKey: string, sheetName: string, neo: string): Pro
   }
 }
 
-// Find the first empty row in the sheet (for inclusions)
+// Find the first empty row after TABELA MESTRA section
 async function findFirstEmptyRow(apiKey: string, sheetName: string): Promise<number> {
   try {
     const range = `${sheetName}!A:A`;
@@ -136,13 +140,12 @@ async function findFirstEmptyRow(apiKey: string, sheetName: string): Promise<num
     const response = await fetch(url);
     if (!response.ok) {
       console.error(`Failed to read sheet: ${response.status}`);
-      return 2; // Default to row 2 (after header)
+      return 2;
     }
     
     const data = await response.json();
     const values = data.values || [];
     
-    // Find TABELA MESTRA section and the first empty row after it
     let inTabelaMestra = false;
     let lastDataRow = 1;
     
@@ -155,13 +158,11 @@ async function findFirstEmptyRow(apiKey: string, sheetName: string): Promise<num
       }
       
       if (inTabelaMestra) {
-        // Check if we hit another section
         if (cellValue.includes('PREVISÃO') || cellValue.includes('DESEMBARQUE') || 
             cellValue.includes('TRRM') || cellValue.includes('RESUMO')) {
           break;
         }
         
-        // If it has a NEO (starts with digit), update last data row
         if (/^\d/.test(cellValue)) {
           lastDataRow = i + 1;
         }
@@ -175,19 +176,34 @@ async function findFirstEmptyRow(apiKey: string, sheetName: string): Promise<num
   }
 }
 
-// Note: The Google Sheets API with just an API key only supports READ operations.
-// For WRITE operations, OAuth2 or Service Account credentials are required.
-// This function logs the intended changes for manual processing.
-async function logSheetChange(
+// Convert personnel data to row values
+function personnelToRowValues(data: PersonnelData): string[] {
+  const row: string[] = [];
+  const orderedKeys = Object.keys(COLUMN_MAPPING).sort((a, b) => COLUMN_MAPPING[a] - COLUMN_MAPPING[b]);
+  
+  for (const key of orderedKeys) {
+    row.push(data[key] || '');
+  }
+  
+  return row;
+}
+
+// Sync changes to Google Sheets via Apps Script
+async function syncToSheet(
   action: 'INCLUSAO' | 'ALTERACAO' | 'EXCLUSAO',
   om: string,
   personnelData: PersonnelData,
   originalData?: PersonnelData
 ): Promise<{ success: boolean; message: string }> {
   const sheetName = SHEET_NAMES[om];
+  const apiKey = Deno.env.get('GOOGLE_SHEETS_API_KEY');
   
   if (!sheetName) {
     return { success: false, message: `OM ${om} não encontrada na configuração` };
+  }
+
+  if (!apiKey) {
+    return { success: false, message: 'API Key do Google Sheets não configurada' };
   }
 
   console.log('='.repeat(60));
@@ -195,27 +211,81 @@ async function logSheetChange(
   console.log('='.repeat(60));
   console.log(`OM: ${om}`);
   console.log(`Planilha: ${sheetName}`);
-  console.log(`GID: ${SHEET_GIDS[om]}`);
+
+  // If Apps Script URL is configured, use it for writing
+  if (APPS_SCRIPT_URL) {
+    try {
+      let rowNumber: number | null = null;
+      
+      // For ALTERACAO and EXCLUSAO, find the row by NEO
+      if (action !== 'INCLUSAO' && personnelData.neo) {
+        rowNumber = await findRowByNeo(apiKey, sheetName, personnelData.neo);
+        if (!rowNumber) {
+          return { success: false, message: `NEO ${personnelData.neo} não encontrado na planilha ${sheetName}` };
+        }
+        console.log(`Encontrado na linha: ${rowNumber}`);
+      }
+      
+      // For INCLUSAO, find the first empty row
+      if (action === 'INCLUSAO') {
+        rowNumber = await findFirstEmptyRow(apiKey, sheetName);
+        console.log(`Nova linha: ${rowNumber}`);
+      }
+
+      // Prepare the payload for Apps Script
+      const payload = {
+        action: action,
+        spreadsheetId: SPREADSHEET_ID,
+        sheetName: sheetName,
+        rowNumber: rowNumber,
+        values: action !== 'EXCLUSAO' ? personnelToRowValues(personnelData) : null,
+        neo: personnelData.neo
+      };
+
+      console.log('Enviando para Apps Script:', JSON.stringify(payload, null, 2));
+
+      const response = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Erro Apps Script:', errorText);
+        return { success: false, message: `Erro ao atualizar planilha: ${errorText}` };
+      }
+
+      const result = await response.json();
+      console.log('Resultado Apps Script:', result);
+
+      if (result.success) {
+        return { 
+          success: true, 
+          message: `Planilha ${sheetName} atualizada com sucesso - ${action}` 
+        };
+      } else {
+        return { success: false, message: result.message || 'Erro desconhecido' };
+      }
+    } catch (error) {
+      console.error('Erro ao sincronizar:', error);
+      return { success: false, message: `Erro de sincronização: ${error}` };
+    }
+  }
+
+  // Fallback: Log changes for manual processing if Apps Script not configured
+  console.log('Apps Script URL não configurada - registrando para processamento manual');
   
   if (action === 'INCLUSAO') {
     console.log('NOVO REGISTRO:');
-    console.log(`  NEO: ${personnelData.neo || 'A DEFINIR'}`);
-    console.log(`  Nome: ${personnelData.nome}`);
-    console.log(`  Posto TMFT: ${personnelData.postoTmft}`);
-    console.log(`  Quadro TMFT: ${personnelData.quadroTmft}`);
-    console.log(`  Especialidade TMFT: ${personnelData.especialidadeTmft}`);
-    console.log(`  Opção TMFT: ${personnelData.opcaoTmft}`);
-    console.log(`  Cargo: ${personnelData.cargo}`);
-    console.log(`  Setor: ${personnelData.setor}`);
+    Object.entries(personnelData).forEach(([key, value]) => {
+      if (value) console.log(`  ${key}: ${value}`);
+    });
   } else if (action === 'ALTERACAO') {
     console.log(`NEO: ${personnelData.neo}`);
-    console.log('DADOS ORIGINAIS:');
-    if (originalData) {
-      Object.entries(originalData).forEach(([key, value]) => {
-        if (value) console.log(`  ${key}: ${value}`);
-      });
-    }
-    console.log('NOVOS DADOS:');
+    console.log('ALTERAÇÕES:');
     Object.entries(personnelData).forEach(([key, value]) => {
       if (value && originalData && originalData[key] !== value) {
         console.log(`  ${key}: ${originalData[key]} → ${value}`);
@@ -228,13 +298,12 @@ async function logSheetChange(
   }
   
   console.log('='.repeat(60));
-  
-  // Store the change request in the database for tracking
+
+  // Archive the change for tracking
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const adminClient = createClient(supabaseUrl, supabaseServiceKey);
   
-  // Log to personnel_history for audit trail
   const { error: logError } = await adminClient
     .from('personnel_history')
     .insert({
@@ -250,12 +319,13 @@ async function logSheetChange(
   
   return { 
     success: true, 
-    message: `Alteração ${action} para ${om} registrada. A planilha será atualizada manualmente pelo administrador.`
+    message: APPS_SCRIPT_URL 
+      ? `Planilha ${sheetName} atualizada automaticamente`
+      : `Alteração ${action} registrada. Configure GOOGLE_APPS_SCRIPT_URL para sincronização automática.`
   };
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -310,8 +380,8 @@ serve(async (req) => {
       );
     }
 
-    // Log the sheet change
-    const result = await logSheetChange(
+    // Sync to the sheet
+    const result = await syncToSheet(
       request.request_type as 'INCLUSAO' | 'ALTERACAO' | 'EXCLUSAO',
       request.requesting_om,
       request.personnel_data as PersonnelData,
@@ -322,12 +392,12 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        success: true, 
+        success: result.success, 
         message: result.message,
         request_type: request.request_type,
         om: request.requesting_om
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: result.success ? 200 : 500 }
     );
 
   } catch (error) {
