@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Clock, CheckCircle2, XCircle, ArrowLeft, RefreshCw, Eye, Check, X, Edit, Trash2, Plus } from "lucide-react";
+import { FileText, Clock, CheckCircle2, XCircle, ArrowLeft, RefreshCw, Eye, Check, X, Edit, Trash2, Plus, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +57,7 @@ export default function AdminSolicitacoes() {
   const [selectedRequest, setSelectedRequest] = useState<PersonnelRequest | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
   const [isReviewing, setIsReviewing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isCopab = role === "COPAB";
 
@@ -167,7 +168,35 @@ export default function AdminSolicitacoes() {
     }
   };
 
-  const filteredRequests = activeTab === "all" 
+  const handleDelete = async () => {
+    if (!selectedRequest) return;
+
+    setIsDeleting(true);
+    try {
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("manage-personnel-requests", {
+          body: {
+            action: "delete",
+            id: selectedRequest.id,
+          },
+        }),
+        25000,
+      );
+
+      if (error) throw error;
+
+      toast.success("Solicitação excluída com sucesso!");
+      setSelectedRequest(null);
+      fetchRequests();
+    } catch (error) {
+      console.error("Error deleting request:", error);
+      toast.error("Erro ao excluir solicitação");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const filteredRequests = activeTab === "all"
     ? requests 
     : requests.filter(r => r.status === activeTab);
 
@@ -535,9 +564,23 @@ export default function AdminSolicitacoes() {
               </div>
             )}
             {selectedRequest?.status !== "PENDENTE" && (
-              <Button variant="outline" onClick={() => setSelectedRequest(null)}>
-                Fechar
-              </Button>
+              <div className="flex gap-2 w-full justify-between">
+                <Button 
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Trash className="h-4 w-4 mr-2" />
+                  )}
+                  Excluir Solicitação
+                </Button>
+                <Button variant="outline" onClick={() => setSelectedRequest(null)}>
+                  Fechar
+                </Button>
+              </div>
             )}
           </DialogFooter>
         </DialogContent>
