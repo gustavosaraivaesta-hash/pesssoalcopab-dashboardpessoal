@@ -109,6 +109,29 @@ function normalizeNeo(v: unknown): string {
   return String(v ?? '').trim();
 }
 
+// Normaliza NEO para comparar mesmo quando a planilha remove zeros à esquerda.
+// Ex.: "01.5.0.14" -> "1.5.0.14"
+function canonicalizeNeo(v: unknown): string {
+  const raw = normalizeNeo(v);
+  if (!raw) return '';
+
+  // Mantém apenas dígitos e pontos
+  const cleaned = raw.replace(/[^0-9.]/g, '').replace(/\.+/g, '.').replace(/^\.|\.$/g, '');
+  if (!cleaned) return '';
+
+  const parts = cleaned
+    .split('.')
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => {
+      // remove zeros à esquerda sem perder "0"
+      const n = Number.parseInt(p, 10);
+      return Number.isFinite(n) ? String(n) : p;
+    });
+
+  return parts.join('.');
+}
+
 function isLikelyNeo(v: string): boolean {
   const s = v.trim();
   if (!s) return false;
@@ -166,18 +189,64 @@ async function fetchSheetAsCsvRows(gid: string): Promise<string[][]> {
 }
 
 // Find the row number for a given NEO in the sheet (1-indexed)
-async function findRowByNeo(gid: string, neo: string): Promise<number | null> {
+async function findRowByNeo(
+  gid: string,
+  neo: string
+): Promise<{ rowNumber: number; rowValues: string[] } | null> {
   const rows = await fetchSheetAsCsvRows(gid);
-  const target = normalizeNeo(neo);
-  if (!target) return null;
+  const targetRaw = normalizeNeo(neo);
+  const targetCanon = canonicalizeNeo(neo);
+  if (!targetRaw && !targetCanon) return null;
 
   for (let i = 0; i < rows.length; i++) {
     const cellA = normalizeNeo(rows[i]?.[0]);
-    if (cellA && normalizeNeo(cellA) === target) {
-      return i + 1; // 1-indexed for Sheets
+    if (!cellA) continue;
+
+    const cellCanon = canonicalizeNeo(cellA);
+    const match =
+      (targetRaw && cellA === targetRaw) ||
+      (targetCanon && cellCanon && cellCanon === targetCanon);
+
+    if (match) {
+      return { rowNumber: i + 1, rowValues: rows[i] ?? [] }; // 1-indexed for Sheets
     }
   }
+
   return null;
+}
+
+function padRow(row: string[], targetLen: number): string[] {
+  const out = Array.from({ length: targetLen }, (_, i) => row[i] ?? '');
+  return out;
+}
+
+// Na ALTERAÇÃO, atualiza somente EFETIVO (e campos operacionais) sem sobrescrever TMFT.
+function mergeEfetivoUpdate(
+  currentRowValues: string[],
+  next: PersonnelData
+): string[] {
+  const merged = padRow(currentRowValues, 13);
+
+  // Campos permitidos na alteração (não mexer em TMFT: colunas C-F)
+  const allowedKeys: Array<keyof PersonnelData> = [
+    'cargo',
+    'setor',
+    'tipoSetor',
+    'postoEfe',
+    'quadroEfe',
+    'especialidadeEfe',
+    'opcaoEfe',
+  ];
+
+  for (const key of allowedKeys) {
+    const idx = COLUMN_MAPPING[String(key)] ? COLUMN_MAPPING[String(key)] - 1 : -1;
+    if (idx < 0) continue;
+    const v = (next[key] ?? '').toString();
+    // Se vier vazio, preserva o valor atual (evita "apagar" sem intenção)
+    if (v.trim().length > 0) merged[idx] = v;
+  }
+
+  return merged;
 }
 
 // Find the first empty row after the TABELA MESTRA section
@@ -250,6 +319,7 @@ async function syncToSheet(
   if (APPS_SCRIPT_URL) {
     try {
       let rowNumber: number | null = null;
+      let valuesToWrite: string[] | null = null;
       
       // For ALTERACAO and EXCLUSAO, find the row by NEO
       if (action !== 'INCLUSAO') {
@@ -258,9 +328,12 @@ async function syncToSheet(
           normalizeNeo(originalData?.neo),
         ].filter(Boolean);
 
+        let found: { rowNumber: number; rowValues: string[] } | null = null;
+
         for (const candidate of candidateNeos) {
-          rowNumber = await findRowByNeo(gid, candidate);
-          if (rowNumber) {
+          found = await findRowByNeo(gid, candidate);
+          if (found?.rowNumber) {
+            rowNumber = found.rowNumber;
             console.log(`Encontrado NEO ${candidate} na linha: ${rowNumber}`);
             break;
           }
@@ -272,6 +345,11 @@ async function syncToSheet(
             message: `NEO ${candidateNeos[0] || '(vazio)'} não encontrado na planilha ${sheetName}`,
           };
         }
+
+        // Para ALTERAÇÃO: preservar TMFT e atualizar só EFETIVO/operacional
+        if (action === 'ALTERACAO' && found) {
+          valuesToWrite = mergeEfetivoUpdate(found.rowValues, personnelData);
+        }
       }
       
       // For INCLUSAO, find the first empty row
@@ -280,13 +358,17 @@ async function syncToSheet(
         console.log(`Nova linha: ${rowNumber}`);
       }
 
+      if (action !== 'EXCLUSAO' && !valuesToWrite) {
+        valuesToWrite = personnelToRowValues(personnelData);
+      }
+
       // Prepare the payload for Apps Script
       const payload = {
         action: action,
         spreadsheetId: SPREADSHEET_ID,
         sheetName: sheetName,
         rowNumber: rowNumber,
-        values: action !== 'EXCLUSAO' ? personnelToRowValues(personnelData) : null,
+        values: action !== 'EXCLUSAO' ? valuesToWrite : null,
         neo: personnelData.neo
       };
 
