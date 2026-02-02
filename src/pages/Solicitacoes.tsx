@@ -135,7 +135,8 @@ export default function Solicitacoes() {
         opcaoTmft: item.opcaoTmft || item.opcao || '',
         nome: item.nome || '',
         postoEfe: item.postoEfe || '',
-        especialidadeEfe: item.quadroEfe || item.especialidadeEfe || '',
+        // BUGFIX: especialidadeEfe estava sendo preenchida com quadroEfe.
+        especialidadeEfe: item.especialidadeEfe || item.especialidade || '',
         opcaoEfe: item.opcaoEfe || '',
         om: item.om || '',
         isVago: item.isVago || !item.ocupado || item.nome?.toUpperCase() === 'VAGO',
