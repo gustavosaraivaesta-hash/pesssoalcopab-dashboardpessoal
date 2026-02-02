@@ -48,6 +48,10 @@ async function authenticateUser(req: Request) {
   };
 }
 
+function normalizeOm(v: unknown): string {
+  return String(v ?? '').trim().toUpperCase();
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -89,6 +93,12 @@ serve(async (req) => {
         );
       }
 
+      // COPAB pode abrir solicitação para outra OM (ex.: editar dados da BAMRJ estando logado como COPAB)
+      // Preferência de OM alvo: target_om explícito > personnel_data.om > original_data.om
+      const requestedTargetOmRaw = target_om ?? personnel_data?.om ?? original_data?.om;
+      const requestedTargetOm = auth.isCopab ? normalizeOm(requestedTargetOmRaw) : '';
+      const effectiveRequestingOm = auth.isCopab && requestedTargetOm ? requestedTargetOm : requestingOm;
+
       const { data: newRequest, error: insertError } = await adminClient
         .from('personnel_requests')
         .insert({
@@ -96,8 +106,8 @@ serve(async (req) => {
           personnel_data,
           original_data: original_data || null,
           justification,
-          requesting_om: requestingOm,
-          target_om: target_om || null,
+          requesting_om: effectiveRequestingOm,
+          target_om: auth.isCopab && requestedTargetOm ? requestedTargetOm : null,
           requested_by: auth.user.id,
           status: 'PENDENTE'
         })
