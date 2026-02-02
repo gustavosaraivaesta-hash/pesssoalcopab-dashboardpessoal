@@ -33,36 +33,40 @@ const SHEET_CONFIGS: Record<string, { sheetName: string; gid: string }> = {
 };
 
 // Column mapping for the spreadsheet (A=1, B=2, etc)
+// Based on the actual spreadsheet structure:
+// A: NEO | B: TIPO SETOR | C: SETOR | D: CARGO/INCUMBÊNCIA | 
+// E: GRADUAÇÃO TMFT | F: QUADRO TMFT | G: ESPECIALIDADE TMFT | H: OPÇÃO TMFT |
+// I: GRADUAÇÃO EFE | J: QUADRO EFE | K: ESPECIALIDADE EFE | L: OPÇÃO EFE | M: NOME
 const COLUMN_MAPPING: Record<string, number> = {
-  'neo': 1,           // A - NEO
-  'nome': 2,          // B - NOME
-  'postoTmft': 3,     // C - POSTO TMFT
-  'quadroTmft': 4,    // D - QUADRO TMFT
-  'especialidadeTmft': 5, // E - ESP TMFT
-  'opcaoTmft': 6,     // F - OPÇÃO TMFT
-  'cargo': 7,         // G - CARGO
-  'setor': 8,         // H - SETOR
-  'tipoSetor': 9,     // I - TIPO SETOR
-  'postoEfe': 10,     // J - POSTO EFE
-  'quadroEfe': 11,    // K - QUADRO EFE
-  'especialidadeEfe': 12, // L - ESP EFE
-  'opcaoEfe': 13,     // M - OPÇÃO EFE
+  'neo': 1,              // A - NEO
+  'tipoSetor': 2,        // B - TIPO SETOR
+  'setor': 3,            // C - SETOR
+  'cargo': 4,            // D - CARGO/INCUMBÊNCIA
+  'postoTmft': 5,        // E - GRADUAÇÃO TMFT
+  'quadroTmft': 6,       // F - QUADRO TMFT
+  'especialidadeTmft': 7, // G - ESPECIALIDADE TMFT
+  'opcaoTmft': 8,        // H - OPÇÃO TMFT
+  'postoEfe': 9,         // I - GRADUAÇÃO EFE
+  'quadroEfe': 10,       // J - QUADRO EFE
+  'especialidadeEfe': 11, // K - ESPECIALIDADE EFE
+  'opcaoEfe': 12,        // L - OPÇÃO EFE
+  'nome': 13,            // M - NOME
 };
 
 interface PersonnelData {
   neo?: string;
-  nome?: string;
+  tipoSetor?: string;
+  setor?: string;
+  cargo?: string;
   postoTmft?: string;
   quadroTmft?: string;
   especialidadeTmft?: string;
   opcaoTmft?: string;
-  cargo?: string;
-  setor?: string;
-  tipoSetor?: string;
   postoEfe?: string;
   quadroEfe?: string;
   especialidadeEfe?: string;
   opcaoEfe?: string;
+  nome?: string;
   [key: string]: string | undefined;
 }
 
@@ -221,21 +225,20 @@ function padRow(row: string[], targetLen: number): string[] {
 }
 
 // Na ALTERAÇÃO, atualiza somente EFETIVO (e campos operacionais) sem sobrescrever TMFT.
+// Colunas EFETIVO: I (postoEfe), J (quadroEfe), K (especialidadeEfe), L (opcaoEfe), M (nome)
 function mergeEfetivoUpdate(
   currentRowValues: string[],
   next: PersonnelData
 ): string[] {
   const merged = padRow(currentRowValues, 13);
 
-  // Campos permitidos na alteração (não mexer em TMFT: colunas C-F)
+  // Campos permitidos na alteração (não mexer em TMFT: colunas E-H)
   const allowedKeys: Array<keyof PersonnelData> = [
-    'cargo',
-    'setor',
-    'tipoSetor',
     'postoEfe',
     'quadroEfe',
     'especialidadeEfe',
     'opcaoEfe',
+    'nome',
   ];
 
   for (const key of allowedKeys) {
@@ -510,10 +513,11 @@ serve(async (req) => {
       );
     }
 
-    // Sync to the sheet
+    // Sync to the sheet - use target_om if available, otherwise requesting_om
+    const syncOm = request.target_om || request.requesting_om;
     const result = await syncToSheet(
       request.request_type as 'INCLUSAO' | 'ALTERACAO' | 'EXCLUSAO',
-      request.requesting_om,
+      syncOm,
       request.personnel_data as PersonnelData,
       request.original_data as PersonnelData | undefined
     );

@@ -106,18 +106,18 @@ Após configurar, faça uma solicitação de teste:
 
 O sistema mapeia os campos da seguinte forma:
 - A: NEO
-- B: Nome
-- C: Posto TMFT
-- D: Quadro TMFT
-- E: Especialidade TMFT
-- F: Opção TMFT
-- G: Cargo
-- H: Setor
-- I: Tipo Setor
-- J: Posto EFE
-- K: Quadro EFE
-- L: Especialidade EFE
-- M: Opção EFE
+- B: Tipo Setor
+- C: Setor
+- D: Cargo/Incumbência
+- E: Graduação TMFT
+- F: Quadro TMFT
+- G: Especialidade TMFT
+- H: Opção TMFT
+- I: Graduação EFE
+- J: Quadro EFE
+- K: Especialidade EFE
+- L: Opção EFE
+- M: Nome
 
 ## Troubleshooting
 
