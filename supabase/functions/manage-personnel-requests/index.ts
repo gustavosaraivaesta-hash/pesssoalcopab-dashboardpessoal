@@ -385,6 +385,66 @@ serve(async (req) => {
       );
     }
 
+    // ACTION: Delete request (COPAB only, for processed requests)
+    if (action === 'delete') {
+      if (!auth.isCopab) {
+        return new Response(
+          JSON.stringify({ error: 'Only COPAB can delete requests' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { id } = params;
+
+      if (!id) {
+        return new Response(
+          JSON.stringify({ error: 'Request ID is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Get the request first to check its status
+      const { data: existingRequest, error: fetchError } = await adminClient
+        .from('personnel_requests')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (fetchError || !existingRequest) {
+        return new Response(
+          JSON.stringify({ error: 'Request not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Only allow deleting processed requests (APROVADO or REJEITADO)
+      if (!['APROVADO', 'REJEITADO'].includes(existingRequest.status)) {
+        return new Response(
+          JSON.stringify({ error: 'Only processed requests (approved or rejected) can be deleted' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Delete the request
+      const { error: deleteError } = await adminClient
+        .from('personnel_requests')
+        .delete()
+        .eq('id', id);
+
+      if (deleteError) {
+        return new Response(
+          JSON.stringify({ error: `Failed to delete request: ${deleteError.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`Request ${id} deleted by COPAB user ${auth.user.id}`);
+      return new Response(
+        JSON.stringify({ success: true, message: 'Request deleted successfully' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: 'Invalid action. Use: create, list, get, review, stats, history' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
