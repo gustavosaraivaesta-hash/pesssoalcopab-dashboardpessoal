@@ -117,7 +117,33 @@ export default function Solicitacoes() {
       );
 
       if (error) throw error;
-      setPersonnelData(data.personnel || []);
+      
+      // The edge function returns 'data' field with personnel records
+      const personnelRecords = data.data || data.personnel || [];
+      
+      // Map to PersonnelRecord format
+      const mappedRecords: PersonnelRecord[] = personnelRecords.map((item: any, index: number) => ({
+        id: item.id || `personnel-${index}`,
+        neo: item.neo || '',
+        tipoSetor: item.tipoSetor || '',
+        setor: item.setor || '',
+        cargo: item.cargo || '',
+        postoTmft: item.postoTmft || item.posto || '',
+        especialidadeTmft: item.especialidadeTmft || item.especialidade || '',
+        opcaoTmft: item.opcaoTmft || item.opcao || '',
+        nome: item.nome || '',
+        postoEfe: item.postoEfe || '',
+        especialidadeEfe: item.especialidadeEfe || '',
+        opcaoEfe: item.opcaoEfe || '',
+        om: item.om || '',
+        isVago: item.isVago || item.nome?.toUpperCase() === 'VAGO',
+        isExtraLotacao: item.isExtraLotacao || false,
+        quadroTmft: item.quadroTmft || item.quadro || '',
+        quadroEfe: item.quadroEfe || '',
+      }));
+      
+      setPersonnelData(mappedRecords);
+      console.log(`Loaded ${mappedRecords.length} personnel records for search`);
     } catch (error) {
       console.error("Error fetching personnel data:", error);
       toast.error("Erro ao carregar dados do efetivo");
