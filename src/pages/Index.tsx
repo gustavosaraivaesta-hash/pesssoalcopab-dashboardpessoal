@@ -852,34 +852,44 @@ const Index = () => {
                 TTC
               </Button>
               
-              {/* Admin Dropdown Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="secondary" className="flex items-center gap-1">
-                    <Lock size={18} className="mr-1" />
-                    Admin
-                    <ChevronDown size={16} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => handleAdminNavigation("/solicitacoes")}>
-                    <ClipboardList size={16} className="mr-2" />
-                    Solicitações
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/solicitacoes")}>
-                    <Settings size={16} className="mr-2" />
-                    Gestão
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/historico")}>
-                    <Archive size={16} className="mr-2" />
-                    Histórico
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/users")}>
-                    <Users size={16} className="mr-2" />
-                    Usuários
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* Solicitações button for non-COPAB users */}
+              {role && role !== "COPAB" && (
+                <Button variant="secondary" onClick={() => navigate("/solicitacoes")}>
+                  <ClipboardList size={18} className="mr-2" />
+                  Solicitações
+                </Button>
+              )}
+              
+              {/* Admin Dropdown Menu - Only for COPAB */}
+              {role === "COPAB" && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="secondary" className="flex items-center gap-1">
+                      <Lock size={18} className="mr-1" />
+                      Admin
+                      <ChevronDown size={16} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => handleAdminNavigation("/solicitacoes")}>
+                      <ClipboardList size={16} className="mr-2" />
+                      Solicitações
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/solicitacoes")}>
+                      <Settings size={16} className="mr-2" />
+                      Gestão
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/historico")}>
+                      <Archive size={16} className="mr-2" />
+                      Histórico
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/users")}>
+                      <Users size={16} className="mr-2" />
+                      Usuários
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
               <Button variant="destructive" onClick={handleLogout}>
                 <LogOut size={18} className="mr-2" />
