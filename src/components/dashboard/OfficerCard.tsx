@@ -3,7 +3,7 @@ import { AlertTriangle } from "lucide-react";
 
 interface PersonnelRecord {
   id: string;
-  neo: number;
+  neo: number | string;
   tipoSetor: string;
   setor: string;
   cargo: string;
@@ -83,7 +83,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
     >
       {/* Top badges row - TMFT data */}
       <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-        {item.neo > 0 && (
+        {item.neo && String(item.neo).trim() !== '' && String(item.neo) !== '0' && (
           <Badge variant="outline" className={`${getNeoVariantColor()} text-xs font-semibold`}>
             NEO {item.neo}
           </Badge>
