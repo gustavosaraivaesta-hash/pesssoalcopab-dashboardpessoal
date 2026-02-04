@@ -1606,7 +1606,13 @@ const DashboardOM = () => {
                   allowDecimals={false}
                 />
                 <Tooltip />
-                <Legend />
+                <Legend 
+                  formatter={(value) => (
+                    <span style={{ color: value === "TMFT" ? "#3b82f6" : "#10b981" }}>
+                      {value}
+                    </span>
+                  )}
+                />
                 <Bar dataKey="quantidade" name="TMFT" cursor="pointer" onClick={handlePostoBarClick}>
                   {chartDataByPosto.map((entry, index) => (
                     <Cell
