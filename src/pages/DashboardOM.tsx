@@ -896,17 +896,7 @@ const DashboardOM = () => {
         yPosition = (pdf as any).lastAutoTable.finalY + 10;
       }
 
-      // Chart
-      if (chartRef.current) {
-        const canvas = await html2canvas(chartRef.current, { scale: 2 });
-        const imgData = canvas.toDataURL("image/png");
-        const imgWidth = pageWidth - 28;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        yPosition = checkNewPage(yPosition, imgHeight + 10);
-        pdf.addImage(imgData, "PNG", 14, yPosition, imgWidth, imgHeight);
-        yPosition += imgHeight + 10;
-      }
+      // Chart removed from PDF as requested
 
       // activeOMs already defined above
       // Tables by OM with brasão above each OM name
