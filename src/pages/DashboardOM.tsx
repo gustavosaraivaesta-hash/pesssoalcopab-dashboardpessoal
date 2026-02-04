@@ -814,6 +814,72 @@ const DashboardOM = () => {
       });
       yPosition = (pdf as any).lastAutoTable.finalY + 10;
 
+      // IM (Infantaria de Marinha) table by OM
+      const imData = filteredData.filter((item) => item.corpoTmft === "IM" && item.tipoSetor !== "EXTRA LOTAÇÃO");
+      if (imData.length > 0) {
+        yPosition = checkNewPage(yPosition, 60);
+        
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("RESUMO IM (INFANTARIA DE MARINHA)", pageWidth / 2, yPosition, { align: "center" });
+        yPosition += 6;
+
+        const imResumoRows: string[][] = [];
+        
+        for (const om of activeOMs) {
+          const omImData = imData.filter((item) => item.om === om);
+          if (omImData.length === 0) continue;
+          
+          const omImTmft = omImData.length;
+          const omImEfetivo = omImData.filter((item) => item.ocupado).length;
+          const omImVagos = omImTmft - omImEfetivo;
+          const omImAtendimento = omImTmft > 0 ? (omImEfetivo / omImTmft) * 100 : 0;
+
+          imResumoRows.push([
+            om,
+            omImTmft.toString(),
+            omImEfetivo.toString(),
+            omImVagos.toString(),
+            `${omImAtendimento.toFixed(1)}%`
+          ]);
+        }
+
+        // Add TOTAL IM row
+        const totalImTmft = imData.length;
+        const totalImEfetivo = imData.filter((item) => item.ocupado).length;
+        const totalImVagos = totalImTmft - totalImEfetivo;
+        const totalImAtendimento = totalImTmft > 0 ? (totalImEfetivo / totalImTmft) * 100 : 0;
+
+        imResumoRows.push([
+          "TOTAL IM",
+          totalImTmft.toString(),
+          totalImEfetivo.toString(),
+          totalImVagos.toString(),
+          `${totalImAtendimento.toFixed(1)}%`
+        ]);
+
+        autoTable(pdf, {
+          startY: yPosition,
+          head: [["OM", "TMFT", "EFETIVO", "VAGOS", "ATENDIMENTO"]],
+          body: imResumoRows,
+          theme: "grid",
+          styles: { fontSize: 9, cellPadding: 3, halign: "center" },
+          headStyles: { fillColor: [34, 197, 94], textColor: 255, fontStyle: "bold" },
+          bodyStyles: { fontStyle: "normal" },
+          margin: { left: 30, right: 30 },
+          didParseCell: (data) => {
+            if (data.section === 'body') {
+              const omCell = data.row.raw?.[0];
+              if (omCell === "TOTAL IM") {
+                data.cell.styles.fontStyle = "bold";
+                data.cell.styles.fillColor = [229, 231, 235];
+              }
+            }
+          },
+        });
+        yPosition = (pdf as any).lastAutoTable.finalY + 10;
+      }
+
       // Chart
       if (chartRef.current) {
         const canvas = await html2canvas(chartRef.current, { scale: 2 });
