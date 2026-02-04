@@ -767,7 +767,16 @@ const DashboardOM = () => {
         const omData = filteredData.filter((item) => item.om === om);
         if (omData.length === 0) continue;
 
-        const estimatedHeight = 40 + omData.length * 5;
+        // Calculate metrics per OM
+        const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+        const omTmft = omRegularData.length;
+        const omEfetivo = omRegularData.filter((item) => item.ocupado).length;
+        const omVagos = omTmft - omEfetivo;
+        const omAtendimento = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
+        const omExtraLotacao = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
+        const omAtendTotal = omTmft > 0 ? ((omExtraLotacao + omEfetivo) / omTmft) * 100 : 0;
+
+        const estimatedHeight = 60 + omData.length * 5;
 
         if (isFirstOM) {
           pdf.addPage();
@@ -780,6 +789,29 @@ const DashboardOM = () => {
 
         // OM title with brasão
         yPosition = addOMTitle(om, yPosition);
+
+        // Add metrics table for this OM
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "bold");
+        
+        autoTable(pdf, {
+          startY: yPosition,
+          head: [["TMFT", "EFETIVO", "VAGOS", "ATENDIMENTO", "ATEND. TOTAL", "EXTRA LOTAÇÃO"]],
+          body: [[
+            omTmft.toString(),
+            omEfetivo.toString(),
+            omVagos.toString(),
+            `${omAtendimento.toFixed(1)}%`,
+            `${omAtendTotal.toFixed(1)}%`,
+            omExtraLotacao.toString()
+          ]],
+          theme: "grid",
+          styles: { fontSize: 8, cellPadding: 2, halign: "center" },
+          headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: "bold" },
+          bodyStyles: { fontStyle: "bold" },
+          margin: { left: 40, right: 40 },
+        });
+        yPosition = (pdf as any).lastAutoTable.finalY + 6;
 
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
