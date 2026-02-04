@@ -739,12 +739,39 @@ const DashboardOM = () => {
         yPosition += 10;
       }
 
+      // Calculate general metrics
+      const regularData = filteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+      const generalTmft = regularData.length;
+      const generalEfetivo = regularData.filter((item) => item.ocupado).length;
+      const generalVagos = generalTmft - generalEfetivo;
+      const generalAtendimento = generalTmft > 0 ? (generalEfetivo / generalTmft) * 100 : 0;
+      const generalExtraLotacao = filteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
+      const generalAtendTotal = generalTmft > 0 ? ((generalExtraLotacao + generalEfetivo) / generalTmft) * 100 : 0;
+
+      // General metrics table
       pdf.setFontSize(10);
-      pdf.text(`TMFT Total: ${metrics.totalTMFT}`, 14, yPosition);
-      pdf.text(`Ocupados: ${metrics.totalEXI}`, 80, yPosition);
-      pdf.text(`Vagos: ${Math.abs(metrics.totalDIF)}`, 146, yPosition);
-      pdf.text(`Preenchimento: ${metrics.percentualPreenchimento.toFixed(1)}%`, 212, yPosition);
-      yPosition += 10;
+      pdf.setFont("helvetica", "bold");
+      pdf.text("RESUMO GERAL", pageWidth / 2, yPosition, { align: "center" });
+      yPosition += 6;
+
+      autoTable(pdf, {
+        startY: yPosition,
+        head: [["TMFT", "EFETIVO", "VAGOS", "ATENDIMENTO", "ATEND. TOTAL", "EXTRA LOTAÇÃO"]],
+        body: [[
+          generalTmft.toString(),
+          generalEfetivo.toString(),
+          generalVagos.toString(),
+          `${generalAtendimento.toFixed(1)}%`,
+          `${generalAtendTotal.toFixed(1)}%`,
+          generalExtraLotacao.toString()
+        ]],
+        theme: "grid",
+        styles: { fontSize: 9, cellPadding: 3, halign: "center" },
+        headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: "bold" },
+        bodyStyles: { fontStyle: "bold" },
+        margin: { left: 30, right: 30 },
+      });
+      yPosition = (pdf as any).lastAutoTable.finalY + 10;
 
       // Chart
       if (chartRef.current) {
