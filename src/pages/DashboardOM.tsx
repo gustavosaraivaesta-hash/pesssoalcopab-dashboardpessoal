@@ -152,6 +152,7 @@ const DashboardOM = () => {
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
   const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
   const [availablePostos, setAvailablePostos] = useState<string[]>([]);
+  const [availableCorpos, setAvailableCorpos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedQuadros, setSelectedQuadros] = useState<string[]>([]);
@@ -232,6 +233,17 @@ const DashboardOM = () => {
     });
     setAvailablePostos(postosFromData as string[]);
     setAvailableOpcoes(opcoes as string[]);
+    
+    // Extrair corpos disponíveis (corpoTmft ou corpoEfe)
+    const corposFromData = [
+      ...new Set(
+        data
+          .map((item: any) => item.corpoTmft || item.corpoEfe)
+          .filter((c: string) => c && c.trim() !== "" && c !== "-"),
+      ),
+    ].sort();
+    setAvailableCorpos(corposFromData as string[]);
+    
     setLastUpdate(rawResult.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
   };
 
@@ -355,6 +367,11 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
     }
 
+    // Filtro de corpo
+    if (selectedCorpos.length > 0) {
+      filtered = filtered.filter((item) => selectedCorpos.includes(item.corpoTmft) || selectedCorpos.includes(item.corpoEfe));
+    }
+
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -370,7 +387,7 @@ const DashboardOM = () => {
     }
 
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, searchQuery]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedCorpos, searchQuery]);
 
   // Filtered data for display (applies status filter and extra lotação for drill-down)
   const filteredData = useMemo(() => {
@@ -405,6 +422,10 @@ const DashboardOM = () => {
 
   const togglePosto = (posto: string) => {
     setSelectedPostoFilter((prev) => (prev.includes(posto) ? prev.filter((p) => p !== posto) : [...prev, posto]));
+  };
+
+  const toggleCorpo = (corpo: string) => {
+    setSelectedCorpos((prev) => (prev.includes(corpo) ? prev.filter((c) => c !== corpo) : [...prev, corpo]));
   };
 
   const clearFilters = () => {
@@ -1326,6 +1347,32 @@ const DashboardOM = () => {
                       />
                       <label htmlFor={`posto-${posto}`} className="text-xs cursor-pointer">
                         {posto}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Corpo Filter */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Corpo</h4>
+                  {selectedCorpos.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {selectedCorpos.length} selecionado(s)
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-3 gap-1 p-2 border rounded-lg bg-muted/30">
+                  {availableCorpos.map((corpo) => (
+                    <div key={corpo} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`corpo-${corpo}`}
+                        checked={selectedCorpos.includes(corpo)}
+                        onCheckedChange={() => toggleCorpo(corpo)}
+                      />
+                      <label htmlFor={`corpo-${corpo}`} className="text-xs cursor-pointer">
+                        {corpo}
                       </label>
                     </div>
                   ))}
