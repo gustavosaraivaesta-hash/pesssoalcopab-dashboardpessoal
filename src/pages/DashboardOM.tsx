@@ -1626,35 +1626,17 @@ const DashboardOM = () => {
                 </Bar>
                 <Bar dataKey="efe" name="EFE" cursor="pointer" onClick={handlePostoEfeBarClick}>
                   {chartDataByPosto.map((entry, index) => {
-                    const isOverTmft = entry.efe > entry.quantidade;
                     const isSelected = selectedPostosEfe.includes(entry.name);
                     return (
                       <Cell
                         key={`cell-efe-${index}`}
-                        fill={isOverTmft ? (isSelected ? "#f97316" : "#fdba74") : (isSelected ? "#10b981" : "#6ee7b7")}
-                        stroke={isSelected ? (isOverTmft ? "#c2410c" : "#047857") : "transparent"}
+                        fill={isSelected ? "#10b981" : "#6ee7b7"}
+                        stroke={isSelected ? "#047857" : "transparent"}
                         strokeWidth={isSelected ? 2 : 0}
                       />
                     );
                   })}
-                  <LabelList 
-                    dataKey="efe" 
-                    position="top" 
-                    content={({ x, y, width, value, index }) => {
-                      const entry = chartDataByPosto[index as number];
-                      const isOverTmft = entry && entry.efe > entry.quantidade;
-                      return (
-                        <text
-                          x={Number(x) + Number(width) / 2}
-                          y={Number(y) - 5}
-                          textAnchor="middle"
-                          style={{ fontWeight: "bold", fontSize: "12px", fill: isOverTmft ? "#f97316" : "#10b981" }}
-                        >
-                          {value}
-                        </text>
-                      );
-                    }}
-                  />
+                  <LabelList dataKey="efe" position="top" style={{ fontWeight: "bold", fontSize: "12px", fill: "#10b981" }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
