@@ -939,21 +939,6 @@ const DashboardOM = () => {
         });
         yPosition = (pdf as any).lastAutoTable.finalY + 8;
 
-        // Add category tabs header
-        pdf.setFillColor(245, 245, 245);
-        pdf.rect(14, yPosition - 2, pageWidth - 28, 8, "F");
-        pdf.setFontSize(7);
-        pdf.setFont("helvetica", "bold");
-        pdf.setTextColor(100, 100, 100);
-        const categories = ["Tabela de Efetivo", "Previsão de Desembarque", "Previsão de TRRM", "Licenças", "Destaques", "Concurso C-EMOS"];
-        const categoryWidth = (pageWidth - 28) / categories.length;
-        categories.forEach((cat, idx) => {
-          const xPos = 14 + categoryWidth * idx + categoryWidth / 2;
-          pdf.text(cat, xPos, yPosition + 3, { align: "center" });
-        });
-        pdf.setTextColor(0, 0, 0);
-        yPosition += 12;
-
         // ====== TABELA DE EFETIVO ======
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
