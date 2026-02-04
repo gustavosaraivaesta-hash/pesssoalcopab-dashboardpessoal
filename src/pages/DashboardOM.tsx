@@ -986,16 +986,28 @@ const DashboardOM = () => {
             if (data.section === 'body') {
               const nome = data.row.raw?.[5];
               const setor = data.row.raw?.[1];
+              const quadroTmft = data.row.raw?.[4];
+              const quadroEfe = data.row.raw?.[7];
               const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
               const setorStr = setor ? setor.toString().trim().toUpperCase() : "";
+              const quadroTmftStr = quadroTmft ? quadroTmft.toString().trim().toUpperCase() : "";
+              const quadroEfeStr = quadroEfe ? quadroEfe.toString().trim().toUpperCase() : "";
               
+              // Verifica se é ocupado (tem nome válido)
+              const isOcupado = nome && nome !== "-" && nomeStr !== "" && nomeStr !== "VAGO" && nomeStr !== "VAZIO";
+              
+              // Destaque LARANJA para Quadro TMFT ≠ Quadro EFE (quando ocupado)
+              if (isOcupado && quadroTmftStr && quadroEfeStr && quadroTmftStr !== "-" && quadroEfeStr !== "-" && quadroTmftStr !== quadroEfeStr) {
+                data.cell.styles.fillColor = [255, 237, 213]; // orange-100
+                data.cell.styles.textColor = [194, 65, 12]; // orange-700
+              }
               // Destaque amarelo para EXTRA LOTAÇÃO
-              if (setorStr.includes("EXTRA LOTA") || setorStr === "EXTRA LOTAÇÃO") {
+              else if (setorStr.includes("EXTRA LOTA") || setorStr === "EXTRA LOTAÇÃO") {
                 data.cell.styles.fillColor = [254, 240, 138];
                 data.cell.styles.textColor = [113, 63, 18];
               }
               // Destaque vermelho para NOME vazio/vago
-              else if (!nome || nome === "-" || nomeStr === "" || nomeStr === "VAGO" || nomeStr === "VAZIO") {
+              else if (!isOcupado) {
                 data.cell.styles.fillColor = [254, 202, 202];
                 data.cell.styles.textColor = [127, 29, 29];
               }
