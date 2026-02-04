@@ -48,7 +48,7 @@ import OfficerCard from "@/components/dashboard/OfficerCard";
 
 interface PersonnelRecord {
   id: string;
-  neo: number;
+  neo: string;
   tipoSetor: string;
   setor: string;
   cargo: string;

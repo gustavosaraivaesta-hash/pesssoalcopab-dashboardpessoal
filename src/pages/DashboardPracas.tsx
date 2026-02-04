@@ -1032,11 +1032,11 @@ const DashboardPracas = () => {
         pdf.text("TABELA DE EFETIVO", pageWidth / 2, yPosition, { align: "center" });
         yPosition += 6;
 
-        // All NEOs in single table, sorted by NEO
+        // All NEOs in single table, sorted by NEO (string comparison to preserve format)
         const sortedData = [...omData].sort((a, b) => {
-          const neoA = typeof a.neo === "number" ? a.neo : parseFloat(a.neo.toString()) || 0;
-          const neoB = typeof b.neo === "number" ? b.neo : parseFloat(b.neo.toString()) || 0;
-          return neoA - neoB;
+          const neoA = String(a.neo || '');
+          const neoB = String(b.neo || '');
+          return neoA.localeCompare(neoB, undefined, { numeric: true });
         });
 
         const tableData = sortedData.map((item) => [
