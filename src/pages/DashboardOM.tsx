@@ -853,9 +853,7 @@ const DashboardOM = () => {
             omImTmft.toString(),
             omImEfetivo.toString(),
             omImVagos.toString(),
-            `${omImAtendimento.toFixed(1)}%`,
-            `${omImAtendTotal.toFixed(1)}%`,
-            omImExtra.toString()
+            `${omImAtendimento.toFixed(1)}%`
           ]);
         }
 
@@ -869,14 +867,12 @@ const DashboardOM = () => {
           totalImTmft.toString(),
           totalImEfetivo.toString(),
           totalImVagos.toString(),
-          `${totalImAtendimento.toFixed(1)}%`,
-          `${totalImAtendTotal.toFixed(1)}%`,
-          totalImExtra.toString()
+          `${totalImAtendimento.toFixed(1)}%`
         ]);
 
         autoTable(pdf, {
           startY: yPosition,
-          head: [["OM", "TMFT", "EFETIVO", "VAGOS", "ATENDIMENTO", "ATEND. TOTAL", "EXTRA LOTAÇÃO"]],
+          head: [["OM", "TMFT IM", "EFETIVO IM", "VAGOS IM", "ATENDIMENTO IM"]],
           body: imResumoRows,
           theme: "grid",
           styles: { fontSize: 9, cellPadding: 3, halign: "center" },
