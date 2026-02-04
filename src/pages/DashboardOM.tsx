@@ -751,7 +751,17 @@ const DashboardOM = () => {
       // General metrics table with OMs and Total
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
-      pdf.text("RESUMO GERAL", pageWidth / 2, yPosition, { align: "center" });
+      
+      // Build dynamic title with filters
+      let resumoTitle = "RESUMO GERAL";
+      const filterParts: string[] = [];
+      if (selectedOMs.length > 0) filterParts.push(selectedOMs.join(", "));
+      if (selectedOpcoes.length > 0) filterParts.push(selectedOpcoes.join(", "));
+      if (filterParts.length > 0) {
+        resumoTitle += ` - ${filterParts.join(" | ")}`;
+      }
+      
+      pdf.text(resumoTitle, pageWidth / 2, yPosition, { align: "center" });
       yPosition += 6;
 
       // Build table data for each OM + total row
