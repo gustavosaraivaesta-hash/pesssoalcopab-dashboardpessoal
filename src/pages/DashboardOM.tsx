@@ -814,9 +814,11 @@ const DashboardOM = () => {
       });
       yPosition = (pdf as any).lastAutoTable.finalY + 10;
 
-      // IM (Infantaria de Marinha) table by OM
-      const imData = filteredData.filter((item) => item.corpoTmft === "IM" && item.tipoSetor !== "EXTRA LOTAÇÃO");
-      if (imData.length > 0) {
+      // IM (Infantaria de Marinha) table by OM - with all columns like RESUMO GERAL
+      const imDataBase = filteredData.filter((item) => item.corpoTmft === "IM" && item.tipoSetor !== "EXTRA LOTAÇÃO");
+      const imExtraData = filteredData.filter((item) => item.corpoTmft === "IM" && item.tipoSetor === "EXTRA LOTAÇÃO");
+      
+      if (imDataBase.length > 0 || imExtraData.length > 0) {
         yPosition = checkNewPage(yPosition, 60);
         
         pdf.setFontSize(10);
@@ -825,42 +827,56 @@ const DashboardOM = () => {
         yPosition += 6;
 
         const imResumoRows: string[][] = [];
+        let totalImTmft = 0;
+        let totalImEfetivo = 0;
+        let totalImExtra = 0;
         
         for (const om of activeOMs) {
-          const omImData = imData.filter((item) => item.om === om);
-          if (omImData.length === 0) continue;
+          const omImData = imDataBase.filter((item) => item.om === om);
+          const omImExtraData = imExtraData.filter((item) => item.om === om);
+          
+          if (omImData.length === 0 && omImExtraData.length === 0) continue;
           
           const omImTmft = omImData.length;
           const omImEfetivo = omImData.filter((item) => item.ocupado).length;
           const omImVagos = omImTmft - omImEfetivo;
           const omImAtendimento = omImTmft > 0 ? (omImEfetivo / omImTmft) * 100 : 0;
+          const omImExtra = omImExtraData.length;
+          const omImAtendTotal = omImTmft > 0 ? ((omImEfetivo + omImExtra) / omImTmft) * 100 : 0;
+
+          totalImTmft += omImTmft;
+          totalImEfetivo += omImEfetivo;
+          totalImExtra += omImExtra;
 
           imResumoRows.push([
             om,
             omImTmft.toString(),
             omImEfetivo.toString(),
             omImVagos.toString(),
-            `${omImAtendimento.toFixed(1)}%`
+            `${omImAtendimento.toFixed(1)}%`,
+            `${omImAtendTotal.toFixed(1)}%`,
+            omImExtra.toString()
           ]);
         }
 
         // Add TOTAL IM row
-        const totalImTmft = imData.length;
-        const totalImEfetivo = imData.filter((item) => item.ocupado).length;
         const totalImVagos = totalImTmft - totalImEfetivo;
         const totalImAtendimento = totalImTmft > 0 ? (totalImEfetivo / totalImTmft) * 100 : 0;
+        const totalImAtendTotal = totalImTmft > 0 ? ((totalImEfetivo + totalImExtra) / totalImTmft) * 100 : 0;
 
         imResumoRows.push([
           "TOTAL IM",
           totalImTmft.toString(),
           totalImEfetivo.toString(),
           totalImVagos.toString(),
-          `${totalImAtendimento.toFixed(1)}%`
+          `${totalImAtendimento.toFixed(1)}%`,
+          `${totalImAtendTotal.toFixed(1)}%`,
+          totalImExtra.toString()
         ]);
 
         autoTable(pdf, {
           startY: yPosition,
-          head: [["OM", "TMFT", "EFETIVO", "VAGOS", "ATENDIMENTO"]],
+          head: [["OM", "TMFT", "EFETIVO", "VAGOS", "ATENDIMENTO", "ATEND. TOTAL", "EXTRA LOTAÇÃO"]],
           body: imResumoRows,
           theme: "grid",
           styles: { fontSize: 9, cellPadding: 3, halign: "center" },
