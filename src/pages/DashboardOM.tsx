@@ -748,28 +748,69 @@ const DashboardOM = () => {
       const generalExtraLotacao = filteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
       const generalAtendTotal = generalTmft > 0 ? ((generalExtraLotacao + generalEfetivo) / generalTmft) * 100 : 0;
 
-      // General metrics table
+      // General metrics table with OMs and Total
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
       pdf.text("RESUMO GERAL", pageWidth / 2, yPosition, { align: "center" });
       yPosition += 6;
 
+      // Build table data for each OM + total row
+      const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
+      const resumoRows: string[][] = [];
+
+      for (const om of activeOMs) {
+        const omData = filteredData.filter((item) => item.om === om);
+        if (omData.length === 0) continue;
+        
+        const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+        const omTmft = omRegularData.length;
+        const omEfetivo = omRegularData.filter((item) => item.ocupado).length;
+        const omVagos = omTmft - omEfetivo;
+        const omAtendimento = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
+        const omExtraLotacao = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
+        const omAtendTotal = omTmft > 0 ? ((omExtraLotacao + omEfetivo) / omTmft) * 100 : 0;
+
+        resumoRows.push([
+          om,
+          omTmft.toString(),
+          omEfetivo.toString(),
+          omVagos.toString(),
+          `${omAtendimento.toFixed(1)}%`,
+          `${omAtendTotal.toFixed(1)}%`,
+          omExtraLotacao.toString()
+        ]);
+      }
+
+      // Add TOTAL GERAL row
+      resumoRows.push([
+        "TOTAL GERAL",
+        generalTmft.toString(),
+        generalEfetivo.toString(),
+        generalVagos.toString(),
+        `${generalAtendimento.toFixed(1)}%`,
+        `${generalAtendTotal.toFixed(1)}%`,
+        generalExtraLotacao.toString()
+      ]);
+
       autoTable(pdf, {
         startY: yPosition,
-        head: [["TMFT", "EFETIVO", "VAGOS", "ATENDIMENTO", "ATEND. TOTAL", "EXTRA LOTAÇÃO"]],
-        body: [[
-          generalTmft.toString(),
-          generalEfetivo.toString(),
-          generalVagos.toString(),
-          `${generalAtendimento.toFixed(1)}%`,
-          `${generalAtendTotal.toFixed(1)}%`,
-          generalExtraLotacao.toString()
-        ]],
+        head: [["OM", "TMFT", "EFETIVO", "VAGOS", "ATENDIMENTO", "ATEND. TOTAL", "EXTRA LOTAÇÃO"]],
+        body: resumoRows,
         theme: "grid",
         styles: { fontSize: 9, cellPadding: 3, halign: "center" },
         headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: "bold" },
-        bodyStyles: { fontStyle: "bold" },
-        margin: { left: 30, right: 30 },
+        bodyStyles: { fontStyle: "normal" },
+        margin: { left: 20, right: 20 },
+        didParseCell: (data) => {
+          if (data.section === 'body') {
+            const omCell = data.row.raw?.[0];
+            // Highlight TOTAL GERAL row with bold
+            if (omCell === "TOTAL GERAL") {
+              data.cell.styles.fontStyle = "bold";
+              data.cell.styles.fillColor = [229, 231, 235];
+            }
+          }
+        },
       });
       yPosition = (pdf as any).lastAutoTable.finalY + 10;
 
@@ -785,9 +826,7 @@ const DashboardOM = () => {
         yPosition += imgHeight + 10;
       }
 
-      // Get unique OMs
-      const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
-
+      // activeOMs already defined above
       // Tables by OM with brasão above each OM name
       let isFirstOM = true;
       for (const om of activeOMs) {
