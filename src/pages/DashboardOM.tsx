@@ -794,7 +794,7 @@ const DashboardOM = () => {
 
       autoTable(pdf, {
         startY: yPosition,
-        head: [["OM", "TMFT", "EFETIVO", "VAGOS", "ATENDIMENTO", "EXTRA LOTAÇÃO", "ATEND. TOTAL"]],
+        head: [["OM", "TMFT", "EFETIVO", "FALTAS", "ATENDIMENTO", "EXTRA LOTAÇÃO", "ATEND. TOTAL"]],
         body: resumoRows,
         theme: "grid",
         styles: { fontSize: 9, cellPadding: 3, halign: "center" },
@@ -872,7 +872,7 @@ const DashboardOM = () => {
 
         autoTable(pdf, {
           startY: yPosition,
-          head: [["OM", "TMFT IM", "EFETIVO IM", "VAGOS IM", "ATENDIMENTO IM"]],
+          head: [["OM", "TMFT IM", "EFETIVO IM", "FALTAS IM", "ATENDIMENTO IM"]],
           body: imResumoRows,
           theme: "grid",
           styles: { fontSize: 9, cellPadding: 3, halign: "center" },
@@ -922,7 +922,7 @@ const DashboardOM = () => {
         
         autoTable(pdf, {
           startY: yPosition,
-          head: [["TMFT", "EFETIVO", "VAGOS", "ATENDIMENTO", "ATEND. TOTAL", "EXTRA LOTAÇÃO"]],
+          head: [["TMFT", "EFETIVO", "FALTAS", "ATENDIMENTO", "ATEND. TOTAL", "EXTRA LOTAÇÃO"]],
           body: [[
             omTmft.toString(),
             omEfetivo.toString(),
