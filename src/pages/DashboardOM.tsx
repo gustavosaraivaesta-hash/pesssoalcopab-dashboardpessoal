@@ -762,7 +762,7 @@ const DashboardOM = () => {
       }
       const resumoTitle = filterParts.length > 0 
         ? `RESUMO GERAL - ${filterParts.join(" | ")}`
-        : "RESUMO GERAL - TODAS AS OMs";
+        : "RESUMO GERAL";
       
       pdf.text(resumoTitle, pageWidth / 2, yPosition, { align: "center" });
       yPosition += 6;
