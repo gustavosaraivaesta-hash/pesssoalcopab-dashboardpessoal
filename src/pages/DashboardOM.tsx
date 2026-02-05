@@ -1034,26 +1034,48 @@ const DashboardOM = () => {
         // OM title with brasão
         yPosition = addOMTitle(om, yPosition);
 
-        // Add metrics table for this OM
+        // Calculate NA NEO / FORA DA NEO for this OM
+        const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
+        const omForaNeoCount = omRegularOcupados.filter((item) => {
+          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+          return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+        }).length;
+        const omNaNeoCount = omEfetivo - omForaNeoCount;
+
+        // Add CONFORMIDADE DE CORPO metrics table for this OM
         pdf.setFontSize(9);
         pdf.setFont("helvetica", "bold");
         
         autoTable(pdf, {
           startY: yPosition,
-          head: [["TMFT", "EFETIVO", "FALTAS", "ATENDIMENTO", "ATEND. TOTAL", "EXTRA LOTAÇÃO"]],
+          head: [["TMFT", "EFETIVO", "FALTAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO"]],
           body: [[
             omTmft.toString(),
             omEfetivo.toString(),
             omVagos.toString(),
-            `${omAtendimento.toFixed(1)}%`,
-            `${omAtendTotal.toFixed(1)}%`,
-            omExtraLotacao.toString()
+            omNaNeoCount.toString(),
+            omForaNeoCount.toString(),
+            `${omTmft > 0 ? (((omNaNeoCount + omForaNeoCount) / omTmft) * 100).toFixed(1) : 0}%`
           ]],
           theme: "grid",
           styles: { fontSize: 8, cellPadding: 2, halign: "center" },
-          headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: "bold" },
+          headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
           bodyStyles: { fontStyle: "bold" },
           margin: { left: 40, right: 40 },
+          didParseCell: (data) => {
+            if (data.section === 'body') {
+              // Highlight FORA DA NEO column if value > 0
+              const colIndex = data.column.index;
+              if (colIndex === 4) {
+                const value = parseInt(data.row.raw?.[4] || "0");
+                if (value > 0) {
+                  data.cell.styles.fillColor = [255, 237, 213]; // orange-100
+                  data.cell.styles.textColor = [194, 65, 12]; // orange-700
+                }
+              }
+            }
+          },
         });
         yPosition = (pdf as any).lastAutoTable.finalY + 8;
 
