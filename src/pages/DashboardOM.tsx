@@ -872,9 +872,8 @@ const DashboardOM = () => {
        const omForaNeo = omForaNeoList;
        
        // When FORA DA NEO = 0 (all occupied have matching quadros), show FALTAS = 0 and ATENDIMENTO = 100%
-       const omVagasReal = omTmft - omEfetivoTotal;
-       const displayVagos = omForaNeo === 0 ? 0 : omVagasReal;
-       const displayAtendimento = omForaNeo === 0 ? 100 : (omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100) : 0);
+       const displayVagos = omTmft - omEfetivoTotal;
+       const displayAtendimento = omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100) : 0;
        
        totalNaNeo += omNaNeo;
        totalForaNeo += omForaNeo;
@@ -896,10 +895,8 @@ const DashboardOM = () => {
      }
 
      // Add TOTAL row
-     // For TOTAL: if totalForaNeo = 0, show 100% and 0 faltas
-     const totalVagasReal = totalTmftConformidade - totalEfetivoGeral;
-     const totalDisplayVagos = totalForaNeo === 0 ? 0 : totalVagasReal;
-     const totalDisplayAtendimento = totalForaNeo === 0 ? 100 : (totalTmftConformidade > 0 ? ((totalEfetivoGeral / totalTmftConformidade) * 100) : 0);
+     const totalDisplayVagos = totalTmftConformidade - totalEfetivoGeral;
+     const totalDisplayAtendimento = totalTmftConformidade > 0 ? ((totalEfetivoGeral / totalTmftConformidade) * 100) : 0;
      
      neoResumoRows.push([
        "TOTAL GERAL",
