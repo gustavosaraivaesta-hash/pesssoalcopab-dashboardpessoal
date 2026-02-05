@@ -937,7 +937,9 @@ const DashboardOM = () => {
        const omData = filteredData.filter((item) => item.om === om);
        if (omData.length === 0) continue;
        
-       const omRegularOcupados = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+       const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+       const omTmft = omRegularData.length;
+       const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
        const omEfetivoTotal = omRegularOcupados.length;
        
        // NA NEO: corpo TMFT === corpo EFE OR corpo EFE is empty
@@ -958,9 +960,10 @@ const DashboardOM = () => {
        totalForaNeo += omForaNeo;
        totalEfetivoGeral += omEfetivoTotal;
        
-       if (omEfetivoTotal > 0) {
+       if (omTmft > 0) {
          neoResumoRows.push([
            om,
+           omTmft.toString(),
            omEfetivoTotal.toString(),
            omNaNeo.toString(),
            omForaNeo.toString(),
@@ -968,10 +971,14 @@ const DashboardOM = () => {
          ]);
        }
      }
+
+     // Calculate TMFT total
+     const totalTmft = filteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO").length;
  
      // Add TOTAL row
      neoResumoRows.push([
        "TOTAL GERAL",
+       totalTmft.toString(),
        totalEfetivoGeral.toString(),
        totalNaNeo.toString(),
        totalForaNeo.toString(),
@@ -981,13 +988,13 @@ const DashboardOM = () => {
      if (neoResumoRows.length > 1) {
        autoTable(pdf, {
          startY: yPosition,
-         head: [["OM", "EFETIVO", "NA NEO", "FORA DA NEO", "% NA NEO"]],
+         head: [["OM", "TMFT", "EFETIVO", "NA NEO", "FORA DA NEO", "% NA NEO"]],
          body: neoResumoRows,
          theme: "grid",
          styles: { fontSize: 9, cellPadding: 3, halign: "center" },
          headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
          bodyStyles: { fontStyle: "normal" },
-         margin: { left: 30, right: 30 },
+         margin: { left: 20, right: 20 },
          didParseCell: (data) => {
            if (data.section === 'body') {
              const omCell = data.row.raw?.[0];
@@ -997,7 +1004,7 @@ const DashboardOM = () => {
              }
              // Highlight FORA DA NEO column if value > 0
              const colIndex = data.column.index;
-             if (colIndex === 3) {
+             if (colIndex === 4) {
                const value = parseInt(data.row.raw?.[3] || "0");
                if (value > 0) {
                  data.cell.styles.fillColor = [255, 237, 213]; // orange-100
