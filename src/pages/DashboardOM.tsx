@@ -1777,8 +1777,10 @@ const DashboardOM = () => {
         </div>
 
        {/* Sub-cards for EFETIVO drill-down: NA NEO and FORA DA NEO */}
-       {statusFilter === "ocupados" && (
+       {(statusFilter === "ocupados" || statusFilter === "vagos") && (
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+           {statusFilter === "ocupados" && (
+             <>
            <Card
              className={`bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 border-emerald-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${efetivoSubFilter === "na_neo" ? "ring-2 ring-emerald-500 ring-offset-2" : ""}`}
              onClick={handleNaNeoClick}
@@ -1810,6 +1812,23 @@ const DashboardOM = () => {
                </div>
              </CardContent>
            </Card>
+             </>
+           )}
+           
+           {statusFilter === "vagos" && (
+             <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200 col-span-2">
+               <CardContent className="p-4">
+                 <div className="flex items-center justify-between">
+                   <div>
+                     <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-1">POSIÇÕES VAGAS</p>
+                     <p className="text-3xl font-bold text-red-900 dark:text-red-100">{Math.abs(metrics.totalDIF)}</p>
+                     <p className="text-xs text-red-600 dark:text-red-400 mt-1">Posições sem ocupante na TMFT</p>
+                   </div>
+                   <UserX className="h-7 w-7 text-red-500" />
+                 </div>
+               </CardContent>
+             </Card>
+           )}
          </div>
        )}
  
