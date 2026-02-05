@@ -449,7 +449,16 @@ const DashboardOM = () => {
   const metrics = useMemo(() => {
     const regularData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
     const totalTMFT = regularData.length;
-    const totalEXI = regularData.filter((item) => item.ocupado).length;
+    // EFETIVO: só conta se ocupado E corpo TMFT === corpo EFE (ou se um deles estiver vazio)
+    const totalEXI = regularData.filter((item) => {
+      if (!item.ocupado) return false;
+      const corpoTmft = (item.corpoTmft || '').trim().toUpperCase();
+      const corpoEfe = (item.corpoEfe || '').trim().toUpperCase();
+      // Se um dos corpos estiver vazio, considera como válido
+      if (!corpoTmft || !corpoEfe || corpoTmft === '-' || corpoEfe === '-') return true;
+      // Só conta se corpo TMFT === corpo EFE
+      return corpoTmft === corpoEfe;
+    }).length;
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
     const totalExtraLotacao = baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
@@ -763,7 +772,14 @@ const DashboardOM = () => {
       // Calculate general metrics
       const regularData = filteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
       const generalTmft = regularData.length;
-      const generalEfetivo = regularData.filter((item) => item.ocupado).length;
+      // EFETIVO: só conta se ocupado E corpo TMFT === corpo EFE
+      const generalEfetivo = regularData.filter((item) => {
+        if (!item.ocupado) return false;
+        const corpoTmft = (item.corpoTmft || '').trim().toUpperCase();
+        const corpoEfe = (item.corpoEfe || '').trim().toUpperCase();
+        if (!corpoTmft || !corpoEfe || corpoTmft === '-' || corpoEfe === '-') return true;
+        return corpoTmft === corpoEfe;
+      }).length;
       const generalVagos = generalTmft - generalEfetivo;
       const generalAtendimento = generalTmft > 0 ? (generalEfetivo / generalTmft) * 100 : 0;
       const generalExtraLotacao = filteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
@@ -798,7 +814,14 @@ const DashboardOM = () => {
         
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omTmft = omRegularData.length;
-        const omEfetivo = omRegularData.filter((item) => item.ocupado).length;
+        // EFETIVO: só conta se ocupado E corpo TMFT === corpo EFE
+        const omEfetivo = omRegularData.filter((item) => {
+          if (!item.ocupado) return false;
+          const corpoTmft = (item.corpoTmft || '').trim().toUpperCase();
+          const corpoEfe = (item.corpoEfe || '').trim().toUpperCase();
+          if (!corpoTmft || !corpoEfe || corpoTmft === '-' || corpoEfe === '-') return true;
+          return corpoTmft === corpoEfe;
+        }).length;
         const omVagos = omTmft - omEfetivo;
         const omAtendimento = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
         const omExtraLotacao = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
@@ -872,7 +895,14 @@ const DashboardOM = () => {
           if (omImData.length === 0 && omImExtraData.length === 0) continue;
           
           const omImTmft = omImData.length;
-          const omImEfetivo = omImData.filter((item) => item.ocupado).length;
+          // EFETIVO IM: só conta se ocupado E corpo TMFT === corpo EFE
+          const omImEfetivo = omImData.filter((item) => {
+            if (!item.ocupado) return false;
+            const corpoTmft = (item.corpoTmft || '').trim().toUpperCase();
+            const corpoEfe = (item.corpoEfe || '').trim().toUpperCase();
+            if (!corpoTmft || !corpoEfe || corpoTmft === '-' || corpoEfe === '-') return true;
+            return corpoTmft === corpoEfe;
+          }).length;
           const omImVagos = omImTmft - omImEfetivo;
           const omImAtendimento = omImTmft > 0 ? (omImEfetivo / omImTmft) * 100 : 0;
           const omImExtra = omImExtraData.length;
@@ -941,7 +971,14 @@ const DashboardOM = () => {
         // Calculate metrics per OM
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omTmft = omRegularData.length;
-        const omEfetivo = omRegularData.filter((item) => item.ocupado).length;
+        // EFETIVO: só conta se ocupado E corpo TMFT === corpo EFE
+        const omEfetivo = omRegularData.filter((item) => {
+          if (!item.ocupado) return false;
+          const corpoTmft = (item.corpoTmft || '').trim().toUpperCase();
+          const corpoEfe = (item.corpoEfe || '').trim().toUpperCase();
+          if (!corpoTmft || !corpoEfe || corpoTmft === '-' || corpoEfe === '-') return true;
+          return corpoTmft === corpoEfe;
+        }).length;
         const omVagos = omTmft - omEfetivo;
         const omAtendimento = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
         const omExtraLotacao = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
@@ -984,9 +1021,11 @@ const DashboardOM = () => {
           item.setor,
           item.cargo,
           item.postoTmft,
+          item.corpoTmft || "-",
           item.quadroTmft,
           item.nome || "-",
           item.postoEfe || "-",
+          item.corpoEfe || "-",
           item.quadroEfe || "-",
           item.ocupado ? "Ocupado" : "Vago",
         ]);
@@ -994,7 +1033,7 @@ const DashboardOM = () => {
         autoTable(pdf, {
           startY: yPosition,
           head: [
-            ["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "NOME", "POSTO EFETIVO", "QUADRO EFETIVO", "STATUS"],
+            ["NEO", "SETOR", "CARGO", "POSTO TMFT", "CORPO TMFT", "QUADRO TMFT", "NOME", "POSTO EFE", "CORPO EFE", "QUADRO EFE", "STATUS"],
           ],
           body: tableData,
           theme: "grid",
@@ -1003,20 +1042,27 @@ const DashboardOM = () => {
           margin: { left: 15, right: 15 },
           didParseCell: (data) => {
             if (data.section === 'body') {
-              const nome = data.row.raw?.[5];
+              const nome = data.row.raw?.[6];
               const setor = data.row.raw?.[1];
-              const quadroTmft = data.row.raw?.[4];
-              const quadroEfe = data.row.raw?.[7];
+              const corpoTmft = data.row.raw?.[4];
+              const corpoEfe = data.row.raw?.[8];
+              const quadroTmft = data.row.raw?.[5];
+              const quadroEfe = data.row.raw?.[9];
               const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
               const setorStr = setor ? setor.toString().trim().toUpperCase() : "";
+              const corpoTmftStr = corpoTmft ? corpoTmft.toString().trim().toUpperCase() : "";
+              const corpoEfeStr = corpoEfe ? corpoEfe.toString().trim().toUpperCase() : "";
               const quadroTmftStr = quadroTmft ? quadroTmft.toString().trim().toUpperCase() : "";
               const quadroEfeStr = quadroEfe ? quadroEfe.toString().trim().toUpperCase() : "";
               
               // Verifica se é ocupado (tem nome válido)
               const isOcupado = nome && nome !== "-" && nomeStr !== "" && nomeStr !== "VAGO" && nomeStr !== "VAZIO";
               
-              // Destaque LARANJA para Quadro TMFT ≠ Quadro EFE (quando ocupado)
-              if (isOcupado && quadroTmftStr && quadroEfeStr && quadroTmftStr !== "-" && quadroEfeStr !== "-" && quadroTmftStr !== quadroEfeStr) {
+              // Destaque LARANJA para Corpo TMFT ≠ Corpo EFE OU Quadro TMFT ≠ Quadro EFE (quando ocupado)
+              const isDifferentCorpo = isOcupado && corpoTmftStr && corpoEfeStr && corpoTmftStr !== "-" && corpoEfeStr !== "-" && corpoTmftStr !== corpoEfeStr;
+              const isDifferentQuadro = isOcupado && quadroTmftStr && quadroEfeStr && quadroTmftStr !== "-" && quadroEfeStr !== "-" && quadroTmftStr !== quadroEfeStr;
+              
+              if (isDifferentCorpo || isDifferentQuadro) {
                 data.cell.styles.fillColor = [255, 237, 213]; // orange-100
                 data.cell.styles.textColor = [194, 65, 12]; // orange-700
               }
