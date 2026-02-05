@@ -932,6 +932,7 @@ const DashboardOM = () => {
      let totalNaNeo = 0;
      let totalForaNeo = 0;
      let totalEfetivoGeral = 0;
+     let totalVagosGeral = 0;
      
      for (const om of activeOMs) {
        const omData = filteredData.filter((item) => item.om === om);
@@ -941,6 +942,7 @@ const DashboardOM = () => {
        const omTmft = omRegularData.length;
        const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
        const omEfetivoTotal = omRegularOcupados.length;
+       const omVagos = omTmft - omEfetivoTotal;
        
        // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are different)
        const omForaNeoList = omRegularOcupados.filter((item) => {
@@ -956,12 +958,14 @@ const DashboardOM = () => {
        totalNaNeo += omNaNeo;
        totalForaNeo += omForaNeo;
        totalEfetivoGeral += omEfetivoTotal;
+       totalVagosGeral += omVagos;
        
        if (omTmft > 0) {
          neoResumoRows.push([
            om,
            omTmft.toString(),
            omEfetivoTotal.toString(),
+           omVagos.toString(),
            omNaNeo.toString(),
            omForaNeo.toString(),
            `${omTmft > 0 ? (((omNaNeo + omForaNeo) / omTmft) * 100).toFixed(1) : 0}%`
@@ -977,6 +981,7 @@ const DashboardOM = () => {
        "TOTAL GERAL",
        totalTmft.toString(),
        totalEfetivoGeral.toString(),
+       totalVagosGeral.toString(),
        totalNaNeo.toString(),
        totalForaNeo.toString(),
        `${totalTmft > 0 ? (((totalNaNeo + totalForaNeo) / totalTmft) * 100).toFixed(1) : 0}%`
@@ -985,7 +990,7 @@ const DashboardOM = () => {
      if (neoResumoRows.length > 1) {
        autoTable(pdf, {
          startY: yPosition,
-         head: [["OM", "TMFT", "EFETIVO", "NA NEO", "FORA DA NEO", "ATENDIMENTO"]],
+         head: [["OM", "TMFT", "EFETIVO", "FALTAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO"]],
          body: neoResumoRows,
          theme: "grid",
          styles: { fontSize: 9, cellPadding: 3, halign: "center" },
@@ -1001,8 +1006,8 @@ const DashboardOM = () => {
              }
              // Highlight FORA DA NEO column if value > 0
              const colIndex = data.column.index;
-             if (colIndex === 4) {
-               const value = parseInt(data.row.raw?.[3] || "0");
+             if (colIndex === 5) {
+               const value = parseInt(data.row.raw?.[5] || "0");
                if (value > 0) {
                  data.cell.styles.fillColor = [255, 237, 213]; // orange-100
                  data.cell.styles.textColor = [194, 65, 12]; // orange-700
