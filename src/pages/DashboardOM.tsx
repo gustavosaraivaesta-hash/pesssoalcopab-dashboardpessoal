@@ -886,9 +886,9 @@ const DashboardOM = () => {
            om,
            omTmft.toString(),
            omEfetivoTotal.toString(),
-           displayVagos.toString(),
            omNaNeo.toString(),
            omForaNeo.toString(),
+           displayVagos.toString(),
             `${displayAtendimento.toFixed(1)}%`
          ]);
        }
@@ -903,16 +903,16 @@ const DashboardOM = () => {
        "TOTAL GERAL",
         totalTmftConformidade.toString(),
        totalEfetivoGeral.toString(),
-       totalDisplayVagos.toString(),
        totalNaNeo.toString(),
        totalForaNeo.toString(),
+       totalDisplayVagos.toString(),
          `${totalDisplayAtendimento.toFixed(1)}%`
      ]);
  
      if (neoResumoRows.length > 1) {
        autoTable(pdf, {
          startY: yPosition,
-         head: [["OM", "TMFT", "EFETIVO", "FALTAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO"]],
+         head: [["OM", "TMFT", "EFETIVO", "NA NEO", "FORA DA NEO", "VAGAS", "ATENDIMENTO"]],
          body: neoResumoRows,
          theme: "grid",
          styles: { fontSize: 9, cellPadding: 3, halign: "center" },
@@ -928,8 +928,8 @@ const DashboardOM = () => {
              }
              // Highlight FORA DA NEO column if value > 0
              const colIndex = data.column.index;
-             if (colIndex === 5) {
-               const value = parseInt(data.row.raw?.[5] || "0");
+             if (colIndex === 4) {
+               const value = parseInt(data.row.raw?.[4] || "0");
                if (value > 0) {
                  data.cell.styles.fillColor = [255, 237, 213]; // orange-100
                  data.cell.styles.textColor = [194, 65, 12]; // orange-700
