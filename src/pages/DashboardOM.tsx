@@ -43,6 +43,7 @@ import {
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
+import * as XLSX from "xlsx";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 import OfficerCard from "@/components/dashboard/OfficerCard";
 
@@ -1329,6 +1330,188 @@ const DashboardOM = () => {
     }
   };
 
+  const exportToExcel = () => {
+    try {
+      const workbook = XLSX.utils.book_new();
+      
+      const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
+      
+      // Sheet 1: Resumo Geral por OM
+      const resumoData: any[][] = [
+        ["RESUMO - CONFORMIDADE DE CORPO (NA NEO / FORA DA NEO)"],
+        [],
+        ["OM", "TMFT", "EFETIVO", "FALTAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO (%)"]
+      ];
+      
+      let totalTmft = 0;
+      let totalEfetivo = 0;
+      let totalVagos = 0;
+      let totalNaNeo = 0;
+      let totalForaNeo = 0;
+      
+      for (const om of activeOMs) {
+        const omData = filteredData.filter((item) => item.om === om);
+        if (omData.length === 0) continue;
+        
+        const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+        const omTmft = omRegularData.length;
+        const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
+        const omEfetivoTotal = omRegularOcupados.length;
+        const omVagos = omTmft - omEfetivoTotal;
+        
+        const omForaNeoCount = omRegularOcupados.filter((item) => {
+          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+          return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+        }).length;
+        const omNaNeoCount = omEfetivoTotal - omForaNeoCount;
+        const atendimento = omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100).toFixed(1) : "0";
+        
+        totalTmft += omTmft;
+        totalEfetivo += omEfetivoTotal;
+        totalVagos += omVagos;
+        totalNaNeo += omNaNeoCount;
+        totalForaNeo += omForaNeoCount;
+        
+        resumoData.push([om, omTmft, omEfetivoTotal, omVagos, omNaNeoCount, omForaNeoCount, parseFloat(atendimento)]);
+      }
+      
+      // Add total row
+      const totalAtendimento = totalTmft > 0 ? ((totalEfetivo / totalTmft) * 100).toFixed(1) : "0";
+      resumoData.push(["TOTAL GERAL", totalTmft, totalEfetivo, totalVagos, totalNaNeo, totalForaNeo, parseFloat(totalAtendimento)]);
+      
+      const resumoSheet = XLSX.utils.aoa_to_sheet(resumoData);
+      XLSX.utils.book_append_sheet(workbook, resumoSheet, "Resumo");
+      
+      // Sheet 2: Dados Completos do Efetivo
+      const efetivoHeaders = [
+        "OM", "NEO", "TIPO SETOR", "SETOR", "CARGO", 
+        "POSTO TMFT", "CORPO TMFT", "QUADRO TMFT", "OPÇÃO TMFT",
+        "NOME", "POSTO EFE", "CORPO EFE", "QUADRO EFE", "OPÇÃO EFE",
+        "OCUPADO", "STATUS"
+      ];
+      
+      const efetivoData: any[][] = [efetivoHeaders];
+      
+      for (const item of filteredData) {
+        const isOcupado = item.ocupado;
+        let status = "VAGO";
+        
+        if (isOcupado) {
+          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+          if (quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe) {
+            status = "FORA DA NEO";
+          } else {
+            status = "NA NEO";
+          }
+        }
+        
+        efetivoData.push([
+          item.om,
+          item.neo,
+          item.tipoSetor,
+          item.setor,
+          item.cargo,
+          item.postoTmft,
+          item.corpoTmft,
+          item.quadroTmft,
+          item.opcaoTmft,
+          item.nome || "-",
+          item.postoEfe || "-",
+          item.corpoEfe || "-",
+          item.quadroEfe || "-",
+          item.opcaoEfe || "-",
+          isOcupado ? "SIM" : "NÃO",
+          status
+        ]);
+      }
+      
+      const efetivoSheet = XLSX.utils.aoa_to_sheet(efetivoData);
+      XLSX.utils.book_append_sheet(workbook, efetivoSheet, "Efetivo Completo");
+      
+      // Sheet 3: Previsão de Desembarque
+      if (desembarqueData.length > 0) {
+        const desembarqueHeaders = ["OM", "NOME", "POSTO/CORPO/QUADRO", "CARGO", "DESTINO", "MÊS/ANO", "DOCUMENTO"];
+        const desembarqueRows: any[][] = [desembarqueHeaders];
+        
+        for (const item of desembarqueData) {
+          if (selectedOMs.length > 0 && !selectedOMs.includes(item.om)) continue;
+          desembarqueRows.push([
+            item.om,
+            item.nome,
+            `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
+            item.cargo || "-",
+            item.destino || "-",
+            item.mesAno || "-",
+            item.documento || "-"
+          ]);
+        }
+        
+        if (desembarqueRows.length > 1) {
+          const desembarqueSheet = XLSX.utils.aoa_to_sheet(desembarqueRows);
+          XLSX.utils.book_append_sheet(workbook, desembarqueSheet, "Previsão Desembarque");
+        }
+      }
+      
+      // Sheet 4: Previsão de Embarque
+      if (embarqueData.length > 0) {
+        const embarqueHeaders = ["OM", "NOME", "POSTO/CORPO/QUADRO", "CARGO", "DESTINO", "MÊS/ANO", "DOCUMENTO"];
+        const embarqueRows: any[][] = [embarqueHeaders];
+        
+        for (const item of embarqueData) {
+          if (selectedOMs.length > 0 && !selectedOMs.includes(item.om)) continue;
+          embarqueRows.push([
+            item.om,
+            item.nome,
+            `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
+            item.cargo || "-",
+            item.destino || "-",
+            item.mesAno || "-",
+            item.documento || "-"
+          ]);
+        }
+        
+        if (embarqueRows.length > 1) {
+          const embarqueSheet = XLSX.utils.aoa_to_sheet(embarqueRows);
+          XLSX.utils.book_append_sheet(workbook, embarqueSheet, "Previsão Embarque");
+        }
+      }
+      
+      // Sheet 5: TRRM
+      if (trrmData.length > 0) {
+        const trrmHeaders = ["OM", "NOME", "POSTO/CORPO/QUADRO", "CARGO", "ÉPOCA PREVISTA"];
+        const trrmRows: any[][] = [trrmHeaders];
+        
+        for (const item of trrmData) {
+          if (selectedOMs.length > 0 && !selectedOMs.includes(item.om)) continue;
+          trrmRows.push([
+            item.om,
+            item.nome,
+            `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
+            item.cargo || "-",
+            item.epocaPrevista || "-"
+          ]);
+        }
+        
+        if (trrmRows.length > 1) {
+          const trrmSheet = XLSX.utils.aoa_to_sheet(trrmRows);
+          XLSX.utils.book_append_sheet(workbook, trrmSheet, "TRRM");
+        }
+      }
+      
+      // Generate filename with date
+      const today = new Date().toISOString().split('T')[0];
+      const filename = `tabela-mestra-oficiais-${today}.xlsx`;
+      
+      XLSX.writeFile(workbook, filename);
+      toast.success("Excel gerado com sucesso!");
+    } catch (error) {
+      console.error("Error generating Excel:", error);
+      toast.error("Erro ao gerar Excel");
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut();
@@ -1410,6 +1593,10 @@ const DashboardOM = () => {
                 <Button onClick={exportToPDF} variant="outline">
                   <Download className="mr-2 h-4 w-4" />
                   Exportar PDF
+                </Button>
+                <Button onClick={exportToExcel} variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Exportar Excel
                 </Button>
               </div>
             </div>
