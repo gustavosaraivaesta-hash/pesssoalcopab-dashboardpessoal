@@ -494,18 +494,21 @@ const DashboardOM = () => {
  const neoMetrics = useMemo(() => {
    const regularData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
    
-   // FORA DA NEO: corpo TMFT ≠ corpo EFE (when both exist)
+   // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are meaningful)
+   // Corpo difference alone does NOT make someone "FORA DA NEO"
    const foraNeo = regularData.filter((item) => {
-     const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
-     const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
-     return corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
+     const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+     const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+     // Only consider FORA DA NEO if quadro values exist and are different
+     return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
    });
    
-   // NA NEO: corpo TMFT === corpo EFE OR corpo EFE is empty/matches TMFT
+   // NA NEO: quadro TMFT === quadro EFE OR quadro EFE is empty/matches TMFT
+   // Includes cases where corpo is different but quadro matches
    const naNeo = regularData.filter((item) => {
-     const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
-     const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
-     return !corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe;
+     const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+     const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+     return !quadroEfe || quadroEfe === "-" || quadroTmft === quadroEfe;
    });
    
    return {
