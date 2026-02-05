@@ -170,6 +170,8 @@ const DashboardOM = () => {
   const [isUsingCache, setIsUsingCache] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+ const [efetivoSubFilter, setEfetivoSubFilter] = useState<"all" | "na_neo" | "fora_neo">("all");
+ 
   // Ordem fixa dos postos de oficiais
   const POSTO_ORDER = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM"];
 
@@ -396,6 +398,21 @@ const DashboardOM = () => {
     // Apply status filter from card click
     if (statusFilter === "ocupados") {
       filtered = filtered.filter((item) => item.ocupado);
+     
+     // Apply efetivo sub-filter based on CORPO match
+     if (efetivoSubFilter === "na_neo") {
+       filtered = filtered.filter((item) => {
+         const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+         const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+         return !corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe;
+       });
+     } else if (efetivoSubFilter === "fora_neo") {
+       filtered = filtered.filter((item) => {
+         const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+         const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+         return corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
+       });
+     }
     } else if (statusFilter === "vagos") {
       filtered = filtered.filter((item) => !item.ocupado);
     }
@@ -406,7 +423,7 @@ const DashboardOM = () => {
     }
 
     return filtered;
-  }, [baseFilteredData, statusFilter, showOnlyExtraLotacao]);
+ }, [baseFilteredData, statusFilter, showOnlyExtraLotacao, efetivoSubFilter]);
 
   const toggleOM = (om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
@@ -437,10 +454,17 @@ const DashboardOM = () => {
     setShowOnlyExtraLotacao(false);
     setSelectedCorpos([]);
     setSearchQuery("");
+   setEfetivoSubFilter("all");
   };
 
   const handleStatusCardClick = (status: "all" | "ocupados" | "vagos") => {
-    setStatusFilter((prev) => (prev === status ? "all" : status));
+   setStatusFilter((prev) => {
+     const newStatus = prev === status ? "all" : status;
+     if (newStatus !== "ocupados") {
+       setEfetivoSubFilter("all");
+     }
+     return newStatus;
+   });
   };
 
   const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TTC"];
@@ -466,6 +490,54 @@ const DashboardOM = () => {
     };
   }, [baseFilteredData]);
 
+ // Calculate NA NEO and FORA DA NEO metrics for EFETIVO drill-down (based on CORPO match)
+ const neoMetrics = useMemo(() => {
+   const regularData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+   
+   // FORA DA NEO: corpo TMFT ≠ corpo EFE (when both exist)
+   const foraNeo = regularData.filter((item) => {
+     const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+     const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+     return corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
+   });
+   
+   // NA NEO: corpo TMFT === corpo EFE OR corpo EFE is empty/matches TMFT
+   const naNeo = regularData.filter((item) => {
+     const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+     const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+     return !corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe;
+   });
+   
+   return {
+     foraNeoCount: foraNeo.length,
+     naNeoCount: naNeo.length,
+     foraNeoPersonnel: foraNeo,
+     naNeoPersonnel: naNeo,
+   };
+ }, [baseFilteredData]);
+ 
+ // Handle NA NEO sub-card click
+ const handleNaNeoClick = () => {
+   if (efetivoSubFilter === "na_neo") {
+     setEfetivoSubFilter("all");
+     setStatusFilter("all");
+   } else {
+     setStatusFilter("ocupados");
+     setEfetivoSubFilter("na_neo");
+   }
+ };
+ 
+ // Handle FORA DA NEO sub-card click
+ const handleForaNeoClick = () => {
+   if (efetivoSubFilter === "fora_neo") {
+     setEfetivoSubFilter("all");
+     setStatusFilter("all");
+   } else {
+     setStatusFilter("ocupados");
+     setEfetivoSubFilter("fora_neo");
+   }
+ };
+ 
   // Group data by setor
   const groupedBySetor = useMemo(() => {
     const groups: Record<string, PersonnelRecord[]> = {};
@@ -848,6 +920,96 @@ const DashboardOM = () => {
       });
       yPosition = (pdf as any).lastAutoTable.finalY + 10;
 
+     // NA NEO / FORA DA NEO summary table
+     yPosition = checkNewPage(yPosition, 50);
+     
+     pdf.setFontSize(10);
+     pdf.setFont("helvetica", "bold");
+     pdf.text("RESUMO - CONFORMIDADE DE CORPO (NA NEO / FORA DA NEO)", pageWidth / 2, yPosition, { align: "center" });
+     yPosition += 6;
+ 
+     const neoResumoRows: string[][] = [];
+     let totalNaNeo = 0;
+     let totalForaNeo = 0;
+     let totalEfetivoGeral = 0;
+     
+     for (const om of activeOMs) {
+       const omData = filteredData.filter((item) => item.om === om);
+       if (omData.length === 0) continue;
+       
+       const omRegularOcupados = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+       const omEfetivoTotal = omRegularOcupados.length;
+       
+       // NA NEO: corpo TMFT === corpo EFE OR corpo EFE is empty
+       const omNaNeo = omRegularOcupados.filter((item) => {
+         const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+         const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+         return !corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe;
+       }).length;
+       
+       // FORA DA NEO: corpo TMFT ≠ corpo EFE
+       const omForaNeo = omRegularOcupados.filter((item) => {
+         const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+         const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+         return corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
+       }).length;
+       
+       totalNaNeo += omNaNeo;
+       totalForaNeo += omForaNeo;
+       totalEfetivoGeral += omEfetivoTotal;
+       
+       if (omEfetivoTotal > 0) {
+         neoResumoRows.push([
+           om,
+           omEfetivoTotal.toString(),
+           omNaNeo.toString(),
+           omForaNeo.toString(),
+           `${omEfetivoTotal > 0 ? ((omNaNeo / omEfetivoTotal) * 100).toFixed(1) : 0}%`
+         ]);
+       }
+     }
+ 
+     // Add TOTAL row
+     neoResumoRows.push([
+       "TOTAL GERAL",
+       totalEfetivoGeral.toString(),
+       totalNaNeo.toString(),
+       totalForaNeo.toString(),
+       `${totalEfetivoGeral > 0 ? ((totalNaNeo / totalEfetivoGeral) * 100).toFixed(1) : 0}%`
+     ]);
+ 
+     if (neoResumoRows.length > 1) {
+       autoTable(pdf, {
+         startY: yPosition,
+         head: [["OM", "EFETIVO", "NA NEO", "FORA DA NEO", "% NA NEO"]],
+         body: neoResumoRows,
+         theme: "grid",
+         styles: { fontSize: 9, cellPadding: 3, halign: "center" },
+         headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
+         bodyStyles: { fontStyle: "normal" },
+         margin: { left: 30, right: 30 },
+         didParseCell: (data) => {
+           if (data.section === 'body') {
+             const omCell = data.row.raw?.[0];
+             if (omCell === "TOTAL GERAL") {
+               data.cell.styles.fontStyle = "bold";
+               data.cell.styles.fillColor = [229, 231, 235];
+             }
+             // Highlight FORA DA NEO column if value > 0
+             const colIndex = data.column.index;
+             if (colIndex === 3) {
+               const value = parseInt(data.row.raw?.[3] || "0");
+               if (value > 0) {
+                 data.cell.styles.fillColor = [255, 237, 213]; // orange-100
+                 data.cell.styles.textColor = [194, 65, 12]; // orange-700
+               }
+             }
+           }
+         },
+       });
+       yPosition = (pdf as any).lastAutoTable.finalY + 10;
+     }
+ 
       // IM (Infantaria de Marinha) table by OM - with all columns like RESUMO GERAL
       const imDataBase = filteredData.filter((item) => item.corpoTmft === "IM" && item.tipoSetor !== "EXTRA LOTAÇÃO");
       const imExtraData = filteredData.filter((item) => item.corpoTmft === "IM" && item.tipoSetor === "EXTRA LOTAÇÃO");
@@ -985,16 +1147,26 @@ const DashboardOM = () => {
           item.cargo,
           item.postoTmft,
           item.quadroTmft,
+         item.corpoTmft || "-",
           item.nome || "-",
           item.postoEfe || "-",
           item.quadroEfe || "-",
-          item.ocupado ? "Ocupado" : "Vago",
+         item.corpoEfe || "-",
+         item.ocupado ? (() => {
+           const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+           const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+           if (!corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe) {
+             return "NA NEO";
+           } else {
+             return "FORA NEO";
+           }
+         })() : "VAGO",
         ]);
 
         autoTable(pdf, {
           startY: yPosition,
           head: [
-            ["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "NOME", "POSTO EFETIVO", "QUADRO EFETIVO", "STATUS"],
+           ["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "CORPO TMFT", "NOME", "POSTO EFE", "QUADRO EFE", "CORPO EFE", "STATUS"],
           ],
           body: tableData,
           theme: "grid",
@@ -1003,20 +1175,29 @@ const DashboardOM = () => {
           margin: { left: 15, right: 15 },
           didParseCell: (data) => {
             if (data.section === 'body') {
-              const nome = data.row.raw?.[5];
+             const nome = data.row.raw?.[6];
               const setor = data.row.raw?.[1];
               const quadroTmft = data.row.raw?.[4];
-              const quadroEfe = data.row.raw?.[7];
+             const quadroEfe = data.row.raw?.[8];
+             const corpoTmft = data.row.raw?.[5];
+             const corpoEfe = data.row.raw?.[9];
+             const status = data.row.raw?.[10];
               const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
               const setorStr = setor ? setor.toString().trim().toUpperCase() : "";
               const quadroTmftStr = quadroTmft ? quadroTmft.toString().trim().toUpperCase() : "";
               const quadroEfeStr = quadroEfe ? quadroEfe.toString().trim().toUpperCase() : "";
+             const corpoTmftStr = corpoTmft ? corpoTmft.toString().trim().toUpperCase() : "";
+             const corpoEfeStr = corpoEfe ? corpoEfe.toString().trim().toUpperCase() : "";
+             const statusStr = status ? status.toString().trim().toUpperCase() : "";
               
               // Verifica se é ocupado (tem nome válido)
               const isOcupado = nome && nome !== "-" && nomeStr !== "" && nomeStr !== "VAGO" && nomeStr !== "VAZIO";
               
-              // Destaque LARANJA para Quadro TMFT ≠ Quadro EFE (quando ocupado)
-              if (isOcupado && quadroTmftStr && quadroEfeStr && quadroTmftStr !== "-" && quadroEfeStr !== "-" && quadroTmftStr !== quadroEfeStr) {
+             // Destaque LARANJA para FORA DA NEO (Quadro ou Corpo divergente quando ocupado)
+             const quadroDivergente = isOcupado && quadroTmftStr && quadroEfeStr && quadroTmftStr !== "-" && quadroEfeStr !== "-" && quadroTmftStr !== quadroEfeStr;
+             const corpoDivergente = isOcupado && corpoTmftStr && corpoEfeStr && corpoTmftStr !== "-" && corpoEfeStr !== "-" && corpoTmftStr !== corpoEfeStr;
+             
+             if (quadroDivergente || corpoDivergente || statusStr === "FORA NEO") {
                 data.cell.styles.fillColor = [255, 237, 213]; // orange-100
                 data.cell.styles.textColor = [194, 65, 12]; // orange-700
               }
@@ -1595,6 +1776,43 @@ const DashboardOM = () => {
           </Card>
         </div>
 
+       {/* Sub-cards for EFETIVO drill-down: NA NEO and FORA DA NEO */}
+       {statusFilter === "ocupados" && (
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+           <Card
+             className={`bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 border-emerald-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${efetivoSubFilter === "na_neo" ? "ring-2 ring-emerald-500 ring-offset-2" : ""}`}
+             onClick={handleNaNeoClick}
+           >
+             <CardContent className="p-4">
+               <div className="flex items-center justify-between">
+                 <div>
+                   <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">NA NEO</p>
+                   <p className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">{neoMetrics.naNeoCount}</p>
+                   <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">Corpo TMFT = Corpo EFE</p>
+                 </div>
+                 <UserCheck className="h-7 w-7 text-emerald-500" />
+               </div>
+             </CardContent>
+           </Card>
+           
+           <Card
+             className={`bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 border-orange-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${efetivoSubFilter === "fora_neo" ? "ring-2 ring-orange-500 ring-offset-2" : ""}`}
+             onClick={handleForaNeoClick}
+           >
+             <CardContent className="p-4">
+               <div className="flex items-center justify-between">
+                 <div>
+                   <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">FORA DA NEO</p>
+                   <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{neoMetrics.foraNeoCount}</p>
+                   <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Corpo TMFT ≠ Corpo EFE</p>
+                 </div>
+                 <UserX className="h-7 w-7 text-orange-500" />
+               </div>
+             </CardContent>
+           </Card>
+         </div>
+       )}
+ 
         {/* Vagos por OM */}
         <Card className="border-red-200 bg-gradient-to-br from-red-50/50 to-background">
           <CardHeader>
