@@ -503,13 +503,10 @@ const DashboardOM = () => {
      return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
    });
    
-   // NA NEO: quadro TMFT === quadro EFE OR quadro EFE is empty/matches TMFT
-   // Includes cases where corpo is different but quadro matches
-   const naNeo = regularData.filter((item) => {
-     const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
-     const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
-     return !quadroEfe || quadroEfe === "-" || quadroTmft === quadroEfe;
-   });
+   // NA NEO: everyone who is NOT FORA DA NEO
+   // This ensures NA NEO + FORA DA NEO = EFETIVO (total occupied)
+   const foraNeoIds = new Set(foraNeo.map(item => item.id));
+   const naNeo = regularData.filter((item) => !foraNeoIds.has(item.id));
    
    return {
      foraNeoCount: foraNeo.length,
@@ -945,19 +942,16 @@ const DashboardOM = () => {
        const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
        const omEfetivoTotal = omRegularOcupados.length;
        
-       // NA NEO: corpo TMFT === corpo EFE OR corpo EFE is empty
-       const omNaNeo = omRegularOcupados.filter((item) => {
-         const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
-         const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
-         return !corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe;
+       // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are different)
+       const omForaNeoList = omRegularOcupados.filter((item) => {
+         const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+         const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+         return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
        }).length;
        
-       // FORA DA NEO: corpo TMFT ≠ corpo EFE
-       const omForaNeo = omRegularOcupados.filter((item) => {
-         const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
-         const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
-         return corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
-       }).length;
+       // NA NEO: everyone who is NOT FORA DA NEO (ensures NA NEO + FORA DA NEO = EFETIVO)
+       const omNaNeo = omEfetivoTotal - omForaNeoList;
+       const omForaNeo = omForaNeoList;
        
        totalNaNeo += omNaNeo;
        totalForaNeo += omForaNeo;
