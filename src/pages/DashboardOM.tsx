@@ -884,7 +884,7 @@ const DashboardOM = () => {
            omVagos.toString(),
            omNaNeo.toString(),
            omForaNeo.toString(),
-           `${omTmft > 0 ? (((omNaNeo + omForaNeo) / omTmft) * 100).toFixed(1) : 0}%`
+            `${omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100).toFixed(1) : 0}%`
          ]);
        }
      }
@@ -897,7 +897,7 @@ const DashboardOM = () => {
        totalVagosGeral.toString(),
        totalNaNeo.toString(),
        totalForaNeo.toString(),
-        `${totalTmftConformidade > 0 ? (((totalNaNeo + totalForaNeo) / totalTmftConformidade) * 100).toFixed(1) : 0}%`
+         `${totalTmftConformidade > 0 ? ((totalEfetivoGeral / totalTmftConformidade) * 100).toFixed(1) : 0}%`
      ]);
  
      if (neoResumoRows.length > 1) {
@@ -1056,7 +1056,7 @@ const DashboardOM = () => {
             omVagos.toString(),
             omNaNeoCount.toString(),
             omForaNeoCount.toString(),
-            `${omTmft > 0 ? (((omNaNeoCount + omForaNeoCount) / omTmft) * 100).toFixed(1) : 0}%`
+            `${omTmft > 0 ? ((omEfetivo / omTmft) * 100).toFixed(1) : 0}%`
           ]],
           theme: "grid",
           styles: { fontSize: 8, cellPadding: 2, halign: "center" },
