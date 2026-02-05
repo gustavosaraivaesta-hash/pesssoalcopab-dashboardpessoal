@@ -44,6 +44,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
 import * as XLSX from "xlsx";
+import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, TextRun, AlignmentType, HeadingLevel, BorderStyle, ShadingType } from "docx";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 import OfficerCard from "@/components/dashboard/OfficerCard";
 
@@ -1341,6 +1342,570 @@ const DashboardOM = () => {
     }
   };
 
+  const exportToWord = async () => {
+    try {
+      const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
+      
+      const sections: any[] = [];
+      
+      // Helper to create table cell with styling
+      const createCell = (text: string, isHeader = false, bgColor?: string, textColor?: string) => {
+        const shading = bgColor ? { type: ShadingType.SOLID, color: bgColor } : undefined;
+        return new TableCell({
+          children: [new Paragraph({
+            children: [new TextRun({
+              text: text,
+              bold: isHeader,
+              size: isHeader ? 20 : 18,
+              color: textColor || (isHeader ? "FFFFFF" : "000000"),
+            })],
+            alignment: AlignmentType.CENTER,
+          })],
+          shading,
+          width: { size: 100 / 7, type: WidthType.PERCENTAGE },
+        });
+      };
+
+      // Title section
+      const titleParagraphs = [
+        new Paragraph({
+          children: [new TextRun({ text: "CENTRO DE OPERAÇÕES DO ABASTECIMENTO", bold: true, size: 32 })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 200 },
+        }),
+        new Paragraph({
+          children: [new TextRun({ text: "Tabela Mestra de Força de Trabalho - OFICIAIS", bold: true, size: 28 })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 400 },
+        }),
+      ];
+
+      // Filters applied
+      if (selectedOMs.length > 0 || selectedOpcoes.length > 0) {
+        titleParagraphs.push(new Paragraph({
+          children: [new TextRun({ text: "Filtros Aplicados:", bold: true, size: 20 })],
+          spacing: { after: 100 },
+        }));
+        if (selectedOMs.length > 0) {
+          titleParagraphs.push(new Paragraph({
+            children: [new TextRun({ text: `OM: ${selectedOMs.join(", ")}`, size: 20 })],
+          }));
+        }
+        if (selectedOpcoes.length > 0) {
+          titleParagraphs.push(new Paragraph({
+            children: [new TextRun({ text: `Opção: ${selectedOpcoes.join(", ")}`, size: 20 })],
+          }));
+        }
+        titleParagraphs.push(new Paragraph({ spacing: { after: 200 } }));
+      }
+
+      // RESUMO - CONFORMIDADE DE CORPO table
+      titleParagraphs.push(new Paragraph({
+        children: [new TextRun({ text: "RESUMO - CONFORMIDADE DE CORPO (NA NEO / FORA DA NEO)", bold: true, size: 22 })],
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 200, after: 200 },
+      }));
+
+      const neoResumoRows: TableRow[] = [];
+      let totalNaNeo = 0;
+      let totalForaNeo = 0;
+      let totalEfetivoGeral = 0;
+      let totalTmftConformidade = 0;
+
+      // Header row
+      neoResumoRows.push(new TableRow({
+        children: [
+          createCell("OM", true, "10B981"),
+          createCell("TMFT", true, "10B981"),
+          createCell("EFETIVO", true, "10B981"),
+          createCell("NA NEO", true, "10B981"),
+          createCell("FORA DA NEO", true, "10B981"),
+          createCell("VAGAS", true, "10B981"),
+          createCell("ATENDIMENTO", true, "10B981"),
+        ],
+      }));
+
+      for (const om of activeOMs) {
+        const omData = filteredData.filter((item) => item.om === om);
+        if (omData.length === 0) continue;
+
+        const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+        const omTmft = omRegularData.length;
+        const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
+        const omEfetivoTotal = omRegularOcupados.length;
+
+        const omForaNeoList = omRegularOcupados.filter((item) => {
+          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+          return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+        }).length;
+
+        const omNaNeo = omEfetivoTotal - omForaNeoList;
+        const omForaNeo = omForaNeoList;
+        const displayVagos = omTmft - omEfetivoTotal;
+        const displayAtendimento = omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100) : 0;
+
+        totalNaNeo += omNaNeo;
+        totalForaNeo += omForaNeo;
+        totalEfetivoGeral += omEfetivoTotal;
+        totalTmftConformidade += omTmft;
+
+        if (omTmft > 0) {
+          const foraNeoColor = omForaNeo > 0 ? "FFEDD5" : undefined;
+          const foraNeoTextColor = omForaNeo > 0 ? "C2410C" : undefined;
+
+          neoResumoRows.push(new TableRow({
+            children: [
+              createCell(om),
+              createCell(omTmft.toString()),
+              createCell(omEfetivoTotal.toString()),
+              createCell(omNaNeo.toString()),
+              createCell(omForaNeo.toString(), false, foraNeoColor, foraNeoTextColor),
+              createCell(displayVagos.toString()),
+              createCell(`${displayAtendimento.toFixed(1)}%`),
+            ],
+          }));
+        }
+      }
+
+      // Total row
+      const totalDisplayVagos = totalTmftConformidade - totalEfetivoGeral;
+      const totalDisplayAtendimento = totalTmftConformidade > 0 ? ((totalEfetivoGeral / totalTmftConformidade) * 100) : 0;
+      const totalForaNeoColor = totalForaNeo > 0 ? "FFEDD5" : undefined;
+      const totalForaNeoTextColor = totalForaNeo > 0 ? "C2410C" : undefined;
+
+      neoResumoRows.push(new TableRow({
+        children: [
+          createCell("TOTAL GERAL", true, "E5E7EB"),
+          createCell(totalTmftConformidade.toString(), true, "E5E7EB"),
+          createCell(totalEfetivoGeral.toString(), true, "E5E7EB"),
+          createCell(totalNaNeo.toString(), true, "E5E7EB"),
+          createCell(totalForaNeo.toString(), true, totalForaNeoColor || "E5E7EB", totalForaNeoTextColor),
+          createCell(totalDisplayVagos.toString(), true, "E5E7EB"),
+          createCell(`${totalDisplayAtendimento.toFixed(1)}%`, true, "E5E7EB"),
+        ],
+      }));
+
+      const neoResumoTable = new Table({
+        rows: neoResumoRows,
+        width: { size: 100, type: WidthType.PERCENTAGE },
+      });
+
+      titleParagraphs.push(neoResumoTable as unknown as Paragraph);
+      titleParagraphs.push(new Paragraph({ spacing: { after: 400 } }));
+
+      // IM Summary Table
+      const imDataBase = filteredData.filter((item) => item.corpoTmft === "IM" && item.tipoSetor !== "EXTRA LOTAÇÃO");
+      
+      if (imDataBase.length > 0) {
+        titleParagraphs.push(new Paragraph({
+          children: [new TextRun({ text: "RESUMO IM (INFANTARIA DE MARINHA)", bold: true, size: 22 })],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 200, after: 200 },
+        }));
+
+        const imResumoRows: TableRow[] = [];
+        let totalImTmft = 0;
+        let totalImEfetivo = 0;
+
+        imResumoRows.push(new TableRow({
+          children: [
+            createCell("OM", true, "22C55E"),
+            createCell("TMFT IM", true, "22C55E"),
+            createCell("EFETIVO IM", true, "22C55E"),
+            createCell("FALTAS IM", true, "22C55E"),
+            createCell("ATENDIMENTO IM", true, "22C55E"),
+          ],
+        }));
+
+        for (const om of activeOMs) {
+          const omImData = imDataBase.filter((item) => item.om === om);
+          if (omImData.length === 0) continue;
+
+          const omImTmft = omImData.length;
+          const omImEfetivo = omImData.filter((item) => item.ocupado).length;
+          const omImVagos = omImTmft - omImEfetivo;
+          const omImAtendimento = omImTmft > 0 ? (omImEfetivo / omImTmft) * 100 : 0;
+
+          totalImTmft += omImTmft;
+          totalImEfetivo += omImEfetivo;
+
+          imResumoRows.push(new TableRow({
+            children: [
+              createCell(om),
+              createCell(omImTmft.toString()),
+              createCell(omImEfetivo.toString()),
+              createCell(omImVagos.toString()),
+              createCell(`${omImAtendimento.toFixed(1)}%`),
+            ],
+          }));
+        }
+
+        const totalImVagos = totalImTmft - totalImEfetivo;
+        const totalImAtendimento = totalImTmft > 0 ? (totalImEfetivo / totalImTmft) * 100 : 0;
+
+        imResumoRows.push(new TableRow({
+          children: [
+            createCell("TOTAL IM", true, "E5E7EB"),
+            createCell(totalImTmft.toString(), true, "E5E7EB"),
+            createCell(totalImEfetivo.toString(), true, "E5E7EB"),
+            createCell(totalImVagos.toString(), true, "E5E7EB"),
+            createCell(`${totalImAtendimento.toFixed(1)}%`, true, "E5E7EB"),
+          ],
+        }));
+
+        const imResumoTable = new Table({
+          rows: imResumoRows,
+          width: { size: 100, type: WidthType.PERCENTAGE },
+        });
+
+        titleParagraphs.push(imResumoTable as unknown as Paragraph);
+      }
+
+      sections.push({
+        properties: { page: { size: { orientation: "landscape" } } },
+        children: titleParagraphs,
+      });
+
+      // Per OM sections
+      for (const om of activeOMs) {
+        const omData = filteredData.filter((item) => item.om === om);
+        if (omData.length === 0) continue;
+
+        const omChildren: any[] = [];
+
+        // OM Title
+        omChildren.push(new Paragraph({
+          children: [new TextRun({ text: om, bold: true, size: 28 })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 300 },
+        }));
+
+        // Calculate metrics
+        const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+        const omTmft = omRegularData.length;
+        const omEfetivo = omRegularData.filter((item) => item.ocupado).length;
+        const omVagos = omTmft - omEfetivo;
+        const omAtendimento = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
+
+        const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
+        const omForaNeoCount = omRegularOcupados.filter((item) => {
+          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+          return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+        }).length;
+        const omNaNeoCount = omEfetivo - omForaNeoCount;
+
+        // Metrics table
+        const metricsRows: TableRow[] = [
+          new TableRow({
+            children: [
+              createCell("TMFT", true, "10B981"),
+              createCell("EFETIVO", true, "10B981"),
+              createCell("VAGAS", true, "10B981"),
+              createCell("NA NEO", true, "10B981"),
+              createCell("FORA DA NEO", true, "10B981"),
+              createCell("ATENDIMENTO", true, "10B981"),
+            ],
+          }),
+          new TableRow({
+            children: [
+              createCell(omTmft.toString(), true),
+              createCell(omEfetivo.toString(), true),
+              createCell(omVagos.toString(), true),
+              createCell(omNaNeoCount.toString(), true),
+              createCell(omForaNeoCount.toString(), true, omForaNeoCount > 0 ? "FFEDD5" : undefined, omForaNeoCount > 0 ? "C2410C" : undefined),
+              createCell(`${omAtendimento.toFixed(1)}%`, true),
+            ],
+          }),
+        ];
+
+        omChildren.push(new Table({ rows: metricsRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+        omChildren.push(new Paragraph({ spacing: { after: 300 } }));
+
+        // TABELA DE EFETIVO
+        omChildren.push(new Paragraph({
+          children: [new TextRun({ text: "TABELA DE EFETIVO", bold: true, size: 22 })],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 200, after: 200 },
+        }));
+
+        const efetivoRows: TableRow[] = [
+          new TableRow({
+            children: [
+              createCell("NEO", true, "2980B9"),
+              createCell("SETOR", true, "2980B9"),
+              createCell("CARGO", true, "2980B9"),
+              createCell("POSTO TMFT", true, "2980B9"),
+              createCell("QUADRO TMFT", true, "2980B9"),
+              createCell("CORPO TMFT", true, "2980B9"),
+              createCell("NOME", true, "2980B9"),
+              createCell("POSTO EFE", true, "2980B9"),
+              createCell("QUADRO EFE", true, "2980B9"),
+              createCell("CORPO EFE", true, "2980B9"),
+              createCell("STATUS", true, "2980B9"),
+            ],
+          }),
+        ];
+
+        for (const item of omData) {
+          const isOcupado = item.ocupado;
+          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+          const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+          const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+          const setorStr = (item.setor || "").trim().toUpperCase();
+
+          const quadroDivergente = isOcupado && quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+          const corpoDivergente = isOcupado && corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
+
+          let bgColor: string | undefined;
+          let textColor: string | undefined;
+
+          if (quadroDivergente || corpoDivergente) {
+            bgColor = "FFEDD5";
+            textColor = "C2410C";
+          } else if (setorStr.includes("EXTRA LOTA")) {
+            bgColor = "FEF08A";
+            textColor = "713F12";
+          } else if (!isOcupado) {
+            bgColor = "FECACA";
+            textColor = "7F1D1D";
+          }
+
+          const status = isOcupado 
+            ? (quadroDivergente || corpoDivergente ? "FORA NEO" : "NA NEO") 
+            : "VAGO";
+
+          efetivoRows.push(new TableRow({
+            children: [
+              createCell(item.neo.toString(), false, bgColor, textColor),
+              createCell(item.setor || "-", false, bgColor, textColor),
+              createCell(item.cargo || "-", false, bgColor, textColor),
+              createCell(item.postoTmft || "-", false, bgColor, textColor),
+              createCell(item.quadroTmft || "-", false, bgColor, textColor),
+              createCell(item.corpoTmft || "-", false, bgColor, textColor),
+              createCell(item.nome || "-", false, bgColor, textColor),
+              createCell(item.postoEfe || "-", false, bgColor, textColor),
+              createCell(item.quadroEfe || "-", false, bgColor, textColor),
+              createCell(item.corpoEfe || "-", false, bgColor, textColor),
+              createCell(status, false, bgColor, textColor),
+            ],
+          }));
+        }
+
+        omChildren.push(new Table({ rows: efetivoRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+        omChildren.push(new Paragraph({ spacing: { after: 300 } }));
+
+        // PREVISÃO DE DESEMBARQUE
+        const omDesembarque = desembarqueData.filter(
+          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro))
+        );
+        if (omDesembarque.length > 0) {
+          omChildren.push(new Paragraph({
+            children: [new TextRun({ text: "PREVISÃO DE DESEMBARQUE", bold: true, size: 22 })],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 200, after: 200 },
+          }));
+
+          const desembarqueRows: TableRow[] = [
+            new TableRow({
+              children: [
+                createCell("NOME", true, "D97706"),
+                createCell("POSTO/CORPO/QUADRO", true, "D97706"),
+                createCell("CARGO", true, "D97706"),
+                createCell("DESTINO", true, "D97706"),
+                createCell("MÊS/ANO", true, "D97706"),
+                createCell("DOCUMENTO", true, "D97706"),
+              ],
+            }),
+          ];
+
+          for (const d of omDesembarque) {
+            desembarqueRows.push(new TableRow({
+              children: [
+                createCell(d.nome || "-"),
+                createCell(`${d.posto}, ${d.corpo || "-"}, ${d.quadro || "-"}`),
+                createCell(d.cargo || "-"),
+                createCell(d.destino || "-"),
+                createCell(d.mesAno || "-"),
+                createCell(d.documento || "-"),
+              ],
+            }));
+          }
+
+          omChildren.push(new Table({ rows: desembarqueRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+          omChildren.push(new Paragraph({ spacing: { after: 300 } }));
+        }
+
+        // PREVISÃO DE TRRM
+        const omTrrm = trrmData.filter((item) => item.om === om);
+        if (omTrrm.length > 0) {
+          omChildren.push(new Paragraph({
+            children: [new TextRun({ text: "PREVISÃO DE TRRM", bold: true, size: 22 })],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 200, after: 200 },
+          }));
+
+          const trrmRows: TableRow[] = [
+            new TableRow({
+              children: [
+                createCell("NOME", true, "9333EA"),
+                createCell("POSTO/CORPO/QUADRO", true, "9333EA"),
+                createCell("OPÇÃO", true, "9333EA"),
+                createCell("CARGO", true, "9333EA"),
+                createCell("ÉPOCA PREVISTA", true, "9333EA"),
+              ],
+            }),
+          ];
+
+          for (const t of omTrrm) {
+            trrmRows.push(new TableRow({
+              children: [
+                createCell(t.nome || "-"),
+                createCell(`${t.posto}, ${t.corpo || "-"}, ${t.quadro || "-"}`),
+                createCell(t.opcao || "-"),
+                createCell(t.cargo || "-"),
+                createCell(t.epocaPrevista || "-"),
+              ],
+            }));
+          }
+
+          omChildren.push(new Table({ rows: trrmRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+          omChildren.push(new Paragraph({ spacing: { after: 300 } }));
+        }
+
+        // LICENÇAS
+        const omLicencas = licencasData.filter((item) => item.om === om);
+        if (omLicencas.length > 0) {
+          omChildren.push(new Paragraph({
+            children: [new TextRun({ text: "LICENÇAS", bold: true, size: 22 })],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 200, after: 200 },
+          }));
+
+          const licencasRows: TableRow[] = [
+            new TableRow({
+              children: [
+                createCell("NOME", true, "EA580C"),
+                createCell("POSTO/CORPO/QUADRO", true, "EA580C"),
+                createCell("CARGO", true, "EA580C"),
+                createCell("PERÍODO", true, "EA580C"),
+              ],
+            }),
+          ];
+
+          for (const l of omLicencas) {
+            licencasRows.push(new TableRow({
+              children: [
+                createCell(l.nome || "-"),
+                createCell(`${l.posto}, ${l.corpo || "-"}, ${l.quadro || "-"}`),
+                createCell(l.cargo || "-"),
+                createCell(l.periodo || "-"),
+              ],
+            }));
+          }
+
+          omChildren.push(new Table({ rows: licencasRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+          omChildren.push(new Paragraph({ spacing: { after: 300 } }));
+        }
+
+        // DESTAQUES
+        const omDestaques = destaquesData.filter((item) => item.om === om);
+        if (omDestaques.length > 0) {
+          omChildren.push(new Paragraph({
+            children: [new TextRun({ text: "DESTAQUES", bold: true, size: 22 })],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 200, after: 200 },
+          }));
+
+          const destaquesRows: TableRow[] = [
+            new TableRow({
+              children: [
+                createCell("NOME", true, "CA8A04"),
+                createCell("POSTO/CORPO/QUADRO", true, "CA8A04"),
+                createCell("CARGO", true, "CA8A04"),
+                createCell("EM OUTRA OM", true, "CA8A04"),
+                createCell("DE OUTRA OM", true, "CA8A04"),
+                createCell("PERÍODO", true, "CA8A04"),
+              ],
+            }),
+          ];
+
+          for (const d of omDestaques) {
+            destaquesRows.push(new TableRow({
+              children: [
+                createCell(d.nome || "-"),
+                createCell(`${d.posto}, ${d.corpo || "-"}, ${d.quadro || "-"}`),
+                createCell(d.cargo || "-"),
+                createCell(d.emOutraOm || "-"),
+                createCell(d.deOutraOm || "-"),
+                createCell(d.periodo || "-"),
+              ],
+            }));
+          }
+
+          omChildren.push(new Table({ rows: destaquesRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+          omChildren.push(new Paragraph({ spacing: { after: 300 } }));
+        }
+
+        // CONCURSO C-EMOS
+        const omConcurso = concursoData.filter((item) => item.om === om);
+        if (omConcurso.length > 0) {
+          omChildren.push(new Paragraph({
+            children: [new TextRun({ text: "CONCURSO C-EMOS", bold: true, size: 22 })],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 200, after: 200 },
+          }));
+
+          const concursoRows: TableRow[] = [
+            new TableRow({
+              children: [
+                createCell("NOME", true, "059669"),
+                createCell("POSTO/CORPO/QUADRO", true, "059669"),
+                createCell("CARGO", true, "059669"),
+                createCell("ANO PREVISTO", true, "059669"),
+              ],
+            }),
+          ];
+
+          for (const c of omConcurso) {
+            concursoRows.push(new TableRow({
+              children: [
+                createCell(c.nome || "-"),
+                createCell(`${c.posto}, ${c.corpo || "-"}, ${c.quadro || "-"}`),
+                createCell(c.cargo || "-"),
+                createCell(c.anoPrevisto || "-"),
+              ],
+            }));
+          }
+
+          omChildren.push(new Table({ rows: concursoRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+        }
+
+        sections.push({
+          properties: { page: { size: { orientation: "landscape" } } },
+          children: omChildren,
+        });
+      }
+
+      const doc = new Document({ sections });
+
+      const blob = await Packer.toBlob(doc);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "tabela-mestra-forca-trabalho.docx";
+      link.click();
+      URL.revokeObjectURL(url);
+
+      toast.success("Documento Word gerado com sucesso!");
+    } catch (error) {
+      console.error("Error generating Word document:", error);
+      toast.error("Erro ao gerar documento Word");
+    }
+  };
+
   const exportToExcel = () => {
     try {
       const workbook = XLSX.utils.book_new();
@@ -1604,6 +2169,10 @@ const DashboardOM = () => {
                 <Button onClick={exportToPDF} variant="outline">
                   <Download className="mr-2 h-4 w-4" />
                   Exportar PDF
+                </Button>
+                <Button onClick={exportToWord} variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Exportar Word
                 </Button>
                 <Button onClick={exportToExcel} variant="outline">
                   <Download className="mr-2 h-4 w-4" />
