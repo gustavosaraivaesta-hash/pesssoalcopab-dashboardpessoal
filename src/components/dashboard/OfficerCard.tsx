@@ -28,18 +28,13 @@ interface OfficerCardProps {
 }
 
 const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardProps) => {
-  // Check if posto TMFT and posto EFE are different
-  const postoTmftNorm = (item.postoTmft || '').trim().toUpperCase();
-  const postoEfeNorm = (item.postoEfe || '').trim().toUpperCase();
-  const isDifferentPosto = item.ocupado && postoTmftNorm && postoEfeNorm && postoTmftNorm !== postoEfeNorm;
-  
-  // Check if quadro TMFT and quadro EFE are different
+  // Check if quadro TMFT and quadro EFE are different (this determines FORA DA NEO)
   const quadroTmftNorm = (item.quadroTmft || '').trim().toUpperCase();
   const quadroEfeNorm = (item.quadroEfe || '').trim().toUpperCase();
   const isDifferentQuadro = item.ocupado && quadroTmftNorm && quadroEfeNorm && quadroTmftNorm !== quadroEfeNorm;
   
-  // Highlight if posto OR quadro are different
-  const isDifferentNeoEfe = isDifferentPosto || isDifferentQuadro;
+  // Highlight only if quadro is different (corpo difference alone is not FORA DA NEO)
+  const isDifferentNeoEfe = isDifferentQuadro;
 
   // Format military name: graduação-especialidade nome
   const formatMilitarName = () => {
