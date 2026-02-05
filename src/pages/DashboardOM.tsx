@@ -871,10 +871,14 @@ const DashboardOM = () => {
        const omNaNeo = omEfetivoTotal - omForaNeoList;
        const omForaNeo = omForaNeoList;
        
+       // When FORA DA NEO = 0 (all occupied have matching quadros), show FALTAS = 0 and ATENDIMENTO = 100%
+       const displayVagos = omForaNeo === 0 ? 0 : omVagos;
+       const displayAtendimento = omForaNeo === 0 ? 100 : (omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100) : 0);
+       
        totalNaNeo += omNaNeo;
        totalForaNeo += omForaNeo;
        totalEfetivoGeral += omEfetivoTotal;
-       totalVagosGeral += omVagos;
+       totalVagosGeral += displayVagos;
         totalTmftConformidade += omTmft;
        
        if (omTmft > 0) {
@@ -882,23 +886,27 @@ const DashboardOM = () => {
            om,
            omTmft.toString(),
            omEfetivoTotal.toString(),
-           omVagos.toString(),
+           displayVagos.toString(),
            omNaNeo.toString(),
            omForaNeo.toString(),
-            `${omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100).toFixed(1) : 0}%`
+            `${displayAtendimento.toFixed(1)}%`
          ]);
        }
      }
 
      // Add TOTAL row
+     // For TOTAL: if totalForaNeo = 0, show 100% and 0 faltas
+     const totalDisplayVagos = totalForaNeo === 0 ? 0 : totalVagosGeral;
+     const totalDisplayAtendimento = totalForaNeo === 0 ? 100 : (totalTmftConformidade > 0 ? ((totalEfetivoGeral / totalTmftConformidade) * 100) : 0);
+     
      neoResumoRows.push([
        "TOTAL GERAL",
         totalTmftConformidade.toString(),
        totalEfetivoGeral.toString(),
-       totalVagosGeral.toString(),
+       totalDisplayVagos.toString(),
        totalNaNeo.toString(),
        totalForaNeo.toString(),
-         `${totalTmftConformidade > 0 ? ((totalEfetivoGeral / totalTmftConformidade) * 100).toFixed(1) : 0}%`
+         `${totalDisplayAtendimento.toFixed(1)}%`
      ]);
  
      if (neoResumoRows.length > 1) {
@@ -1044,6 +1052,10 @@ const DashboardOM = () => {
         }).length;
         const omNaNeoCount = omEfetivo - omForaNeoCount;
 
+       // When FORA DA NEO = 0, show FALTAS = 0 and ATENDIMENTO = 100%
+       const displayOmVagos = omForaNeoCount === 0 ? 0 : omVagos;
+       const displayOmAtendimento = omForaNeoCount === 0 ? 100 : (omTmft > 0 ? ((omEfetivo / omTmft) * 100) : 0);
+
         // Add CONFORMIDADE DE CORPO metrics table for this OM
         pdf.setFontSize(9);
         pdf.setFont("helvetica", "bold");
@@ -1054,10 +1066,10 @@ const DashboardOM = () => {
           body: [[
             omTmft.toString(),
             omEfetivo.toString(),
-            omVagos.toString(),
+           displayOmVagos.toString(),
             omNaNeoCount.toString(),
             omForaNeoCount.toString(),
-            `${omTmft > 0 ? ((omEfetivo / omTmft) * 100).toFixed(1) : 0}%`
+           `${displayOmAtendimento.toFixed(1)}%`
           ]],
           theme: "grid",
           styles: { fontSize: 8, cellPadding: 2, halign: "center" },
