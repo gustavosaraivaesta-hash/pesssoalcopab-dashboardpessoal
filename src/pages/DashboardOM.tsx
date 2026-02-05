@@ -933,6 +933,7 @@ const DashboardOM = () => {
      let totalForaNeo = 0;
      let totalEfetivoGeral = 0;
      let totalVagosGeral = 0;
+      let totalTmftConformidade = 0;
      
      for (const om of activeOMs) {
        const omData = filteredData.filter((item) => item.om === om);
@@ -959,6 +960,7 @@ const DashboardOM = () => {
        totalForaNeo += omForaNeo;
        totalEfetivoGeral += omEfetivoTotal;
        totalVagosGeral += omVagos;
+        totalTmftConformidade += omTmft;
        
        if (omTmft > 0) {
          neoResumoRows.push([
@@ -973,18 +975,15 @@ const DashboardOM = () => {
        }
      }
 
-     // Calculate TMFT total
-     const totalTmft = filteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO").length;
- 
      // Add TOTAL row
      neoResumoRows.push([
        "TOTAL GERAL",
-       totalTmft.toString(),
+        totalTmftConformidade.toString(),
        totalEfetivoGeral.toString(),
        totalVagosGeral.toString(),
        totalNaNeo.toString(),
        totalForaNeo.toString(),
-       `${totalTmft > 0 ? (((totalNaNeo + totalForaNeo) / totalTmft) * 100).toFixed(1) : 0}%`
+        `${totalTmftConformidade > 0 ? (((totalNaNeo + totalForaNeo) / totalTmftConformidade) * 100).toFixed(1) : 0}%`
      ]);
  
      if (neoResumoRows.length > 1) {
