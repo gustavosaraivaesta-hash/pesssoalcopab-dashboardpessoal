@@ -967,7 +967,7 @@ const DashboardOM = () => {
            omEfetivoTotal.toString(),
            omNaNeo.toString(),
            omForaNeo.toString(),
-           `${omEfetivoTotal > 0 ? ((omNaNeo / omEfetivoTotal) * 100).toFixed(1) : 0}%`
+           `${omTmft > 0 ? (((omNaNeo + omForaNeo) / omTmft) * 100).toFixed(1) : 0}%`
          ]);
        }
      }
@@ -982,13 +982,13 @@ const DashboardOM = () => {
        totalEfetivoGeral.toString(),
        totalNaNeo.toString(),
        totalForaNeo.toString(),
-       `${totalEfetivoGeral > 0 ? ((totalNaNeo / totalEfetivoGeral) * 100).toFixed(1) : 0}%`
+       `${totalTmft > 0 ? (((totalNaNeo + totalForaNeo) / totalTmft) * 100).toFixed(1) : 0}%`
      ]);
  
      if (neoResumoRows.length > 1) {
        autoTable(pdf, {
          startY: yPosition,
-         head: [["OM", "TMFT", "EFETIVO", "NA NEO", "FORA DA NEO", "% NA NEO"]],
+         head: [["OM", "TMFT", "EFETIVO", "NA NEO", "FORA DA NEO", "ATENDIMENTO"]],
          body: neoResumoRows,
          theme: "grid",
          styles: { fontSize: 9, cellPadding: 3, halign: "center" },
