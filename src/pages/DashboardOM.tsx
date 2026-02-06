@@ -44,7 +44,20 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
 import * as XLSX from "xlsx";
-import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, TextRun, AlignmentType, HeadingLevel, BorderStyle, ShadingType } from "docx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  Table,
+  TableCell,
+  TableRow,
+  WidthType,
+  TextRun,
+  AlignmentType,
+  HeadingLevel,
+  BorderStyle,
+  ShadingType,
+} from "docx";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 import OfficerCard from "@/components/dashboard/OfficerCard";
 
@@ -172,39 +185,39 @@ const DashboardOM = () => {
   const [isUsingCache, setIsUsingCache] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
- const [efetivoSubFilter, setEfetivoSubFilter] = useState<"all" | "na_neo" | "fora_neo">("all");
- 
+  const [efetivoSubFilter, setEfetivoSubFilter] = useState<"all" | "na_neo" | "fora_neo">("all");
+
   // Ordem fixa dos postos de oficiais
   const POSTO_ORDER = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM"];
 
   const chartRef = useRef<HTMLDivElement>(null);
-  
+
   const isOnline = useOnlineStatus();
-  const { getFromCache, saveToCache, getCacheTimestamp } = useOfflineCache<CachedOMData>('om_data');
+  const { getFromCache, saveToCache, getCacheTimestamp } = useOfflineCache<CachedOMData>("om_data");
 
   const applyUserFiltering = (rawResult: any) => {
     const allowedOMs = getAllowedOMs();
     console.log("DashboardOM - allowedOMs:", allowedOMs);
-    
+
     const rawData = rawResult.data || [];
     console.log("DashboardOM - rawData count:", rawData.length);
     console.log("DashboardOM - unique OMs in data:", [...new Set(rawData.map((item: any) => item.om))]);
-    
+
     const filterByOM = (arr: any[]): any[] => {
       if (allowedOMs === "all") return arr;
       return arr.filter((item: any) => allowedOMs.includes(item.om));
     };
-    
+
     const data = filterByOM(rawData) as PersonnelRecord[];
     console.log("DashboardOM - filtered data count:", data.length);
-    
+
     const desembarque = filterByOM(rawResult.desembarque || []) as DesembarqueRecord[];
     const embarque = filterByOM(rawResult.embarque || []) as DesembarqueRecord[];
     const trrm = filterByOM(rawResult.trrm || []) as TrrmRecord[];
     const licencas = filterByOM(rawResult.licencas || []) as LicencaRecord[];
     const destaques = filterByOM(rawResult.destaques || []) as DestaqueRecord[];
     const concurso = filterByOM(rawResult.concurso || []) as ConcursoRecord[];
-    
+
     setPersonnelData(data);
     setDesembarqueData(desembarque);
     setEmbarqueData(embarque);
@@ -221,11 +234,7 @@ const DashboardOM = () => {
     setAvailableQuadros((rawResult.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
     // Extrair postos disponíveis (postoEfe) para oficiais
     const postosFromData = [
-      ...new Set(
-        data
-          .map((item: any) => item.postoEfe)
-          .filter((p: string) => p && p.trim() !== "" && p !== "-"),
-      ),
+      ...new Set(data.map((item: any) => item.postoEfe).filter((p: string) => p && p.trim() !== "" && p !== "-")),
     ].sort((a, b) => {
       const order = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM"];
       const indexA = order.indexOf(a);
@@ -237,7 +246,7 @@ const DashboardOM = () => {
     });
     setAvailablePostos(postosFromData as string[]);
     setAvailableOpcoes(opcoes as string[]);
-    
+
     // Extrair corpos disponíveis (corpoTmft ou corpoEfe)
     const corposFromData = [
       ...new Set(
@@ -247,16 +256,14 @@ const DashboardOM = () => {
       ),
     ].sort();
     setAvailableCorpos(corposFromData as string[]);
-    
+
     setLastUpdate(rawResult.lastUpdate || new Date().toLocaleTimeString("pt-BR"));
   };
 
   const invokeFunction = async <T,>(name: string, ms = 25000) => {
     return await Promise.race([
       supabase.functions.invoke<T>(name),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(`Timeout ao chamar ${name}`)), ms),
-      ),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`Timeout ao chamar ${name}`)), ms)),
     ]);
   };
 
@@ -381,14 +388,15 @@ const DashboardOM = () => {
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter((item) => 
-        item.nome?.toLowerCase().includes(query) ||
-        item.cargo?.toLowerCase().includes(query) ||
-        item.setor?.toLowerCase().includes(query) ||
-        item.postoTmft?.toLowerCase().includes(query) ||
-        item.postoEfe?.toLowerCase().includes(query) ||
-        item.quadroTmft?.toLowerCase().includes(query) ||
-        item.quadroEfe?.toLowerCase().includes(query)
+      filtered = filtered.filter(
+        (item) =>
+          item.nome?.toLowerCase().includes(query) ||
+          item.cargo?.toLowerCase().includes(query) ||
+          item.setor?.toLowerCase().includes(query) ||
+          item.postoTmft?.toLowerCase().includes(query) ||
+          item.postoEfe?.toLowerCase().includes(query) ||
+          item.quadroTmft?.toLowerCase().includes(query) ||
+          item.quadroEfe?.toLowerCase().includes(query),
       );
     }
 
@@ -402,21 +410,21 @@ const DashboardOM = () => {
     // Apply status filter from card click
     if (statusFilter === "ocupados") {
       filtered = filtered.filter((item) => item.ocupado);
-     
-     // Apply efetivo sub-filter based on CORPO match
-     if (efetivoSubFilter === "na_neo") {
-       filtered = filtered.filter((item) => {
-         const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
-         const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
-         return !corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe;
-       });
-     } else if (efetivoSubFilter === "fora_neo") {
-       filtered = filtered.filter((item) => {
-         const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
-         const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
-         return corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
-       });
-     }
+
+      // Apply efetivo sub-filter based on CORPO match
+      if (efetivoSubFilter === "na_neo") {
+        filtered = filtered.filter((item) => {
+          const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+          const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+          return !corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe;
+        });
+      } else if (efetivoSubFilter === "fora_neo") {
+        filtered = filtered.filter((item) => {
+          const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+          const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+          return corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
+        });
+      }
     } else if (statusFilter === "vagos") {
       filtered = filtered.filter((item) => !item.ocupado);
     }
@@ -427,7 +435,7 @@ const DashboardOM = () => {
     }
 
     return filtered;
- }, [baseFilteredData, statusFilter, showOnlyExtraLotacao, efetivoSubFilter]);
+  }, [baseFilteredData, statusFilter, showOnlyExtraLotacao, efetivoSubFilter]);
 
   const toggleOM = (om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
@@ -458,17 +466,17 @@ const DashboardOM = () => {
     setShowOnlyExtraLotacao(false);
     setSelectedCorpos([]);
     setSearchQuery("");
-   setEfetivoSubFilter("all");
+    setEfetivoSubFilter("all");
   };
 
   const handleStatusCardClick = (status: "all" | "ocupados" | "vagos") => {
-   setStatusFilter((prev) => {
-     const newStatus = prev === status ? "all" : status;
-     if (newStatus !== "ocupados") {
-       setEfetivoSubFilter("all");
-     }
-     return newStatus;
-   });
+    setStatusFilter((prev) => {
+      const newStatus = prev === status ? "all" : status;
+      if (newStatus !== "ocupados") {
+        setEfetivoSubFilter("all");
+      }
+      return newStatus;
+    });
   };
 
   const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TTC"];
@@ -477,16 +485,16 @@ const DashboardOM = () => {
   const metrics = useMemo(() => {
     const regularData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
     const totalTMFT = regularData.length;
-    
+
     // EFETIVO: quando há filtros de corpo/quadro/posto, conta ocupados pelo campo EFE correspondente
     // Aplica os mesmos filtros (OM, Opção, Search) mas usa corpoEfe/quadroEfe/postoEfe ao invés de TMFT
     const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
-    
+
     let totalEXI: number;
     if (hasEfeFilters) {
       // Aplica todos os filtros usando campos EFE para corpo/quadro/posto
       let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
-      
+
       // Aplicar filtro de OM
       if (selectedOMs.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedOMs.includes(item.om));
@@ -498,17 +506,18 @@ const DashboardOM = () => {
       // Aplicar filtro de busca
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        efetivoData = efetivoData.filter((item) =>
-          (item.nome && item.nome.toLowerCase().includes(query)) ||
-          (item.postoTmft && item.postoTmft.toLowerCase().includes(query)) ||
-          (item.postoEfe && item.postoEfe.toLowerCase().includes(query)) ||
-          (item.setor && item.setor.toLowerCase().includes(query)) ||
-          (item.quadroTmft && item.quadroTmft.toLowerCase().includes(query)) ||
-          (item.quadroEfe && item.quadroEfe.toLowerCase().includes(query)) ||
-          (item.neo && item.neo.toString().includes(query))
+        efetivoData = efetivoData.filter(
+          (item) =>
+            (item.nome && item.nome.toLowerCase().includes(query)) ||
+            (item.postoTmft && item.postoTmft.toLowerCase().includes(query)) ||
+            (item.postoEfe && item.postoEfe.toLowerCase().includes(query)) ||
+            (item.setor && item.setor.toLowerCase().includes(query)) ||
+            (item.quadroTmft && item.quadroTmft.toLowerCase().includes(query)) ||
+            (item.quadroEfe && item.quadroEfe.toLowerCase().includes(query)) ||
+            (item.neo && item.neo.toString().includes(query)),
         );
       }
-      
+
       // Agora filtra por campos EFE (corpo/quadro/posto reais do militar)
       if (selectedCorpos.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedCorpos.includes(item.corpoEfe));
@@ -519,12 +528,12 @@ const DashboardOM = () => {
       if (selectedPostoFilter.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
       }
-      
+
       totalEXI = efetivoData.length;
     } else {
       totalEXI = regularData.filter((item) => item.ocupado).length;
     }
-    
+
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
     const totalExtraLotacao = baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
@@ -539,56 +548,65 @@ const DashboardOM = () => {
       totalExtraLotacao,
       atendimentoTotal,
     };
-  }, [baseFilteredData, personnelData, selectedCorpos, selectedQuadros, selectedPostoFilter, selectedOMs, selectedOpcoes, searchQuery]);
+  }, [
+    baseFilteredData,
+    personnelData,
+    selectedCorpos,
+    selectedQuadros,
+    selectedPostoFilter,
+    selectedOMs,
+    selectedOpcoes,
+    searchQuery,
+  ]);
 
- // Calculate NA NEO and FORA DA NEO metrics for EFETIVO drill-down (based on CORPO match)
- const neoMetrics = useMemo(() => {
-   const regularData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
-   
-   // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are meaningful)
-   // Corpo difference alone does NOT make someone "FORA DA NEO"
-   const foraNeo = regularData.filter((item) => {
-     const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
-     const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
-     // Only consider FORA DA NEO if quadro values exist and are different
-     return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
-   });
-   
-   // NA NEO: everyone who is NOT FORA DA NEO
-   // This ensures NA NEO + FORA DA NEO = EFETIVO (total occupied)
-   const foraNeoIds = new Set(foraNeo.map(item => item.id));
-   const naNeo = regularData.filter((item) => !foraNeoIds.has(item.id));
-   
-   return {
-     foraNeoCount: foraNeo.length,
-     naNeoCount: naNeo.length,
-     foraNeoPersonnel: foraNeo,
-     naNeoPersonnel: naNeo,
-   };
- }, [baseFilteredData]);
- 
- // Handle NA NEO sub-card click
- const handleNaNeoClick = () => {
-   if (efetivoSubFilter === "na_neo") {
-     setEfetivoSubFilter("all");
-     setStatusFilter("all");
-   } else {
-     setStatusFilter("ocupados");
-     setEfetivoSubFilter("na_neo");
-   }
- };
- 
- // Handle FORA DA NEO sub-card click
- const handleForaNeoClick = () => {
-   if (efetivoSubFilter === "fora_neo") {
-     setEfetivoSubFilter("all");
-     setStatusFilter("all");
-   } else {
-     setStatusFilter("ocupados");
-     setEfetivoSubFilter("fora_neo");
-   }
- };
- 
+  // Calculate NA NEO and FORA DA NEO metrics for EFETIVO drill-down (based on CORPO match)
+  const neoMetrics = useMemo(() => {
+    const regularData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+
+    // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are meaningful)
+    // Corpo difference alone does NOT make someone "FORA DA NEO"
+    const foraNeo = regularData.filter((item) => {
+      const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+      const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+      // Only consider FORA DA NEO if quadro values exist and are different
+      return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+    });
+
+    // NA NEO: everyone who is NOT FORA DA NEO
+    // This ensures NA NEO + FORA DA NEO = EFETIVO (total occupied)
+    const foraNeoIds = new Set(foraNeo.map((item) => item.id));
+    const naNeo = regularData.filter((item) => !foraNeoIds.has(item.id));
+
+    return {
+      foraNeoCount: foraNeo.length,
+      naNeoCount: naNeo.length,
+      foraNeoPersonnel: foraNeo,
+      naNeoPersonnel: naNeo,
+    };
+  }, [baseFilteredData]);
+
+  // Handle NA NEO sub-card click
+  const handleNaNeoClick = () => {
+    if (efetivoSubFilter === "na_neo") {
+      setEfetivoSubFilter("all");
+      setStatusFilter("all");
+    } else {
+      setStatusFilter("ocupados");
+      setEfetivoSubFilter("na_neo");
+    }
+  };
+
+  // Handle FORA DA NEO sub-card click
+  const handleForaNeoClick = () => {
+    if (efetivoSubFilter === "fora_neo") {
+      setEfetivoSubFilter("all");
+      setStatusFilter("all");
+    } else {
+      setStatusFilter("ocupados");
+      setEfetivoSubFilter("fora_neo");
+    }
+  };
+
   // Group data by setor
   const groupedBySetor = useMemo(() => {
     const groups: Record<string, PersonnelRecord[]> = {};
@@ -704,20 +722,23 @@ const DashboardOM = () => {
 
     // Filtro de corpo
     if (selectedCorpos.length > 0) {
-      filtered = filtered.filter((item) => selectedCorpos.includes(item.corpoTmft) || selectedCorpos.includes(item.corpoEfe));
+      filtered = filtered.filter(
+        (item) => selectedCorpos.includes(item.corpoTmft) || selectedCorpos.includes(item.corpoEfe),
+      );
     }
 
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter((item) => 
-        item.nome?.toLowerCase().includes(query) ||
-        item.cargo?.toLowerCase().includes(query) ||
-        item.setor?.toLowerCase().includes(query) ||
-        item.postoTmft?.toLowerCase().includes(query) ||
-        item.postoEfe?.toLowerCase().includes(query) ||
-        item.quadroTmft?.toLowerCase().includes(query) ||
-        item.quadroEfe?.toLowerCase().includes(query)
+      filtered = filtered.filter(
+        (item) =>
+          item.nome?.toLowerCase().includes(query) ||
+          item.cargo?.toLowerCase().includes(query) ||
+          item.setor?.toLowerCase().includes(query) ||
+          item.postoTmft?.toLowerCase().includes(query) ||
+          item.postoEfe?.toLowerCase().includes(query) ||
+          item.quadroTmft?.toLowerCase().includes(query) ||
+          item.quadroEfe?.toLowerCase().includes(query),
       );
     }
 
@@ -898,7 +919,13 @@ const DashboardOM = () => {
       });
       yPosition += 15;
 
-      if (selectedOMs.length > 0 || selectedOpcoes.length > 0 || selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0) {
+      if (
+        selectedOMs.length > 0 ||
+        selectedOpcoes.length > 0 ||
+        selectedCorpos.length > 0 ||
+        selectedQuadros.length > 0 ||
+        selectedPostoFilter.length > 0
+      ) {
         pdf.setFontSize(10);
         pdf.text("Filtros Aplicados:", 14, yPosition);
         yPosition += 6;
@@ -927,40 +954,38 @@ const DashboardOM = () => {
 
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
-     // NA NEO / FORA DA NEO summary table
-     yPosition = checkNewPage(yPosition, 50);
-     
-     pdf.setFontSize(10);
-     pdf.setFont("helvetica", "bold");
-     pdf.text("RESUMO - CONFORMIDADE DE CORPO (NA NEO / FORA DA NEO)", pageWidth / 2, yPosition, { align: "center" });
-     yPosition += 6;
- 
-     const neoResumoRows: string[][] = [];
-     let totalNaNeo = 0;
-     let totalForaNeo = 0;
-     let totalEfetivoGeral = 0;
-     let totalVagosGeral = 0;
+      // NA NEO / FORA DA NEO summary table
+      yPosition = checkNewPage(yPosition, 50);
+
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("RESUMO - CONFORMIDADE DE CORPO (NA NEO / FORA DA NEO)", pageWidth / 2, yPosition, { align: "center" });
+      yPosition += 6;
+
+      const neoResumoRows: string[][] = [];
+      let totalNaNeo = 0;
+      let totalForaNeo = 0;
+      let totalEfetivoGeral = 0;
+      let totalVagosGeral = 0;
       let totalTmftConformidade = 0;
-      
+
       for (const om of activeOMs) {
         const omData = filteredData.filter((item) => item.om === om);
         if (omData.length === 0) continue;
-        
+
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omTmft = omRegularData.length;
-        
+
         // EFETIVO: quando há filtros de corpo/quadro/posto, conta ocupados pelos campos EFE correspondentes
         let omEfetivoTotal: number;
         const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
-        
+
         if (hasEfeFilters) {
           // Conta todos os ocupados desta OM que têm os campos EFE no filtro
-          let efetivoFiltered = personnelData.filter((item) => 
-            item.om === om &&
-            item.tipoSetor !== "EXTRA LOTAÇÃO" && 
-            item.ocupado
+          let efetivoFiltered = personnelData.filter(
+            (item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado,
           );
-          
+
           if (selectedCorpos.length > 0) {
             efetivoFiltered = efetivoFiltered.filter((item) => selectedCorpos.includes(item.corpoEfe));
           }
@@ -970,15 +995,15 @@ const DashboardOM = () => {
           if (selectedPostoFilter.length > 0) {
             efetivoFiltered = efetivoFiltered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
           }
-          
+
           omEfetivoTotal = efetivoFiltered.length;
         } else {
           const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
           omEfetivoTotal = omRegularOcupados.length;
         }
-        
+
         const omVagos = omTmft - omEfetivoTotal;
-        
+
         // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are different)
         const omRegularOcupadosForNeo = omRegularData.filter((item) => item.ocupado);
         const omForaNeoList = omRegularOcupadosForNeo.filter((item) => {
@@ -986,21 +1011,21 @@ const DashboardOM = () => {
           const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
           return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
         }).length;
-        
+
         // NA NEO: everyone who is NOT FORA DA NEO (ensures NA NEO + FORA DA NEO = EFETIVO)
         const omNaNeo = omEfetivoTotal - omForaNeoList;
         const omForaNeo = omForaNeoList;
-        
+
         // When FORA DA NEO = 0 (all occupied have matching quadros), show FALTAS = 0 and ATENDIMENTO = 100%
         const displayVagos = omTmft - omEfetivoTotal;
-        const displayAtendimento = omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100) : 0;
-        
+        const displayAtendimento = omTmft > 0 ? (omEfetivoTotal / omTmft) * 100 : 0;
+
         totalNaNeo += omNaNeo;
         totalForaNeo += omForaNeo;
         totalEfetivoGeral += omEfetivoTotal;
         totalVagosGeral += displayVagos;
         totalTmftConformidade += omTmft;
-        
+
         if (omTmft > 0) {
           neoResumoRows.push([
             om,
@@ -1009,64 +1034,64 @@ const DashboardOM = () => {
             omNaNeo.toString(),
             omForaNeo.toString(),
             displayVagos.toString(),
-            `${displayAtendimento.toFixed(1)}%`
+            `${displayAtendimento.toFixed(1)}%`,
           ]);
         }
       }
 
-     // Add TOTAL row
-     const totalDisplayVagos = totalTmftConformidade - totalEfetivoGeral;
-     const totalDisplayAtendimento = totalTmftConformidade > 0 ? ((totalEfetivoGeral / totalTmftConformidade) * 100) : 0;
-     
-     neoResumoRows.push([
-       "TOTAL GERAL",
+      // Add TOTAL row
+      const totalDisplayVagos = totalTmftConformidade - totalEfetivoGeral;
+      const totalDisplayAtendimento = totalTmftConformidade > 0 ? (totalEfetivoGeral / totalTmftConformidade) * 100 : 0;
+
+      neoResumoRows.push([
+        "TOTAL GERAL",
         totalTmftConformidade.toString(),
-       totalEfetivoGeral.toString(),
-       totalNaNeo.toString(),
-       totalForaNeo.toString(),
-       totalDisplayVagos.toString(),
-         `${totalDisplayAtendimento.toFixed(1)}%`
-     ]);
- 
-     if (neoResumoRows.length > 1) {
-       autoTable(pdf, {
-         startY: yPosition,
-         head: [["OM", "TMFT", "EFETIVO", "NA NEO", "FORA DA NEO", "VAGAS", "ATENDIMENTO"]],
-         body: neoResumoRows,
-         theme: "grid",
-         styles: { fontSize: 9, cellPadding: 3, halign: "center" },
-         headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
-         bodyStyles: { fontStyle: "normal" },
-         margin: { left: 20, right: 20 },
-         didParseCell: (data) => {
-           if (data.section === 'body') {
-             const omCell = data.row.raw?.[0];
-             if (omCell === "TOTAL GERAL") {
-               data.cell.styles.fontStyle = "bold";
-               data.cell.styles.fillColor = [229, 231, 235];
-             }
-             // Highlight FORA DA NEO column if value > 0
-             const colIndex = data.column.index;
-             if (colIndex === 4) {
-               const value = parseInt(data.row.raw?.[4] || "0");
-               if (value > 0) {
-                 data.cell.styles.fillColor = [255, 237, 213]; // orange-100
-                 data.cell.styles.textColor = [194, 65, 12]; // orange-700
-               }
-             }
-           }
-         },
-       });
-       yPosition = (pdf as any).lastAutoTable.finalY + 10;
-     }
- 
+        totalEfetivoGeral.toString(),
+        totalNaNeo.toString(),
+        totalForaNeo.toString(),
+        totalDisplayVagos.toString(),
+        `${totalDisplayAtendimento.toFixed(1)}%`,
+      ]);
+
+      if (neoResumoRows.length > 1) {
+        autoTable(pdf, {
+          startY: yPosition,
+          head: [["OM", "TMFT", "EFETIVO", "NA NEO", "FORA DA NEO", "VAGAS", "ATENDIMENTO"]],
+          body: neoResumoRows,
+          theme: "grid",
+          styles: { fontSize: 9, cellPadding: 3, halign: "center" },
+          headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
+          bodyStyles: { fontStyle: "normal" },
+          margin: { left: 20, right: 20 },
+          didParseCell: (data) => {
+            if (data.section === "body") {
+              const omCell = data.row.raw?.[0];
+              if (omCell === "TOTAL GERAL") {
+                data.cell.styles.fontStyle = "bold";
+                data.cell.styles.fillColor = [229, 231, 235];
+              }
+              // Highlight FORA DA NEO column if value > 0
+              const colIndex = data.column.index;
+              if (colIndex === 4) {
+                const value = parseInt(data.row.raw?.[4] || "0");
+                if (value > 0) {
+                  data.cell.styles.fillColor = [255, 237, 213]; // orange-100
+                  data.cell.styles.textColor = [194, 65, 12]; // orange-700
+                }
+              }
+            }
+          },
+        });
+        yPosition = (pdf as any).lastAutoTable.finalY + 10;
+      }
+
       // IM (Infantaria de Marinha) table by OM - with all columns like RESUMO GERAL
       const imDataBase = filteredData.filter((item) => item.corpoTmft === "IM" && item.tipoSetor !== "EXTRA LOTAÇÃO");
       const imExtraData = filteredData.filter((item) => item.corpoTmft === "IM" && item.tipoSetor === "EXTRA LOTAÇÃO");
-      
+
       if (imDataBase.length > 0 || imExtraData.length > 0) {
         yPosition = checkNewPage(yPosition, 60);
-        
+
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.text("RESUMO IM (INFANTARIA DE MARINHA)", pageWidth / 2, yPosition, { align: "center" });
@@ -1076,13 +1101,13 @@ const DashboardOM = () => {
         let totalImTmft = 0;
         let totalImEfetivo = 0;
         let totalImExtra = 0;
-        
+
         for (const om of activeOMs) {
           const omImData = imDataBase.filter((item) => item.om === om);
           const omImExtraData = imExtraData.filter((item) => item.om === om);
-          
+
           if (omImData.length === 0 && omImExtraData.length === 0) continue;
-          
+
           const omImTmft = omImData.length;
           const omImEfetivo = omImData.filter((item) => item.ocupado).length;
           const omImVagos = omImTmft - omImEfetivo;
@@ -1099,7 +1124,7 @@ const DashboardOM = () => {
             omImTmft.toString(),
             omImEfetivo.toString(),
             omImVagos.toString(),
-            `${omImAtendimento.toFixed(1)}%`
+            `${omImAtendimento.toFixed(1)}%`,
           ]);
         }
 
@@ -1113,7 +1138,7 @@ const DashboardOM = () => {
           totalImTmft.toString(),
           totalImEfetivo.toString(),
           totalImVagos.toString(),
-          `${totalImAtendimento.toFixed(1)}%`
+          `${totalImAtendimento.toFixed(1)}%`,
         ]);
 
         autoTable(pdf, {
@@ -1126,7 +1151,7 @@ const DashboardOM = () => {
           bodyStyles: { fontStyle: "normal" },
           margin: { left: 30, right: 30 },
           didParseCell: (data) => {
-            if (data.section === 'body') {
+            if (data.section === "body") {
               const omCell = data.row.raw?.[0];
               if (omCell === "TOTAL IM") {
                 data.cell.styles.fontStyle = "bold";
@@ -1153,18 +1178,17 @@ const DashboardOM = () => {
         // Calculate metrics per OM
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omTmft = omRegularData.length;
-        
+
         // EFETIVO: quando há filtros de corpo/quadro/posto, conta ocupados pelos campos EFE correspondentes
         let omEfetivo: number;
-        const hasEfeFiltersPDF = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
-        
+        const hasEfeFiltersPDF =
+          selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+
         if (hasEfeFiltersPDF) {
-          let efetivoFiltered = personnelData.filter((item) => 
-            item.om === om &&
-            item.tipoSetor !== "EXTRA LOTAÇÃO" && 
-            item.ocupado
+          let efetivoFiltered = personnelData.filter(
+            (item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado,
           );
-          
+
           if (selectedCorpos.length > 0) {
             efetivoFiltered = efetivoFiltered.filter((item) => selectedCorpos.includes(item.corpoEfe));
           }
@@ -1174,12 +1198,12 @@ const DashboardOM = () => {
           if (selectedPostoFilter.length > 0) {
             efetivoFiltered = efetivoFiltered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
           }
-          
+
           omEfetivo = efetivoFiltered.length;
         } else {
           omEfetivo = omRegularData.filter((item) => item.ocupado).length;
         }
-        
+
         const omVagos = omTmft - omEfetivo;
         const omAtendimento = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
         const omExtraLotacao = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
@@ -1197,32 +1221,34 @@ const DashboardOM = () => {
         }).length;
         const omNaNeoCount = omEfetivo - omForaNeoCount;
 
-       // When FORA DA NEO = 0, show FALTAS = 0 and ATENDIMENTO = 100%
-       const displayOmVagos = omForaNeoCount === 0 ? 0 : omVagos;
-       const displayOmAtendimento = omForaNeoCount === 0 ? 100 : (omTmft > 0 ? ((omEfetivo / omTmft) * 100) : 0);
+        // When FORA DA NEO = 0, show FALTAS = 0 and ATENDIMENTO = 100%
+        const displayOmVagos = omForaNeoCount === 0 ? 0 : omVagos;
+        const displayOmAtendimento = omForaNeoCount === 0 ? 100 : omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
 
         // Add CONFORMIDADE DE CORPO metrics table for this OM
         pdf.setFontSize(9);
         pdf.setFont("helvetica", "bold");
-        
+
         autoTable(pdf, {
           startY: yPosition,
           head: [["TMFT", "EFETIVO", "FALTAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO"]],
-          body: [[
-            omTmft.toString(),
-            omEfetivo.toString(),
-           displayOmVagos.toString(),
-            omNaNeoCount.toString(),
-            omForaNeoCount.toString(),
-           `${displayOmAtendimento.toFixed(1)}%`
-          ]],
+          body: [
+            [
+              omTmft.toString(),
+              omEfetivo.toString(),
+              displayOmVagos.toString(),
+              omNaNeoCount.toString(),
+              omForaNeoCount.toString(),
+              `${displayOmAtendimento.toFixed(1)}%`,
+            ],
+          ],
           theme: "grid",
           styles: { fontSize: 8, cellPadding: 2, halign: "center" },
           headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
           bodyStyles: { fontStyle: "bold" },
           margin: { left: 40, right: 40 },
           didParseCell: (data) => {
-            if (data.section === 'body') {
+            if (data.section === "body") {
               // Highlight FORA DA NEO column if value > 0
               const colIndex = data.column.index;
               if (colIndex === 4) {
@@ -1245,17 +1271,18 @@ const DashboardOM = () => {
 
         // Quando há filtros de corpo/quadro/posto, incluir linhas extras de militares que estão em outras posições
         let omTableData = omData;
-        const hasEfeFiltersTable = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
-        
+        const hasEfeFiltersTable =
+          selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+
         if (hasEfeFiltersTable) {
           // Buscar militares desta OM que têm campos EFE no filtro mas TMFT diferente
           const extraEfetivoRows = personnelData.filter((item) => {
             if (item.om !== om || item.tipoSetor === "EXTRA LOTAÇÃO" || !item.ocupado) return false;
-            
+
             // Verifica se o militar atende aos critérios EFE mas não está na lista filtrada por TMFT
             let matchesEfeFilters = true;
             let matchesTmftFilters = true;
-            
+
             if (selectedCorpos.length > 0) {
               matchesEfeFilters = matchesEfeFilters && selectedCorpos.includes(item.corpoEfe);
               matchesTmftFilters = matchesTmftFilters && selectedCorpos.includes(item.corpoTmft);
@@ -1268,14 +1295,14 @@ const DashboardOM = () => {
               matchesEfeFilters = matchesEfeFilters && selectedPostoFilter.includes(item.postoEfe);
               matchesTmftFilters = matchesTmftFilters && selectedPostoFilter.includes(item.postoTmft);
             }
-            
+
             // Incluir se atende aos filtros EFE mas NÃO aos filtros TMFT (linha extra)
             return matchesEfeFilters && !matchesTmftFilters;
           });
-          
+
           // Combinar dados originais com as linhas extras (sem duplicar)
-          const existingIds = new Set(omData.map(item => item.id));
-          const newRows = extraEfetivoRows.filter(item => !existingIds.has(item.id));
+          const existingIds = new Set(omData.map((item) => item.id));
+          const newRows = extraEfetivoRows.filter((item) => !existingIds.has(item.id));
           omTableData = [...omData, ...newRows];
         }
 
@@ -1285,7 +1312,7 @@ const DashboardOM = () => {
           if (hasEfeFiltersTable) {
             let matchesEfe = true;
             let matchesTmft = true;
-            
+
             if (selectedCorpos.length > 0) {
               matchesEfe = matchesEfe && selectedCorpos.includes(item.corpoEfe);
               matchesTmft = matchesTmft && selectedCorpos.includes(item.corpoTmft);
@@ -1298,10 +1325,10 @@ const DashboardOM = () => {
               matchesEfe = matchesEfe && selectedPostoFilter.includes(item.postoEfe);
               matchesTmft = matchesTmft && selectedPostoFilter.includes(item.postoTmft);
             }
-            
+
             isExtraRow = item.ocupado && matchesEfe && !matchesTmft;
           }
-          
+
           return [
             item.neo.toString(),
             item.setor,
@@ -1313,24 +1340,38 @@ const DashboardOM = () => {
             item.postoEfe || "-",
             item.quadroEfe || "-",
             item.corpoEfe || "-",
-            item.ocupado ? (() => {
-              const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
-              const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
-              if (isExtraRow) {
-                return "EFETIVO EXTRA";
-              } else if (!corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe) {
-                return "NA NEO";
-              } else {
-                return "FORA NEO";
-              }
-            })() : "VAGO",
+            item.ocupado
+              ? (() => {
+                  const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+                  const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+                  if (isExtraRow) {
+                    return "EFETIVO EXTRA";
+                  } else if (!corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe) {
+                    return "NA NEO";
+                  } else {
+                    return "FORA NEO";
+                  }
+                })()
+              : "VAGO",
           ];
         });
 
         autoTable(pdf, {
           startY: yPosition,
           head: [
-            ["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "CORPO TMFT", "NOME", "POSTO EFE", "QUADRO EFE", "CORPO EFE", "STATUS"],
+            [
+              "NEO",
+              "SETOR",
+              "CARGO",
+              "POSTO TMFT",
+              "QUADRO TMFT",
+              "CORPO TMFT",
+              "NOME",
+              "POSTO EFE",
+              "QUADRO EFE",
+              "CORPO EFE",
+              "STATUS",
+            ],
           ],
           body: tableData,
           theme: "grid",
@@ -1338,7 +1379,7 @@ const DashboardOM = () => {
           headStyles: { fillColor: [41, 128, 185], textColor: 255 },
           margin: { left: 15, right: 15 },
           didParseCell: (data) => {
-            if (data.section === 'body') {
+            if (data.section === "body") {
               const nome = data.row.raw?.[6];
               const setor = data.row.raw?.[1];
               const quadroTmft = data.row.raw?.[4];
@@ -1353,12 +1394,12 @@ const DashboardOM = () => {
               const corpoTmftStr = corpoTmft ? corpoTmft.toString().trim().toUpperCase() : "";
               const corpoEfeStr = corpoEfe ? corpoEfe.toString().trim().toUpperCase() : "";
               const statusStr = status ? status.toString().trim().toUpperCase() : "";
-              
+
               // Verifica se é ocupado (tem nome válido)
               const isOcupado = nome && nome !== "-" && nomeStr !== "" && nomeStr !== "VAGO" && nomeStr !== "VAZIO";
-              
+
               // Destaque AZUL CLARO para EFETIVO EXTRA (militar do corpo filtrado em posição de outro corpo)
-              if (statusStr === "EFETIVO EXTRA") {
+              if (statusStr === "EFETIVO ") {
                 data.cell.styles.fillColor = [219, 234, 254]; // blue-100
                 data.cell.styles.textColor = [30, 64, 175]; // blue-800
               }
@@ -1384,11 +1425,11 @@ const DashboardOM = () => {
 
         // ====== PREVISÃO DE DESEMBARQUE (per OM) ======
         const omDesembarque = desembarqueData.filter(
-          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro))
+          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)),
         );
         if (omDesembarque.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
-          
+
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
           pdf.text("PREVISÃO DE DESEMBARQUE", pageWidth / 2, yPosition, { align: "center" });
@@ -1419,7 +1460,7 @@ const DashboardOM = () => {
         const omTrrm = trrmData.filter((item) => item.om === om);
         if (omTrrm.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
-          
+
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
           pdf.text("PREVISÃO DE TRRM", pageWidth / 2, yPosition, { align: "center" });
@@ -1449,7 +1490,7 @@ const DashboardOM = () => {
         const omLicencas = licencasData.filter((item) => item.om === om);
         if (omLicencas.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
-          
+
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
           pdf.text("LICENÇAS", pageWidth / 2, yPosition, { align: "center" });
@@ -1478,7 +1519,7 @@ const DashboardOM = () => {
         const omDestaques = destaquesData.filter((item) => item.om === om);
         if (omDestaques.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
-          
+
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
           pdf.text("DESTAQUES", pageWidth / 2, yPosition, { align: "center" });
@@ -1509,7 +1550,7 @@ const DashboardOM = () => {
         const omConcurso = concursoData.filter((item) => item.om === om);
         if (omConcurso.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
-          
+
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
           pdf.text("CONCURSO C-EMOS", pageWidth / 2, yPosition, { align: "center" });
@@ -1554,22 +1595,26 @@ const DashboardOM = () => {
   const exportToWord = async () => {
     try {
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
-      
+
       const sections: any[] = [];
-      
+
       // Helper to create table cell with styling
       const createCell = (text: string, isHeader = false, bgColor?: string, textColor?: string) => {
         const shading = bgColor ? { type: ShadingType.SOLID, color: bgColor } : undefined;
         return new TableCell({
-          children: [new Paragraph({
-            children: [new TextRun({
-              text: text,
-              bold: isHeader,
-              size: isHeader ? 20 : 18,
-              color: textColor || (isHeader ? "FFFFFF" : "000000"),
-            })],
-            alignment: AlignmentType.CENTER,
-          })],
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: text,
+                  bold: isHeader,
+                  size: isHeader ? 20 : 18,
+                  color: textColor || (isHeader ? "FFFFFF" : "000000"),
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
           shading,
           width: { size: 100 / 7, type: WidthType.PERCENTAGE },
         });
@@ -1591,29 +1636,39 @@ const DashboardOM = () => {
 
       // Filters applied
       if (selectedOMs.length > 0 || selectedOpcoes.length > 0) {
-        titleParagraphs.push(new Paragraph({
-          children: [new TextRun({ text: "Filtros Aplicados:", bold: true, size: 20 })],
-          spacing: { after: 100 },
-        }));
+        titleParagraphs.push(
+          new Paragraph({
+            children: [new TextRun({ text: "Filtros Aplicados:", bold: true, size: 20 })],
+            spacing: { after: 100 },
+          }),
+        );
         if (selectedOMs.length > 0) {
-          titleParagraphs.push(new Paragraph({
-            children: [new TextRun({ text: `OM: ${selectedOMs.join(", ")}`, size: 20 })],
-          }));
+          titleParagraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `OM: ${selectedOMs.join(", ")}`, size: 20 })],
+            }),
+          );
         }
         if (selectedOpcoes.length > 0) {
-          titleParagraphs.push(new Paragraph({
-            children: [new TextRun({ text: `Opção: ${selectedOpcoes.join(", ")}`, size: 20 })],
-          }));
+          titleParagraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `Opção: ${selectedOpcoes.join(", ")}`, size: 20 })],
+            }),
+          );
         }
         titleParagraphs.push(new Paragraph({ spacing: { after: 200 } }));
       }
 
       // RESUMO - CONFORMIDADE DE CORPO table
-      titleParagraphs.push(new Paragraph({
-        children: [new TextRun({ text: "RESUMO - CONFORMIDADE DE CORPO (NA NEO / FORA DA NEO)", bold: true, size: 22 })],
-        alignment: AlignmentType.CENTER,
-        spacing: { before: 200, after: 200 },
-      }));
+      titleParagraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: "RESUMO - CONFORMIDADE DE CORPO (NA NEO / FORA DA NEO)", bold: true, size: 22 }),
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 200, after: 200 },
+        }),
+      );
 
       const neoResumoRows: TableRow[] = [];
       let totalNaNeo = 0;
@@ -1622,17 +1677,19 @@ const DashboardOM = () => {
       let totalTmftConformidade = 0;
 
       // Header row
-      neoResumoRows.push(new TableRow({
-        children: [
-          createCell("OM", true, "10B981"),
-          createCell("TMFT", true, "10B981"),
-          createCell("EFETIVO", true, "10B981"),
-          createCell("NA NEO", true, "10B981"),
-          createCell("FORA DA NEO", true, "10B981"),
-          createCell("VAGAS", true, "10B981"),
-          createCell("ATENDIMENTO", true, "10B981"),
-        ],
-      }));
+      neoResumoRows.push(
+        new TableRow({
+          children: [
+            createCell("OM", true, "10B981"),
+            createCell("TMFT", true, "10B981"),
+            createCell("EFETIVO", true, "10B981"),
+            createCell("NA NEO", true, "10B981"),
+            createCell("FORA DA NEO", true, "10B981"),
+            createCell("VAGAS", true, "10B981"),
+            createCell("ATENDIMENTO", true, "10B981"),
+          ],
+        }),
+      );
 
       for (const om of activeOMs) {
         const omData = filteredData.filter((item) => item.om === om);
@@ -1652,7 +1709,7 @@ const DashboardOM = () => {
         const omNaNeo = omEfetivoTotal - omForaNeoList;
         const omForaNeo = omForaNeoList;
         const displayVagos = omTmft - omEfetivoTotal;
-        const displayAtendimento = omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100) : 0;
+        const displayAtendimento = omTmft > 0 ? (omEfetivoTotal / omTmft) * 100 : 0;
 
         totalNaNeo += omNaNeo;
         totalForaNeo += omForaNeo;
@@ -1663,37 +1720,41 @@ const DashboardOM = () => {
           const foraNeoColor = omForaNeo > 0 ? "FFEDD5" : undefined;
           const foraNeoTextColor = omForaNeo > 0 ? "C2410C" : undefined;
 
-          neoResumoRows.push(new TableRow({
-            children: [
-              createCell(om),
-              createCell(omTmft.toString()),
-              createCell(omEfetivoTotal.toString()),
-              createCell(omNaNeo.toString()),
-              createCell(omForaNeo.toString(), false, foraNeoColor, foraNeoTextColor),
-              createCell(displayVagos.toString()),
-              createCell(`${displayAtendimento.toFixed(1)}%`),
-            ],
-          }));
+          neoResumoRows.push(
+            new TableRow({
+              children: [
+                createCell(om),
+                createCell(omTmft.toString()),
+                createCell(omEfetivoTotal.toString()),
+                createCell(omNaNeo.toString()),
+                createCell(omForaNeo.toString(), false, foraNeoColor, foraNeoTextColor),
+                createCell(displayVagos.toString()),
+                createCell(`${displayAtendimento.toFixed(1)}%`),
+              ],
+            }),
+          );
         }
       }
 
       // Total row
       const totalDisplayVagos = totalTmftConformidade - totalEfetivoGeral;
-      const totalDisplayAtendimento = totalTmftConformidade > 0 ? ((totalEfetivoGeral / totalTmftConformidade) * 100) : 0;
+      const totalDisplayAtendimento = totalTmftConformidade > 0 ? (totalEfetivoGeral / totalTmftConformidade) * 100 : 0;
       const totalForaNeoColor = totalForaNeo > 0 ? "FFEDD5" : undefined;
       const totalForaNeoTextColor = totalForaNeo > 0 ? "C2410C" : undefined;
 
-      neoResumoRows.push(new TableRow({
-        children: [
-          createCell("TOTAL GERAL", true, "E5E7EB"),
-          createCell(totalTmftConformidade.toString(), true, "E5E7EB"),
-          createCell(totalEfetivoGeral.toString(), true, "E5E7EB"),
-          createCell(totalNaNeo.toString(), true, "E5E7EB"),
-          createCell(totalForaNeo.toString(), true, totalForaNeoColor || "E5E7EB", totalForaNeoTextColor),
-          createCell(totalDisplayVagos.toString(), true, "E5E7EB"),
-          createCell(`${totalDisplayAtendimento.toFixed(1)}%`, true, "E5E7EB"),
-        ],
-      }));
+      neoResumoRows.push(
+        new TableRow({
+          children: [
+            createCell("TOTAL GERAL", true, "E5E7EB"),
+            createCell(totalTmftConformidade.toString(), true, "E5E7EB"),
+            createCell(totalEfetivoGeral.toString(), true, "E5E7EB"),
+            createCell(totalNaNeo.toString(), true, "E5E7EB"),
+            createCell(totalForaNeo.toString(), true, totalForaNeoColor || "E5E7EB", totalForaNeoTextColor),
+            createCell(totalDisplayVagos.toString(), true, "E5E7EB"),
+            createCell(`${totalDisplayAtendimento.toFixed(1)}%`, true, "E5E7EB"),
+          ],
+        }),
+      );
 
       const neoResumoTable = new Table({
         rows: neoResumoRows,
@@ -1705,27 +1766,31 @@ const DashboardOM = () => {
 
       // IM Summary Table
       const imDataBase = filteredData.filter((item) => item.corpoTmft === "IM" && item.tipoSetor !== "EXTRA LOTAÇÃO");
-      
+
       if (imDataBase.length > 0) {
-        titleParagraphs.push(new Paragraph({
-          children: [new TextRun({ text: "RESUMO IM (INFANTARIA DE MARINHA)", bold: true, size: 22 })],
-          alignment: AlignmentType.CENTER,
-          spacing: { before: 200, after: 200 },
-        }));
+        titleParagraphs.push(
+          new Paragraph({
+            children: [new TextRun({ text: "RESUMO IM (INFANTARIA DE MARINHA)", bold: true, size: 22 })],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 200, after: 200 },
+          }),
+        );
 
         const imResumoRows: TableRow[] = [];
         let totalImTmft = 0;
         let totalImEfetivo = 0;
 
-        imResumoRows.push(new TableRow({
-          children: [
-            createCell("OM", true, "22C55E"),
-            createCell("TMFT IM", true, "22C55E"),
-            createCell("EFETIVO IM", true, "22C55E"),
-            createCell("FALTAS IM", true, "22C55E"),
-            createCell("ATENDIMENTO IM", true, "22C55E"),
-          ],
-        }));
+        imResumoRows.push(
+          new TableRow({
+            children: [
+              createCell("OM", true, "22C55E"),
+              createCell("TMFT IM", true, "22C55E"),
+              createCell("EFETIVO IM", true, "22C55E"),
+              createCell("FALTAS IM", true, "22C55E"),
+              createCell("ATENDIMENTO IM", true, "22C55E"),
+            ],
+          }),
+        );
 
         for (const om of activeOMs) {
           const omImData = imDataBase.filter((item) => item.om === om);
@@ -1739,29 +1804,33 @@ const DashboardOM = () => {
           totalImTmft += omImTmft;
           totalImEfetivo += omImEfetivo;
 
-          imResumoRows.push(new TableRow({
-            children: [
-              createCell(om),
-              createCell(omImTmft.toString()),
-              createCell(omImEfetivo.toString()),
-              createCell(omImVagos.toString()),
-              createCell(`${omImAtendimento.toFixed(1)}%`),
-            ],
-          }));
+          imResumoRows.push(
+            new TableRow({
+              children: [
+                createCell(om),
+                createCell(omImTmft.toString()),
+                createCell(omImEfetivo.toString()),
+                createCell(omImVagos.toString()),
+                createCell(`${omImAtendimento.toFixed(1)}%`),
+              ],
+            }),
+          );
         }
 
         const totalImVagos = totalImTmft - totalImEfetivo;
         const totalImAtendimento = totalImTmft > 0 ? (totalImEfetivo / totalImTmft) * 100 : 0;
 
-        imResumoRows.push(new TableRow({
-          children: [
-            createCell("TOTAL IM", true, "E5E7EB"),
-            createCell(totalImTmft.toString(), true, "E5E7EB"),
-            createCell(totalImEfetivo.toString(), true, "E5E7EB"),
-            createCell(totalImVagos.toString(), true, "E5E7EB"),
-            createCell(`${totalImAtendimento.toFixed(1)}%`, true, "E5E7EB"),
-          ],
-        }));
+        imResumoRows.push(
+          new TableRow({
+            children: [
+              createCell("TOTAL IM", true, "E5E7EB"),
+              createCell(totalImTmft.toString(), true, "E5E7EB"),
+              createCell(totalImEfetivo.toString(), true, "E5E7EB"),
+              createCell(totalImVagos.toString(), true, "E5E7EB"),
+              createCell(`${totalImAtendimento.toFixed(1)}%`, true, "E5E7EB"),
+            ],
+          }),
+        );
 
         const imResumoTable = new Table({
           rows: imResumoRows,
@@ -1784,11 +1853,13 @@ const DashboardOM = () => {
         const omChildren: any[] = [];
 
         // OM Title
-        omChildren.push(new Paragraph({
-          children: [new TextRun({ text: om, bold: true, size: 28 })],
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 300 },
-        }));
+        omChildren.push(
+          new Paragraph({
+            children: [new TextRun({ text: om, bold: true, size: 28 })],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 300 },
+          }),
+        );
 
         // Calculate metrics
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
@@ -1823,7 +1894,12 @@ const DashboardOM = () => {
               createCell(omEfetivo.toString(), true),
               createCell(omVagos.toString(), true),
               createCell(omNaNeoCount.toString(), true),
-              createCell(omForaNeoCount.toString(), true, omForaNeoCount > 0 ? "FFEDD5" : undefined, omForaNeoCount > 0 ? "C2410C" : undefined),
+              createCell(
+                omForaNeoCount.toString(),
+                true,
+                omForaNeoCount > 0 ? "FFEDD5" : undefined,
+                omForaNeoCount > 0 ? "C2410C" : undefined,
+              ),
               createCell(`${omAtendimento.toFixed(1)}%`, true),
             ],
           }),
@@ -1833,11 +1909,13 @@ const DashboardOM = () => {
         omChildren.push(new Paragraph({ spacing: { after: 300 } }));
 
         // TABELA DE EFETIVO
-        omChildren.push(new Paragraph({
-          children: [new TextRun({ text: "TABELA DE EFETIVO", bold: true, size: 22 })],
-          alignment: AlignmentType.CENTER,
-          spacing: { before: 200, after: 200 },
-        }));
+        omChildren.push(
+          new Paragraph({
+            children: [new TextRun({ text: "TABELA DE EFETIVO", bold: true, size: 22 })],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 200, after: 200 },
+          }),
+        );
 
         const efetivoRows: TableRow[] = [
           new TableRow({
@@ -1865,8 +1943,10 @@ const DashboardOM = () => {
           const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
           const setorStr = (item.setor || "").trim().toUpperCase();
 
-          const quadroDivergente = isOcupado && quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
-          const corpoDivergente = isOcupado && corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
+          const quadroDivergente =
+            isOcupado && quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+          const corpoDivergente =
+            isOcupado && corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
 
           let bgColor: string | undefined;
           let textColor: string | undefined;
@@ -1882,25 +1962,25 @@ const DashboardOM = () => {
             textColor = "7F1D1D";
           }
 
-          const status = isOcupado 
-            ? (quadroDivergente || corpoDivergente ? "FORA NEO" : "NA NEO") 
-            : "VAGO";
+          const status = isOcupado ? (quadroDivergente || corpoDivergente ? "FORA NEO" : "NA NEO") : "VAGO";
 
-          efetivoRows.push(new TableRow({
-            children: [
-              createCell(item.neo.toString(), false, bgColor, textColor),
-              createCell(item.setor || "-", false, bgColor, textColor),
-              createCell(item.cargo || "-", false, bgColor, textColor),
-              createCell(item.postoTmft || "-", false, bgColor, textColor),
-              createCell(item.quadroTmft || "-", false, bgColor, textColor),
-              createCell(item.corpoTmft || "-", false, bgColor, textColor),
-              createCell(item.nome || "-", false, bgColor, textColor),
-              createCell(item.postoEfe || "-", false, bgColor, textColor),
-              createCell(item.quadroEfe || "-", false, bgColor, textColor),
-              createCell(item.corpoEfe || "-", false, bgColor, textColor),
-              createCell(status, false, bgColor, textColor),
-            ],
-          }));
+          efetivoRows.push(
+            new TableRow({
+              children: [
+                createCell(item.neo.toString(), false, bgColor, textColor),
+                createCell(item.setor || "-", false, bgColor, textColor),
+                createCell(item.cargo || "-", false, bgColor, textColor),
+                createCell(item.postoTmft || "-", false, bgColor, textColor),
+                createCell(item.quadroTmft || "-", false, bgColor, textColor),
+                createCell(item.corpoTmft || "-", false, bgColor, textColor),
+                createCell(item.nome || "-", false, bgColor, textColor),
+                createCell(item.postoEfe || "-", false, bgColor, textColor),
+                createCell(item.quadroEfe || "-", false, bgColor, textColor),
+                createCell(item.corpoEfe || "-", false, bgColor, textColor),
+                createCell(status, false, bgColor, textColor),
+              ],
+            }),
+          );
         }
 
         omChildren.push(new Table({ rows: efetivoRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
@@ -1908,14 +1988,16 @@ const DashboardOM = () => {
 
         // PREVISÃO DE DESEMBARQUE
         const omDesembarque = desembarqueData.filter(
-          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro))
+          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)),
         );
         if (omDesembarque.length > 0) {
-          omChildren.push(new Paragraph({
-            children: [new TextRun({ text: "PREVISÃO DE DESEMBARQUE", bold: true, size: 22 })],
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 200, after: 200 },
-          }));
+          omChildren.push(
+            new Paragraph({
+              children: [new TextRun({ text: "PREVISÃO DE DESEMBARQUE", bold: true, size: 22 })],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 200, after: 200 },
+            }),
+          );
 
           const desembarqueRows: TableRow[] = [
             new TableRow({
@@ -1931,16 +2013,18 @@ const DashboardOM = () => {
           ];
 
           for (const d of omDesembarque) {
-            desembarqueRows.push(new TableRow({
-              children: [
-                createCell(d.nome || "-"),
-                createCell(`${d.posto}, ${d.corpo || "-"}, ${d.quadro || "-"}`),
-                createCell(d.cargo || "-"),
-                createCell(d.destino || "-"),
-                createCell(d.mesAno || "-"),
-                createCell(d.documento || "-"),
-              ],
-            }));
+            desembarqueRows.push(
+              new TableRow({
+                children: [
+                  createCell(d.nome || "-"),
+                  createCell(`${d.posto}, ${d.corpo || "-"}, ${d.quadro || "-"}`),
+                  createCell(d.cargo || "-"),
+                  createCell(d.destino || "-"),
+                  createCell(d.mesAno || "-"),
+                  createCell(d.documento || "-"),
+                ],
+              }),
+            );
           }
 
           omChildren.push(new Table({ rows: desembarqueRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
@@ -1950,11 +2034,13 @@ const DashboardOM = () => {
         // PREVISÃO DE TRRM
         const omTrrm = trrmData.filter((item) => item.om === om);
         if (omTrrm.length > 0) {
-          omChildren.push(new Paragraph({
-            children: [new TextRun({ text: "PREVISÃO DE TRRM", bold: true, size: 22 })],
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 200, after: 200 },
-          }));
+          omChildren.push(
+            new Paragraph({
+              children: [new TextRun({ text: "PREVISÃO DE TRRM", bold: true, size: 22 })],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 200, after: 200 },
+            }),
+          );
 
           const trrmRows: TableRow[] = [
             new TableRow({
@@ -1969,15 +2055,17 @@ const DashboardOM = () => {
           ];
 
           for (const t of omTrrm) {
-            trrmRows.push(new TableRow({
-              children: [
-                createCell(t.nome || "-"),
-                createCell(`${t.posto}, ${t.corpo || "-"}, ${t.quadro || "-"}`),
-                createCell(t.opcao || "-"),
-                createCell(t.cargo || "-"),
-                createCell(t.epocaPrevista || "-"),
-              ],
-            }));
+            trrmRows.push(
+              new TableRow({
+                children: [
+                  createCell(t.nome || "-"),
+                  createCell(`${t.posto}, ${t.corpo || "-"}, ${t.quadro || "-"}`),
+                  createCell(t.opcao || "-"),
+                  createCell(t.cargo || "-"),
+                  createCell(t.epocaPrevista || "-"),
+                ],
+              }),
+            );
           }
 
           omChildren.push(new Table({ rows: trrmRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
@@ -1987,11 +2075,13 @@ const DashboardOM = () => {
         // LICENÇAS
         const omLicencas = licencasData.filter((item) => item.om === om);
         if (omLicencas.length > 0) {
-          omChildren.push(new Paragraph({
-            children: [new TextRun({ text: "LICENÇAS", bold: true, size: 22 })],
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 200, after: 200 },
-          }));
+          omChildren.push(
+            new Paragraph({
+              children: [new TextRun({ text: "LICENÇAS", bold: true, size: 22 })],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 200, after: 200 },
+            }),
+          );
 
           const licencasRows: TableRow[] = [
             new TableRow({
@@ -2005,14 +2095,16 @@ const DashboardOM = () => {
           ];
 
           for (const l of omLicencas) {
-            licencasRows.push(new TableRow({
-              children: [
-                createCell(l.nome || "-"),
-                createCell(`${l.posto}, ${l.corpo || "-"}, ${l.quadro || "-"}`),
-                createCell(l.cargo || "-"),
-                createCell(l.periodo || "-"),
-              ],
-            }));
+            licencasRows.push(
+              new TableRow({
+                children: [
+                  createCell(l.nome || "-"),
+                  createCell(`${l.posto}, ${l.corpo || "-"}, ${l.quadro || "-"}`),
+                  createCell(l.cargo || "-"),
+                  createCell(l.periodo || "-"),
+                ],
+              }),
+            );
           }
 
           omChildren.push(new Table({ rows: licencasRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
@@ -2022,11 +2114,13 @@ const DashboardOM = () => {
         // DESTAQUES
         const omDestaques = destaquesData.filter((item) => item.om === om);
         if (omDestaques.length > 0) {
-          omChildren.push(new Paragraph({
-            children: [new TextRun({ text: "DESTAQUES", bold: true, size: 22 })],
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 200, after: 200 },
-          }));
+          omChildren.push(
+            new Paragraph({
+              children: [new TextRun({ text: "DESTAQUES", bold: true, size: 22 })],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 200, after: 200 },
+            }),
+          );
 
           const destaquesRows: TableRow[] = [
             new TableRow({
@@ -2042,16 +2136,18 @@ const DashboardOM = () => {
           ];
 
           for (const d of omDestaques) {
-            destaquesRows.push(new TableRow({
-              children: [
-                createCell(d.nome || "-"),
-                createCell(`${d.posto}, ${d.corpo || "-"}, ${d.quadro || "-"}`),
-                createCell(d.cargo || "-"),
-                createCell(d.emOutraOm || "-"),
-                createCell(d.deOutraOm || "-"),
-                createCell(d.periodo || "-"),
-              ],
-            }));
+            destaquesRows.push(
+              new TableRow({
+                children: [
+                  createCell(d.nome || "-"),
+                  createCell(`${d.posto}, ${d.corpo || "-"}, ${d.quadro || "-"}`),
+                  createCell(d.cargo || "-"),
+                  createCell(d.emOutraOm || "-"),
+                  createCell(d.deOutraOm || "-"),
+                  createCell(d.periodo || "-"),
+                ],
+              }),
+            );
           }
 
           omChildren.push(new Table({ rows: destaquesRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
@@ -2061,11 +2157,13 @@ const DashboardOM = () => {
         // CONCURSO C-EMOS
         const omConcurso = concursoData.filter((item) => item.om === om);
         if (omConcurso.length > 0) {
-          omChildren.push(new Paragraph({
-            children: [new TextRun({ text: "CONCURSO C-EMOS", bold: true, size: 22 })],
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 200, after: 200 },
-          }));
+          omChildren.push(
+            new Paragraph({
+              children: [new TextRun({ text: "CONCURSO C-EMOS", bold: true, size: 22 })],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 200, after: 200 },
+            }),
+          );
 
           const concursoRows: TableRow[] = [
             new TableRow({
@@ -2079,14 +2177,16 @@ const DashboardOM = () => {
           ];
 
           for (const c of omConcurso) {
-            concursoRows.push(new TableRow({
-              children: [
-                createCell(c.nome || "-"),
-                createCell(`${c.posto}, ${c.corpo || "-"}, ${c.quadro || "-"}`),
-                createCell(c.cargo || "-"),
-                createCell(c.anoPrevisto || "-"),
-              ],
-            }));
+            concursoRows.push(
+              new TableRow({
+                children: [
+                  createCell(c.nome || "-"),
+                  createCell(`${c.posto}, ${c.corpo || "-"}, ${c.quadro || "-"}`),
+                  createCell(c.cargo || "-"),
+                  createCell(c.anoPrevisto || "-"),
+                ],
+              }),
+            );
           }
 
           omChildren.push(new Table({ rows: concursoRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
@@ -2118,32 +2218,32 @@ const DashboardOM = () => {
   const exportToExcel = () => {
     try {
       const workbook = XLSX.utils.book_new();
-      
+
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
-      
+
       // Sheet 1: Resumo Geral por OM
       const resumoData: any[][] = [
         ["RESUMO - CONFORMIDADE DE CORPO (NA NEO / FORA DA NEO)"],
         [],
-        ["OM", "TMFT", "EFETIVO", "FALTAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO (%)"]
+        ["OM", "TMFT", "EFETIVO", "FALTAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO (%)"],
       ];
-      
+
       let totalTmft = 0;
       let totalEfetivo = 0;
       let totalVagos = 0;
       let totalNaNeo = 0;
       let totalForaNeo = 0;
-      
+
       for (const om of activeOMs) {
         const omData = filteredData.filter((item) => item.om === om);
         if (omData.length === 0) continue;
-        
+
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omTmft = omRegularData.length;
         const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
         const omEfetivoTotal = omRegularOcupados.length;
         const omVagos = omTmft - omEfetivoTotal;
-        
+
         const omForaNeoCount = omRegularOcupados.filter((item) => {
           const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
           const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
@@ -2151,37 +2251,57 @@ const DashboardOM = () => {
         }).length;
         const omNaNeoCount = omEfetivoTotal - omForaNeoCount;
         const atendimento = omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100).toFixed(1) : "0";
-        
+
         totalTmft += omTmft;
         totalEfetivo += omEfetivoTotal;
         totalVagos += omVagos;
         totalNaNeo += omNaNeoCount;
         totalForaNeo += omForaNeoCount;
-        
+
         resumoData.push([om, omTmft, omEfetivoTotal, omVagos, omNaNeoCount, omForaNeoCount, parseFloat(atendimento)]);
       }
-      
+
       // Add total row
       const totalAtendimento = totalTmft > 0 ? ((totalEfetivo / totalTmft) * 100).toFixed(1) : "0";
-      resumoData.push(["TOTAL GERAL", totalTmft, totalEfetivo, totalVagos, totalNaNeo, totalForaNeo, parseFloat(totalAtendimento)]);
-      
+      resumoData.push([
+        "TOTAL GERAL",
+        totalTmft,
+        totalEfetivo,
+        totalVagos,
+        totalNaNeo,
+        totalForaNeo,
+        parseFloat(totalAtendimento),
+      ]);
+
       const resumoSheet = XLSX.utils.aoa_to_sheet(resumoData);
       XLSX.utils.book_append_sheet(workbook, resumoSheet, "Resumo");
-      
+
       // Sheet 2: Dados Completos do Efetivo
       const efetivoHeaders = [
-        "OM", "NEO", "TIPO SETOR", "SETOR", "CARGO", 
-        "POSTO TMFT", "CORPO TMFT", "QUADRO TMFT", "OPÇÃO TMFT",
-        "NOME", "POSTO EFE", "CORPO EFE", "QUADRO EFE", "OPÇÃO EFE",
-        "OCUPADO", "STATUS"
+        "OM",
+        "NEO",
+        "TIPO SETOR",
+        "SETOR",
+        "CARGO",
+        "POSTO TMFT",
+        "CORPO TMFT",
+        "QUADRO TMFT",
+        "OPÇÃO TMFT",
+        "NOME",
+        "POSTO EFE",
+        "CORPO EFE",
+        "QUADRO EFE",
+        "OPÇÃO EFE",
+        "OCUPADO",
+        "STATUS",
       ];
-      
+
       const efetivoData: any[][] = [efetivoHeaders];
-      
+
       for (const item of filteredData) {
         const isOcupado = item.ocupado;
         let status = "VAGO";
-        
+
         if (isOcupado) {
           const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
           const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
@@ -2191,7 +2311,7 @@ const DashboardOM = () => {
             status = "NA NEO";
           }
         }
-        
+
         efetivoData.push([
           item.om,
           item.neo,
@@ -2208,18 +2328,18 @@ const DashboardOM = () => {
           item.quadroEfe || "-",
           item.opcaoEfe || "-",
           isOcupado ? "SIM" : "NÃO",
-          status
+          status,
         ]);
       }
-      
+
       const efetivoSheet = XLSX.utils.aoa_to_sheet(efetivoData);
       XLSX.utils.book_append_sheet(workbook, efetivoSheet, "Efetivo Completo");
-      
+
       // Sheet 3: Previsão de Desembarque
       if (desembarqueData.length > 0) {
         const desembarqueHeaders = ["OM", "NOME", "POSTO/CORPO/QUADRO", "CARGO", "DESTINO", "MÊS/ANO", "DOCUMENTO"];
         const desembarqueRows: any[][] = [desembarqueHeaders];
-        
+
         for (const item of desembarqueData) {
           if (selectedOMs.length > 0 && !selectedOMs.includes(item.om)) continue;
           desembarqueRows.push([
@@ -2229,21 +2349,21 @@ const DashboardOM = () => {
             item.cargo || "-",
             item.destino || "-",
             item.mesAno || "-",
-            item.documento || "-"
+            item.documento || "-",
           ]);
         }
-        
+
         if (desembarqueRows.length > 1) {
           const desembarqueSheet = XLSX.utils.aoa_to_sheet(desembarqueRows);
           XLSX.utils.book_append_sheet(workbook, desembarqueSheet, "Previsão Desembarque");
         }
       }
-      
+
       // Sheet 4: Previsão de Embarque
       if (embarqueData.length > 0) {
         const embarqueHeaders = ["OM", "NOME", "POSTO/CORPO/QUADRO", "CARGO", "DESTINO", "MÊS/ANO", "DOCUMENTO"];
         const embarqueRows: any[][] = [embarqueHeaders];
-        
+
         for (const item of embarqueData) {
           if (selectedOMs.length > 0 && !selectedOMs.includes(item.om)) continue;
           embarqueRows.push([
@@ -2253,21 +2373,21 @@ const DashboardOM = () => {
             item.cargo || "-",
             item.destino || "-",
             item.mesAno || "-",
-            item.documento || "-"
+            item.documento || "-",
           ]);
         }
-        
+
         if (embarqueRows.length > 1) {
           const embarqueSheet = XLSX.utils.aoa_to_sheet(embarqueRows);
           XLSX.utils.book_append_sheet(workbook, embarqueSheet, "Previsão Embarque");
         }
       }
-      
+
       // Sheet 5: TRRM
       if (trrmData.length > 0) {
         const trrmHeaders = ["OM", "NOME", "POSTO/CORPO/QUADRO", "CARGO", "ÉPOCA PREVISTA"];
         const trrmRows: any[][] = [trrmHeaders];
-        
+
         for (const item of trrmData) {
           if (selectedOMs.length > 0 && !selectedOMs.includes(item.om)) continue;
           trrmRows.push([
@@ -2275,20 +2395,20 @@ const DashboardOM = () => {
             item.nome,
             `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
             item.cargo || "-",
-            item.epocaPrevista || "-"
+            item.epocaPrevista || "-",
           ]);
         }
-        
+
         if (trrmRows.length > 1) {
           const trrmSheet = XLSX.utils.aoa_to_sheet(trrmRows);
           XLSX.utils.book_append_sheet(workbook, trrmSheet, "TRRM");
         }
       }
-      
+
       // Generate filename with date
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split("T")[0];
       const filename = `tabela-mestra-oficiais-${today}.xlsx`;
-      
+
       XLSX.writeFile(workbook, filename);
       toast.success("Excel gerado com sucesso!");
     } catch (error) {
@@ -2366,7 +2486,11 @@ const DashboardOM = () => {
                 Filtros
               </h3>
               <div className="flex items-center gap-2">
-                {(selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0 || selectedPostoFilter.length > 0 || searchQuery) && (
+                {(selectedOMs.length > 0 ||
+                  selectedQuadros.length > 0 ||
+                  selectedOpcoes.length > 0 ||
+                  selectedPostoFilter.length > 0 ||
+                  searchQuery) && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     Limpar Filtros
                   </Button>
@@ -2585,49 +2709,61 @@ const DashboardOM = () => {
             </CardContent>
           </Card>
 
-          <Card className={`bg-gradient-to-br ${
-            metrics.percentualPreenchimento >= 90 
-              ? "from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200" 
-              : metrics.percentualPreenchimento >= 70 
-                ? "from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200"
-                : "from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200"
-          }`}>
+          <Card
+            className={`bg-gradient-to-br ${
+              metrics.percentualPreenchimento >= 90
+                ? "from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200"
+                : metrics.percentualPreenchimento >= 70
+                  ? "from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200"
+                  : "from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200"
+            }`}
+          >
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className={`text-sm font-medium mb-1 ${
-                    metrics.percentualPreenchimento >= 90 
-                      ? "text-green-700 dark:text-green-300" 
-                      : metrics.percentualPreenchimento >= 70 
-                        ? "text-amber-700 dark:text-amber-300"
-                        : "text-red-700 dark:text-red-300"
-                  }`}>ATENDIMENTO</p>
-                  <p className={`text-4xl font-bold ${
-                    metrics.percentualPreenchimento >= 90 
-                      ? "text-green-900 dark:text-green-100" 
-                      : metrics.percentualPreenchimento >= 70 
-                        ? "text-amber-900 dark:text-amber-100"
-                        : "text-red-900 dark:text-red-100"
-                  }`}>
+                  <p
+                    className={`text-sm font-medium mb-1 ${
+                      metrics.percentualPreenchimento >= 90
+                        ? "text-green-700 dark:text-green-300"
+                        : metrics.percentualPreenchimento >= 70
+                          ? "text-amber-700 dark:text-amber-300"
+                          : "text-red-700 dark:text-red-300"
+                    }`}
+                  >
+                    ATENDIMENTO
+                  </p>
+                  <p
+                    className={`text-4xl font-bold ${
+                      metrics.percentualPreenchimento >= 90
+                        ? "text-green-900 dark:text-green-100"
+                        : metrics.percentualPreenchimento >= 70
+                          ? "text-amber-900 dark:text-amber-100"
+                          : "text-red-900 dark:text-red-100"
+                    }`}
+                  >
                     {metrics.percentualPreenchimento.toFixed(0)}%
                   </p>
-                  <p className={`text-xs mt-1 ${
-                    metrics.percentualPreenchimento >= 90 
-                      ? "text-green-600 dark:text-green-400" 
-                      : metrics.percentualPreenchimento >= 70 
-                        ? "text-amber-600 dark:text-amber-400"
-                        : "text-red-600 dark:text-red-400"
-                  }`}>
+                  <p
+                    className={`text-xs mt-1 ${
+                      metrics.percentualPreenchimento >= 90
+                        ? "text-green-600 dark:text-green-400"
+                        : metrics.percentualPreenchimento >= 70
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-red-600 dark:text-red-400"
+                    }`}
+                  >
                     Situação: {metrics.totalDIF < 0 ? metrics.totalDIF : `+${metrics.totalDIF}`}
                   </p>
                 </div>
-                <TrendingUp className={`h-8 w-8 ${
-                  metrics.percentualPreenchimento >= 90 
-                    ? "text-green-500" 
-                    : metrics.percentualPreenchimento >= 70 
-                      ? "text-amber-500"
-                      : "text-red-500"
-                }`} />
+                <TrendingUp
+                  className={`h-8 w-8 ${
+                    metrics.percentualPreenchimento >= 90
+                      ? "text-green-500"
+                      : metrics.percentualPreenchimento >= 70
+                        ? "text-amber-500"
+                        : "text-red-500"
+                  }`}
+                />
               </div>
             </CardContent>
           </Card>
@@ -2648,110 +2784,126 @@ const DashboardOM = () => {
             </CardContent>
           </Card>
 
-          <Card className={`bg-gradient-to-br ${
-            metrics.atendimentoTotal >= 100
-              ? "from-cyan-50 to-cyan-100 dark:from-cyan-950/20 dark:to-cyan-900/20 border-cyan-200"
-              : metrics.atendimentoTotal >= 90
-                ? "from-teal-50 to-teal-100 dark:from-teal-950/20 dark:to-teal-900/20 border-teal-200"
-                : "from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200"
-          }`}>
+          <Card
+            className={`bg-gradient-to-br ${
+              metrics.atendimentoTotal >= 100
+                ? "from-cyan-50 to-cyan-100 dark:from-cyan-950/20 dark:to-cyan-900/20 border-cyan-200"
+                : metrics.atendimentoTotal >= 90
+                  ? "from-teal-50 to-teal-100 dark:from-teal-950/20 dark:to-teal-900/20 border-teal-200"
+                  : "from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200"
+            }`}
+          >
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className={`text-sm font-medium mb-1 ${
-                    metrics.atendimentoTotal >= 100
-                      ? "text-cyan-700 dark:text-cyan-300"
-                      : metrics.atendimentoTotal >= 90
-                        ? "text-teal-700 dark:text-teal-300"
-                        : "text-amber-700 dark:text-amber-300"
-                  }`}>ATEND. TOTAL</p>
-                  <p className={`text-4xl font-bold ${
-                    metrics.atendimentoTotal >= 100
-                      ? "text-cyan-900 dark:text-cyan-100"
-                      : metrics.atendimentoTotal >= 90
-                        ? "text-teal-900 dark:text-teal-100"
-                        : "text-amber-900 dark:text-amber-100"
-                  }`}>
+                  <p
+                    className={`text-sm font-medium mb-1 ${
+                      metrics.atendimentoTotal >= 100
+                        ? "text-cyan-700 dark:text-cyan-300"
+                        : metrics.atendimentoTotal >= 90
+                          ? "text-teal-700 dark:text-teal-300"
+                          : "text-amber-700 dark:text-amber-300"
+                    }`}
+                  >
+                    ATEND. TOTAL
+                  </p>
+                  <p
+                    className={`text-4xl font-bold ${
+                      metrics.atendimentoTotal >= 100
+                        ? "text-cyan-900 dark:text-cyan-100"
+                        : metrics.atendimentoTotal >= 90
+                          ? "text-teal-900 dark:text-teal-100"
+                          : "text-amber-900 dark:text-amber-100"
+                    }`}
+                  >
                     {metrics.atendimentoTotal.toFixed(0)}%
                   </p>
-                  <p className={`text-xs mt-1 ${
-                    metrics.atendimentoTotal >= 100
-                      ? "text-cyan-600 dark:text-cyan-400"
-                      : metrics.atendimentoTotal >= 90
-                        ? "text-teal-600 dark:text-teal-400"
-                        : "text-amber-600 dark:text-amber-400"
-                  }`}>
+                  <p
+                    className={`text-xs mt-1 ${
+                      metrics.atendimentoTotal >= 100
+                        ? "text-cyan-600 dark:text-cyan-400"
+                        : metrics.atendimentoTotal >= 90
+                          ? "text-teal-600 dark:text-teal-400"
+                          : "text-amber-600 dark:text-amber-400"
+                    }`}
+                  >
                     (Extra + EFE) / TMFT
                   </p>
                 </div>
-                <TrendingUp className={`h-8 w-8 ${
-                  metrics.atendimentoTotal >= 100
-                    ? "text-cyan-500"
-                    : metrics.atendimentoTotal >= 90
-                      ? "text-teal-500"
-                      : "text-amber-500"
-                }`} />
+                <TrendingUp
+                  className={`h-8 w-8 ${
+                    metrics.atendimentoTotal >= 100
+                      ? "text-cyan-500"
+                      : metrics.atendimentoTotal >= 90
+                        ? "text-teal-500"
+                        : "text-amber-500"
+                  }`}
+                />
               </div>
             </CardContent>
           </Card>
         </div>
 
-       {/* Sub-cards for EFETIVO drill-down: NA NEO and FORA DA NEO */}
-       {(statusFilter === "ocupados" || statusFilter === "vagos") && (
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-           {statusFilter === "ocupados" && (
-             <>
-           <Card
-             className={`bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 border-emerald-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${efetivoSubFilter === "na_neo" ? "ring-2 ring-emerald-500 ring-offset-2" : ""}`}
-             onClick={handleNaNeoClick}
-           >
-             <CardContent className="p-4">
-               <div className="flex items-center justify-between">
-                 <div>
-                   <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">NA NEO</p>
-                   <p className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">{neoMetrics.naNeoCount}</p>
-                   <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">Corpo TMFT = Corpo EFE</p>
-                 </div>
-                 <UserCheck className="h-7 w-7 text-emerald-500" />
-               </div>
-             </CardContent>
-           </Card>
-           
-           <Card
-             className={`bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 border-orange-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${efetivoSubFilter === "fora_neo" ? "ring-2 ring-orange-500 ring-offset-2" : ""}`}
-             onClick={handleForaNeoClick}
-           >
-             <CardContent className="p-4">
-               <div className="flex items-center justify-between">
-                 <div>
-                   <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">FORA DA NEO</p>
-                   <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{neoMetrics.foraNeoCount}</p>
-                   <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Corpo TMFT ≠ Corpo EFE</p>
-                 </div>
-                 <UserX className="h-7 w-7 text-orange-500" />
-               </div>
-             </CardContent>
-           </Card>
-             </>
-           )}
-           
-           {statusFilter === "vagos" && (
-             <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200 col-span-2">
-               <CardContent className="p-4">
-                 <div className="flex items-center justify-between">
-                   <div>
-                     <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-1">POSIÇÕES VAGAS</p>
-                     <p className="text-3xl font-bold text-red-900 dark:text-red-100">{Math.abs(metrics.totalDIF)}</p>
-                     <p className="text-xs text-red-600 dark:text-red-400 mt-1">Posições sem ocupante na TMFT</p>
-                   </div>
-                   <UserX className="h-7 w-7 text-red-500" />
-                 </div>
-               </CardContent>
-             </Card>
-           )}
-         </div>
-       )}
- 
+        {/* Sub-cards for EFETIVO drill-down: NA NEO and FORA DA NEO */}
+        {(statusFilter === "ocupados" || statusFilter === "vagos") && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {statusFilter === "ocupados" && (
+              <>
+                <Card
+                  className={`bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 border-emerald-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${efetivoSubFilter === "na_neo" ? "ring-2 ring-emerald-500 ring-offset-2" : ""}`}
+                  onClick={handleNaNeoClick}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">NA NEO</p>
+                        <p className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">
+                          {neoMetrics.naNeoCount}
+                        </p>
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">Corpo TMFT = Corpo EFE</p>
+                      </div>
+                      <UserCheck className="h-7 w-7 text-emerald-500" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card
+                  className={`bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 border-orange-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${efetivoSubFilter === "fora_neo" ? "ring-2 ring-orange-500 ring-offset-2" : ""}`}
+                  onClick={handleForaNeoClick}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">FORA DA NEO</p>
+                        <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">
+                          {neoMetrics.foraNeoCount}
+                        </p>
+                        <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Corpo TMFT ≠ Corpo EFE</p>
+                      </div>
+                      <UserX className="h-7 w-7 text-orange-500" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            {statusFilter === "vagos" && (
+              <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200 col-span-2">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-1">POSIÇÕES VAGAS</p>
+                      <p className="text-3xl font-bold text-red-900 dark:text-red-100">{Math.abs(metrics.totalDIF)}</p>
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">Posições sem ocupante na TMFT</p>
+                    </div>
+                    <UserX className="h-7 w-7 text-red-500" />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
         {/* Vagos por OM */}
         <Card className="border-red-200 bg-gradient-to-br from-red-50/50 to-background">
           <CardHeader>
@@ -2864,11 +3016,9 @@ const DashboardOM = () => {
                   allowDecimals={false}
                 />
                 <Tooltip />
-                <Legend 
+                <Legend
                   formatter={(value) => (
-                    <span style={{ color: value === "TMFT" ? "#3b82f6" : "#10b981" }}>
-                      {value}
-                    </span>
+                    <span style={{ color: value === "TMFT" ? "#3b82f6" : "#10b981" }}>{value}</span>
                   )}
                 />
                 <Bar dataKey="quantidade" name="TMFT" cursor="pointer" onClick={handlePostoBarClick}>
@@ -2880,7 +3030,11 @@ const DashboardOM = () => {
                       strokeWidth={selectedPostos.includes(entry.name) ? 2 : 0}
                     />
                   ))}
-                  <LabelList dataKey="quantidade" position="top" style={{ fontWeight: "bold", fontSize: "12px", fill: "#3b82f6" }} />
+                  <LabelList
+                    dataKey="quantidade"
+                    position="top"
+                    style={{ fontWeight: "bold", fontSize: "12px", fill: "#3b82f6" }}
+                  />
                 </Bar>
                 <Bar dataKey="efe" name="EFE" cursor="pointer" onClick={handlePostoEfeBarClick}>
                   {chartDataByPosto.map((entry, index) => {
@@ -2894,7 +3048,11 @@ const DashboardOM = () => {
                       />
                     );
                   })}
-                  <LabelList dataKey="efe" position="top" style={{ fontWeight: "bold", fontSize: "12px", fill: "#10b981" }} />
+                  <LabelList
+                    dataKey="efe"
+                    position="top"
+                    style={{ fontWeight: "bold", fontSize: "12px", fill: "#10b981" }}
+                  />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -2921,13 +3079,7 @@ const DashboardOM = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {personnelForSelectedPostos.map((item, index) => (
-                  <OfficerCard 
-                    key={`posto-${index}`}
-                    item={item} 
-                    index={index} 
-                    keyPrefix="posto" 
-                    variant="blue" 
-                  />
+                  <OfficerCard key={`posto-${index}`} item={item} index={index} keyPrefix="posto" variant="blue" />
                 ))}
               </div>
             </CardContent>
@@ -2954,12 +3106,12 @@ const DashboardOM = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {personnelForSelectedPostosEfe.map((item, index) => (
-                  <OfficerCard 
+                  <OfficerCard
                     key={`posto-efe-${index}`}
-                    item={item} 
-                    index={index} 
-                    keyPrefix="posto-efe" 
-                    variant="green" 
+                    item={item}
+                    index={index}
+                    keyPrefix="posto-efe"
+                    variant="green"
                   />
                 ))}
               </div>
@@ -3024,13 +3176,7 @@ const DashboardOM = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {personnelForSelectedCorpos.map((item, index) => (
-                  <OfficerCard 
-                    key={`corpo-${index}`}
-                    item={item} 
-                    index={index} 
-                    keyPrefix="corpo" 
-                    variant="purple" 
-                  />
+                  <OfficerCard key={`corpo-${index}`} item={item} index={index} keyPrefix="corpo" variant="purple" />
                 ))}
               </div>
             </CardContent>
@@ -3083,12 +3229,12 @@ const DashboardOM = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {items.map((item, index) => (
-                        <OfficerCard 
+                        <OfficerCard
                           key={item.id}
-                          item={item} 
-                          index={index} 
-                          keyPrefix={`efetivo-${setor}`} 
-                          variant="blue" 
+                          item={item}
+                          index={index}
+                          keyPrefix={`efetivo-${setor}`}
+                          variant="blue"
                         />
                       ))}
                     </div>
@@ -3160,9 +3306,7 @@ const DashboardOM = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhuma previsão de embarque encontrada.
-                  </div>
+                  <div className="text-center py-8 text-muted-foreground">Nenhuma previsão de embarque encontrada.</div>
                 )}
               </div>
             )}
