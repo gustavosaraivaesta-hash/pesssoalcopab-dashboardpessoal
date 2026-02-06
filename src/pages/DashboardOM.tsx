@@ -959,7 +959,7 @@ const DashboardOM = () => {
 
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
-      pdf.text("RESUMO)", pageWidth / 2, yPosition, { align: "center" });
+      pdf.text("RESUMO", pageWidth / 2, yPosition, { align: "center" });
       yPosition += 6;
 
       const neoResumoRows: string[][] = [];
