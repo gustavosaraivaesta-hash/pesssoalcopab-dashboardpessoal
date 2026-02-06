@@ -891,12 +891,30 @@ const DashboardOM = () => {
       });
       yPosition += 15;
 
-      if (selectedOMs.length > 0 || selectedOpcoes.length > 0) {
+      if (selectedOMs.length > 0 || selectedOpcoes.length > 0 || selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0) {
         pdf.setFontSize(10);
         pdf.text("Filtros Aplicados:", 14, yPosition);
         yPosition += 6;
-        if (selectedOMs.length > 0) pdf.text(`OM: ${selectedOMs.join(", ")}`, 20, yPosition);
-        if (selectedOpcoes.length > 0) pdf.text(`Opção: ${selectedOpcoes.join(", ")}`, 80, yPosition);
+        let filterX = 20;
+        if (selectedOMs.length > 0) {
+          pdf.text(`OM: ${selectedOMs.join(", ")}`, filterX, yPosition);
+          filterX += 50;
+        }
+        if (selectedCorpos.length > 0) {
+          pdf.text(`Corpo: ${selectedCorpos.join(", ")}`, filterX, yPosition);
+          filterX += 50;
+        }
+        if (selectedQuadros.length > 0) {
+          pdf.text(`Quadro: ${selectedQuadros.join(", ")}`, filterX, yPosition);
+          filterX += 50;
+        }
+        if (selectedOpcoes.length > 0) {
+          pdf.text(`Opção: ${selectedOpcoes.join(", ")}`, filterX, yPosition);
+          filterX += 50;
+        }
+        if (selectedPostoFilter.length > 0) {
+          pdf.text(`Posto: ${selectedPostoFilter.join(", ")}`, filterX, yPosition);
+        }
         yPosition += 10;
       }
 
@@ -916,50 +934,65 @@ const DashboardOM = () => {
      let totalEfetivoGeral = 0;
      let totalVagosGeral = 0;
       let totalTmftConformidade = 0;
-     
-     for (const om of activeOMs) {
-       const omData = filteredData.filter((item) => item.om === om);
-       if (omData.length === 0) continue;
-       
-       const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
-       const omTmft = omRegularData.length;
-       const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
-       const omEfetivoTotal = omRegularOcupados.length;
-       const omVagos = omTmft - omEfetivoTotal;
-       
-       // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are different)
-       const omForaNeoList = omRegularOcupados.filter((item) => {
-         const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
-         const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
-         return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
-       }).length;
-       
-       // NA NEO: everyone who is NOT FORA DA NEO (ensures NA NEO + FORA DA NEO = EFETIVO)
-       const omNaNeo = omEfetivoTotal - omForaNeoList;
-       const omForaNeo = omForaNeoList;
-       
-       // When FORA DA NEO = 0 (all occupied have matching quadros), show FALTAS = 0 and ATENDIMENTO = 100%
-       const displayVagos = omTmft - omEfetivoTotal;
-       const displayAtendimento = omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100) : 0;
-       
-       totalNaNeo += omNaNeo;
-       totalForaNeo += omForaNeo;
-       totalEfetivoGeral += omEfetivoTotal;
-       totalVagosGeral += displayVagos;
+      
+      for (const om of activeOMs) {
+        const omData = filteredData.filter((item) => item.om === om);
+        if (omData.length === 0) continue;
+        
+        const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+        const omTmft = omRegularData.length;
+        
+        // EFETIVO: quando há filtro de corpo, conta ocupados pelo corpoEfe (corpo real do militar)
+        let omEfetivoTotal: number;
+        if (selectedCorpos.length > 0) {
+          // Conta todos os ocupados desta OM que têm o corpo real (corpoEfe) no filtro
+          omEfetivoTotal = personnelData.filter((item) => 
+            item.om === om &&
+            item.tipoSetor !== "EXTRA LOTAÇÃO" && 
+            item.ocupado && 
+            selectedCorpos.includes(item.corpoEfe)
+          ).length;
+        } else {
+          const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
+          omEfetivoTotal = omRegularOcupados.length;
+        }
+        
+        const omVagos = omTmft - omEfetivoTotal;
+        
+        // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are different)
+        const omRegularOcupadosForNeo = omRegularData.filter((item) => item.ocupado);
+        const omForaNeoList = omRegularOcupadosForNeo.filter((item) => {
+          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+          return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+        }).length;
+        
+        // NA NEO: everyone who is NOT FORA DA NEO (ensures NA NEO + FORA DA NEO = EFETIVO)
+        const omNaNeo = omEfetivoTotal - omForaNeoList;
+        const omForaNeo = omForaNeoList;
+        
+        // When FORA DA NEO = 0 (all occupied have matching quadros), show FALTAS = 0 and ATENDIMENTO = 100%
+        const displayVagos = omTmft - omEfetivoTotal;
+        const displayAtendimento = omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100) : 0;
+        
+        totalNaNeo += omNaNeo;
+        totalForaNeo += omForaNeo;
+        totalEfetivoGeral += omEfetivoTotal;
+        totalVagosGeral += displayVagos;
         totalTmftConformidade += omTmft;
-       
-       if (omTmft > 0) {
-         neoResumoRows.push([
-           om,
-           omTmft.toString(),
-           omEfetivoTotal.toString(),
-           omNaNeo.toString(),
-           omForaNeo.toString(),
-           displayVagos.toString(),
+        
+        if (omTmft > 0) {
+          neoResumoRows.push([
+            om,
+            omTmft.toString(),
+            omEfetivoTotal.toString(),
+            omNaNeo.toString(),
+            omForaNeo.toString(),
+            displayVagos.toString(),
             `${displayAtendimento.toFixed(1)}%`
-         ]);
-       }
-     }
+          ]);
+        }
+      }
 
      // Add TOTAL row
      const totalDisplayVagos = totalTmftConformidade - totalEfetivoGeral;
