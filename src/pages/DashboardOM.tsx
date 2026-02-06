@@ -371,9 +371,9 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
     }
 
-    // Filtro de corpo
+    // Filtro de corpo - filtra pela TMFT para que as métricas sejam baseadas nas posições do corpo selecionado
     if (selectedCorpos.length > 0) {
-      filtered = filtered.filter((item) => selectedCorpos.includes(item.corpoTmft) || selectedCorpos.includes(item.corpoEfe));
+      filtered = filtered.filter((item) => selectedCorpos.includes(item.corpoTmft));
     }
 
     // Apply search filter
