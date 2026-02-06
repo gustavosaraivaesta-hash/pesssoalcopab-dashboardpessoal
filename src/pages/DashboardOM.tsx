@@ -2221,7 +2221,7 @@ const DashboardOM = () => {
 
       // Sheet 1: Resumo Geral por OM
       const resumoData: any[][] = [
-        ["RESUMO)"],
+        ["RESUMO"],
         [],
         ["OM", "TMFT", "EFETIVO", "FALTAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO (%)"],
       ];
