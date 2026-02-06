@@ -632,7 +632,7 @@ const DashboardOM = () => {
     });
   }, [filteredData]);
 
-  // Base filtered data for vagas chart (without statusFilter, respects OM, Quadro, Opção filters)
+  // Base filtered data for vagas chart (respects all filters: OM, Quadro, Opção, Posto, Corpo, Search)
   const baseFilteredForVagos = useMemo(() => {
     let filtered = personnelData;
 
@@ -648,8 +648,32 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
     }
 
+    // Filtro de posto (postoEfe) para oficiais
+    if (selectedPostoFilter.length > 0) {
+      filtered = filtered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+    }
+
+    // Filtro de corpo
+    if (selectedCorpos.length > 0) {
+      filtered = filtered.filter((item) => selectedCorpos.includes(item.corpoTmft) || selectedCorpos.includes(item.corpoEfe));
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((item) => 
+        item.nome?.toLowerCase().includes(query) ||
+        item.cargo?.toLowerCase().includes(query) ||
+        item.setor?.toLowerCase().includes(query) ||
+        item.postoTmft?.toLowerCase().includes(query) ||
+        item.postoEfe?.toLowerCase().includes(query) ||
+        item.quadroTmft?.toLowerCase().includes(query) ||
+        item.quadroEfe?.toLowerCase().includes(query)
+      );
+    }
+
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedCorpos, searchQuery]);
 
   // Chart data showing vacancies by OM
   const chartDataVagosByOM = useMemo(() => {
