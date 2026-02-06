@@ -475,7 +475,21 @@ const DashboardOM = () => {
   const metrics = useMemo(() => {
     const regularData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
     const totalTMFT = regularData.length;
-    const totalEXI = regularData.filter((item) => item.ocupado).length;
+    
+    // EFETIVO: quando há filtro de corpo, conta ocupados pelo corpoEfe (corpo real do militar)
+    // Caso contrário, conta todos os ocupados
+    let totalEXI: number;
+    if (selectedCorpos.length > 0) {
+      // Conta ocupados onde o corpoEfe está no filtro selecionado
+      totalEXI = personnelData.filter((item) => 
+        item.tipoSetor !== "EXTRA LOTAÇÃO" && 
+        item.ocupado && 
+        selectedCorpos.includes(item.corpoEfe)
+      ).length;
+    } else {
+      totalEXI = regularData.filter((item) => item.ocupado).length;
+    }
+    
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
     const totalExtraLotacao = baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
@@ -490,7 +504,7 @@ const DashboardOM = () => {
       totalExtraLotacao,
       atendimentoTotal,
     };
-  }, [baseFilteredData]);
+  }, [baseFilteredData, personnelData, selectedCorpos]);
 
  // Calculate NA NEO and FORA DA NEO metrics for EFETIVO drill-down (based on CORPO match)
  const neoMetrics = useMemo(() => {
