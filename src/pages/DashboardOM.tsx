@@ -1133,7 +1133,20 @@ const DashboardOM = () => {
         // Calculate metrics per OM
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omTmft = omRegularData.length;
-        const omEfetivo = omRegularData.filter((item) => item.ocupado).length;
+        
+        // EFETIVO: quando há filtro de corpo, conta ocupados pelo corpoEfe (corpo real do militar)
+        let omEfetivo: number;
+        if (selectedCorpos.length > 0) {
+          omEfetivo = personnelData.filter((item) => 
+            item.om === om &&
+            item.tipoSetor !== "EXTRA LOTAÇÃO" && 
+            item.ocupado && 
+            selectedCorpos.includes(item.corpoEfe)
+          ).length;
+        } else {
+          omEfetivo = omRegularData.filter((item) => item.ocupado).length;
+        }
+        
         const omVagos = omTmft - omEfetivo;
         const omAtendimento = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
         const omExtraLotacao = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
