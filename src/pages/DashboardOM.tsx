@@ -351,6 +351,7 @@ const DashboardOM = () => {
   }, []);
 
   // Base filtered data for metrics calculation (independent of card clicks)
+  // Para TMFT: usa postoTmft, quadroTmft, corpoTmft
   const baseFilteredData = useMemo(() => {
     let filtered = personnelData;
 
@@ -358,6 +359,7 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedOMs.includes(item.om));
     }
 
+    // Filtro de Quadro - filtra pela TMFT para que as métricas sejam baseadas nas posições do quadro selecionado
     if (selectedQuadros.length > 0) {
       filtered = filtered.filter((item) => selectedQuadros.includes(item.quadroTmft));
     }
@@ -366,9 +368,9 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
     }
 
-    // Filtro de posto (postoEfe) para oficiais
+    // Filtro de posto - filtra pela TMFT para que as métricas sejam baseadas nas posições do posto selecionado
     if (selectedPostoFilter.length > 0) {
-      filtered = filtered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+      filtered = filtered.filter((item) => selectedPostoFilter.includes(item.postoTmft));
     }
 
     // Filtro de corpo - filtra pela TMFT para que as métricas sejam baseadas nas posições do corpo selecionado
@@ -476,28 +478,22 @@ const DashboardOM = () => {
     const regularData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
     const totalTMFT = regularData.length;
     
-    // EFETIVO: quando há filtro de corpo, conta ocupados pelo corpoEfe (corpo real do militar)
-    // Aplica os mesmos filtros (OM, Quadro, Opção, Posto, Search) mas usa corpoEfe ao invés de corpoTmft
+    // EFETIVO: quando há filtros de corpo/quadro/posto, conta ocupados pelo campo EFE correspondente
+    // Aplica os mesmos filtros (OM, Opção, Search) mas usa corpoEfe/quadroEfe/postoEfe ao invés de TMFT
+    const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+    
     let totalEXI: number;
-    if (selectedCorpos.length > 0) {
-      // Aplica todos os filtros exceto corpo, depois filtra por corpoEfe
+    if (hasEfeFilters) {
+      // Aplica todos os filtros usando campos EFE para corpo/quadro/posto
       let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
       
       // Aplicar filtro de OM
       if (selectedOMs.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedOMs.includes(item.om));
       }
-      // Aplicar filtro de Quadro
-      if (selectedQuadros.length > 0) {
-        efetivoData = efetivoData.filter((item) => selectedQuadros.includes(item.quadroTmft));
-      }
       // Aplicar filtro de Opção
       if (selectedOpcoes.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
-      }
-      // Aplicar filtro de Posto
-      if (selectedPostoFilter.length > 0) {
-        efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
       }
       // Aplicar filtro de busca
       if (searchQuery.trim()) {
@@ -512,8 +508,19 @@ const DashboardOM = () => {
           (item.neo && item.neo.toString().includes(query))
         );
       }
-      // Agora filtra por corpoEfe (corpo real do militar)
-      totalEXI = efetivoData.filter((item) => selectedCorpos.includes(item.corpoEfe)).length;
+      
+      // Agora filtra por campos EFE (corpo/quadro/posto reais do militar)
+      if (selectedCorpos.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedCorpos.includes(item.corpoEfe));
+      }
+      if (selectedQuadros.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedQuadros.includes(item.quadroEfe));
+      }
+      if (selectedPostoFilter.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+      }
+      
+      totalEXI = efetivoData.length;
     } else {
       totalEXI = regularData.filter((item) => item.ocupado).length;
     }
@@ -532,7 +539,7 @@ const DashboardOM = () => {
       totalExtraLotacao,
       atendimentoTotal,
     };
-  }, [baseFilteredData, personnelData, selectedCorpos, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, searchQuery]);
+  }, [baseFilteredData, personnelData, selectedCorpos, selectedQuadros, selectedPostoFilter, selectedOMs, selectedOpcoes, searchQuery]);
 
  // Calculate NA NEO and FORA DA NEO metrics for EFETIVO drill-down (based on CORPO match)
  const neoMetrics = useMemo(() => {
@@ -942,16 +949,29 @@ const DashboardOM = () => {
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omTmft = omRegularData.length;
         
-        // EFETIVO: quando há filtro de corpo, conta ocupados pelo corpoEfe (corpo real do militar)
+        // EFETIVO: quando há filtros de corpo/quadro/posto, conta ocupados pelos campos EFE correspondentes
         let omEfetivoTotal: number;
-        if (selectedCorpos.length > 0) {
-          // Conta todos os ocupados desta OM que têm o corpo real (corpoEfe) no filtro
-          omEfetivoTotal = personnelData.filter((item) => 
+        const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+        
+        if (hasEfeFilters) {
+          // Conta todos os ocupados desta OM que têm os campos EFE no filtro
+          let efetivoFiltered = personnelData.filter((item) => 
             item.om === om &&
             item.tipoSetor !== "EXTRA LOTAÇÃO" && 
-            item.ocupado && 
-            selectedCorpos.includes(item.corpoEfe)
-          ).length;
+            item.ocupado
+          );
+          
+          if (selectedCorpos.length > 0) {
+            efetivoFiltered = efetivoFiltered.filter((item) => selectedCorpos.includes(item.corpoEfe));
+          }
+          if (selectedQuadros.length > 0) {
+            efetivoFiltered = efetivoFiltered.filter((item) => selectedQuadros.includes(item.quadroEfe));
+          }
+          if (selectedPostoFilter.length > 0) {
+            efetivoFiltered = efetivoFiltered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+          }
+          
+          omEfetivoTotal = efetivoFiltered.length;
         } else {
           const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
           omEfetivoTotal = omRegularOcupados.length;
@@ -1134,15 +1154,28 @@ const DashboardOM = () => {
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omTmft = omRegularData.length;
         
-        // EFETIVO: quando há filtro de corpo, conta ocupados pelo corpoEfe (corpo real do militar)
+        // EFETIVO: quando há filtros de corpo/quadro/posto, conta ocupados pelos campos EFE correspondentes
         let omEfetivo: number;
-        if (selectedCorpos.length > 0) {
-          omEfetivo = personnelData.filter((item) => 
+        const hasEfeFiltersPDF = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+        
+        if (hasEfeFiltersPDF) {
+          let efetivoFiltered = personnelData.filter((item) => 
             item.om === om &&
             item.tipoSetor !== "EXTRA LOTAÇÃO" && 
-            item.ocupado && 
-            selectedCorpos.includes(item.corpoEfe)
-          ).length;
+            item.ocupado
+          );
+          
+          if (selectedCorpos.length > 0) {
+            efetivoFiltered = efetivoFiltered.filter((item) => selectedCorpos.includes(item.corpoEfe));
+          }
+          if (selectedQuadros.length > 0) {
+            efetivoFiltered = efetivoFiltered.filter((item) => selectedQuadros.includes(item.quadroEfe));
+          }
+          if (selectedPostoFilter.length > 0) {
+            efetivoFiltered = efetivoFiltered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+          }
+          
+          omEfetivo = efetivoFiltered.length;
         } else {
           omEfetivo = omRegularData.filter((item) => item.ocupado).length;
         }
@@ -1210,17 +1243,36 @@ const DashboardOM = () => {
         pdf.text("TABELA DE EFETIVO", pageWidth / 2, yPosition, { align: "center" });
         yPosition += 6;
 
-        // Quando há filtro de corpo, incluir linhas extras de militares do corpo que estão em outras posições
+        // Quando há filtros de corpo/quadro/posto, incluir linhas extras de militares que estão em outras posições
         let omTableData = omData;
-        if (selectedCorpos.length > 0) {
-          // Buscar militares desta OM que têm corpoEfe no filtro mas corpoTmft diferente
-          const extraEfetivoRows = personnelData.filter((item) => 
-            item.om === om &&
-            item.tipoSetor !== "EXTRA LOTAÇÃO" && 
-            item.ocupado && 
-            selectedCorpos.includes(item.corpoEfe) &&
-            !selectedCorpos.includes(item.corpoTmft)
-          );
+        const hasEfeFiltersTable = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+        
+        if (hasEfeFiltersTable) {
+          // Buscar militares desta OM que têm campos EFE no filtro mas TMFT diferente
+          const extraEfetivoRows = personnelData.filter((item) => {
+            if (item.om !== om || item.tipoSetor === "EXTRA LOTAÇÃO" || !item.ocupado) return false;
+            
+            // Verifica se o militar atende aos critérios EFE mas não está na lista filtrada por TMFT
+            let matchesEfeFilters = true;
+            let matchesTmftFilters = true;
+            
+            if (selectedCorpos.length > 0) {
+              matchesEfeFilters = matchesEfeFilters && selectedCorpos.includes(item.corpoEfe);
+              matchesTmftFilters = matchesTmftFilters && selectedCorpos.includes(item.corpoTmft);
+            }
+            if (selectedQuadros.length > 0) {
+              matchesEfeFilters = matchesEfeFilters && selectedQuadros.includes(item.quadroEfe);
+              matchesTmftFilters = matchesTmftFilters && selectedQuadros.includes(item.quadroTmft);
+            }
+            if (selectedPostoFilter.length > 0) {
+              matchesEfeFilters = matchesEfeFilters && selectedPostoFilter.includes(item.postoEfe);
+              matchesTmftFilters = matchesTmftFilters && selectedPostoFilter.includes(item.postoTmft);
+            }
+            
+            // Incluir se atende aos filtros EFE mas NÃO aos filtros TMFT (linha extra)
+            return matchesEfeFilters && !matchesTmftFilters;
+          });
+          
           // Combinar dados originais com as linhas extras (sem duplicar)
           const existingIds = new Set(omData.map(item => item.id));
           const newRows = extraEfetivoRows.filter(item => !existingIds.has(item.id));
@@ -1228,10 +1280,27 @@ const DashboardOM = () => {
         }
 
         const tableData = omTableData.map((item) => {
-          // Marcar se é linha extra (corpoEfe no filtro mas corpoTmft fora)
-          const isExtraCorpoRow = selectedCorpos.length > 0 && 
-            selectedCorpos.includes(item.corpoEfe) && 
-            !selectedCorpos.includes(item.corpoTmft);
+          // Marcar se é linha extra (campos EFE no filtro mas TMFT fora)
+          let isExtraRow = false;
+          if (hasEfeFiltersTable) {
+            let matchesEfe = true;
+            let matchesTmft = true;
+            
+            if (selectedCorpos.length > 0) {
+              matchesEfe = matchesEfe && selectedCorpos.includes(item.corpoEfe);
+              matchesTmft = matchesTmft && selectedCorpos.includes(item.corpoTmft);
+            }
+            if (selectedQuadros.length > 0) {
+              matchesEfe = matchesEfe && selectedQuadros.includes(item.quadroEfe);
+              matchesTmft = matchesTmft && selectedQuadros.includes(item.quadroTmft);
+            }
+            if (selectedPostoFilter.length > 0) {
+              matchesEfe = matchesEfe && selectedPostoFilter.includes(item.postoEfe);
+              matchesTmft = matchesTmft && selectedPostoFilter.includes(item.postoTmft);
+            }
+            
+            isExtraRow = item.ocupado && matchesEfe && !matchesTmft;
+          }
           
           return [
             item.neo.toString(),
@@ -1247,7 +1316,7 @@ const DashboardOM = () => {
             item.ocupado ? (() => {
               const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
               const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
-              if (isExtraCorpoRow) {
+              if (isExtraRow) {
                 return "EFETIVO EXTRA";
               } else if (!corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe) {
                 return "NA NEO";
