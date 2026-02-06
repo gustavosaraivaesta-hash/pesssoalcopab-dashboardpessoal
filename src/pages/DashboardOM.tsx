@@ -1399,7 +1399,7 @@ const DashboardOM = () => {
               const isOcupado = nome && nome !== "-" && nomeStr !== "" && nomeStr !== "VAGO" && nomeStr !== "VAZIO";
 
               // Destaque AZUL CLARO para EFETIVO EXTRA (militar do corpo filtrado em posição de outro corpo)
-              if (statusStr === "EFETIVO ") {
+              if (statusStr === "EFETIVO") {
                 data.cell.styles.fillColor = [219, 234, 254]; // blue-100
                 data.cell.styles.textColor = [30, 64, 175]; // blue-800
               }
