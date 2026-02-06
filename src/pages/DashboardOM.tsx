@@ -959,7 +959,7 @@ const DashboardOM = () => {
 
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
-      pdf.text("RESUMO - CONFORMIDADE DE CORPO (NA NEO / FORA DA NEO)", pageWidth / 2, yPosition, { align: "center" });
+      pdf.text("RESUMO)", pageWidth / 2, yPosition, { align: "center" });
       yPosition += 6;
 
       const neoResumoRows: string[][] = [];
@@ -1662,9 +1662,7 @@ const DashboardOM = () => {
       // RESUMO - CONFORMIDADE DE CORPO table
       titleParagraphs.push(
         new Paragraph({
-          children: [
-            new TextRun({ text: "RESUMO - CONFORMIDADE DE CORPO (NA NEO / FORA DA NEO)", bold: true, size: 22 }),
-          ],
+          children: [new TextRun({ text: "RESUMO)", bold: true, size: 22 })],
           alignment: AlignmentType.CENTER,
           spacing: { before: 200, after: 200 },
         }),
@@ -2223,7 +2221,7 @@ const DashboardOM = () => {
 
       // Sheet 1: Resumo Geral por OM
       const resumoData: any[][] = [
-        ["RESUMO - CONFORMIDADE DE CORPO (NA NEO / FORA DA NEO)"],
+        ["RESUMO)"],
         [],
         ["OM", "TMFT", "EFETIVO", "FALTAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO (%)"],
       ];
