@@ -1662,7 +1662,7 @@ const DashboardOM = () => {
       // RESUMO - CONFORMIDADE DE CORPO table
       titleParagraphs.push(
         new Paragraph({
-          children: [new TextRun({ text: "RESUMO)", bold: true, size: 22 })],
+          children: [new TextRun({ text: "RESUMO", bold: true, size: 22 })],
           alignment: AlignmentType.CENTER,
           spacing: { before: 200, after: 200 },
         }),
