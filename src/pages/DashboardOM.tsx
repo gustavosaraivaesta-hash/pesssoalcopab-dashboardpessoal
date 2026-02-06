@@ -477,15 +477,43 @@ const DashboardOM = () => {
     const totalTMFT = regularData.length;
     
     // EFETIVO: quando há filtro de corpo, conta ocupados pelo corpoEfe (corpo real do militar)
-    // Caso contrário, conta todos os ocupados
+    // Aplica os mesmos filtros (OM, Quadro, Opção, Posto, Search) mas usa corpoEfe ao invés de corpoTmft
     let totalEXI: number;
     if (selectedCorpos.length > 0) {
-      // Conta ocupados onde o corpoEfe está no filtro selecionado
-      totalEXI = personnelData.filter((item) => 
-        item.tipoSetor !== "EXTRA LOTAÇÃO" && 
-        item.ocupado && 
-        selectedCorpos.includes(item.corpoEfe)
-      ).length;
+      // Aplica todos os filtros exceto corpo, depois filtra por corpoEfe
+      let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+      
+      // Aplicar filtro de OM
+      if (selectedOMs.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedOMs.includes(item.om));
+      }
+      // Aplicar filtro de Quadro
+      if (selectedQuadros.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedQuadros.includes(item.quadroTmft));
+      }
+      // Aplicar filtro de Opção
+      if (selectedOpcoes.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
+      }
+      // Aplicar filtro de Posto
+      if (selectedPostoFilter.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+      }
+      // Aplicar filtro de busca
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        efetivoData = efetivoData.filter((item) =>
+          (item.nome && item.nome.toLowerCase().includes(query)) ||
+          (item.postoTmft && item.postoTmft.toLowerCase().includes(query)) ||
+          (item.postoEfe && item.postoEfe.toLowerCase().includes(query)) ||
+          (item.setor && item.setor.toLowerCase().includes(query)) ||
+          (item.quadroTmft && item.quadroTmft.toLowerCase().includes(query)) ||
+          (item.quadroEfe && item.quadroEfe.toLowerCase().includes(query)) ||
+          (item.neo && item.neo.toString().includes(query))
+        );
+      }
+      // Agora filtra por corpoEfe (corpo real do militar)
+      totalEXI = efetivoData.filter((item) => selectedCorpos.includes(item.corpoEfe)).length;
     } else {
       totalEXI = regularData.filter((item) => item.ocupado).length;
     }
@@ -504,7 +532,7 @@ const DashboardOM = () => {
       totalExtraLotacao,
       atendimentoTotal,
     };
-  }, [baseFilteredData, personnelData, selectedCorpos]);
+  }, [baseFilteredData, personnelData, selectedCorpos, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, searchQuery]);
 
  // Calculate NA NEO and FORA DA NEO metrics for EFETIVO drill-down (based on CORPO match)
  const neoMetrics = useMemo(() => {
