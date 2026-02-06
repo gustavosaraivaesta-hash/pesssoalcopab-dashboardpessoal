@@ -1210,32 +1210,58 @@ const DashboardOM = () => {
         pdf.text("TABELA DE EFETIVO", pageWidth / 2, yPosition, { align: "center" });
         yPosition += 6;
 
-        const tableData = omData.map((item) => [
-          item.neo.toString(),
-          item.setor,
-          item.cargo,
-          item.postoTmft,
-          item.quadroTmft,
-         item.corpoTmft || "-",
-          item.nome || "-",
-          item.postoEfe || "-",
-          item.quadroEfe || "-",
-         item.corpoEfe || "-",
-         item.ocupado ? (() => {
-           const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
-           const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
-           if (!corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe) {
-             return "NA NEO";
-           } else {
-             return "FORA NEO";
-           }
-         })() : "VAGO",
-        ]);
+        // Quando há filtro de corpo, incluir linhas extras de militares do corpo que estão em outras posições
+        let omTableData = omData;
+        if (selectedCorpos.length > 0) {
+          // Buscar militares desta OM que têm corpoEfe no filtro mas corpoTmft diferente
+          const extraEfetivoRows = personnelData.filter((item) => 
+            item.om === om &&
+            item.tipoSetor !== "EXTRA LOTAÇÃO" && 
+            item.ocupado && 
+            selectedCorpos.includes(item.corpoEfe) &&
+            !selectedCorpos.includes(item.corpoTmft)
+          );
+          // Combinar dados originais com as linhas extras (sem duplicar)
+          const existingIds = new Set(omData.map(item => item.id));
+          const newRows = extraEfetivoRows.filter(item => !existingIds.has(item.id));
+          omTableData = [...omData, ...newRows];
+        }
+
+        const tableData = omTableData.map((item) => {
+          // Marcar se é linha extra (corpoEfe no filtro mas corpoTmft fora)
+          const isExtraCorpoRow = selectedCorpos.length > 0 && 
+            selectedCorpos.includes(item.corpoEfe) && 
+            !selectedCorpos.includes(item.corpoTmft);
+          
+          return [
+            item.neo.toString(),
+            item.setor,
+            item.cargo,
+            item.postoTmft,
+            item.quadroTmft,
+            item.corpoTmft || "-",
+            item.nome || "-",
+            item.postoEfe || "-",
+            item.quadroEfe || "-",
+            item.corpoEfe || "-",
+            item.ocupado ? (() => {
+              const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+              const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+              if (isExtraCorpoRow) {
+                return "EFETIVO EXTRA";
+              } else if (!corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe) {
+                return "NA NEO";
+              } else {
+                return "FORA NEO";
+              }
+            })() : "VAGO",
+          ];
+        });
 
         autoTable(pdf, {
           startY: yPosition,
           head: [
-           ["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "CORPO TMFT", "NOME", "POSTO EFE", "QUADRO EFE", "CORPO EFE", "STATUS"],
+            ["NEO", "SETOR", "CARGO", "POSTO TMFT", "QUADRO TMFT", "CORPO TMFT", "NOME", "POSTO EFE", "QUADRO EFE", "CORPO EFE", "STATUS"],
           ],
           body: tableData,
           theme: "grid",
@@ -1244,29 +1270,31 @@ const DashboardOM = () => {
           margin: { left: 15, right: 15 },
           didParseCell: (data) => {
             if (data.section === 'body') {
-             const nome = data.row.raw?.[6];
+              const nome = data.row.raw?.[6];
               const setor = data.row.raw?.[1];
               const quadroTmft = data.row.raw?.[4];
-             const quadroEfe = data.row.raw?.[8];
-             const corpoTmft = data.row.raw?.[5];
-             const corpoEfe = data.row.raw?.[9];
-             const status = data.row.raw?.[10];
+              const quadroEfe = data.row.raw?.[8];
+              const corpoTmft = data.row.raw?.[5];
+              const corpoEfe = data.row.raw?.[9];
+              const status = data.row.raw?.[10];
               const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
               const setorStr = setor ? setor.toString().trim().toUpperCase() : "";
               const quadroTmftStr = quadroTmft ? quadroTmft.toString().trim().toUpperCase() : "";
               const quadroEfeStr = quadroEfe ? quadroEfe.toString().trim().toUpperCase() : "";
-             const corpoTmftStr = corpoTmft ? corpoTmft.toString().trim().toUpperCase() : "";
-             const corpoEfeStr = corpoEfe ? corpoEfe.toString().trim().toUpperCase() : "";
-             const statusStr = status ? status.toString().trim().toUpperCase() : "";
+              const corpoTmftStr = corpoTmft ? corpoTmft.toString().trim().toUpperCase() : "";
+              const corpoEfeStr = corpoEfe ? corpoEfe.toString().trim().toUpperCase() : "";
+              const statusStr = status ? status.toString().trim().toUpperCase() : "";
               
               // Verifica se é ocupado (tem nome válido)
               const isOcupado = nome && nome !== "-" && nomeStr !== "" && nomeStr !== "VAGO" && nomeStr !== "VAZIO";
               
-             // Destaque LARANJA para FORA DA NEO (Quadro ou Corpo divergente quando ocupado)
-             const quadroDivergente = isOcupado && quadroTmftStr && quadroEfeStr && quadroTmftStr !== "-" && quadroEfeStr !== "-" && quadroTmftStr !== quadroEfeStr;
-             const corpoDivergente = isOcupado && corpoTmftStr && corpoEfeStr && corpoTmftStr !== "-" && corpoEfeStr !== "-" && corpoTmftStr !== corpoEfeStr;
-             
-             if (quadroDivergente || corpoDivergente || statusStr === "FORA NEO") {
+              // Destaque AZUL CLARO para EFETIVO EXTRA (militar do corpo filtrado em posição de outro corpo)
+              if (statusStr === "EFETIVO EXTRA") {
+                data.cell.styles.fillColor = [219, 234, 254]; // blue-100
+                data.cell.styles.textColor = [30, 64, 175]; // blue-800
+              }
+              // Destaque LARANJA para FORA DA NEO (Quadro ou Corpo divergente quando ocupado)
+              else if (statusStr === "FORA NEO") {
                 data.cell.styles.fillColor = [255, 237, 213]; // orange-100
                 data.cell.styles.textColor = [194, 65, 12]; // orange-700
               }
