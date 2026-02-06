@@ -1345,7 +1345,7 @@ const DashboardOM = () => {
                   const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
                   const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
                   if (isExtraRow) {
-                    return "EFETIVO EXTRA";
+                    return "EFETIVO";
                   } else if (!corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe) {
                     return "NA NEO";
                   } else {
