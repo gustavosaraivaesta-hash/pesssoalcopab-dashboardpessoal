@@ -400,29 +400,12 @@ const DashboardPracas = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Base filtered data for metrics calculation (independent of card clicks)
+  // Base filtered data: only common filters (OM + search)
   const baseFilteredData = useMemo(() => {
     let filtered = personnelData;
 
     if (selectedOMs.length > 0) {
       filtered = filtered.filter((item) => selectedOMs.includes(item.om));
-    }
-
-    if (selectedQuadros.length > 0) {
-      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadroTmft));
-    }
-
-    if (selectedQuadrosEfe.length > 0) {
-      filtered = filtered.filter((item) => selectedQuadrosEfe.includes(item.quadroEfe));
-    }
-
-    if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
-    }
-
-    // Filtro de graduação (postoEfe)
-    if (selectedGraduacoes.length > 0) {
-      filtered = filtered.filter((item) => selectedGraduacoes.includes(item.postoEfe));
     }
 
     // Apply search filter
@@ -441,19 +424,34 @@ const DashboardPracas = () => {
     }
 
     return filtered;
-  }, [
-    personnelData,
-    selectedOMs,
-    selectedQuadros,
-    selectedQuadrosEfe,
-    selectedOpcoes,
-    selectedGraduacoes,
-    searchQuery,
-  ]);
+  }, [personnelData, selectedOMs, searchQuery]);
+
+  // Independent filter matching functions
+  const hasSpecificFilters = selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0 || selectedGraduacoes.length > 0 || selectedOpcoes.length > 0;
+
+  const matchesTmftFilters = (item: PersonnelRecord) => {
+    if (selectedQuadros.length > 0 && !selectedQuadros.includes(item.quadroTmft)) return false;
+    if (selectedGraduacoes.length > 0 && !selectedGraduacoes.includes(item.postoTmft)) return false;
+    if (selectedOpcoes.length > 0 && !selectedOpcoes.includes(item.opcaoTmft)) return false;
+    return true;
+  };
+
+  const matchesEfeFilters = (item: PersonnelRecord) => {
+    if (selectedQuadrosEfe.length > 0 && !selectedQuadrosEfe.includes(item.quadroEfe)) return false;
+    if (selectedGraduacoes.length > 0 && !selectedGraduacoes.includes(item.postoEfe)) return false;
+    if (selectedOpcoes.length > 0 && !selectedOpcoes.includes(item.opcaoEfe)) return false;
+    return true;
+  };
+
+  // Display data: union of records matching TMFT or EFE filters
+  const displayFilteredData = useMemo(() => {
+    if (!hasSpecificFilters) return baseFilteredData;
+    return baseFilteredData.filter((item) => matchesTmftFilters(item) || (item.ocupado && matchesEfeFilters(item)));
+  }, [baseFilteredData, selectedQuadros, selectedQuadrosEfe, selectedGraduacoes, selectedOpcoes]);
 
   // Filtered data for display (applies status filter and extra lotação for drill-down)
   const filteredData = useMemo(() => {
-    let filtered = baseFilteredData;
+    let filtered = displayFilteredData;
 
     if (statusFilter === "ocupados") {
       filtered = filtered.filter((item) => item.ocupado);
@@ -466,11 +464,7 @@ const DashboardPracas = () => {
     }
 
     return filtered;
-  }, [
-    baseFilteredData,
-    statusFilter,
-    showOnlyExtraLotacao,
-  ]);
+  }, [displayFilteredData, statusFilter, showOnlyExtraLotacao]);
 
   const toggleOM = (om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
@@ -534,39 +528,12 @@ const DashboardPracas = () => {
   const neoComparisonPersonnel = useMemo(() => {
     if (!showNeoPersonnel || (selectedQuadros.length === 0 && selectedQuadrosEfe.length === 0)) return [];
 
-    // Filter from base data with current filters applied, but always show ocupados
-    let baseData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+    // Filter from base data (OM + search), always show ocupados
+    let baseData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
 
-    if (selectedOMs.length > 0) {
-      baseData = baseData.filter((item) => selectedOMs.includes(item.om));
-    }
-
-    // Apply especialidade TMFT filter if selected
-    if (selectedQuadros.length > 0) {
-      baseData = baseData.filter((item) => selectedQuadros.includes(item.quadroTmft));
-    }
-
-    // Apply especialidade EFETIVO filter if selected
-    if (selectedQuadrosEfe.length > 0) {
-      baseData = baseData.filter((item) => selectedQuadrosEfe.includes(item.quadroEfe));
-    }
-
-    if (selectedOpcoes.length > 0) {
-      baseData = baseData.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
-    }
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      baseData = baseData.filter(
-        (item) =>
-          item.nome?.toLowerCase().includes(query) ||
-          item.cargo?.toLowerCase().includes(query) ||
-          item.setor?.toLowerCase().includes(query) ||
-          item.postoTmft?.toLowerCase().includes(query) ||
-          item.postoEfe?.toLowerCase().includes(query) ||
-          item.quadroTmft?.toLowerCase().includes(query) ||
-          item.quadroEfe?.toLowerCase().includes(query),
-      );
+    // Apply independent filters: show personnel matching TMFT or EFE filters
+    if (hasSpecificFilters) {
+      baseData = baseData.filter((item) => matchesTmftFilters(item) || matchesEfeFilters(item));
     }
 
     return baseData.filter((item) => {
@@ -578,30 +545,48 @@ const DashboardPracas = () => {
         return especialidadeTmft === especialidadeEfe;
       }
     });
-  }, [showNeoPersonnel, personnelData, selectedOMs, selectedQuadros, selectedQuadrosEfe, selectedOpcoes, searchQuery]);
+  }, [showNeoPersonnel, baseFilteredData, selectedQuadros, selectedQuadrosEfe, selectedGraduacoes, selectedOpcoes]);
 
   const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TTC"];
 
-  // Metrics calculated from baseFilteredData (independent of card clicks)
+  // Metrics calculated independently for TMFT and EFETIVO
   const metrics = useMemo(() => {
     const regularData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
-    const totalTMFT = regularData.length;
-    const totalEXI = regularData.filter((item) => item.ocupado).length;
+
+    let totalTMFT: number;
+    let totalEXI: number;
+
+    if (hasSpecificFilters) {
+      // Independent counting: TMFT by TMFT fields, EFETIVO by EFE fields
+      totalTMFT = regularData.filter(matchesTmftFilters).length;
+      totalEXI = regularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length;
+    } else {
+      totalTMFT = regularData.length;
+      totalEXI = regularData.filter((item) => item.ocupado).length;
+    }
+
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
-    const totalExtraLotacao = baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
-    // ATENDIMENTO TOTAL = (Extra Lotação + Efetivo) / TMFT * 100
+
+    const totalExtraLotacao = hasSpecificFilters
+      ? baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && matchesEfeFilters(item)).length
+      : baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
+
     const atendimentoTotal = totalTMFT > 0 ? ((totalExtraLotacao + totalEXI) / totalTMFT) * 100 : 0;
 
-    // Calculate "Fora da NEO" and "Na NEO" - only for occupied positions with TMFT specialty filter
+    // Calculate "Fora da NEO" and "Na NEO" - only when specialty filters are active
     const occupiedPositions = regularData.filter((item) => item.ocupado);
+    const relevantOccupied = hasSpecificFilters
+      ? occupiedPositions.filter((item) => matchesTmftFilters(item) || matchesEfeFilters(item))
+      : occupiedPositions;
+
     const foraDaNeo =
       selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0
-        ? occupiedPositions.filter((item) => item.quadroTmft !== item.quadroEfe).length
+        ? relevantOccupied.filter((item) => item.quadroTmft !== item.quadroEfe).length
         : 0;
     const naNeo =
       selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0
-        ? occupiedPositions.filter((item) => item.quadroTmft === item.quadroEfe).length
+        ? relevantOccupied.filter((item) => item.quadroTmft === item.quadroEfe).length
         : 0;
 
     return {
@@ -614,7 +599,7 @@ const DashboardPracas = () => {
       foraDaNeo,
       naNeo,
     };
-  }, [baseFilteredData, selectedQuadros, selectedQuadrosEfe]);
+  }, [baseFilteredData, selectedQuadros, selectedQuadrosEfe, selectedGraduacoes, selectedOpcoes]);
 
   const groupedBySetor = useMemo(() => {
     const groups: Record<string, PersonnelRecord[]> = {};
@@ -767,8 +752,11 @@ const DashboardPracas = () => {
     });
   }, [filteredData]);
 
-  // Use baseFilteredData for vagas chart (applies all filters)
-  const baseFilteredForVagos = baseFilteredData;
+  // Use TMFT-filtered data for vagas chart (vagas are position-based)
+  const baseFilteredForVagos = useMemo(() => {
+    if (!hasSpecificFilters) return baseFilteredData;
+    return baseFilteredData.filter(matchesTmftFilters);
+  }, [baseFilteredData, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
 
   const chartDataVagosByOM = useMemo(() => {
     const grouped = baseFilteredForVagos.reduce(
@@ -938,12 +926,14 @@ const DashboardPracas = () => {
       yPosition += 10;
 
       // Filters
-      if (selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedOpcoes.length > 0) {
+      if (selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0 || selectedGraduacoes.length > 0 || selectedOpcoes.length > 0) {
         pdf.setFontSize(9);
         pdf.setFont("helvetica", "normal");
         let filterText = "Filtros: ";
         if (selectedOMs.length > 0) filterText += `OM: ${selectedOMs.join(", ")} | `;
-        if (selectedQuadros.length > 0) filterText += `Especialidade: ${selectedQuadros.join(", ")} | `;
+        if (selectedQuadros.length > 0) filterText += `Esp. TMFT: ${selectedQuadros.join(", ")} | `;
+        if (selectedQuadrosEfe.length > 0) filterText += `Esp. EFE: ${selectedQuadrosEfe.join(", ")} | `;
+        if (selectedGraduacoes.length > 0) filterText += `Graduação: ${selectedGraduacoes.join(", ")} | `;
         if (selectedOpcoes.length > 0) filterText += `Opção: ${selectedOpcoes.join(", ")}`;
         pdf.text(filterText, 14, yPosition);
         yPosition += 8;
@@ -1039,17 +1029,20 @@ const DashboardPracas = () => {
           return neoA.localeCompare(neoB, undefined, { numeric: true });
         });
 
-        const tableData = sortedData.map((item) => [
-          item.neo.toString(),
-          item.setor,
-          item.cargo,
-          item.postoTmft,
-          item.quadroTmft,
-          item.nome || "VAGO",
-          item.postoEfe || "-",
-          item.quadroEfe || "-",
-          item.ocupado ? "Ocupado" : "Vago",
-        ]);
+        const tableData = sortedData.map((item) => {
+          const isExtraEfe = hasSpecificFilters && item.ocupado && matchesEfeFilters(item) && !matchesTmftFilters(item);
+          return [
+            item.neo.toString(),
+            item.setor,
+            item.cargo,
+            item.postoTmft,
+            item.quadroTmft,
+            item.nome || "VAGO",
+            item.postoEfe || "-",
+            item.quadroEfe || "-",
+            isExtraEfe ? "EFETIVO EXTRA" : item.ocupado ? "Ocupado" : "Vago",
+          ];
+        });
 
         autoTable(pdf, {
           startY: yPosition,
@@ -1061,6 +1054,16 @@ const DashboardPracas = () => {
           margin: { left: 14, right: 14 },
           didParseCell: (data) => {
             if (data.section === "body") {
+              const statusCol = data.row.raw?.[8];
+              const statusStr = statusCol ? statusCol.toString().trim().toUpperCase() : "";
+
+              // Destaque azul para EFETIVO EXTRA (match EFE filters but not TMFT)
+              if (statusStr === "EFETIVO EXTRA") {
+                data.cell.styles.fillColor = [219, 234, 254]; // blue-100
+                data.cell.styles.textColor = [30, 64, 175]; // blue-800
+                return;
+              }
+
               const nome = data.row.raw?.[5];
               const setor = data.row.raw?.[1];
               const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
