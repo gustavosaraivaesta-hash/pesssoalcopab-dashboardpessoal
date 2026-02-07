@@ -143,13 +143,13 @@ const DashboardPracas = () => {
   const [cursoData, setCursoData] = useState<CursoRecord[]>([]);
   const [availableOMs, setAvailableOMs] = useState<string[]>([]);
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
-  const [availableQuadrosEfe, setAvailableQuadrosEfe] = useState<string[]>([]);
+  
   const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
   const [availableGraduacoes, setAvailableGraduacoes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedQuadros, setSelectedQuadros] = useState<string[]>([]);
-  const [selectedQuadrosEfe, setSelectedQuadrosEfe] = useState<string[]>([]);
+  
   const [selectedOpcoes, setSelectedOpcoes] = useState<string[]>([]);
   const [selectedGraduacoes, setSelectedGraduacoes] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("efetivo");
@@ -210,14 +210,6 @@ const DashboardPracas = () => {
             .filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"),
         ),
       ];
-      // Extrair especialidades EFETIVO diretamente dos dados em cache
-      const quadrosEfeFromData = [
-        ...new Set(
-          data
-            .map((item: any) => item.quadroEfe)
-            .filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"),
-        ),
-      ];
 
       // Extrair graduações disponíveis (postoTmft) para praças
       const graduacoesFromData = [
@@ -238,7 +230,6 @@ const DashboardPracas = () => {
 
       setAvailableOMs(getAvailableOMsForUser(oms as string[]));
       setAvailableQuadros(quadrosFromData as string[]);
-      setAvailableQuadrosEfe(quadrosEfeFromData as string[]);
       setAvailableOpcoes(opcoes as string[]);
       setAvailableGraduacoes(graduacoesFromData as string[]);
 
@@ -350,15 +341,6 @@ const DashboardPracas = () => {
           ),
         ];
         setAvailableQuadros(quadrosFromData as string[]);
-        // Extrair especialidades EFETIVO diretamente dos dados atuais da planilha
-        const quadrosEfeFromData = [
-          ...new Set(
-            data
-              .map((item: any) => item.quadroEfe)
-              .filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"),
-          ),
-        ];
-        setAvailableQuadrosEfe(quadrosEfeFromData as string[]);
         // Extrair graduações disponíveis (postoEfe) para praças
         const graduacoesFromData = [
           ...new Set(
@@ -427,7 +409,7 @@ const DashboardPracas = () => {
   }, [personnelData, selectedOMs, searchQuery]);
 
   // Independent filter matching functions
-  const hasSpecificFilters = selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0 || selectedGraduacoes.length > 0 || selectedOpcoes.length > 0;
+  const hasSpecificFilters = selectedQuadros.length > 0 || selectedGraduacoes.length > 0 || selectedOpcoes.length > 0;
 
   const matchesTmftFilters = (item: PersonnelRecord) => {
     if (selectedQuadros.length > 0 && !selectedQuadros.includes(item.quadroTmft)) return false;
@@ -437,7 +419,7 @@ const DashboardPracas = () => {
   };
 
   const matchesEfeFilters = (item: PersonnelRecord) => {
-    if (selectedQuadrosEfe.length > 0 && !selectedQuadrosEfe.includes(item.quadroEfe)) return false;
+    if (selectedQuadros.length > 0 && !selectedQuadros.includes(item.quadroEfe)) return false;
     if (selectedGraduacoes.length > 0 && !selectedGraduacoes.includes(item.postoEfe)) return false;
     if (selectedOpcoes.length > 0 && !selectedOpcoes.includes(item.opcaoEfe)) return false;
     return true;
@@ -447,7 +429,7 @@ const DashboardPracas = () => {
   const displayFilteredData = useMemo(() => {
     if (!hasSpecificFilters) return baseFilteredData;
     return baseFilteredData.filter((item) => matchesTmftFilters(item) || (item.ocupado && matchesEfeFilters(item)));
-  }, [baseFilteredData, selectedQuadros, selectedQuadrosEfe, selectedGraduacoes, selectedOpcoes]);
+  }, [baseFilteredData, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
 
   // Filtered data for display (applies status filter and extra lotação for drill-down)
   const filteredData = useMemo(() => {
@@ -474,9 +456,6 @@ const DashboardPracas = () => {
     setSelectedQuadros((prev) => (prev.includes(quadro) ? prev.filter((q) => q !== quadro) : [...prev, quadro]));
   };
 
-  const toggleQuadroEfe = (quadro: string) => {
-    setSelectedQuadrosEfe((prev) => (prev.includes(quadro) ? prev.filter((q) => q !== quadro) : [...prev, quadro]));
-  };
 
   const toggleOpcao = (opcao: string) => {
     setSelectedOpcoes((prev) => (prev.includes(opcao) ? prev.filter((o) => o !== opcao) : [...prev, opcao]));
@@ -489,7 +468,7 @@ const DashboardPracas = () => {
   const clearFilters = () => {
     setSelectedOMs([]);
     setSelectedQuadros([]);
-    setSelectedQuadrosEfe([]);
+    
     setSelectedOpcoes([]);
     setSelectedGraduacoes([]);
     setStatusFilter("all");
@@ -514,8 +493,8 @@ const DashboardPracas = () => {
     // Toggle efetivo filter
     setStatusFilter((prev) => (prev === "ocupados" ? "all" : "ocupados"));
 
-    // Show NEO comparison if especialidade TMFT OR especialidade EFETIVO is selected
-    if (selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0) {
+    // Show NEO comparison if especialidade TMFT is selected
+    if (selectedQuadros.length > 0) {
       setShowNeoComparison((prev) => !prev || statusFilter !== "ocupados");
     } else {
       setShowNeoComparison(false);
@@ -526,7 +505,7 @@ const DashboardPracas = () => {
 
   // Personnel for "Fora da NEO" and "Na NEO" cards - independent from main filters
   const neoComparisonPersonnel = useMemo(() => {
-    if (!showNeoPersonnel || (selectedQuadros.length === 0 && selectedQuadrosEfe.length === 0)) return [];
+    if (!showNeoPersonnel || selectedQuadros.length === 0) return [];
 
     // Filter from base data (OM + search), always show ocupados
     let baseData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
@@ -545,7 +524,7 @@ const DashboardPracas = () => {
         return especialidadeTmft === especialidadeEfe;
       }
     });
-  }, [showNeoPersonnel, baseFilteredData, selectedQuadros, selectedQuadrosEfe, selectedGraduacoes, selectedOpcoes]);
+  }, [showNeoPersonnel, baseFilteredData, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
 
   const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TTC"];
 
@@ -581,11 +560,11 @@ const DashboardPracas = () => {
       : occupiedPositions;
 
     const foraDaNeo =
-      selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0
+      selectedQuadros.length > 0
         ? relevantOccupied.filter((item) => item.quadroTmft !== item.quadroEfe).length
         : 0;
     const naNeo =
-      selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0
+      selectedQuadros.length > 0
         ? relevantOccupied.filter((item) => item.quadroTmft === item.quadroEfe).length
         : 0;
 
@@ -599,7 +578,7 @@ const DashboardPracas = () => {
       foraDaNeo,
       naNeo,
     };
-  }, [baseFilteredData, selectedQuadros, selectedQuadrosEfe, selectedGraduacoes, selectedOpcoes]);
+  }, [baseFilteredData, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
 
   const groupedBySetor = useMemo(() => {
     const groups: Record<string, PersonnelRecord[]> = {};
@@ -926,13 +905,12 @@ const DashboardPracas = () => {
       yPosition += 10;
 
       // Filters
-      if (selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0 || selectedGraduacoes.length > 0 || selectedOpcoes.length > 0) {
+      if (selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedGraduacoes.length > 0 || selectedOpcoes.length > 0) {
         pdf.setFontSize(9);
         pdf.setFont("helvetica", "normal");
         let filterText = "Filtros: ";
         if (selectedOMs.length > 0) filterText += `OM: ${selectedOMs.join(", ")} | `;
-        if (selectedQuadros.length > 0) filterText += `Esp. TMFT: ${selectedQuadros.join(", ")} | `;
-        if (selectedQuadrosEfe.length > 0) filterText += `Esp. EFE: ${selectedQuadrosEfe.join(", ")} | `;
+        if (selectedQuadros.length > 0) filterText += `Especialidade: ${selectedQuadros.join(", ")} | `;
         if (selectedGraduacoes.length > 0) filterText += `Graduação: ${selectedGraduacoes.join(", ")} | `;
         if (selectedOpcoes.length > 0) filterText += `Opção: ${selectedOpcoes.join(", ")}`;
         pdf.text(filterText, 14, yPosition);
@@ -1399,7 +1377,6 @@ const DashboardPracas = () => {
               <div className="flex items-center gap-2">
                 {(selectedOMs.length > 0 ||
                   selectedQuadros.length > 0 ||
-                  selectedQuadrosEfe.length > 0 ||
                   selectedOpcoes.length > 0 ||
                   selectedGraduacoes.length > 0 ||
                   searchQuery) && (
@@ -1482,31 +1459,6 @@ const DashboardPracas = () => {
                 </div>
               </div>
 
-              {/* Especialidade EFETIVO Filter */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium">Especialidade EFETIVO</h4>
-                  {selectedQuadrosEfe.length > 0 && (
-                    <Badge variant="outline" className="text-xs">
-                      {selectedQuadrosEfe.length} selecionado(s)
-                    </Badge>
-                  )}
-                </div>
-                <div className="grid grid-cols-4 gap-1 p-2 border rounded-lg bg-muted/30 max-h-48 overflow-y-auto">
-                  {availableQuadrosEfe.map((quadro) => (
-                    <div key={`efe-${quadro}`} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`quadro-efe-${quadro}`}
-                        checked={selectedQuadrosEfe.includes(quadro)}
-                        onCheckedChange={() => toggleQuadroEfe(quadro)}
-                      />
-                      <label htmlFor={`quadro-efe-${quadro}`} className="text-xs cursor-pointer">
-                        {quadro}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
               {/* Graduação Filter */}
               <div className="space-y-2">
@@ -1592,7 +1544,7 @@ const DashboardPracas = () => {
                   <p className="text-4xl font-bold text-green-900 dark:text-green-100">{metrics.totalEXI}</p>
                   <p className="text-xs text-green-600 dark:text-green-400 mt-1">
                     Cargos ocupados{" "}
-                    {(selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0) &&
+                    {selectedQuadros.length > 0 &&
                       "(Clique para ver Na/Fora da NEO)"}
                   </p>
                 </div>
@@ -1754,7 +1706,7 @@ const DashboardPracas = () => {
 
         {/* Cards "Fora da NEO" e "Na NEO" - aparecem quando especialidade TMFT ou EFETIVO é filtrada e EFETIVO é clicado */}
         {showNeoComparison &&
-          (selectedQuadros.length > 0 || selectedQuadrosEfe.length > 0) &&
+          selectedQuadros.length > 0 &&
           statusFilter === "ocupados" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card
