@@ -493,35 +493,32 @@ const DashboardPracas = () => {
     // Toggle efetivo filter
     setStatusFilter((prev) => (prev === "ocupados" ? "all" : "ocupados"));
 
-    // Show NEO comparison if especialidade TMFT is selected
-    if (selectedQuadros.length > 0) {
-      setShowNeoComparison((prev) => !prev || statusFilter !== "ocupados");
-    } else {
-      setShowNeoComparison(false);
-    }
+    // Always show NEO comparison when clicking EFETIVO
+    setShowNeoComparison((prev) => !prev || statusFilter !== "ocupados");
     setNeoComparisonFilter("all");
     setShowNeoPersonnel(null);
   };
 
   // Personnel for "Fora da NEO" and "Na NEO" cards - independent from main filters
   const neoComparisonPersonnel = useMemo(() => {
-    if (!showNeoPersonnel || selectedQuadros.length === 0) return [];
+    if (!showNeoPersonnel) return [];
 
-    // Filter from base data (OM + search), always show ocupados
+    // Filter from base data (OM + search), always show ocupados, exclude extra lotação
     let baseData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
 
-    // Apply independent filters: show personnel matching TMFT or EFE filters
+    // Apply independent EFE filters
     if (hasSpecificFilters) {
-      baseData = baseData.filter((item) => matchesTmftFilters(item) || matchesEfeFilters(item));
+      baseData = baseData.filter(matchesEfeFilters);
     }
 
     return baseData.filter((item) => {
-      const especialidadeTmft = (item.quadroTmft || "").trim().toUpperCase();
-      const especialidadeEfe = (item.quadroEfe || "").trim().toUpperCase();
+      const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+      const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+      const isForaNeo = quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
       if (showNeoPersonnel === "fora") {
-        return especialidadeTmft !== especialidadeEfe;
+        return isForaNeo;
       } else {
-        return especialidadeTmft === especialidadeEfe;
+        return !isForaNeo;
       }
     });
   }, [showNeoPersonnel, baseFilteredData, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
@@ -553,20 +550,22 @@ const DashboardPracas = () => {
 
     const atendimentoTotal = totalTMFT > 0 ? ((totalExtraLotacao + totalEXI) / totalTMFT) * 100 : 0;
 
-    // Calculate "Fora da NEO" and "Na NEO" - only when specialty filters are active
-    const occupiedPositions = regularData.filter((item) => item.ocupado);
-    const relevantOccupied = hasSpecificFilters
-      ? occupiedPositions.filter((item) => matchesTmftFilters(item) || matchesEfeFilters(item))
-      : occupiedPositions;
+    // Calculate "Fora da NEO" and "Na NEO" based on EFETIVO
+    // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are meaningful)
+    // NA NEO = EFETIVO - FORA DA NEO (ensures the sum matches)
+    const occupiedRegular = regularData.filter((item) => item.ocupado);
+    const efetivoForNeo = hasSpecificFilters
+      ? occupiedRegular.filter(matchesEfeFilters)
+      : occupiedRegular;
 
-    const foraDaNeo =
-      selectedQuadros.length > 0
-        ? relevantOccupied.filter((item) => item.quadroTmft !== item.quadroEfe).length
-        : 0;
-    const naNeo =
-      selectedQuadros.length > 0
-        ? relevantOccupied.filter((item) => item.quadroTmft === item.quadroEfe).length
-        : 0;
+    const foraDaNeoList = efetivoForNeo.filter((item) => {
+      const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
+      const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
+      return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+    });
+
+    const foraDaNeo = foraDaNeoList.length;
+    const naNeo = totalEXI - foraDaNeo;
 
     return {
       totalTMFT,
