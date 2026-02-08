@@ -592,8 +592,8 @@ const DashboardPracas = () => {
     return groups;
   }, [filteredData]);
 
-  const filteredDesembarqueData = useMemo(() => {
-    let filtered = desembarqueData;
+  const filterAuxiliaryData = <T extends { om: string; quadro?: string; especialidade?: string; posto?: string; opcao?: string }>(data: T[]): T[] => {
+    let filtered = data;
 
     if (selectedOMs.length > 0) {
       filtered = filtered.filter((item) => selectedOMs.includes(item.om));
@@ -601,92 +601,44 @@ const DashboardPracas = () => {
 
     if (selectedQuadros.length > 0) {
       filtered = filtered.filter(
-        (item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade),
+        (item) => selectedQuadros.includes(item.quadro || '') || selectedQuadros.includes(item.especialidade || ''),
       );
     }
 
+    if (selectedGraduacoes.length > 0) {
+      filtered = filtered.filter((item) => selectedGraduacoes.includes(item.posto || ''));
+    }
+
+    if (selectedOpcoes.length > 0) {
+      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcao || ''));
+    }
+
     return filtered;
-  }, [desembarqueData, selectedOMs, selectedQuadros]);
+  };
+
+  const filteredDesembarqueData = useMemo(() => {
+    return filterAuxiliaryData(desembarqueData);
+  }, [desembarqueData, selectedOMs, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
 
   const filteredEmbarqueData = useMemo(() => {
-    let filtered = embarqueData;
-
-    if (selectedOMs.length > 0) {
-      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
-    }
-
-    if (selectedQuadros.length > 0) {
-      filtered = filtered.filter(
-        (item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade),
-      );
-    }
-
-    return filtered;
-  }, [embarqueData, selectedOMs, selectedQuadros]);
+    return filterAuxiliaryData(embarqueData);
+  }, [embarqueData, selectedOMs, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
 
   const filteredTrrmData = useMemo(() => {
-    let filtered = trrmData;
-
-    if (selectedOMs.length > 0) {
-      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
-    }
-
-    if (selectedQuadros.length > 0) {
-      filtered = filtered.filter(
-        (item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade),
-      );
-    }
-
-    return filtered;
-  }, [trrmData, selectedOMs, selectedQuadros]);
+    return filterAuxiliaryData(trrmData);
+  }, [trrmData, selectedOMs, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
 
   const filteredLicencasData = useMemo(() => {
-    let filtered = licencasData;
-
-    if (selectedOMs.length > 0) {
-      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
-    }
-
-    if (selectedQuadros.length > 0) {
-      filtered = filtered.filter(
-        (item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade),
-      );
-    }
-
-    return filtered;
-  }, [licencasData, selectedOMs, selectedQuadros]);
+    return filterAuxiliaryData(licencasData);
+  }, [licencasData, selectedOMs, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
 
   const filteredDestaquesData = useMemo(() => {
-    let filtered = destaquesData;
-
-    if (selectedOMs.length > 0) {
-      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
-    }
-
-    if (selectedQuadros.length > 0) {
-      filtered = filtered.filter(
-        (item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade),
-      );
-    }
-
-    return filtered;
-  }, [destaquesData, selectedOMs, selectedQuadros]);
+    return filterAuxiliaryData(destaquesData);
+  }, [destaquesData, selectedOMs, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
 
   const filteredCursoData = useMemo(() => {
-    let filtered = cursoData;
-
-    if (selectedOMs.length > 0) {
-      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
-    }
-
-    if (selectedQuadros.length > 0) {
-      filtered = filtered.filter(
-        (item) => selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade),
-      );
-    }
-
-    return filtered;
-  }, [cursoData, selectedOMs, selectedQuadros]);
+    return filterAuxiliaryData(cursoData);
+  }, [cursoData, selectedOMs, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
 
   const chartDataByPosto = useMemo(() => {
     const POSTO_ORDER = ["SO", "1SG", "2SG", "3SG", "CB", "MN"];
