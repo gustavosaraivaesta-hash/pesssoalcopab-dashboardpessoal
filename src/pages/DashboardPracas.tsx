@@ -960,9 +960,11 @@ const DashboardPracas = () => {
 
         const omVagos = omTmft - omEfetivoTotal;
 
-        // FORA DA NEO: especialidade TMFT ≠ especialidade EFE
-        const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
-        const omForaNeoCount = omRegularOcupados.filter((item) => {
+        // FORA DA NEO: especialidade TMFT ≠ especialidade EFE (based on EFETIVO filtered)
+        const omEfetivoForNeo = hasSpecificFilters
+          ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
+          : omRegularData.filter((item) => item.ocupado);
+        const omForaNeoCount = omEfetivoForNeo.filter((item) => {
           const espTmft = (item.quadroTmft || "").trim().toUpperCase();
           const espEfe = (item.quadroEfe || "").trim().toUpperCase();
           return espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe;
@@ -1068,9 +1070,11 @@ const DashboardPracas = () => {
         const omVagos = omTmft - omEfetivo;
         const omAtendimento = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
 
-        // FORA DA NEO for this OM
-        const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
-        const omForaNeoCount = omRegularOcupados.filter((item) => {
+        // FORA DA NEO for this OM (based on EFETIVO filtered)
+        const omEfetivoForNeo = hasSpecificFilters
+          ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
+          : omRegularData.filter((item) => item.ocupado);
+        const omForaNeoCount = omEfetivoForNeo.filter((item) => {
           const espTmft = (item.quadroTmft || "").trim().toUpperCase();
           const espEfe = (item.quadroEfe || "").trim().toUpperCase();
           return espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe;
