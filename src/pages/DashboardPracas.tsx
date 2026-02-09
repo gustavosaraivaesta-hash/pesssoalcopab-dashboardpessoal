@@ -42,6 +42,19 @@ import {
 } from "recharts";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  Table,
+  TableCell,
+  TableRow,
+  WidthType,
+  TextRun,
+  AlignmentType,
+  ShadingType,
+} from "docx";
 
 import brasaoRepublica from "@/assets/brasao-republica.png";
 
@@ -1339,6 +1352,494 @@ const DashboardPracas = () => {
     }
   };
 
+  const exportToWord = async () => {
+    try {
+      const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
+      const sections: any[] = [];
+
+      const createCell = (text: string, isHeader = false, bgColor?: string, textColor?: string) => {
+        const shading = bgColor ? { type: ShadingType.SOLID, color: bgColor } : undefined;
+        return new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text,
+                  bold: isHeader,
+                  size: isHeader ? 20 : 18,
+                  color: textColor || (isHeader ? "FFFFFF" : "000000"),
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          shading,
+          width: { size: 100 / 7, type: WidthType.PERCENTAGE },
+        });
+      };
+
+      // Title section
+      const titleParagraphs: any[] = [
+        new Paragraph({
+          children: [new TextRun({ text: "CENTRO DE OPERAÇÕES DO ABASTECIMENTO", bold: true, size: 32 })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 200 },
+        }),
+        new Paragraph({
+          children: [new TextRun({ text: "Tabela Mestra de Força de Trabalho - PRAÇAS", bold: true, size: 28 })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 400 },
+        }),
+      ];
+
+      // Filters applied
+      if (selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedGraduacoes.length > 0 || selectedOpcoes.length > 0) {
+        titleParagraphs.push(
+          new Paragraph({
+            children: [new TextRun({ text: "Filtros Aplicados:", bold: true, size: 20 })],
+            spacing: { after: 100 },
+          }),
+        );
+        if (selectedOMs.length > 0) {
+          titleParagraphs.push(new Paragraph({ children: [new TextRun({ text: `OM: ${selectedOMs.join(", ")}`, size: 20 })] }));
+        }
+        if (selectedQuadros.length > 0) {
+          titleParagraphs.push(new Paragraph({ children: [new TextRun({ text: `Especialidade: ${selectedQuadros.join(", ")}`, size: 20 })] }));
+        }
+        if (selectedGraduacoes.length > 0) {
+          titleParagraphs.push(new Paragraph({ children: [new TextRun({ text: `Graduação: ${selectedGraduacoes.join(", ")}`, size: 20 })] }));
+        }
+        if (selectedOpcoes.length > 0) {
+          titleParagraphs.push(new Paragraph({ children: [new TextRun({ text: `Opção: ${selectedOpcoes.join(", ")}`, size: 20 })] }));
+        }
+        titleParagraphs.push(new Paragraph({ spacing: { after: 200 } }));
+      }
+
+      // RESUMO table
+      titleParagraphs.push(
+        new Paragraph({
+          children: [new TextRun({ text: "RESUMO", bold: true, size: 22 })],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 200, after: 200 },
+        }),
+      );
+
+      const neoResumoRows: TableRow[] = [
+        new TableRow({
+          children: [
+            createCell("OM", true, "10B981"),
+            createCell("TMFT", true, "10B981"),
+            createCell("EFETIVO", true, "10B981"),
+            createCell("NA NEO", true, "10B981"),
+            createCell("FORA DA NEO", true, "10B981"),
+            createCell("VAGAS", true, "10B981"),
+            createCell("ATENDIMENTO", true, "10B981"),
+          ],
+        }),
+      ];
+
+      let totalNaNeo = 0, totalForaNeo = 0, totalEfetivoGeral = 0, totalTmftConformidade = 0;
+
+      for (const om of activeOMs) {
+        const omBaseData = baseFilteredData.filter((item) => item.om === om);
+        if (omBaseData.length === 0) continue;
+        const omRegularData = omBaseData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+
+        const omTmft = hasSpecificFilters ? omRegularData.filter(matchesTmftFilters).length : omRegularData.length;
+        const omEfetivoTotal = hasSpecificFilters
+          ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length
+          : omRegularData.filter((item) => item.ocupado).length;
+
+        const omEfetivoForNeo = hasSpecificFilters
+          ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
+          : omRegularData.filter((item) => item.ocupado);
+        const omForaNeoCount = omEfetivoForNeo.filter((item) => {
+          const espTmft = (item.quadroTmft || "").trim().toUpperCase();
+          const espEfe = (item.quadroEfe || "").trim().toUpperCase();
+          return espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe;
+        }).length;
+
+        const omNaNeo = omEfetivoTotal - omForaNeoCount;
+        const omVagos = omTmft - omEfetivoTotal;
+        const displayAtendimento = omTmft > 0 ? (omEfetivoTotal / omTmft) * 100 : 0;
+
+        totalNaNeo += omNaNeo;
+        totalForaNeo += omForaNeoCount;
+        totalEfetivoGeral += omEfetivoTotal;
+        totalTmftConformidade += omTmft;
+
+        if (omTmft > 0) {
+          const foraNeoColor = omForaNeoCount > 0 ? "FFEDD5" : undefined;
+          const foraNeoTextColor = omForaNeoCount > 0 ? "C2410C" : undefined;
+          neoResumoRows.push(
+            new TableRow({
+              children: [
+                createCell(om),
+                createCell(omTmft.toString()),
+                createCell(omEfetivoTotal.toString()),
+                createCell(omNaNeo.toString()),
+                createCell(omForaNeoCount.toString(), false, foraNeoColor, foraNeoTextColor),
+                createCell(omVagos.toString()),
+                createCell(`${displayAtendimento.toFixed(1)}%`),
+              ],
+            }),
+          );
+        }
+      }
+
+      const totalDisplayAtendimento = totalTmftConformidade > 0 ? (totalEfetivoGeral / totalTmftConformidade) * 100 : 0;
+      neoResumoRows.push(
+        new TableRow({
+          children: [
+            createCell("TOTAL GERAL", true, "E5E7EB"),
+            createCell(totalTmftConformidade.toString(), true, "E5E7EB"),
+            createCell(totalEfetivoGeral.toString(), true, "E5E7EB"),
+            createCell(totalNaNeo.toString(), true, "E5E7EB"),
+            createCell(totalForaNeo.toString(), true, totalForaNeo > 0 ? "FFEDD5" : "E5E7EB", totalForaNeo > 0 ? "C2410C" : undefined),
+            createCell((totalTmftConformidade - totalEfetivoGeral).toString(), true, "E5E7EB"),
+            createCell(`${totalDisplayAtendimento.toFixed(1)}%`, true, "E5E7EB"),
+          ],
+        }),
+      );
+
+      titleParagraphs.push(new Table({ rows: neoResumoRows, width: { size: 100, type: WidthType.PERCENTAGE } }) as unknown as Paragraph);
+      titleParagraphs.push(new Paragraph({ spacing: { after: 400 } }));
+
+      sections.push({
+        properties: { page: { size: { orientation: "landscape" } } },
+        children: titleParagraphs,
+      });
+
+      // Per OM sections
+      for (const om of activeOMs) {
+        const omData = displayFilteredData.filter((item) => item.om === om);
+        if (omData.length === 0) continue;
+
+        const omChildren: any[] = [];
+        omChildren.push(
+          new Paragraph({
+            children: [new TextRun({ text: om, bold: true, size: 28 })],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 300 },
+          }),
+        );
+
+        // Metrics
+        const omBaseData = baseFilteredData.filter((item) => item.om === om);
+        const omRegularData = omBaseData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+        const omTmft = hasSpecificFilters ? omRegularData.filter(matchesTmftFilters).length : omRegularData.length;
+        const omEfetivo = hasSpecificFilters
+          ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length
+          : omRegularData.filter((item) => item.ocupado).length;
+        const omVagos = omTmft - omEfetivo;
+        const omAtendimento = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
+
+        const omEfetivoForNeo = hasSpecificFilters
+          ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
+          : omRegularData.filter((item) => item.ocupado);
+        const omForaNeoCount = omEfetivoForNeo.filter((item) => {
+          const espTmft = (item.quadroTmft || "").trim().toUpperCase();
+          const espEfe = (item.quadroEfe || "").trim().toUpperCase();
+          return espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe;
+        }).length;
+        const omNaNeoCount = omEfetivo - omForaNeoCount;
+
+        const metricsRows: TableRow[] = [
+          new TableRow({
+            children: [
+              createCell("TMFT", true, "10B981"),
+              createCell("EFETIVO", true, "10B981"),
+              createCell("VAGAS", true, "10B981"),
+              createCell("NA NEO", true, "10B981"),
+              createCell("FORA DA NEO", true, "10B981"),
+              createCell("ATENDIMENTO", true, "10B981"),
+            ],
+          }),
+          new TableRow({
+            children: [
+              createCell(omTmft.toString(), true),
+              createCell(omEfetivo.toString(), true),
+              createCell(omVagos.toString(), true),
+              createCell(omNaNeoCount.toString(), true),
+              createCell(omForaNeoCount.toString(), true, omForaNeoCount > 0 ? "FFEDD5" : undefined, omForaNeoCount > 0 ? "C2410C" : undefined),
+              createCell(`${omAtendimento.toFixed(1)}%`, true),
+            ],
+          }),
+        ];
+
+        omChildren.push(new Table({ rows: metricsRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+        omChildren.push(new Paragraph({ spacing: { after: 300 } }));
+
+        // TABELA DE EFETIVO
+        omChildren.push(
+          new Paragraph({
+            children: [new TextRun({ text: "TABELA DE EFETIVO", bold: true, size: 22 })],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 200, after: 200 },
+          }),
+        );
+
+        let omTableData = [...omData];
+        if (hasSpecificFilters) {
+          const extraEfetivoRows = personnelData.filter((item) => {
+            if (item.om !== om || item.tipoSetor === "EXTRA LOTAÇÃO" || !item.ocupado) return false;
+            return matchesEfeFilters(item) && !matchesTmftFilters(item);
+          });
+          const existingIds = new Set(omTableData.map((item) => item.id));
+          omTableData = [...omTableData, ...extraEfetivoRows.filter((item) => !existingIds.has(item.id))];
+        }
+
+        const sortedData = [...omTableData].sort((a, b) => String(a.neo || '').localeCompare(String(b.neo || ''), undefined, { numeric: true }));
+
+        const efetivoRows: TableRow[] = [
+          new TableRow({
+            children: [
+              createCell("NEO", true, "2980B9"),
+              createCell("SETOR", true, "2980B9"),
+              createCell("CARGO", true, "2980B9"),
+              createCell("GRAD TMFT", true, "2980B9"),
+              createCell("ESP TMFT", true, "2980B9"),
+              createCell("NOME", true, "2980B9"),
+              createCell("GRAD EFE", true, "2980B9"),
+              createCell("ESP EFE", true, "2980B9"),
+              createCell("STATUS", true, "2980B9"),
+            ],
+          }),
+        ];
+
+        for (const item of sortedData) {
+          let isExtraRow = false;
+          if (hasSpecificFilters && item.ocupado) {
+            isExtraRow = matchesEfeFilters(item) && !matchesTmftFilters(item);
+          }
+
+          let status: string;
+          let bgColor: string | undefined;
+          let txtColor: string | undefined;
+          const setorStr = (item.setor || "").trim().toUpperCase();
+
+          if (isExtraRow) {
+            status = "EFETIVO EXTRA";
+            bgColor = "DBEAFE"; txtColor = "1E40AF";
+          } else if (!item.ocupado) {
+            status = "VAGO";
+            bgColor = "FECACA"; txtColor = "7F1D1D";
+          } else {
+            const espTmft = (item.quadroTmft || "").trim().toUpperCase();
+            const espEfe = (item.quadroEfe || "").trim().toUpperCase();
+            if (espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe) {
+              status = "FORA NEO";
+              bgColor = "FFEDD5"; txtColor = "C2410C";
+            } else if (setorStr.includes("EXTRA LOTA")) {
+              status = "EXTRA LOTAÇÃO";
+              bgColor = "FEF08A"; txtColor = "713F12";
+            } else {
+              status = "NA NEO";
+            }
+          }
+
+          efetivoRows.push(
+            new TableRow({
+              children: [
+                createCell(item.neo.toString(), false, bgColor, txtColor),
+                createCell(item.setor || "-", false, bgColor, txtColor),
+                createCell(item.cargo || "-", false, bgColor, txtColor),
+                createCell(item.postoTmft || "-", false, bgColor, txtColor),
+                createCell(item.quadroTmft || "-", false, bgColor, txtColor),
+                createCell(item.nome || "-", false, bgColor, txtColor),
+                createCell(item.postoEfe || "-", false, bgColor, txtColor),
+                createCell(item.quadroEfe || "-", false, bgColor, txtColor),
+                createCell(status, false, bgColor, txtColor),
+              ],
+            }),
+          );
+        }
+
+        omChildren.push(new Table({ rows: efetivoRows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+        omChildren.push(new Paragraph({ spacing: { after: 300 } }));
+
+        // Auxiliary tables with filters
+        const omDesembarque = filterAuxiliaryData(desembarqueData).filter((item) => item.om === om);
+        if (omDesembarque.length > 0) {
+          omChildren.push(new Paragraph({ children: [new TextRun({ text: "PREVISÃO DE DESEMBARQUE", bold: true, size: 22 })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 200 } }));
+          const rows: TableRow[] = [new TableRow({ children: [createCell("NOME", true, "D97706"), createCell("GRAD/ESP", true, "D97706"), createCell("CARGO", true, "D97706"), createCell("DESTINO", true, "D97706"), createCell("MÊS/ANO", true, "D97706"), createCell("DOCUMENTO", true, "D97706")] })];
+          for (const d of omDesembarque) rows.push(new TableRow({ children: [createCell(d.nome || "-"), createCell(`${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`), createCell(d.cargo || "-"), createCell(d.destino || "-"), createCell(d.mesAno || "-"), createCell(d.documento || "-")] }));
+          omChildren.push(new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+          omChildren.push(new Paragraph({ spacing: { after: 300 } }));
+        }
+
+        const omTrrm = filterAuxiliaryData(trrmData).filter((item) => item.om === om);
+        if (omTrrm.length > 0) {
+          omChildren.push(new Paragraph({ children: [new TextRun({ text: "PREVISÃO DE TRRM", bold: true, size: 22 })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 200 } }));
+          const rows: TableRow[] = [new TableRow({ children: [createCell("NOME", true, "9333EA"), createCell("GRAD/ESP", true, "9333EA"), createCell("OPÇÃO", true, "9333EA"), createCell("CARGO", true, "9333EA"), createCell("ÉPOCA PREVISTA", true, "9333EA")] })];
+          for (const t of omTrrm) rows.push(new TableRow({ children: [createCell(t.nome || "-"), createCell(`${t.posto}, ${t.quadro || "-"}, ${t.especialidade || "-"}`), createCell(t.opcao || "-"), createCell(t.cargo || "-"), createCell(t.epocaPrevista || "-")] }));
+          omChildren.push(new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+          omChildren.push(new Paragraph({ spacing: { after: 300 } }));
+        }
+
+        const omLicencas = filterAuxiliaryData(licencasData).filter((item) => item.om === om);
+        if (omLicencas.length > 0) {
+          omChildren.push(new Paragraph({ children: [new TextRun({ text: "LICENÇAS", bold: true, size: 22 })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 200 } }));
+          const rows: TableRow[] = [new TableRow({ children: [createCell("NOME", true, "EA580C"), createCell("GRAD/ESP", true, "EA580C"), createCell("CARGO", true, "EA580C"), createCell("PERÍODO", true, "EA580C")] })];
+          for (const l of omLicencas) rows.push(new TableRow({ children: [createCell(l.nome || "-"), createCell(`${l.posto}, ${l.quadro || "-"}, ${l.especialidade || "-"}`), createCell(l.cargo || "-"), createCell(l.periodo || "-")] }));
+          omChildren.push(new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+          omChildren.push(new Paragraph({ spacing: { after: 300 } }));
+        }
+
+        const omDestaques = filterAuxiliaryData(destaquesData).filter((item) => item.om === om);
+        if (omDestaques.length > 0) {
+          omChildren.push(new Paragraph({ children: [new TextRun({ text: "DESTAQUES", bold: true, size: 22 })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 200 } }));
+          const rows: TableRow[] = [new TableRow({ children: [createCell("NOME", true, "CA8A04"), createCell("GRAD/ESP", true, "CA8A04"), createCell("CARGO", true, "CA8A04"), createCell("EM OUTRA OM", true, "CA8A04"), createCell("DE OUTRA OM", true, "CA8A04"), createCell("PERÍODO", true, "CA8A04")] })];
+          for (const d of omDestaques) rows.push(new TableRow({ children: [createCell(d.nome || "-"), createCell(`${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`), createCell(d.cargo || "-"), createCell(d.emOutraOm || "-"), createCell(d.deOutraOm || "-"), createCell(d.periodo || "-")] }));
+          omChildren.push(new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+          omChildren.push(new Paragraph({ spacing: { after: 300 } }));
+        }
+
+        const omCurso = filterAuxiliaryData(cursoData).filter((item) => item.om === om);
+        if (omCurso.length > 0) {
+          omChildren.push(new Paragraph({ children: [new TextRun({ text: "PREVISÃO DE CURSO", bold: true, size: 22 })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 200 } }));
+          const rows: TableRow[] = [new TableRow({ children: [createCell("NOME", true, "059669"), createCell("GRAD/ESP", true, "059669"), createCell("CARGO", true, "059669"), createCell("ANO PREVISTO", true, "059669")] })];
+          for (const c of omCurso) rows.push(new TableRow({ children: [createCell(c.nome || "-"), createCell(`${c.posto}, ${c.quadro || "-"}, ${c.especialidade || "-"}`), createCell(c.cargo || "-"), createCell(c.anoPrevisto || "-")] }));
+          omChildren.push(new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+        }
+
+        sections.push({
+          properties: { page: { size: { orientation: "landscape" } } },
+          children: omChildren,
+        });
+      }
+
+      const doc = new Document({ sections });
+      const blob = await Packer.toBlob(doc);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "tabela-mestra-forca-trabalho-pracas.docx";
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("Documento Word gerado com sucesso!");
+    } catch (error) {
+      console.error("Error generating Word document:", error);
+      toast.error("Erro ao gerar documento Word");
+    }
+  };
+
+  const exportToExcel = () => {
+    try {
+      const workbook = XLSX.utils.book_new();
+      const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
+
+      // Sheet 1: Resumo
+      const resumoData: any[][] = [["RESUMO"], [], ["OM", "TMFT", "EFETIVO", "VAGAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO (%)"]];
+      let totalTmft = 0, totalEfetivo = 0, totalVagos = 0, totalNaNeo = 0, totalForaNeo = 0;
+
+      for (const om of activeOMs) {
+        const omBaseData = baseFilteredData.filter((item) => item.om === om);
+        if (omBaseData.length === 0) continue;
+        const omRegularData = omBaseData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+
+        const omTmft = hasSpecificFilters ? omRegularData.filter(matchesTmftFilters).length : omRegularData.length;
+        const omEfetivoTotal = hasSpecificFilters
+          ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length
+          : omRegularData.filter((item) => item.ocupado).length;
+        const omVagos = omTmft - omEfetivoTotal;
+
+        const omEfetivoForNeo = hasSpecificFilters
+          ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
+          : omRegularData.filter((item) => item.ocupado);
+        const omForaNeoCount = omEfetivoForNeo.filter((item) => {
+          const espTmft = (item.quadroTmft || "").trim().toUpperCase();
+          const espEfe = (item.quadroEfe || "").trim().toUpperCase();
+          return espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe;
+        }).length;
+        const omNaNeoCount = omEfetivoTotal - omForaNeoCount;
+        const atendimento = omTmft > 0 ? parseFloat(((omEfetivoTotal / omTmft) * 100).toFixed(1)) : 0;
+
+        totalTmft += omTmft; totalEfetivo += omEfetivoTotal; totalVagos += omVagos;
+        totalNaNeo += omNaNeoCount; totalForaNeo += omForaNeoCount;
+
+        resumoData.push([om, omTmft, omEfetivoTotal, omVagos, omNaNeoCount, omForaNeoCount, atendimento]);
+      }
+
+      const totalAtendimento = totalTmft > 0 ? parseFloat(((totalEfetivo / totalTmft) * 100).toFixed(1)) : 0;
+      resumoData.push(["TOTAL GERAL", totalTmft, totalEfetivo, totalVagos, totalNaNeo, totalForaNeo, totalAtendimento]);
+
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(resumoData), "Resumo");
+
+      // Sheet 2: Efetivo Completo
+      const efetivoHeaders = ["OM", "NEO", "TIPO SETOR", "SETOR", "CARGO", "GRAD TMFT", "ESP TMFT", "OPÇÃO TMFT", "NOME", "GRAD EFE", "ESP EFE", "OPÇÃO EFE", "OCUPADO", "STATUS"];
+      const efetivoData: any[][] = [efetivoHeaders];
+
+      for (const item of displayFilteredData) {
+        let status = "VAGO";
+        if (item.ocupado) {
+          const espTmft = (item.quadroTmft || "").trim().toUpperCase();
+          const espEfe = (item.quadroEfe || "").trim().toUpperCase();
+          status = espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe ? "FORA DA NEO" : "NA NEO";
+        }
+        efetivoData.push([item.om, item.neo, item.tipoSetor, item.setor, item.cargo, item.postoTmft, item.quadroTmft, item.opcaoTmft, item.nome || "-", item.postoEfe || "-", item.quadroEfe || "-", item.opcaoEfe || "-", item.ocupado ? "SIM" : "NÃO", status]);
+      }
+
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(efetivoData), "Efetivo Completo");
+
+      // Sheet 3: Desembarque
+      const filtDesembarque = filterAuxiliaryData(desembarqueData);
+      if (filtDesembarque.length > 0) {
+        const rows: any[][] = [["OM", "NOME", "GRAD/ESP", "CARGO", "DESTINO", "MÊS/ANO", "DOCUMENTO"]];
+        for (const d of filtDesembarque) rows.push([d.om, d.nome, `${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`, d.cargo || "-", d.destino || "-", d.mesAno || "-", d.documento || "-"]);
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "Previsão Desembarque");
+      }
+
+      // Sheet 4: Embarque
+      const filtEmbarque = filterAuxiliaryData(embarqueData);
+      if (filtEmbarque.length > 0) {
+        const rows: any[][] = [["OM", "NOME", "GRAD/ESP", "CARGO", "DESTINO", "MÊS/ANO", "DOCUMENTO"]];
+        for (const d of filtEmbarque) rows.push([d.om, d.nome, `${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`, d.cargo || "-", d.destino || "-", d.mesAno || "-", d.documento || "-"]);
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "Previsão Embarque");
+      }
+
+      // Sheet 5: TRRM
+      const filtTrrm = filterAuxiliaryData(trrmData);
+      if (filtTrrm.length > 0) {
+        const rows: any[][] = [["OM", "NOME", "GRAD/ESP", "OPÇÃO", "CARGO", "ÉPOCA PREVISTA"]];
+        for (const t of filtTrrm) rows.push([t.om, t.nome, `${t.posto}, ${t.quadro || "-"}, ${t.especialidade || "-"}`, t.opcao || "-", t.cargo || "-", t.epocaPrevista || "-"]);
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "TRRM");
+      }
+
+      // Sheet 6: Licenças
+      const filtLicencas = filterAuxiliaryData(licencasData);
+      if (filtLicencas.length > 0) {
+        const rows: any[][] = [["OM", "NOME", "GRAD/ESP", "CARGO", "PERÍODO"]];
+        for (const l of filtLicencas) rows.push([l.om, l.nome, `${l.posto}, ${l.quadro || "-"}, ${l.especialidade || "-"}`, l.cargo || "-", l.periodo || "-"]);
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "Licenças");
+      }
+
+      // Sheet 7: Destaques
+      const filtDestaques = filterAuxiliaryData(destaquesData);
+      if (filtDestaques.length > 0) {
+        const rows: any[][] = [["OM", "NOME", "GRAD/ESP", "CARGO", "EM OUTRA OM", "DE OUTRA OM", "PERÍODO"]];
+        for (const d of filtDestaques) rows.push([d.om, d.nome, `${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`, d.cargo || "-", d.emOutraOm || "-", d.deOutraOm || "-", d.periodo || "-"]);
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "Destaques");
+      }
+
+      // Sheet 8: Curso
+      const filtCurso = filterAuxiliaryData(cursoData);
+      if (filtCurso.length > 0) {
+        const rows: any[][] = [["OM", "NOME", "GRAD/ESP", "CARGO", "ANO PREVISTO"]];
+        for (const c of filtCurso) rows.push([c.om, c.nome, `${c.posto}, ${c.quadro || "-"}, ${c.especialidade || "-"}`, c.cargo || "-", c.anoPrevisto || "-"]);
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "Curso");
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+      XLSX.writeFile(workbook, `tabela-mestra-pracas-${today}.xlsx`);
+      toast.success("Excel gerado com sucesso!");
+    } catch (error) {
+      console.error("Error generating Excel:", error);
+      toast.error("Erro ao gerar Excel");
+    }
+  };
+
+
   const handleLogout = async () => {
     try {
       await signOut();
@@ -1423,7 +1924,15 @@ const DashboardPracas = () => {
                 </Button>
                 <Button onClick={exportToPDF} variant="outline">
                   <Download className="mr-2 h-4 w-4" />
-                  Exportar PDF
+                  PDF
+                </Button>
+                <Button onClick={exportToWord} variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Word
+                </Button>
+                <Button onClick={exportToExcel} variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Excel
                 </Button>
               </div>
             </div>
