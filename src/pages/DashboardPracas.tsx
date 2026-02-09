@@ -1173,9 +1173,7 @@ const DashboardPracas = () => {
         yPosition = (pdf as any).lastAutoTable.finalY + 8;
 
         // ====== PREVISÃO DE DESEMBARQUE (per OM) ======
-        const omDesembarque = desembarqueData.filter(
-          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro) || selectedQuadros.includes(item.especialidade)),
-        );
+        const omDesembarque = filterAuxiliaryData(desembarqueData).filter((item) => item.om === om);
         if (omDesembarque.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -1206,7 +1204,7 @@ const DashboardPracas = () => {
         }
 
         // ====== PREVISÃO DE TRRM (per OM) ======
-        const omTrrm = trrmData.filter((item) => item.om === om);
+        const omTrrm = filterAuxiliaryData(trrmData).filter((item) => item.om === om);
         if (omTrrm.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -1236,7 +1234,7 @@ const DashboardPracas = () => {
         }
 
         // ====== LICENÇAS (per OM) ======
-        const omLicencas = licencasData.filter((item) => item.om === om);
+        const omLicencas = filterAuxiliaryData(licencasData).filter((item) => item.om === om);
         if (omLicencas.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -1265,7 +1263,7 @@ const DashboardPracas = () => {
         }
 
         // ====== DESTAQUES (per OM) ======
-        const omDestaques = destaquesData.filter((item) => item.om === om);
+        const omDestaques = filterAuxiliaryData(destaquesData).filter((item) => item.om === om);
         if (omDestaques.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -1296,7 +1294,7 @@ const DashboardPracas = () => {
         }
 
         // ====== PREVISÃO DE CURSO (per OM) ======
-        const omCurso = cursoData.filter((item) => item.om === om);
+        const omCurso = filterAuxiliaryData(cursoData).filter((item) => item.om === om);
         if (omCurso.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
