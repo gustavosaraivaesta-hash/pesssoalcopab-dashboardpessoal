@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { isForaDaNeo } from "@/lib/utils";
 import {
   BarChart,
   Bar,
@@ -566,10 +567,7 @@ const DashboardOM = () => {
     // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are meaningful)
     // Corpo difference alone does NOT make someone "FORA DA NEO"
     const foraNeo = regularData.filter((item) => {
-      const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
-      const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
-      // Only consider FORA DA NEO if quadro values exist and are different
-      return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+      return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
     });
 
     // NA NEO: everyone who is NOT FORA DA NEO
@@ -1007,9 +1005,7 @@ const DashboardOM = () => {
         // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are different)
         const omRegularOcupadosForNeo = omRegularData.filter((item) => item.ocupado);
         const omForaNeoList = omRegularOcupadosForNeo.filter((item) => {
-          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
-          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
-          return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
         }).length;
 
         // NA NEO: everyone who is NOT FORA DA NEO (ensures NA NEO + FORA DA NEO = EFETIVO)
@@ -1215,9 +1211,7 @@ const DashboardOM = () => {
         // Calculate NA NEO / FORA DA NEO for this OM
         const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omRegularOcupados.filter((item) => {
-          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
-          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
-          return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
         }).length;
         const omNaNeoCount = omEfetivo - omForaNeoCount;
 
@@ -1699,9 +1693,7 @@ const DashboardOM = () => {
         const omEfetivoTotal = omRegularOcupados.length;
 
         const omForaNeoList = omRegularOcupados.filter((item) => {
-          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
-          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
-          return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
         }).length;
 
         const omNaNeo = omEfetivoTotal - omForaNeoList;
@@ -1868,9 +1860,7 @@ const DashboardOM = () => {
 
         const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omRegularOcupados.filter((item) => {
-          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
-          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
-          return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
         }).length;
         const omNaNeoCount = omEfetivo - omForaNeoCount;
 
@@ -1941,8 +1931,7 @@ const DashboardOM = () => {
           const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
           const setorStr = (item.setor || "").trim().toUpperCase();
 
-          const quadroDivergente =
-            isOcupado && quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+          const quadroDivergente = isOcupado && isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
           const corpoDivergente =
             isOcupado && corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
 
@@ -2243,9 +2232,7 @@ const DashboardOM = () => {
         const omVagos = omTmft - omEfetivoTotal;
 
         const omForaNeoCount = omRegularOcupados.filter((item) => {
-          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
-          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
-          return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
         }).length;
         const omNaNeoCount = omEfetivoTotal - omForaNeoCount;
         const atendimento = omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100).toFixed(1) : "0";
@@ -2301,9 +2288,7 @@ const DashboardOM = () => {
         let status = "VAGO";
 
         if (isOcupado) {
-          const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
-          const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
-          if (quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe) {
+          if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "")) {
             status = "FORA DA NEO";
           } else {
             status = "NA NEO";

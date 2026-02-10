@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { isForaDaNeo, expandSpecialtyEquivalents } from "@/lib/utils";
 import {
   BarChart,
   Bar,
@@ -424,15 +425,17 @@ const DashboardPracas = () => {
   // Independent filter matching functions
   const hasSpecificFilters = selectedQuadros.length > 0 || selectedGraduacoes.length > 0 || selectedOpcoes.length > 0;
 
+  const expandedQuadros = useMemo(() => expandSpecialtyEquivalents(selectedQuadros), [selectedQuadros]);
+
   const matchesTmftFilters = (item: PersonnelRecord) => {
-    if (selectedQuadros.length > 0 && !selectedQuadros.includes(item.quadroTmft)) return false;
+    if (selectedQuadros.length > 0 && !expandedQuadros.includes(item.quadroTmft)) return false;
     if (selectedGraduacoes.length > 0 && !selectedGraduacoes.includes(item.postoTmft)) return false;
     if (selectedOpcoes.length > 0 && !selectedOpcoes.includes(item.opcaoTmft)) return false;
     return true;
   };
 
   const matchesEfeFilters = (item: PersonnelRecord) => {
-    if (selectedQuadros.length > 0 && !selectedQuadros.includes(item.quadroEfe)) return false;
+    if (selectedQuadros.length > 0 && !expandedQuadros.includes(item.quadroEfe)) return false;
     if (selectedGraduacoes.length > 0 && !selectedGraduacoes.includes(item.postoEfe)) return false;
     if (selectedOpcoes.length > 0 && !selectedOpcoes.includes(item.opcaoEfe)) return false;
     return true;
@@ -525,13 +528,11 @@ const DashboardPracas = () => {
     }
 
     return baseData.filter((item) => {
-      const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
-      const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
-      const isForaNeo = quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+      const isForaNeoResult = isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
       if (showNeoPersonnel === "fora") {
-        return isForaNeo;
+        return isForaNeoResult;
       } else {
-        return !isForaNeo;
+        return !isForaNeoResult;
       }
     });
   }, [showNeoPersonnel, baseFilteredData, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
@@ -572,9 +573,7 @@ const DashboardPracas = () => {
       : occupiedRegular;
 
     const foraDaNeoList = efetivoForNeo.filter((item) => {
-      const quadroTmft = (item.quadroTmft || "").trim().toUpperCase();
-      const quadroEfe = (item.quadroEfe || "").trim().toUpperCase();
-      return quadroTmft && quadroEfe && quadroTmft !== "-" && quadroEfe !== "-" && quadroTmft !== quadroEfe;
+      return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
     });
 
     const foraDaNeo = foraDaNeoList.length;
@@ -614,7 +613,7 @@ const DashboardPracas = () => {
 
     if (selectedQuadros.length > 0) {
       filtered = filtered.filter(
-        (item) => selectedQuadros.includes(item.quadro || '') || selectedQuadros.includes(item.especialidade || ''),
+        (item) => expandedQuadros.includes(item.quadro || '') || expandedQuadros.includes(item.especialidade || ''),
       );
     }
 
@@ -930,9 +929,7 @@ const DashboardPracas = () => {
           ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
           : omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omEfetivoForNeo.filter((item) => {
-          const espTmft = (item.quadroTmft || "").trim().toUpperCase();
-          const espEfe = (item.quadroEfe || "").trim().toUpperCase();
-          return espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe;
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
         }).length;
 
         const omNaNeo = omEfetivoTotal - omForaNeoCount;
@@ -1040,9 +1037,7 @@ const DashboardPracas = () => {
           ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
           : omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omEfetivoForNeo.filter((item) => {
-          const espTmft = (item.quadroTmft || "").trim().toUpperCase();
-          const espEfe = (item.quadroEfe || "").trim().toUpperCase();
-          return espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe;
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
         }).length;
         const omNaNeoCount = omEfetivo - omForaNeoCount;
 
@@ -1119,9 +1114,7 @@ const DashboardPracas = () => {
           } else if (!item.ocupado) {
             status = "VAGO";
           } else {
-            const espTmft = (item.quadroTmft || "").trim().toUpperCase();
-            const espEfe = (item.quadroEfe || "").trim().toUpperCase();
-            if (espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe) {
+            if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "")) {
               status = "FORA NEO";
             } else {
               status = "NA NEO";
@@ -1454,9 +1447,7 @@ const DashboardPracas = () => {
           ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
           : omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omEfetivoForNeo.filter((item) => {
-          const espTmft = (item.quadroTmft || "").trim().toUpperCase();
-          const espEfe = (item.quadroEfe || "").trim().toUpperCase();
-          return espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe;
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
         }).length;
 
         const omNaNeo = omEfetivoTotal - omForaNeoCount;
@@ -1538,9 +1529,7 @@ const DashboardPracas = () => {
           ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
           : omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omEfetivoForNeo.filter((item) => {
-          const espTmft = (item.quadroTmft || "").trim().toUpperCase();
-          const espEfe = (item.quadroEfe || "").trim().toUpperCase();
-          return espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe;
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
         }).length;
         const omNaNeoCount = omEfetivo - omForaNeoCount;
 
@@ -1625,9 +1614,7 @@ const DashboardPracas = () => {
             status = "VAGO";
             bgColor = "FECACA"; txtColor = "7F1D1D";
           } else {
-            const espTmft = (item.quadroTmft || "").trim().toUpperCase();
-            const espEfe = (item.quadroEfe || "").trim().toUpperCase();
-            if (espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe) {
+            if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "")) {
               status = "FORA NEO";
               bgColor = "FFEDD5"; txtColor = "C2410C";
             } else if (setorStr.includes("EXTRA LOTA")) {
@@ -1748,9 +1735,7 @@ const DashboardPracas = () => {
           ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
           : omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omEfetivoForNeo.filter((item) => {
-          const espTmft = (item.quadroTmft || "").trim().toUpperCase();
-          const espEfe = (item.quadroEfe || "").trim().toUpperCase();
-          return espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe;
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
         }).length;
         const omNaNeoCount = omEfetivoTotal - omForaNeoCount;
         const atendimento = omTmft > 0 ? parseFloat(((omEfetivoTotal / omTmft) * 100).toFixed(1)) : 0;
@@ -1773,9 +1758,7 @@ const DashboardPracas = () => {
       for (const item of displayFilteredData) {
         let status = "VAGO";
         if (item.ocupado) {
-          const espTmft = (item.quadroTmft || "").trim().toUpperCase();
-          const espEfe = (item.quadroEfe || "").trim().toUpperCase();
-          status = espTmft && espEfe && espTmft !== "-" && espEfe !== "-" && espTmft !== espEfe ? "FORA DA NEO" : "NA NEO";
+          status = isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "") ? "FORA DA NEO" : "NA NEO";
         }
         efetivoData.push([item.om, item.neo, item.tipoSetor, item.setor, item.cargo, item.postoTmft, item.quadroTmft, item.opcaoTmft, item.nome || "-", item.postoEfe || "-", item.quadroEfe || "-", item.opcaoEfe || "-", item.ocupado ? "SIM" : "NÃO", status]);
       }
