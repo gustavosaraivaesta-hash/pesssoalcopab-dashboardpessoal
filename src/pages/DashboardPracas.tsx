@@ -157,13 +157,13 @@ const DashboardPracas = () => {
   const [cursoData, setCursoData] = useState<CursoRecord[]>([]);
   const [availableOMs, setAvailableOMs] = useState<string[]>([]);
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
-  
+
   const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
   const [availableGraduacoes, setAvailableGraduacoes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedQuadros, setSelectedQuadros] = useState<string[]>([]);
-  
+
   const [selectedOpcoes, setSelectedOpcoes] = useState<string[]>([]);
   const [selectedGraduacoes, setSelectedGraduacoes] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("efetivo");
@@ -227,11 +227,7 @@ const DashboardPracas = () => {
 
       // Extrair graduações disponíveis (postoTmft) para praças
       const graduacoesFromData = [
-        ...new Set(
-          data
-            .map((item: any) => item.postoEfe)
-            .filter((g: string) => g && g.trim() !== "" && g !== "-"),
-        ),
+        ...new Set(data.map((item: any) => item.postoEfe).filter((g: string) => g && g.trim() !== "" && g !== "-")),
       ].sort((a, b) => {
         const order = ["SO", "SG", "CB", "MN", "SD"];
         const indexA = order.indexOf(a);
@@ -357,11 +353,7 @@ const DashboardPracas = () => {
         setAvailableQuadros(quadrosFromData as string[]);
         // Extrair graduações disponíveis (postoEfe) para praças
         const graduacoesFromData = [
-          ...new Set(
-            data
-              .map((item: any) => item.postoEfe)
-              .filter((g: string) => g && g.trim() !== "" && g !== "-"),
-          ),
+          ...new Set(data.map((item: any) => item.postoEfe).filter((g: string) => g && g.trim() !== "" && g !== "-")),
         ].sort((a, b) => {
           const order = ["SO", "SG", "CB", "MN", "SD"];
           const indexA = order.indexOf(a);
@@ -472,19 +464,20 @@ const DashboardPracas = () => {
     setSelectedQuadros((prev) => (prev.includes(quadro) ? prev.filter((q) => q !== quadro) : [...prev, quadro]));
   };
 
-
   const toggleOpcao = (opcao: string) => {
     setSelectedOpcoes((prev) => (prev.includes(opcao) ? prev.filter((o) => o !== opcao) : [...prev, opcao]));
   };
 
   const toggleGraduacao = (graduacao: string) => {
-    setSelectedGraduacoes((prev) => (prev.includes(graduacao) ? prev.filter((g) => g !== graduacao) : [...prev, graduacao]));
+    setSelectedGraduacoes((prev) =>
+      prev.includes(graduacao) ? prev.filter((g) => g !== graduacao) : [...prev, graduacao],
+    );
   };
 
   const clearFilters = () => {
     setSelectedOMs([]);
     setSelectedQuadros([]);
-    
+
     setSelectedOpcoes([]);
     setSelectedGraduacoes([]);
     setStatusFilter("all");
@@ -568,9 +561,7 @@ const DashboardPracas = () => {
     // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are meaningful)
     // NA NEO = EFETIVO - FORA DA NEO (ensures the sum matches)
     const occupiedRegular = regularData.filter((item) => item.ocupado);
-    const efetivoForNeo = hasSpecificFilters
-      ? occupiedRegular.filter(matchesEfeFilters)
-      : occupiedRegular;
+    const efetivoForNeo = hasSpecificFilters ? occupiedRegular.filter(matchesEfeFilters) : occupiedRegular;
 
     const foraDaNeoList = efetivoForNeo.filter((item) => {
       return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
@@ -604,7 +595,11 @@ const DashboardPracas = () => {
     return groups;
   }, [filteredData]);
 
-  const filterAuxiliaryData = <T extends { om: string; quadro?: string; especialidade?: string; posto?: string; opcao?: string }>(data: T[]): T[] => {
+  const filterAuxiliaryData = <
+    T extends { om: string; quadro?: string; especialidade?: string; posto?: string; opcao?: string },
+  >(
+    data: T[],
+  ): T[] => {
     let filtered = data;
 
     if (selectedOMs.length > 0) {
@@ -613,16 +608,16 @@ const DashboardPracas = () => {
 
     if (selectedQuadros.length > 0) {
       filtered = filtered.filter(
-        (item) => expandedQuadros.includes(item.quadro || '') || expandedQuadros.includes(item.especialidade || ''),
+        (item) => expandedQuadros.includes(item.quadro || "") || expandedQuadros.includes(item.especialidade || ""),
       );
     }
 
     if (selectedGraduacoes.length > 0) {
-      filtered = filtered.filter((item) => selectedGraduacoes.includes(item.posto || ''));
+      filtered = filtered.filter((item) => selectedGraduacoes.includes(item.posto || ""));
     }
 
     if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcao || ''));
+      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcao || ""));
     }
 
     return filtered;
@@ -1096,8 +1091,8 @@ const DashboardPracas = () => {
 
         // Sort by NEO
         const sortedData = [...omTableData].sort((a, b) => {
-          const neoA = String(a.neo || '');
-          const neoB = String(b.neo || '');
+          const neoA = String(a.neo || "");
+          const neoB = String(b.neo || "");
           return neoA.localeCompare(neoB, undefined, { numeric: true });
         });
 
@@ -1110,7 +1105,7 @@ const DashboardPracas = () => {
 
           let status: string;
           if (isExtraRow) {
-            status = "EFETIVO EXTRA";
+            status = "EFETIVO";
           } else if (!item.ocupado) {
             status = "VAGO";
           } else {
@@ -1386,7 +1381,12 @@ const DashboardPracas = () => {
       ];
 
       // Filters applied
-      if (selectedOMs.length > 0 || selectedQuadros.length > 0 || selectedGraduacoes.length > 0 || selectedOpcoes.length > 0) {
+      if (
+        selectedOMs.length > 0 ||
+        selectedQuadros.length > 0 ||
+        selectedGraduacoes.length > 0 ||
+        selectedOpcoes.length > 0
+      ) {
         titleParagraphs.push(
           new Paragraph({
             children: [new TextRun({ text: "Filtros Aplicados:", bold: true, size: 20 })],
@@ -1394,16 +1394,28 @@ const DashboardPracas = () => {
           }),
         );
         if (selectedOMs.length > 0) {
-          titleParagraphs.push(new Paragraph({ children: [new TextRun({ text: `OM: ${selectedOMs.join(", ")}`, size: 20 })] }));
+          titleParagraphs.push(
+            new Paragraph({ children: [new TextRun({ text: `OM: ${selectedOMs.join(", ")}`, size: 20 })] }),
+          );
         }
         if (selectedQuadros.length > 0) {
-          titleParagraphs.push(new Paragraph({ children: [new TextRun({ text: `Especialidade: ${selectedQuadros.join(", ")}`, size: 20 })] }));
+          titleParagraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `Especialidade: ${selectedQuadros.join(", ")}`, size: 20 })],
+            }),
+          );
         }
         if (selectedGraduacoes.length > 0) {
-          titleParagraphs.push(new Paragraph({ children: [new TextRun({ text: `Graduação: ${selectedGraduacoes.join(", ")}`, size: 20 })] }));
+          titleParagraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `Graduação: ${selectedGraduacoes.join(", ")}`, size: 20 })],
+            }),
+          );
         }
         if (selectedOpcoes.length > 0) {
-          titleParagraphs.push(new Paragraph({ children: [new TextRun({ text: `Opção: ${selectedOpcoes.join(", ")}`, size: 20 })] }));
+          titleParagraphs.push(
+            new Paragraph({ children: [new TextRun({ text: `Opção: ${selectedOpcoes.join(", ")}`, size: 20 })] }),
+          );
         }
         titleParagraphs.push(new Paragraph({ spacing: { after: 200 } }));
       }
@@ -1431,7 +1443,10 @@ const DashboardPracas = () => {
         }),
       ];
 
-      let totalNaNeo = 0, totalForaNeo = 0, totalEfetivoGeral = 0, totalTmftConformidade = 0;
+      let totalNaNeo = 0,
+        totalForaNeo = 0,
+        totalEfetivoGeral = 0,
+        totalTmftConformidade = 0;
 
       for (const om of activeOMs) {
         const omBaseData = baseFilteredData.filter((item) => item.om === om);
@@ -1486,14 +1501,21 @@ const DashboardPracas = () => {
             createCell(totalTmftConformidade.toString(), true, "E5E7EB"),
             createCell(totalEfetivoGeral.toString(), true, "E5E7EB"),
             createCell(totalNaNeo.toString(), true, "E5E7EB"),
-            createCell(totalForaNeo.toString(), true, totalForaNeo > 0 ? "FFEDD5" : "E5E7EB", totalForaNeo > 0 ? "C2410C" : undefined),
+            createCell(
+              totalForaNeo.toString(),
+              true,
+              totalForaNeo > 0 ? "FFEDD5" : "E5E7EB",
+              totalForaNeo > 0 ? "C2410C" : undefined,
+            ),
             createCell((totalTmftConformidade - totalEfetivoGeral).toString(), true, "E5E7EB"),
             createCell(`${totalDisplayAtendimento.toFixed(1)}%`, true, "E5E7EB"),
           ],
         }),
       );
 
-      titleParagraphs.push(new Table({ rows: neoResumoRows, width: { size: 100, type: WidthType.PERCENTAGE } }) as unknown as Paragraph);
+      titleParagraphs.push(
+        new Table({ rows: neoResumoRows, width: { size: 100, type: WidthType.PERCENTAGE } }) as unknown as Paragraph,
+      );
       titleParagraphs.push(new Paragraph({ spacing: { after: 400 } }));
 
       sections.push({
@@ -1550,7 +1572,12 @@ const DashboardPracas = () => {
               createCell(omEfetivo.toString(), true),
               createCell(omVagos.toString(), true),
               createCell(omNaNeoCount.toString(), true),
-              createCell(omForaNeoCount.toString(), true, omForaNeoCount > 0 ? "FFEDD5" : undefined, omForaNeoCount > 0 ? "C2410C" : undefined),
+              createCell(
+                omForaNeoCount.toString(),
+                true,
+                omForaNeoCount > 0 ? "FFEDD5" : undefined,
+                omForaNeoCount > 0 ? "C2410C" : undefined,
+              ),
               createCell(`${omAtendimento.toFixed(1)}%`, true),
             ],
           }),
@@ -1578,7 +1605,9 @@ const DashboardPracas = () => {
           omTableData = [...omTableData, ...extraEfetivoRows.filter((item) => !existingIds.has(item.id))];
         }
 
-        const sortedData = [...omTableData].sort((a, b) => String(a.neo || '').localeCompare(String(b.neo || ''), undefined, { numeric: true }));
+        const sortedData = [...omTableData].sort((a, b) =>
+          String(a.neo || "").localeCompare(String(b.neo || ""), undefined, { numeric: true }),
+        );
 
         const efetivoRows: TableRow[] = [
           new TableRow({
@@ -1609,17 +1638,21 @@ const DashboardPracas = () => {
 
           if (isExtraRow) {
             status = "EFETIVO EXTRA";
-            bgColor = "DBEAFE"; txtColor = "1E40AF";
+            bgColor = "DBEAFE";
+            txtColor = "1E40AF";
           } else if (!item.ocupado) {
             status = "VAGO";
-            bgColor = "FECACA"; txtColor = "7F1D1D";
+            bgColor = "FECACA";
+            txtColor = "7F1D1D";
           } else {
             if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "")) {
               status = "FORA NEO";
-              bgColor = "FFEDD5"; txtColor = "C2410C";
+              bgColor = "FFEDD5";
+              txtColor = "C2410C";
             } else if (setorStr.includes("EXTRA LOTA")) {
               status = "EXTRA LOTAÇÃO";
-              bgColor = "FEF08A"; txtColor = "713F12";
+              bgColor = "FEF08A";
+              txtColor = "713F12";
             } else {
               status = "NA NEO";
             }
@@ -1648,45 +1681,180 @@ const DashboardPracas = () => {
         // Auxiliary tables with filters
         const omDesembarque = filterAuxiliaryData(desembarqueData).filter((item) => item.om === om);
         if (omDesembarque.length > 0) {
-          omChildren.push(new Paragraph({ children: [new TextRun({ text: "PREVISÃO DE DESEMBARQUE", bold: true, size: 22 })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 200 } }));
-          const rows: TableRow[] = [new TableRow({ children: [createCell("NOME", true, "D97706"), createCell("GRAD/ESP", true, "D97706"), createCell("CARGO", true, "D97706"), createCell("DESTINO", true, "D97706"), createCell("MÊS/ANO", true, "D97706"), createCell("DOCUMENTO", true, "D97706")] })];
-          for (const d of omDesembarque) rows.push(new TableRow({ children: [createCell(d.nome || "-"), createCell(`${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`), createCell(d.cargo || "-"), createCell(d.destino || "-"), createCell(d.mesAno || "-"), createCell(d.documento || "-")] }));
+          omChildren.push(
+            new Paragraph({
+              children: [new TextRun({ text: "PREVISÃO DE DESEMBARQUE", bold: true, size: 22 })],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 200, after: 200 },
+            }),
+          );
+          const rows: TableRow[] = [
+            new TableRow({
+              children: [
+                createCell("NOME", true, "D97706"),
+                createCell("GRAD/ESP", true, "D97706"),
+                createCell("CARGO", true, "D97706"),
+                createCell("DESTINO", true, "D97706"),
+                createCell("MÊS/ANO", true, "D97706"),
+                createCell("DOCUMENTO", true, "D97706"),
+              ],
+            }),
+          ];
+          for (const d of omDesembarque)
+            rows.push(
+              new TableRow({
+                children: [
+                  createCell(d.nome || "-"),
+                  createCell(`${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`),
+                  createCell(d.cargo || "-"),
+                  createCell(d.destino || "-"),
+                  createCell(d.mesAno || "-"),
+                  createCell(d.documento || "-"),
+                ],
+              }),
+            );
           omChildren.push(new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }));
           omChildren.push(new Paragraph({ spacing: { after: 300 } }));
         }
 
         const omTrrm = filterAuxiliaryData(trrmData).filter((item) => item.om === om);
         if (omTrrm.length > 0) {
-          omChildren.push(new Paragraph({ children: [new TextRun({ text: "PREVISÃO DE TRRM", bold: true, size: 22 })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 200 } }));
-          const rows: TableRow[] = [new TableRow({ children: [createCell("NOME", true, "9333EA"), createCell("GRAD/ESP", true, "9333EA"), createCell("OPÇÃO", true, "9333EA"), createCell("CARGO", true, "9333EA"), createCell("ÉPOCA PREVISTA", true, "9333EA")] })];
-          for (const t of omTrrm) rows.push(new TableRow({ children: [createCell(t.nome || "-"), createCell(`${t.posto}, ${t.quadro || "-"}, ${t.especialidade || "-"}`), createCell(t.opcao || "-"), createCell(t.cargo || "-"), createCell(t.epocaPrevista || "-")] }));
+          omChildren.push(
+            new Paragraph({
+              children: [new TextRun({ text: "PREVISÃO DE TRRM", bold: true, size: 22 })],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 200, after: 200 },
+            }),
+          );
+          const rows: TableRow[] = [
+            new TableRow({
+              children: [
+                createCell("NOME", true, "9333EA"),
+                createCell("GRAD/ESP", true, "9333EA"),
+                createCell("OPÇÃO", true, "9333EA"),
+                createCell("CARGO", true, "9333EA"),
+                createCell("ÉPOCA PREVISTA", true, "9333EA"),
+              ],
+            }),
+          ];
+          for (const t of omTrrm)
+            rows.push(
+              new TableRow({
+                children: [
+                  createCell(t.nome || "-"),
+                  createCell(`${t.posto}, ${t.quadro || "-"}, ${t.especialidade || "-"}`),
+                  createCell(t.opcao || "-"),
+                  createCell(t.cargo || "-"),
+                  createCell(t.epocaPrevista || "-"),
+                ],
+              }),
+            );
           omChildren.push(new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }));
           omChildren.push(new Paragraph({ spacing: { after: 300 } }));
         }
 
         const omLicencas = filterAuxiliaryData(licencasData).filter((item) => item.om === om);
         if (omLicencas.length > 0) {
-          omChildren.push(new Paragraph({ children: [new TextRun({ text: "LICENÇAS", bold: true, size: 22 })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 200 } }));
-          const rows: TableRow[] = [new TableRow({ children: [createCell("NOME", true, "EA580C"), createCell("GRAD/ESP", true, "EA580C"), createCell("CARGO", true, "EA580C"), createCell("PERÍODO", true, "EA580C")] })];
-          for (const l of omLicencas) rows.push(new TableRow({ children: [createCell(l.nome || "-"), createCell(`${l.posto}, ${l.quadro || "-"}, ${l.especialidade || "-"}`), createCell(l.cargo || "-"), createCell(l.periodo || "-")] }));
+          omChildren.push(
+            new Paragraph({
+              children: [new TextRun({ text: "LICENÇAS", bold: true, size: 22 })],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 200, after: 200 },
+            }),
+          );
+          const rows: TableRow[] = [
+            new TableRow({
+              children: [
+                createCell("NOME", true, "EA580C"),
+                createCell("GRAD/ESP", true, "EA580C"),
+                createCell("CARGO", true, "EA580C"),
+                createCell("PERÍODO", true, "EA580C"),
+              ],
+            }),
+          ];
+          for (const l of omLicencas)
+            rows.push(
+              new TableRow({
+                children: [
+                  createCell(l.nome || "-"),
+                  createCell(`${l.posto}, ${l.quadro || "-"}, ${l.especialidade || "-"}`),
+                  createCell(l.cargo || "-"),
+                  createCell(l.periodo || "-"),
+                ],
+              }),
+            );
           omChildren.push(new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }));
           omChildren.push(new Paragraph({ spacing: { after: 300 } }));
         }
 
         const omDestaques = filterAuxiliaryData(destaquesData).filter((item) => item.om === om);
         if (omDestaques.length > 0) {
-          omChildren.push(new Paragraph({ children: [new TextRun({ text: "DESTAQUES", bold: true, size: 22 })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 200 } }));
-          const rows: TableRow[] = [new TableRow({ children: [createCell("NOME", true, "CA8A04"), createCell("GRAD/ESP", true, "CA8A04"), createCell("CARGO", true, "CA8A04"), createCell("EM OUTRA OM", true, "CA8A04"), createCell("DE OUTRA OM", true, "CA8A04"), createCell("PERÍODO", true, "CA8A04")] })];
-          for (const d of omDestaques) rows.push(new TableRow({ children: [createCell(d.nome || "-"), createCell(`${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`), createCell(d.cargo || "-"), createCell(d.emOutraOm || "-"), createCell(d.deOutraOm || "-"), createCell(d.periodo || "-")] }));
+          omChildren.push(
+            new Paragraph({
+              children: [new TextRun({ text: "DESTAQUES", bold: true, size: 22 })],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 200, after: 200 },
+            }),
+          );
+          const rows: TableRow[] = [
+            new TableRow({
+              children: [
+                createCell("NOME", true, "CA8A04"),
+                createCell("GRAD/ESP", true, "CA8A04"),
+                createCell("CARGO", true, "CA8A04"),
+                createCell("EM OUTRA OM", true, "CA8A04"),
+                createCell("DE OUTRA OM", true, "CA8A04"),
+                createCell("PERÍODO", true, "CA8A04"),
+              ],
+            }),
+          ];
+          for (const d of omDestaques)
+            rows.push(
+              new TableRow({
+                children: [
+                  createCell(d.nome || "-"),
+                  createCell(`${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`),
+                  createCell(d.cargo || "-"),
+                  createCell(d.emOutraOm || "-"),
+                  createCell(d.deOutraOm || "-"),
+                  createCell(d.periodo || "-"),
+                ],
+              }),
+            );
           omChildren.push(new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }));
           omChildren.push(new Paragraph({ spacing: { after: 300 } }));
         }
 
         const omCurso = filterAuxiliaryData(cursoData).filter((item) => item.om === om);
         if (omCurso.length > 0) {
-          omChildren.push(new Paragraph({ children: [new TextRun({ text: "PREVISÃO DE CURSO", bold: true, size: 22 })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 200 } }));
-          const rows: TableRow[] = [new TableRow({ children: [createCell("NOME", true, "059669"), createCell("GRAD/ESP", true, "059669"), createCell("CARGO", true, "059669"), createCell("ANO PREVISTO", true, "059669")] })];
-          for (const c of omCurso) rows.push(new TableRow({ children: [createCell(c.nome || "-"), createCell(`${c.posto}, ${c.quadro || "-"}, ${c.especialidade || "-"}`), createCell(c.cargo || "-"), createCell(c.anoPrevisto || "-")] }));
+          omChildren.push(
+            new Paragraph({
+              children: [new TextRun({ text: "PREVISÃO DE CURSO", bold: true, size: 22 })],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 200, after: 200 },
+            }),
+          );
+          const rows: TableRow[] = [
+            new TableRow({
+              children: [
+                createCell("NOME", true, "059669"),
+                createCell("GRAD/ESP", true, "059669"),
+                createCell("CARGO", true, "059669"),
+                createCell("ANO PREVISTO", true, "059669"),
+              ],
+            }),
+          ];
+          for (const c of omCurso)
+            rows.push(
+              new TableRow({
+                children: [
+                  createCell(c.nome || "-"),
+                  createCell(`${c.posto}, ${c.quadro || "-"}, ${c.especialidade || "-"}`),
+                  createCell(c.cargo || "-"),
+                  createCell(c.anoPrevisto || "-"),
+                ],
+              }),
+            );
           omChildren.push(new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }));
         }
 
@@ -1717,8 +1885,16 @@ const DashboardPracas = () => {
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
       // Sheet 1: Resumo
-      const resumoData: any[][] = [["RESUMO"], [], ["OM", "TMFT", "EFETIVO", "VAGAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO (%)"]];
-      let totalTmft = 0, totalEfetivo = 0, totalVagos = 0, totalNaNeo = 0, totalForaNeo = 0;
+      const resumoData: any[][] = [
+        ["RESUMO"],
+        [],
+        ["OM", "TMFT", "EFETIVO", "VAGAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO (%)"],
+      ];
+      let totalTmft = 0,
+        totalEfetivo = 0,
+        totalVagos = 0,
+        totalNaNeo = 0,
+        totalForaNeo = 0;
 
       for (const om of activeOMs) {
         const omBaseData = baseFilteredData.filter((item) => item.om === om);
@@ -1740,8 +1916,11 @@ const DashboardPracas = () => {
         const omNaNeoCount = omEfetivoTotal - omForaNeoCount;
         const atendimento = omTmft > 0 ? parseFloat(((omEfetivoTotal / omTmft) * 100).toFixed(1)) : 0;
 
-        totalTmft += omTmft; totalEfetivo += omEfetivoTotal; totalVagos += omVagos;
-        totalNaNeo += omNaNeoCount; totalForaNeo += omForaNeoCount;
+        totalTmft += omTmft;
+        totalEfetivo += omEfetivoTotal;
+        totalVagos += omVagos;
+        totalNaNeo += omNaNeoCount;
+        totalForaNeo += omForaNeoCount;
 
         resumoData.push([om, omTmft, omEfetivoTotal, omVagos, omNaNeoCount, omForaNeoCount, atendimento]);
       }
@@ -1752,7 +1931,22 @@ const DashboardPracas = () => {
       XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(resumoData), "Resumo");
 
       // Sheet 2: Efetivo Completo
-      const efetivoHeaders = ["OM", "NEO", "TIPO SETOR", "SETOR", "CARGO", "GRAD TMFT", "ESP TMFT", "OPÇÃO TMFT", "NOME", "GRAD EFE", "ESP EFE", "OPÇÃO EFE", "OCUPADO", "STATUS"];
+      const efetivoHeaders = [
+        "OM",
+        "NEO",
+        "TIPO SETOR",
+        "SETOR",
+        "CARGO",
+        "GRAD TMFT",
+        "ESP TMFT",
+        "OPÇÃO TMFT",
+        "NOME",
+        "GRAD EFE",
+        "ESP EFE",
+        "OPÇÃO EFE",
+        "OCUPADO",
+        "STATUS",
+      ];
       const efetivoData: any[][] = [efetivoHeaders];
 
       for (const item of displayFilteredData) {
@@ -1760,7 +1954,22 @@ const DashboardPracas = () => {
         if (item.ocupado) {
           status = isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "") ? "FORA DA NEO" : "NA NEO";
         }
-        efetivoData.push([item.om, item.neo, item.tipoSetor, item.setor, item.cargo, item.postoTmft, item.quadroTmft, item.opcaoTmft, item.nome || "-", item.postoEfe || "-", item.quadroEfe || "-", item.opcaoEfe || "-", item.ocupado ? "SIM" : "NÃO", status]);
+        efetivoData.push([
+          item.om,
+          item.neo,
+          item.tipoSetor,
+          item.setor,
+          item.cargo,
+          item.postoTmft,
+          item.quadroTmft,
+          item.opcaoTmft,
+          item.nome || "-",
+          item.postoEfe || "-",
+          item.quadroEfe || "-",
+          item.opcaoEfe || "-",
+          item.ocupado ? "SIM" : "NÃO",
+          status,
+        ]);
       }
 
       XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(efetivoData), "Efetivo Completo");
@@ -1769,7 +1978,16 @@ const DashboardPracas = () => {
       const filtDesembarque = filterAuxiliaryData(desembarqueData);
       if (filtDesembarque.length > 0) {
         const rows: any[][] = [["OM", "NOME", "GRAD/ESP", "CARGO", "DESTINO", "MÊS/ANO", "DOCUMENTO"]];
-        for (const d of filtDesembarque) rows.push([d.om, d.nome, `${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`, d.cargo || "-", d.destino || "-", d.mesAno || "-", d.documento || "-"]);
+        for (const d of filtDesembarque)
+          rows.push([
+            d.om,
+            d.nome,
+            `${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`,
+            d.cargo || "-",
+            d.destino || "-",
+            d.mesAno || "-",
+            d.documento || "-",
+          ]);
         XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "Previsão Desembarque");
       }
 
@@ -1777,7 +1995,16 @@ const DashboardPracas = () => {
       const filtEmbarque = filterAuxiliaryData(embarqueData);
       if (filtEmbarque.length > 0) {
         const rows: any[][] = [["OM", "NOME", "GRAD/ESP", "CARGO", "DESTINO", "MÊS/ANO", "DOCUMENTO"]];
-        for (const d of filtEmbarque) rows.push([d.om, d.nome, `${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`, d.cargo || "-", d.destino || "-", d.mesAno || "-", d.documento || "-"]);
+        for (const d of filtEmbarque)
+          rows.push([
+            d.om,
+            d.nome,
+            `${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`,
+            d.cargo || "-",
+            d.destino || "-",
+            d.mesAno || "-",
+            d.documento || "-",
+          ]);
         XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "Previsão Embarque");
       }
 
@@ -1785,7 +2012,15 @@ const DashboardPracas = () => {
       const filtTrrm = filterAuxiliaryData(trrmData);
       if (filtTrrm.length > 0) {
         const rows: any[][] = [["OM", "NOME", "GRAD/ESP", "OPÇÃO", "CARGO", "ÉPOCA PREVISTA"]];
-        for (const t of filtTrrm) rows.push([t.om, t.nome, `${t.posto}, ${t.quadro || "-"}, ${t.especialidade || "-"}`, t.opcao || "-", t.cargo || "-", t.epocaPrevista || "-"]);
+        for (const t of filtTrrm)
+          rows.push([
+            t.om,
+            t.nome,
+            `${t.posto}, ${t.quadro || "-"}, ${t.especialidade || "-"}`,
+            t.opcao || "-",
+            t.cargo || "-",
+            t.epocaPrevista || "-",
+          ]);
         XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "TRRM");
       }
 
@@ -1793,7 +2028,14 @@ const DashboardPracas = () => {
       const filtLicencas = filterAuxiliaryData(licencasData);
       if (filtLicencas.length > 0) {
         const rows: any[][] = [["OM", "NOME", "GRAD/ESP", "CARGO", "PERÍODO"]];
-        for (const l of filtLicencas) rows.push([l.om, l.nome, `${l.posto}, ${l.quadro || "-"}, ${l.especialidade || "-"}`, l.cargo || "-", l.periodo || "-"]);
+        for (const l of filtLicencas)
+          rows.push([
+            l.om,
+            l.nome,
+            `${l.posto}, ${l.quadro || "-"}, ${l.especialidade || "-"}`,
+            l.cargo || "-",
+            l.periodo || "-",
+          ]);
         XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "Licenças");
       }
 
@@ -1801,7 +2043,16 @@ const DashboardPracas = () => {
       const filtDestaques = filterAuxiliaryData(destaquesData);
       if (filtDestaques.length > 0) {
         const rows: any[][] = [["OM", "NOME", "GRAD/ESP", "CARGO", "EM OUTRA OM", "DE OUTRA OM", "PERÍODO"]];
-        for (const d of filtDestaques) rows.push([d.om, d.nome, `${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`, d.cargo || "-", d.emOutraOm || "-", d.deOutraOm || "-", d.periodo || "-"]);
+        for (const d of filtDestaques)
+          rows.push([
+            d.om,
+            d.nome,
+            `${d.posto}, ${d.quadro || "-"}, ${d.especialidade || "-"}`,
+            d.cargo || "-",
+            d.emOutraOm || "-",
+            d.deOutraOm || "-",
+            d.periodo || "-",
+          ]);
         XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "Destaques");
       }
 
@@ -1809,7 +2060,14 @@ const DashboardPracas = () => {
       const filtCurso = filterAuxiliaryData(cursoData);
       if (filtCurso.length > 0) {
         const rows: any[][] = [["OM", "NOME", "GRAD/ESP", "CARGO", "ANO PREVISTO"]];
-        for (const c of filtCurso) rows.push([c.om, c.nome, `${c.posto}, ${c.quadro || "-"}, ${c.especialidade || "-"}`, c.cargo || "-", c.anoPrevisto || "-"]);
+        for (const c of filtCurso)
+          rows.push([
+            c.om,
+            c.nome,
+            `${c.posto}, ${c.quadro || "-"}, ${c.especialidade || "-"}`,
+            c.cargo || "-",
+            c.anoPrevisto || "-",
+          ]);
         XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows), "Curso");
       }
 
@@ -1821,7 +2079,6 @@ const DashboardPracas = () => {
       toast.error("Erro ao gerar Excel");
     }
   };
-
 
   const handleLogout = async () => {
     try {
@@ -1984,7 +2241,6 @@ const DashboardPracas = () => {
                 </div>
               </div>
 
-
               {/* Graduação Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -2068,9 +2324,7 @@ const DashboardPracas = () => {
                   <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">EFETIVO</p>
                   <p className="text-4xl font-bold text-green-900 dark:text-green-100">{metrics.totalEXI}</p>
                   <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                    Cargos ocupados{" "}
-                    {selectedQuadros.length > 0 &&
-                      "(Clique para ver Na/Fora da NEO)"}
+                    Cargos ocupados {selectedQuadros.length > 0 && "(Clique para ver Na/Fora da NEO)"}
                   </p>
                 </div>
                 <UserCheck className="h-8 w-8 text-green-500" />
@@ -2230,45 +2484,41 @@ const DashboardPracas = () => {
         </div>
 
         {/* Cards "Fora da NEO" e "Na NEO" - aparecem quando especialidade TMFT ou EFETIVO é filtrada e EFETIVO é clicado */}
-        {showNeoComparison &&
-          selectedQuadros.length > 0 &&
-          statusFilter === "ocupados" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card
-                className={`bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${showNeoPersonnel === "fora" ? "ring-2 ring-amber-500 ring-offset-2" : ""}`}
-                onClick={() => setShowNeoPersonnel((prev) => (prev === "fora" ? null : "fora"))}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-1">FORA DA NEO</p>
-                      <p className="text-4xl font-bold text-amber-900 dark:text-amber-100">{metrics.foraDaNeo}</p>
-                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Especialidade TMFT ≠ EFETIVO</p>
-                    </div>
-                    <UserX className="h-8 w-8 text-amber-500" />
+        {showNeoComparison && selectedQuadros.length > 0 && statusFilter === "ocupados" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card
+              className={`bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${showNeoPersonnel === "fora" ? "ring-2 ring-amber-500 ring-offset-2" : ""}`}
+              onClick={() => setShowNeoPersonnel((prev) => (prev === "fora" ? null : "fora"))}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-1">FORA DA NEO</p>
+                    <p className="text-4xl font-bold text-amber-900 dark:text-amber-100">{metrics.foraDaNeo}</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Especialidade TMFT ≠ EFETIVO</p>
                   </div>
-                </CardContent>
-              </Card>
+                  <UserX className="h-8 w-8 text-amber-500" />
+                </div>
+              </CardContent>
+            </Card>
 
-              <Card
-                className={`bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 border-emerald-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${showNeoPersonnel === "na" ? "ring-2 ring-emerald-500 ring-offset-2" : ""}`}
-                onClick={() => setShowNeoPersonnel((prev) => (prev === "na" ? null : "na"))}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">NA NEO</p>
-                      <p className="text-4xl font-bold text-emerald-900 dark:text-emerald-100">{metrics.naNeo}</p>
-                      <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                        Especialidade TMFT = EFETIVO
-                      </p>
-                    </div>
-                    <UserCheck className="h-8 w-8 text-emerald-500" />
+            <Card
+              className={`bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 border-emerald-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${showNeoPersonnel === "na" ? "ring-2 ring-emerald-500 ring-offset-2" : ""}`}
+              onClick={() => setShowNeoPersonnel((prev) => (prev === "na" ? null : "na"))}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">NA NEO</p>
+                    <p className="text-4xl font-bold text-emerald-900 dark:text-emerald-100">{metrics.naNeo}</p>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">Especialidade TMFT = EFETIVO</p>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                  <UserCheck className="h-8 w-8 text-emerald-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Lista de militares Fora da NEO ou Na NEO */}
         {showNeoPersonnel && neoComparisonPersonnel.length > 0 && (
