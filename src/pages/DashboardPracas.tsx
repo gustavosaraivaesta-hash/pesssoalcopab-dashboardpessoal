@@ -2218,7 +2218,7 @@ const DashboardPracas = () => {
               {/* Especialidade TMFT Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium">Especialidade TMFT</h4>
+                  <h4 className="text-sm font-medium">Especialidade</h4>
                   {selectedQuadros.length > 0 && (
                     <Badge variant="outline" className="text-xs">
                       {selectedQuadros.length} selecionado(s)
