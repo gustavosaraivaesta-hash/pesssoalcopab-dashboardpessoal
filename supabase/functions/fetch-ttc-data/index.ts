@@ -113,7 +113,7 @@ serve(async (req) => {
     ]);
     
     // Function to determine tipo (Praça ou Oficial)
-    function getTipoPessoal(graduacao: string, neo?: string): 'OFICIAL' | 'PRAÇA' | 'INDEFINIDO' {
+    function getTipoPessoal(graduacao: string, neo?: string, espQuadro?: string): 'OFICIAL' | 'PRAÇA' | 'INDEFINIDO' {
       const gradUpper = graduacao.toUpperCase().trim();
       
       // Check if it's an oficial
@@ -138,14 +138,21 @@ serve(async (req) => {
         return 'PRAÇA';
       }
       
-      // NEW: Try to infer from NEO (e.g., "3CAMCSupABADM01.01" contains "CAM" indicating Capitão = Oficial)
+      // Try to infer from espQuadro (e.g., "CAM", "CAM / AA" = Corpo de Aspirantes da Marinha = Oficial)
+      if (espQuadro) {
+        const espUpper = espQuadro.toUpperCase().trim();
+        if (/\b(CAM|IM|FN|QC|CA|EN|MD|CD)\b/.test(espUpper) || 
+            espUpper.startsWith('CAM') || espUpper.startsWith('IM') || espUpper.startsWith('QC')) {
+          return 'OFICIAL';
+        }
+      }
+      
+      // Try to infer from NEO
       if (neo) {
         const neoUpper = neo.toUpperCase();
-        // NEO patterns for OFICIAIS: CAM (Capitão), CMG, CF, CC, CT, 1T, 2T
         if (/\d*(CAM|CMG|CF|CC|CT|1TEN|2TEN|1T|2T)/i.test(neoUpper)) {
           return 'OFICIAL';
         }
-        // NEO patterns for PRAÇAS: SO, SG, CB, MN
         if (/\d*(SO|SG|1SG|2SG|3SG|CB|MN)/i.test(neoUpper)) {
           return 'PRAÇA';
         }
@@ -289,7 +296,7 @@ serve(async (req) => {
           nomeCompleto.toUpperCase().includes('VAGA ABERTA');
         
         // Determine tipo: first try graduação + NEO, then fallback to current section
-        let tipo = getTipoPessoal(graduacao, neo);
+        let tipo = getTipoPessoal(graduacao, neo, espQuadro);
         if (tipo === 'INDEFINIDO' && currentSection) {
           tipo = currentSection;
           console.log(`${sheet.om} row ${i + 1}: Using section ${currentSection} for empty/unknown graduação "${graduacao}" (NEO: ${neo})`);
