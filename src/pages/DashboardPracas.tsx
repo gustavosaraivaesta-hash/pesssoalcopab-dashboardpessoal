@@ -1149,7 +1149,7 @@ const DashboardPracas = () => {
               const isOcupado = nome && nome !== "-" && nomeStr !== "" && nomeStr !== "VAGO" && nomeStr !== "VAZIO";
 
               // Destaque AZUL CLARO para EFETIVO EXTRA
-              if (statusStr === "EFETIVO EXTRA") {
+              if (statusStr === "EFETIVO") {
                 data.cell.styles.fillColor = [219, 234, 254]; // blue-100
                 data.cell.styles.textColor = [30, 64, 175]; // blue-800
               }
@@ -1637,7 +1637,7 @@ const DashboardPracas = () => {
           const setorStr = (item.setor || "").trim().toUpperCase();
 
           if (isExtraRow) {
-            status = "EFETIVO EXTRA";
+            status = "EFETIVO";
             bgColor = "DBEAFE";
             txtColor = "1E40AF";
           } else if (!item.ocupado) {
