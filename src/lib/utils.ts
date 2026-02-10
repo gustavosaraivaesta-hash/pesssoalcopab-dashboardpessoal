@@ -13,12 +13,14 @@ export function cn(...inputs: ClassValue[]) {
  */
 const SPECIALTY_EQUIVALENCE: Record<string, string[]> = {
   TIC: ["PD"],
+  QUI: ["QI"],
   SAU: ["EF", "PC"],
 };
 
 // Reverse mapping: EFE code -> TMFT codes it's equivalent to
 const REVERSE_EQUIVALENCE: Record<string, string[]> = {
   PD: ["TIC"],
+  QUI: ["QI"],
   EF: ["SAU"],
   PC: ["SAU"],
 };
@@ -39,9 +41,9 @@ export function expandSpecialtyEquivalents(selected: string[]): string[] {
   const expanded = new Set(selected);
   for (const code of selected) {
     const fwd = SPECIALTY_EQUIVALENCE[code];
-    if (fwd) fwd.forEach(eq => expanded.add(eq));
+    if (fwd) fwd.forEach((eq) => expanded.add(eq));
     const rev = REVERSE_EQUIVALENCE[code];
-    if (rev) rev.forEach(eq => expanded.add(eq));
+    if (rev) rev.forEach((eq) => expanded.add(eq));
   }
   return Array.from(expanded);
 }
