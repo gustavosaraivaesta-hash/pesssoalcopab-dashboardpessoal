@@ -20,7 +20,7 @@ const SPECIALTY_EQUIVALENCE: Record<string, string[]> = {
 // Reverse mapping: EFE code -> TMFT codes it's equivalent to
 const REVERSE_EQUIVALENCE: Record<string, string[]> = {
   PD: ["TIC"],
-  QUI: ["QI"],
+  QI: ["QUI"],
   EF: ["SAU"],
   PC: ["SAU"],
 };
