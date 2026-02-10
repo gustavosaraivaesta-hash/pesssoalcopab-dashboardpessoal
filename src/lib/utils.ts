@@ -23,6 +23,8 @@ const REVERSE_EQUIVALENCE: Record<string, string[]> = {
   QI: ["QUI"],
   EF: ["SAU"],
   PC: ["SAU"],
+  HD: ["SAU"],
+  ND: ["SAU"],
 };
 
 export function areSpecialtiesEquivalent(tmft: string, efe: string): boolean {
