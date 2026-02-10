@@ -14,7 +14,7 @@ export function cn(...inputs: ClassValue[]) {
 const SPECIALTY_EQUIVALENCE: Record<string, string[]> = {
   TIC: ["PD"],
   QUI: ["QI"],
-  SAU: ["EF", "PC"],
+  SAU: ["EF", "PC", "HD", "ND"],
 };
 
 // Reverse mapping: EFE code -> TMFT codes it's equivalent to
