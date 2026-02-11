@@ -988,7 +988,7 @@ const DashboardOM = () => {
 
         const totalAtend = tTmft > 0 ? (tEfetivo / tTmft) * 100 : 0;
         rows.push(["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), `${totalAtend.toFixed(1)}%`]);
-        return rows;
+        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo };
       };
 
       const renderResumoTable = (title: string, rows: string[][], startY: number, color: [number, number, number]) => {
@@ -1024,15 +1024,69 @@ const DashboardOM = () => {
         return y;
       };
 
-      // When filters are active, show GERAL first, then FILTRADO
-      if (hasEfeFiltersGlobal) {
-        const geralRows = buildResumoRows(false);
-        yPosition = renderResumoTable("RESUMO GERAL", geralRows, yPosition, [16, 185, 129]);
+      // Helper: render side-by-side GERAL / FILTRADO summary (single-row totals)
+      const renderSideBySideTotals = (
+        geralTmft: number, geralEfetivo: number,
+        filtTmft: number, filtEfetivo: number,
+        startY: number
+      ) => {
+        let y = startY;
+        y = checkNewPage(y, 40);
+        const halfWidth = (pageWidth - 40) / 2;
+        const leftX = 20;
+        const rightX = 20 + halfWidth + 6;
+        const tableWidth = halfWidth - 3;
 
-        const filtradoRows = buildResumoRows(true);
-        yPosition = renderResumoTable("RESUMO FILTRADO", filtradoRows, yPosition, [41, 128, 185]);
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("GERAL", leftX + tableWidth / 2, y, { align: "center" });
+        pdf.text("FILTRADO", rightX + tableWidth / 2, y, { align: "center" });
+        y += 4;
+
+        const geralAtend = geralTmft > 0 ? (geralEfetivo / geralTmft) * 100 : 0;
+        const filtAtend = filtTmft > 0 ? (filtEfetivo / filtTmft) * 100 : 0;
+
+        autoTable(pdf, {
+          startY: y,
+          head: [["TMFT", "EFETIVO", "ATENDIMENTO"]],
+          body: [[geralTmft.toString(), geralEfetivo.toString(), `${geralAtend.toFixed(1)}%`]],
+          theme: "grid",
+          styles: { fontSize: 8, cellPadding: 2, halign: "center" },
+          headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
+          bodyStyles: { fontStyle: "bold" },
+          margin: { left: leftX, right: pageWidth - leftX - tableWidth },
+        });
+        const geralFinalY = (pdf as any).lastAutoTable.finalY;
+
+        autoTable(pdf, {
+          startY: y,
+          head: [["TMFT", "EFETIVO", "ATENDIMENTO"]],
+          body: [[filtTmft.toString(), filtEfetivo.toString(), `${filtAtend.toFixed(1)}%`]],
+          theme: "grid",
+          styles: { fontSize: 8, cellPadding: 2, halign: "center" },
+          headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+          bodyStyles: { fontStyle: "bold" },
+          margin: { left: rightX, right: pageWidth - rightX - tableWidth },
+        });
+        const filtFinalY = (pdf as any).lastAutoTable.finalY;
+
+        return Math.max(geralFinalY, filtFinalY) + 8;
+      };
+
+      // When filters are active, show side-by-side totals then RESUMO per-OM table
+      if (hasEfeFiltersGlobal) {
+        const geral = buildResumoRows(false);
+        const filtrado = buildResumoRows(true);
+
+        yPosition = renderSideBySideTotals(
+          geral.totalTmft, geral.totalEfetivo,
+          filtrado.totalTmft, filtrado.totalEfetivo,
+          yPosition
+        );
+
+        yPosition = renderResumoTable("RESUMO POR OM", geral.rows, yPosition, [16, 185, 129]);
       } else {
-        const rows = buildResumoRows(false);
+        const { rows } = buildResumoRows(false);
         yPosition = renderResumoTable("RESUMO", rows, yPosition, [16, 185, 129]);
       }
 
@@ -1132,38 +1186,33 @@ const DashboardOM = () => {
         // OM title
         yPosition = addOMTitle(om, yPosition);
 
-        // Helper to render a small OM metrics table
-        const renderOmMetrics = (label: string, tmft: number, efetivo: number, color: [number, number, number]) => {
-          const atend = tmft > 0 ? (efetivo / tmft) * 100 : 0;
-          pdf.setFontSize(8);
-          pdf.setFont("helvetica", "bold");
-          pdf.text(label, pageWidth / 2, yPosition, { align: "center" });
-          yPosition += 4;
-          autoTable(pdf, {
-            startY: yPosition,
-            head: [["TMFT", "EFETIVO", "ATENDIMENTO"]],
-            body: [[tmft.toString(), efetivo.toString(), `${atend.toFixed(1)}%`]],
-            theme: "grid",
-            styles: { fontSize: 8, cellPadding: 2, halign: "center" },
-            headStyles: { fillColor: color, textColor: 255, fontStyle: "bold" },
-            bodyStyles: { fontStyle: "bold" },
-            margin: { left: 60, right: 60 },
-          });
-          yPosition = (pdf as any).lastAutoTable.finalY + 6;
-        };
-
         // GERAL metrics (always)
         const omGeralTmft = omRegularData.length;
         const omGeralEfetivo = omRegularData.filter((item) => item.ocupado).length;
-        renderOmMetrics("GERAL", omGeralTmft, omGeralEfetivo, [16, 185, 129]);
 
-        // FILTRADO metrics (only when filters active)
         if (hasEfeFiltersGlobal) {
           let ef = personnelData.filter((item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
           if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
           if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
           if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
-          renderOmMetrics("FILTRADO", omGeralTmft, ef.length, [41, 128, 185]);
+          yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, omGeralTmft, ef.length, yPosition);
+        } else {
+          const atend = omGeralTmft > 0 ? (omGeralEfetivo / omGeralTmft) * 100 : 0;
+          pdf.setFontSize(8);
+          pdf.setFont("helvetica", "bold");
+          pdf.text("GERAL", pageWidth / 2, yPosition, { align: "center" });
+          yPosition += 4;
+          autoTable(pdf, {
+            startY: yPosition,
+            head: [["TMFT", "EFETIVO", "ATENDIMENTO"]],
+            body: [[omGeralTmft.toString(), omGeralEfetivo.toString(), `${atend.toFixed(1)}%`]],
+            theme: "grid",
+            styles: { fontSize: 8, cellPadding: 2, halign: "center" },
+            headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
+            bodyStyles: { fontStyle: "bold" },
+            margin: { left: 60, right: 60 },
+          });
+          yPosition = (pdf as any).lastAutoTable.finalY + 6;
         }
 
         // ====== TABELA DE EFETIVO ======
