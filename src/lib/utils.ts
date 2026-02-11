@@ -26,6 +26,7 @@ const REVERSE_EQUIVALENCE: Record<string, string[]> = {
   PC: ["SAU"],
   HD: ["SAU"],
   ND: ["SAU"],
+  AD: ["ADM"],
 };
 
 export function areSpecialtiesEquivalent(tmft: string, efe: string): boolean {
