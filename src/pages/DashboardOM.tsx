@@ -952,133 +952,88 @@ const DashboardOM = () => {
 
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
-      // NA NEO / FORA DA NEO summary table
-      yPosition = checkNewPage(yPosition, 50);
+      // ====== Helper: build resumo rows (OM, TMFT, EFETIVO, ATENDIMENTO) ======
+      const hasEfeFiltersGlobal = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
 
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("RESUMO", pageWidth / 2, yPosition, { align: "center" });
-      yPosition += 6;
+      const buildResumoRows = (useFilters: boolean) => {
+        const rows: string[][] = [];
+        let tTmft = 0;
+        let tEfetivo = 0;
 
-      const neoResumoRows: string[][] = [];
-      let totalNaNeo = 0;
-      let totalForaNeo = 0;
-      let totalEfetivoGeral = 0;
-      let totalVagosGeral = 0;
-      let totalTmftConformidade = 0;
+        for (const om of activeOMs) {
+          const omData = filteredData.filter((item) => item.om === om);
+          if (omData.length === 0) continue;
+          const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+          const omTmft = omRegularData.length;
 
-      for (const om of activeOMs) {
-        const omData = filteredData.filter((item) => item.om === om);
-        if (omData.length === 0) continue;
-
-        const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
-        const omTmft = omRegularData.length;
-
-        // EFETIVO: quando há filtros de corpo/quadro/posto, conta ocupados pelos campos EFE correspondentes
-        let omEfetivoTotal: number;
-        const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
-
-        if (hasEfeFilters) {
-          // Conta todos os ocupados desta OM que têm os campos EFE no filtro
-          let efetivoFiltered = personnelData.filter(
-            (item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado,
-          );
-
-          if (selectedCorpos.length > 0) {
-            efetivoFiltered = efetivoFiltered.filter((item) => selectedCorpos.includes(item.corpoEfe));
-          }
-          if (selectedQuadros.length > 0) {
-            efetivoFiltered = efetivoFiltered.filter((item) => selectedQuadros.includes(item.quadroEfe));
-          }
-          if (selectedPostoFilter.length > 0) {
-            efetivoFiltered = efetivoFiltered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+          let omEfetivo: number;
+          if (useFilters && hasEfeFiltersGlobal) {
+            let ef = personnelData.filter((item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+            if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
+            if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
+            if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+            omEfetivo = ef.length;
+          } else {
+            omEfetivo = omRegularData.filter((item) => item.ocupado).length;
           }
 
-          omEfetivoTotal = efetivoFiltered.length;
-        } else {
-          const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
-          omEfetivoTotal = omRegularOcupados.length;
+          const atend = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
+          tTmft += omTmft;
+          tEfetivo += omEfetivo;
+
+          if (omTmft > 0) {
+            rows.push([om, omTmft.toString(), omEfetivo.toString(), `${atend.toFixed(1)}%`]);
+          }
         }
 
-        const omVagos = omTmft - omEfetivoTotal;
+        const totalAtend = tTmft > 0 ? (tEfetivo / tTmft) * 100 : 0;
+        rows.push(["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), `${totalAtend.toFixed(1)}%`]);
+        return rows;
+      };
 
-        // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are different)
-        const omRegularOcupadosForNeo = omRegularData.filter((item) => item.ocupado);
-        const omForaNeoList = omRegularOcupadosForNeo.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
-        }).length;
+      const renderResumoTable = (title: string, rows: string[][], startY: number, color: [number, number, number]) => {
+        let y = startY;
+        y = checkNewPage(y, 50);
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(title, pageWidth / 2, y, { align: "center" });
+        y += 6;
 
-        // NA NEO: everyone who is NOT FORA DA NEO (ensures NA NEO + FORA DA NEO = EFETIVO)
-        const omNaNeo = omEfetivoTotal - omForaNeoList;
-        const omForaNeo = omForaNeoList;
-
-        // When FORA DA NEO = 0 (all occupied have matching quadros), show FALTAS = 0 and ATENDIMENTO = 100%
-        const displayVagos = omTmft - omEfetivoTotal;
-        const displayAtendimento = omTmft > 0 ? (omEfetivoTotal / omTmft) * 100 : 0;
-
-        totalNaNeo += omNaNeo;
-        totalForaNeo += omForaNeo;
-        totalEfetivoGeral += omEfetivoTotal;
-        totalVagosGeral += displayVagos;
-        totalTmftConformidade += omTmft;
-
-        if (omTmft > 0) {
-          neoResumoRows.push([
-            om,
-            omTmft.toString(),
-            omEfetivoTotal.toString(),
-            omNaNeo.toString(),
-            omForaNeo.toString(),
-            displayVagos.toString(),
-            `${displayAtendimento.toFixed(1)}%`,
-          ]);
-        }
-      }
-
-      // Add TOTAL row
-      const totalDisplayVagos = totalTmftConformidade - totalEfetivoGeral;
-      const totalDisplayAtendimento = totalTmftConformidade > 0 ? (totalEfetivoGeral / totalTmftConformidade) * 100 : 0;
-
-      neoResumoRows.push([
-        "TOTAL GERAL",
-        totalTmftConformidade.toString(),
-        totalEfetivoGeral.toString(),
-        totalNaNeo.toString(),
-        totalForaNeo.toString(),
-        totalDisplayVagos.toString(),
-        `${totalDisplayAtendimento.toFixed(1)}%`,
-      ]);
-
-      if (neoResumoRows.length > 1) {
-        autoTable(pdf, {
-          startY: yPosition,
-          head: [["OM", "TMFT", "EFETIVO", "NA NEO", "FORA DA NEO", "VAGAS", "ATENDIMENTO"]],
-          body: neoResumoRows,
-          theme: "grid",
-          styles: { fontSize: 9, cellPadding: 3, halign: "center" },
-          headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
-          bodyStyles: { fontStyle: "normal" },
-          margin: { left: 20, right: 20 },
-          didParseCell: (data) => {
-            if (data.section === "body") {
-              const omCell = data.row.raw?.[0];
-              if (omCell === "TOTAL GERAL") {
-                data.cell.styles.fontStyle = "bold";
-                data.cell.styles.fillColor = [229, 231, 235];
-              }
-              // Highlight FORA DA NEO column if value > 0
-              const colIndex = data.column.index;
-              if (colIndex === 4) {
-                const value = parseInt(data.row.raw?.[4] || "0");
-                if (value > 0) {
-                  data.cell.styles.fillColor = [255, 237, 213]; // orange-100
-                  data.cell.styles.textColor = [194, 65, 12]; // orange-700
+        if (rows.length > 1) {
+          autoTable(pdf, {
+            startY: y,
+            head: [["OM", "TMFT", "EFETIVO", "ATENDIMENTO"]],
+            body: rows,
+            theme: "grid",
+            styles: { fontSize: 9, cellPadding: 3, halign: "center" },
+            headStyles: { fillColor: color, textColor: 255, fontStyle: "bold" },
+            bodyStyles: { fontStyle: "normal" },
+            margin: { left: 20, right: 20 },
+            didParseCell: (data) => {
+              if (data.section === "body") {
+                const omCell = data.row.raw?.[0];
+                if (omCell === "TOTAL GERAL") {
+                  data.cell.styles.fontStyle = "bold";
+                  data.cell.styles.fillColor = [229, 231, 235];
                 }
               }
-            }
-          },
-        });
-        yPosition = (pdf as any).lastAutoTable.finalY + 10;
+            },
+          });
+          y = (pdf as any).lastAutoTable.finalY + 10;
+        }
+        return y;
+      };
+
+      // When filters are active, show GERAL first, then FILTRADO
+      if (hasEfeFiltersGlobal) {
+        const geralRows = buildResumoRows(false);
+        yPosition = renderResumoTable("RESUMO GERAL", geralRows, yPosition, [16, 185, 129]);
+
+        const filtradoRows = buildResumoRows(true);
+        yPosition = renderResumoTable("RESUMO FILTRADO", filtradoRows, yPosition, [41, 128, 185]);
+      } else {
+        const rows = buildResumoRows(false);
+        yPosition = renderResumoTable("RESUMO", rows, yPosition, [16, 185, 129]);
       }
 
       // IM (Infantaria de Marinha) table by OM - with all columns like RESUMO GERAL
@@ -1173,89 +1128,43 @@ const DashboardOM = () => {
 
         // Calculate metrics per OM
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
-        const omTmft = omRegularData.length;
 
-        // EFETIVO: quando há filtros de corpo/quadro/posto, conta ocupados pelos campos EFE correspondentes
-        let omEfetivo: number;
-        const hasEfeFiltersPDF =
-          selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
-
-        if (hasEfeFiltersPDF) {
-          let efetivoFiltered = personnelData.filter(
-            (item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado,
-          );
-
-          if (selectedCorpos.length > 0) {
-            efetivoFiltered = efetivoFiltered.filter((item) => selectedCorpos.includes(item.corpoEfe));
-          }
-          if (selectedQuadros.length > 0) {
-            efetivoFiltered = efetivoFiltered.filter((item) => selectedQuadros.includes(item.quadroEfe));
-          }
-          if (selectedPostoFilter.length > 0) {
-            efetivoFiltered = efetivoFiltered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
-          }
-
-          omEfetivo = efetivoFiltered.length;
-        } else {
-          omEfetivo = omRegularData.filter((item) => item.ocupado).length;
-        }
-
-        const omVagos = omTmft - omEfetivo;
-        const omAtendimento = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
-        const omExtraLotacao = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
-        const omAtendTotal = omTmft > 0 ? ((omExtraLotacao + omEfetivo) / omTmft) * 100 : 0;
-
-        // OM title with brasão
+        // OM title
         yPosition = addOMTitle(om, yPosition);
 
-        // Calculate NA NEO / FORA DA NEO for this OM
-        const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
-        const omForaNeoCount = omRegularOcupados.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
-        }).length;
-        const omNaNeoCount = omEfetivo - omForaNeoCount;
+        // Helper to render a small OM metrics table
+        const renderOmMetrics = (label: string, tmft: number, efetivo: number, color: [number, number, number]) => {
+          const atend = tmft > 0 ? (efetivo / tmft) * 100 : 0;
+          pdf.setFontSize(8);
+          pdf.setFont("helvetica", "bold");
+          pdf.text(label, pageWidth / 2, yPosition, { align: "center" });
+          yPosition += 4;
+          autoTable(pdf, {
+            startY: yPosition,
+            head: [["TMFT", "EFETIVO", "ATENDIMENTO"]],
+            body: [[tmft.toString(), efetivo.toString(), `${atend.toFixed(1)}%`]],
+            theme: "grid",
+            styles: { fontSize: 8, cellPadding: 2, halign: "center" },
+            headStyles: { fillColor: color, textColor: 255, fontStyle: "bold" },
+            bodyStyles: { fontStyle: "bold" },
+            margin: { left: 60, right: 60 },
+          });
+          yPosition = (pdf as any).lastAutoTable.finalY + 6;
+        };
 
-        // When FORA DA NEO = 0, show FALTAS = 0 and ATENDIMENTO = 100%
-        const displayOmVagos = omForaNeoCount === 0 ? 0 : omVagos;
-        const displayOmAtendimento = omForaNeoCount === 0 ? 100 : omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
+        // GERAL metrics (always)
+        const omGeralTmft = omRegularData.length;
+        const omGeralEfetivo = omRegularData.filter((item) => item.ocupado).length;
+        renderOmMetrics("GERAL", omGeralTmft, omGeralEfetivo, [16, 185, 129]);
 
-        // Add CONFORMIDADE DE CORPO metrics table for this OM
-        pdf.setFontSize(9);
-        pdf.setFont("helvetica", "bold");
-
-        autoTable(pdf, {
-          startY: yPosition,
-          head: [["TMFT", "EFETIVO", "FALTAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO"]],
-          body: [
-            [
-              omTmft.toString(),
-              omEfetivo.toString(),
-              displayOmVagos.toString(),
-              omNaNeoCount.toString(),
-              omForaNeoCount.toString(),
-              `${displayOmAtendimento.toFixed(1)}%`,
-            ],
-          ],
-          theme: "grid",
-          styles: { fontSize: 8, cellPadding: 2, halign: "center" },
-          headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
-          bodyStyles: { fontStyle: "bold" },
-          margin: { left: 40, right: 40 },
-          didParseCell: (data) => {
-            if (data.section === "body") {
-              // Highlight FORA DA NEO column if value > 0
-              const colIndex = data.column.index;
-              if (colIndex === 4) {
-                const value = parseInt(data.row.raw?.[4] || "0");
-                if (value > 0) {
-                  data.cell.styles.fillColor = [255, 237, 213]; // orange-100
-                  data.cell.styles.textColor = [194, 65, 12]; // orange-700
-                }
-              }
-            }
-          },
-        });
-        yPosition = (pdf as any).lastAutoTable.finalY + 8;
+        // FILTRADO metrics (only when filters active)
+        if (hasEfeFiltersGlobal) {
+          let ef = personnelData.filter((item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+          if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
+          if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
+          if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+          renderOmMetrics("FILTRADO", omGeralTmft, ef.length, [41, 128, 185]);
+        }
 
         // ====== TABELA DE EFETIVO ======
         pdf.setFontSize(10);

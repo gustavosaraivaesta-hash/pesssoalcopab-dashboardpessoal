@@ -879,121 +879,85 @@ const DashboardPracas = () => {
 
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
-      // ====== RESUMO - CONFORMIDADE DE ESPECIALIDADE ======
-      yPosition = checkNewPage(yPosition, 50);
+      // ====== Helper: build resumo rows (OM, TMFT, EFETIVO, ATENDIMENTO) ======
+      const buildResumoRows = (useFilters: boolean) => {
+        const rows: string[][] = [];
+        let tTmft = 0;
+        let tEfetivo = 0;
 
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("RESUMO", pageWidth / 2, yPosition, { align: "center" });
-      yPosition += 6;
+        for (const om of activeOMs) {
+          const omBaseData = baseFilteredData.filter((item) => item.om === om);
+          if (omBaseData.length === 0) continue;
+          const omRegularData = omBaseData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
 
-      const neoResumoRows: string[][] = [];
-      let totalNaNeo = 0;
-      let totalForaNeo = 0;
-      let totalEfetivoGeral = 0;
-      let totalVagosGeral = 0;
-      let totalTmftConformidade = 0;
+          let omTmft: number;
+          let omEfetivo: number;
 
-      for (const om of activeOMs) {
-        // Get OM data from base (OM + search filtered)
-        const omBaseData = baseFilteredData.filter((item) => item.om === om);
-        if (omBaseData.length === 0) continue;
+          if (useFilters && hasSpecificFilters) {
+            omTmft = omRegularData.filter(matchesTmftFilters).length;
+            omEfetivo = omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length;
+          } else {
+            omTmft = omRegularData.length;
+            omEfetivo = omRegularData.filter((item) => item.ocupado).length;
+          }
 
-        const omRegularData = omBaseData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+          const atend = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
+          tTmft += omTmft;
+          tEfetivo += omEfetivo;
 
-        // TMFT: count using TMFT fields
-        let omTmft: number;
-        if (hasSpecificFilters) {
-          omTmft = omRegularData.filter(matchesTmftFilters).length;
-        } else {
-          omTmft = omRegularData.length;
+          if (omTmft > 0) {
+            rows.push([om, omTmft.toString(), omEfetivo.toString(), `${atend.toFixed(1)}%`]);
+          }
         }
 
-        // EFETIVO: count using EFE fields (independent filtering)
-        let omEfetivoTotal: number;
-        if (hasSpecificFilters) {
-          omEfetivoTotal = omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length;
-        } else {
-          omEfetivoTotal = omRegularData.filter((item) => item.ocupado).length;
-        }
+        const totalAtend = tTmft > 0 ? (tEfetivo / tTmft) * 100 : 0;
+        rows.push(["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), `${totalAtend.toFixed(1)}%`]);
+        return rows;
+      };
 
-        const omVagos = omTmft - omEfetivoTotal;
+      const renderResumoTable = (title: string, rows: string[][], startY: number, color: [number, number, number]) => {
+        let y = startY;
+        y = checkNewPage(y, 50);
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(title, pageWidth / 2, y, { align: "center" });
+        y += 6;
 
-        // FORA DA NEO: especialidade TMFT ≠ especialidade EFE (based on EFETIVO filtered)
-        const omEfetivoForNeo = hasSpecificFilters
-          ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
-          : omRegularData.filter((item) => item.ocupado);
-        const omForaNeoCount = omEfetivoForNeo.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
-        }).length;
-
-        const omNaNeo = omEfetivoTotal - omForaNeoCount;
-        const omForaNeo = omForaNeoCount;
-
-        const displayAtendimento = omTmft > 0 ? (omEfetivoTotal / omTmft) * 100 : 0;
-
-        totalNaNeo += omNaNeo;
-        totalForaNeo += omForaNeo;
-        totalEfetivoGeral += omEfetivoTotal;
-        totalVagosGeral += omVagos;
-        totalTmftConformidade += omTmft;
-
-        if (omTmft > 0) {
-          neoResumoRows.push([
-            om,
-            omTmft.toString(),
-            omEfetivoTotal.toString(),
-            omNaNeo.toString(),
-            omForaNeo.toString(),
-            omVagos.toString(),
-            `${displayAtendimento.toFixed(1)}%`,
-          ]);
-        }
-      }
-
-      // Add TOTAL row
-      const totalDisplayAtendimento = totalTmftConformidade > 0 ? (totalEfetivoGeral / totalTmftConformidade) * 100 : 0;
-
-      neoResumoRows.push([
-        "TOTAL GERAL",
-        totalTmftConformidade.toString(),
-        totalEfetivoGeral.toString(),
-        totalNaNeo.toString(),
-        totalForaNeo.toString(),
-        totalVagosGeral.toString(),
-        `${totalDisplayAtendimento.toFixed(1)}%`,
-      ]);
-
-      if (neoResumoRows.length > 1) {
-        autoTable(pdf, {
-          startY: yPosition,
-          head: [["OM", "TMFT", "EFETIVO", "NA NEO", "FORA DA NEO", "VAGAS", "ATENDIMENTO"]],
-          body: neoResumoRows,
-          theme: "grid",
-          styles: { fontSize: 9, cellPadding: 3, halign: "center" },
-          headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
-          bodyStyles: { fontStyle: "normal" },
-          margin: { left: 20, right: 20 },
-          didParseCell: (data) => {
-            if (data.section === "body") {
-              const omCell = data.row.raw?.[0];
-              if (omCell === "TOTAL GERAL") {
-                data.cell.styles.fontStyle = "bold";
-                data.cell.styles.fillColor = [229, 231, 235];
-              }
-              // Highlight FORA DA NEO column if value > 0
-              const colIndex = data.column.index;
-              if (colIndex === 4) {
-                const value = parseInt(data.row.raw?.[4] || "0");
-                if (value > 0) {
-                  data.cell.styles.fillColor = [255, 237, 213]; // orange-100
-                  data.cell.styles.textColor = [194, 65, 12]; // orange-700
+        if (rows.length > 1) {
+          autoTable(pdf, {
+            startY: y,
+            head: [["OM", "TMFT", "EFETIVO", "ATENDIMENTO"]],
+            body: rows,
+            theme: "grid",
+            styles: { fontSize: 9, cellPadding: 3, halign: "center" },
+            headStyles: { fillColor: color, textColor: 255, fontStyle: "bold" },
+            bodyStyles: { fontStyle: "normal" },
+            margin: { left: 20, right: 20 },
+            didParseCell: (data) => {
+              if (data.section === "body") {
+                const omCell = data.row.raw?.[0];
+                if (omCell === "TOTAL GERAL") {
+                  data.cell.styles.fontStyle = "bold";
+                  data.cell.styles.fillColor = [229, 231, 235];
                 }
               }
-            }
-          },
-        });
-        yPosition = (pdf as any).lastAutoTable.finalY + 10;
+            },
+          });
+          y = (pdf as any).lastAutoTable.finalY + 10;
+        }
+        return y;
+      };
+
+      // When filters are active, show GERAL first, then FILTRADO
+      if (hasSpecificFilters) {
+        const geralRows = buildResumoRows(false);
+        yPosition = renderResumoTable("RESUMO GERAL", geralRows, yPosition, [16, 185, 129]);
+
+        const filtradoRows = buildResumoRows(true);
+        yPosition = renderResumoTable("RESUMO FILTRADO", filtradoRows, yPosition, [41, 128, 185]);
+      } else {
+        const rows = buildResumoRows(false);
+        yPosition = renderResumoTable("RESUMO", rows, yPosition, [16, 185, 129]);
       }
 
       // ====== TABLES BY OM - each OM on a separate page ======
@@ -1013,62 +977,37 @@ const DashboardPracas = () => {
         const omBaseData = baseFilteredData.filter((item) => item.om === om);
         const omRegularData = omBaseData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
 
-        let omTmft: number;
-        let omEfetivo: number;
+        // Helper to render a small OM metrics table
+        const renderOmMetrics = (label: string, tmft: number, efetivo: number, color: [number, number, number]) => {
+          const atend = tmft > 0 ? (efetivo / tmft) * 100 : 0;
+          pdf.setFontSize(8);
+          pdf.setFont("helvetica", "bold");
+          pdf.text(label, pageWidth / 2, yPosition, { align: "center" });
+          yPosition += 4;
+          autoTable(pdf, {
+            startY: yPosition,
+            head: [["TMFT", "EFETIVO", "ATENDIMENTO"]],
+            body: [[tmft.toString(), efetivo.toString(), `${atend.toFixed(1)}%`]],
+            theme: "grid",
+            styles: { fontSize: 8, cellPadding: 2, halign: "center" },
+            headStyles: { fillColor: color, textColor: 255, fontStyle: "bold" },
+            bodyStyles: { fontStyle: "bold" },
+            margin: { left: 60, right: 60 },
+          });
+          yPosition = (pdf as any).lastAutoTable.finalY + 6;
+        };
 
+        // GERAL metrics (always)
+        const omGeralTmft = omRegularData.length;
+        const omGeralEfetivo = omRegularData.filter((item) => item.ocupado).length;
+        renderOmMetrics("GERAL", omGeralTmft, omGeralEfetivo, [16, 185, 129]);
+
+        // FILTRADO metrics (only when filters active)
         if (hasSpecificFilters) {
-          omTmft = omRegularData.filter(matchesTmftFilters).length;
-          omEfetivo = omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length;
-        } else {
-          omTmft = omRegularData.length;
-          omEfetivo = omRegularData.filter((item) => item.ocupado).length;
+          const omFiltTmft = omRegularData.filter(matchesTmftFilters).length;
+          const omFiltEfetivo = omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length;
+          renderOmMetrics("FILTRADO", omFiltTmft, omFiltEfetivo, [41, 128, 185]);
         }
-
-        const omVagos = omTmft - omEfetivo;
-        const omAtendimento = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
-
-        // FORA DA NEO for this OM (based on EFETIVO filtered)
-        const omEfetivoForNeo = hasSpecificFilters
-          ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
-          : omRegularData.filter((item) => item.ocupado);
-        const omForaNeoCount = omEfetivoForNeo.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
-        }).length;
-        const omNaNeoCount = omEfetivo - omForaNeoCount;
-
-        // Add CONFORMIDADE metrics table for this OM
-        autoTable(pdf, {
-          startY: yPosition,
-          head: [["TMFT", "EFETIVO", "VAGAS", "NA NEO", "FORA DA NEO", "ATENDIMENTO"]],
-          body: [
-            [
-              omTmft.toString(),
-              omEfetivo.toString(),
-              omVagos.toString(),
-              omNaNeoCount.toString(),
-              omForaNeoCount.toString(),
-              `${omAtendimento.toFixed(1)}%`,
-            ],
-          ],
-          theme: "grid",
-          styles: { fontSize: 8, cellPadding: 2, halign: "center" },
-          headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
-          bodyStyles: { fontStyle: "bold" },
-          margin: { left: 40, right: 40 },
-          didParseCell: (data) => {
-            if (data.section === "body") {
-              const colIndex = data.column.index;
-              if (colIndex === 4) {
-                const value = parseInt(data.row.raw?.[4] || "0");
-                if (value > 0) {
-                  data.cell.styles.fillColor = [255, 237, 213]; // orange-100
-                  data.cell.styles.textColor = [194, 65, 12]; // orange-700
-                }
-              }
-            }
-          },
-        });
-        yPosition = (pdf as any).lastAutoTable.finalY + 8;
 
         // ====== TABELA DE EFETIVO ======
         pdf.setFontSize(10);
