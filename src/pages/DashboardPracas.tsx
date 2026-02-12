@@ -1057,7 +1057,7 @@ const DashboardPracas = () => {
         pdf.setFont("helvetica", "bold");
         pdf.text("RESUMO GERAL POR OM", leftX + tableWidth / 2, yPosition, { align: "center" });
         pdf.text("RESUMO FILTRADO POR OM", rightX + tableWidth / 2, yPosition, { align: "center" });
-        yPosition += 5;
+        yPosition += 6;
 
         const resumoSideBySideY = yPosition;
 
