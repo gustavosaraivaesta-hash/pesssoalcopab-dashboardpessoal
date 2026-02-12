@@ -978,9 +978,11 @@ const DashboardPracas = () => {
 
       // Helper: render side-by-side GERAL / FILTRADO summary (single-row totals)
       const renderSideBySideTotals = (
-        geralTmft: number, geralEfetivo: number,
-        filtTmft: number, filtEfetivo: number,
-        startY: number
+        geralTmft: number,
+        geralEfetivo: number,
+        filtTmft: number,
+        filtEfetivo: number,
+        startY: number,
       ) => {
         let y = startY;
         y = checkNewPage(y, 40);
@@ -1036,9 +1038,11 @@ const DashboardPracas = () => {
 
         // Side-by-side totals
         yPosition = renderSideBySideTotals(
-          geral.totalTmft, geral.totalEfetivo,
-          filtrado.totalTmft, filtrado.totalEfetivo,
-          yPosition
+          geral.totalTmft,
+          geral.totalEfetivo,
+          filtrado.totalTmft,
+          filtrado.totalEfetivo,
+          yPosition,
         );
 
         // Per-OM tables - show GERAL and FILTRADO side-by-side
@@ -1053,7 +1057,7 @@ const DashboardPracas = () => {
         pdf.setFont("helvetica", "bold");
         pdf.text("RESUMO GERAL POR OM", leftX + tableWidth / 2, yPosition, { align: "center" });
         pdf.text("RESUMO FILTRADO POR OM", rightX + tableWidth / 2, yPosition, { align: "center" });
-        yPosition += 6;
+        yPosition += 5;
 
         const resumoSideBySideY = yPosition;
 
