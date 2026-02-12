@@ -1112,7 +1112,8 @@ const DashboardOM = () => {
           yPosition
         );
 
-        yPosition = renderResumoTable("RESUMO POR OM", geral.rows, yPosition, [16, 185, 129]);
+        yPosition = renderResumoTable("RESUMO GERAL POR OM", geral.rows, yPosition, [16, 185, 129]);
+        yPosition = renderResumoTable("RESUMO FILTRADO POR OM", filtrado.rows, yPosition, [41, 128, 185]);
       } else {
         yPosition = renderResumoTable("RESUMO", geral.rows, yPosition, [16, 185, 129]);
       }
