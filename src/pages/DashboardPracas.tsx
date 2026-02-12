@@ -1041,9 +1041,64 @@ const DashboardPracas = () => {
           yPosition
         );
 
-        // Per-OM tables - show GERAL and FILTRADO
-        yPosition = renderResumoTable("RESUMO GERAL POR OM", geral.rows, yPosition, [16, 185, 129]);
-        yPosition = renderResumoTable("RESUMO FILTRADO POR OM", filtrado.rows, yPosition, [41, 128, 185]);
+        // Per-OM tables - show GERAL and FILTRADO side-by-side
+        yPosition = checkNewPage(yPosition, 50);
+        const halfWidth = (pageWidth - 40) / 2;
+        const leftX = 20;
+        const rightX = 20 + halfWidth + 6;
+        const tableWidth = halfWidth - 3;
+
+        // Titles
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("RESUMO GERAL POR OM", leftX + tableWidth / 2, yPosition, { align: "center" });
+        pdf.text("RESUMO FILTRADO POR OM", rightX + tableWidth / 2, yPosition, { align: "center" });
+        yPosition += 6;
+
+        const resumoSideBySideY = yPosition;
+
+        // GERAL table (left)
+        if (geral.rows.length > 0) {
+          autoTable(pdf, {
+            startY: resumoSideBySideY,
+            head: [["OM", "TMFT", "EFE", "ATEND"]],
+            body: geral.rows,
+            theme: "grid",
+            styles: { fontSize: 7, cellPadding: 2, halign: "center" },
+            headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
+            bodyStyles: { fontStyle: "normal" },
+            margin: { left: leftX, right: pageWidth - leftX - tableWidth },
+            didParseCell: (data) => {
+              if (data.section === "body" && data.row.raw?.[0] === "TOTAL GERAL") {
+                data.cell.styles.fontStyle = "bold";
+                data.cell.styles.fillColor = [229, 231, 235];
+              }
+            },
+          });
+        }
+        const geralResumoFinalY = (pdf as any).lastAutoTable?.finalY || resumoSideBySideY;
+
+        // FILTRADO table (right)
+        if (filtrado.rows.length > 0) {
+          autoTable(pdf, {
+            startY: resumoSideBySideY,
+            head: [["OM", "TMFT", "EFE", "ATEND"]],
+            body: filtrado.rows,
+            theme: "grid",
+            styles: { fontSize: 7, cellPadding: 2, halign: "center" },
+            headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+            bodyStyles: { fontStyle: "normal" },
+            margin: { left: rightX, right: pageWidth - rightX - tableWidth },
+            didParseCell: (data) => {
+              if (data.section === "body" && data.row.raw?.[0] === "TOTAL GERAL") {
+                data.cell.styles.fontStyle = "bold";
+                data.cell.styles.fillColor = [229, 231, 235];
+              }
+            },
+          });
+        }
+        const filtResumoFinalY = (pdf as any).lastAutoTable?.finalY || resumoSideBySideY;
+        yPosition = Math.max(geralResumoFinalY, filtResumoFinalY) + 10;
       } else {
         yPosition = renderResumoTable("RESUMO", geral.rows, yPosition, [16, 185, 129]);
       }
@@ -1128,7 +1183,7 @@ const DashboardPracas = () => {
           return neoA.localeCompare(neoB, undefined, { numeric: true });
         });
 
-        const tableData = sortedData.map((item) => {
+        const tableData = sortedData.map((item, index) => {
           // Determine status
           let isExtraRow = false;
           if (hasSpecificFilters && item.ocupado) {
@@ -1149,6 +1204,7 @@ const DashboardPracas = () => {
           }
 
           return [
+            (index + 1).toString(),
             item.neo.toString(),
             item.setor,
             item.cargo,
@@ -1163,17 +1219,18 @@ const DashboardPracas = () => {
 
         autoTable(pdf, {
           startY: yPosition,
-          head: [["NEO", "SETOR", "CARGO", "GRAD TMFT", "ESP TMFT", "NOME", "GRAD EFE", "ESP EFE", "STATUS"]],
+          head: [["Nº", "NEO", "SETOR", "CARGO", "GRAD TMFT", "ESP TMFT", "NOME", "GRAD EFE", "ESP EFE", "STATUS"]],
           body: tableData,
           theme: "grid",
           styles: { fontSize: 7, cellPadding: 1 },
           headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+          columnStyles: { 0: { cellWidth: 10, halign: "center" } },
           margin: { left: 15, right: 15 },
           didParseCell: (data) => {
             if (data.section === "body") {
-              const nome = data.row.raw?.[5];
-              const setor = data.row.raw?.[1];
-              const status = data.row.raw?.[8];
+              const nome = data.row.raw?.[6];
+              const setor = data.row.raw?.[2];
+              const status = data.row.raw?.[9];
               const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
               const setorStr = setor ? setor.toString().trim().toUpperCase() : "";
               const statusStr = status ? status.toString().trim().toUpperCase() : "";
