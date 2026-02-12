@@ -880,7 +880,35 @@ const DashboardPracas = () => {
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
       // ====== Helper: build resumo rows (OM, TMFT, EFETIVO, ATENDIMENTO) ======
-      const buildResumoRows = (useFilters: boolean) => {
+      // Build GERAL rows from ALL personnelData (no filters) across ALL availableOMs
+      const buildGeralResumoRows = () => {
+        const rows: string[][] = [];
+        let tTmft = 0;
+        let tEfetivo = 0;
+
+        for (const om of availableOMs) {
+          const omAllData = personnelData.filter((item) => item.om === om);
+          if (omAllData.length === 0) continue;
+          const omRegularData = omAllData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+          const omTmft = omRegularData.length;
+          const omEfetivo = omRegularData.filter((item) => item.ocupado).length;
+
+          const atend = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
+          tTmft += omTmft;
+          tEfetivo += omEfetivo;
+
+          if (omTmft > 0) {
+            rows.push([om, omTmft.toString(), omEfetivo.toString(), `${atend.toFixed(1)}%`]);
+          }
+        }
+
+        const totalAtend = tTmft > 0 ? (tEfetivo / tTmft) * 100 : 0;
+        rows.push(["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), `${totalAtend.toFixed(1)}%`]);
+        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo };
+      };
+
+      // Build FILTRADO rows from filtered data
+      const buildFiltradoResumoRows = () => {
         const rows: string[][] = [];
         let tTmft = 0;
         let tEfetivo = 0;
@@ -893,7 +921,7 @@ const DashboardPracas = () => {
           let omTmft: number;
           let omEfetivo: number;
 
-          if (useFilters && hasSpecificFilters) {
+          if (hasSpecificFilters) {
             omTmft = omRegularData.filter(matchesTmftFilters).length;
             omEfetivo = omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length;
           } else {
@@ -1002,9 +1030,9 @@ const DashboardPracas = () => {
       };
 
       // When filters are active, show side-by-side totals then RESUMO per-OM table
-      if (hasSpecificFilters) {
-        const geral = buildResumoRows(false);
-        const filtrado = buildResumoRows(true);
+      const geral = buildGeralResumoRows();
+      if (hasSpecificFilters || selectedOMs.length > 0) {
+        const filtrado = buildFiltradoResumoRows();
 
         // Side-by-side totals
         yPosition = renderSideBySideTotals(
@@ -1013,11 +1041,10 @@ const DashboardPracas = () => {
           yPosition
         );
 
-        // Per-OM table below
+        // Per-OM table below - show ALL OMs (geral)
         yPosition = renderResumoTable("RESUMO POR OM", geral.rows, yPosition, [16, 185, 129]);
       } else {
-        const { rows } = buildResumoRows(false);
-        yPosition = renderResumoTable("RESUMO", rows, yPosition, [16, 185, 129]);
+        yPosition = renderResumoTable("RESUMO", geral.rows, yPosition, [16, 185, 129]);
       }
 
       // ====== TABLES BY OM - each OM on a separate page ======
@@ -1037,14 +1064,23 @@ const DashboardPracas = () => {
         const omBaseData = baseFilteredData.filter((item) => item.om === om);
         const omRegularData = omBaseData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
 
-        // GERAL metrics (always)
-        const omGeralTmft = omRegularData.length;
-        const omGeralEfetivo = omRegularData.filter((item) => item.ocupado).length;
+        // GERAL metrics from ALL personnelData (unfiltered) for this OM
+        const omAllData = personnelData.filter((item) => item.om === om);
+        const omAllRegular = omAllData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+        const omGeralTmft = omAllRegular.length;
+        const omGeralEfetivo = omAllRegular.filter((item) => item.ocupado).length;
 
         // FILTRADO metrics (only when filters active)
-        if (hasSpecificFilters) {
-          const omFiltTmft = omRegularData.filter(matchesTmftFilters).length;
-          const omFiltEfetivo = omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length;
+        if (hasSpecificFilters || selectedOMs.length > 0) {
+          let omFiltTmft: number;
+          let omFiltEfetivo: number;
+          if (hasSpecificFilters) {
+            omFiltTmft = omRegularData.filter(matchesTmftFilters).length;
+            omFiltEfetivo = omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length;
+          } else {
+            omFiltTmft = omRegularData.length;
+            omFiltEfetivo = omRegularData.filter((item) => item.ocupado).length;
+          }
           yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, omFiltTmft, omFiltEfetivo, yPosition);
         } else {
           const atend = omGeralTmft > 0 ? (omGeralEfetivo / omGeralTmft) * 100 : 0;
