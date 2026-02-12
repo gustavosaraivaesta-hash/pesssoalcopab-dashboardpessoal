@@ -1041,8 +1041,9 @@ const DashboardPracas = () => {
           yPosition
         );
 
-        // Per-OM table below - show ALL OMs (geral)
-        yPosition = renderResumoTable("RESUMO POR OM", geral.rows, yPosition, [16, 185, 129]);
+        // Per-OM tables - show GERAL and FILTRADO
+        yPosition = renderResumoTable("RESUMO GERAL POR OM", geral.rows, yPosition, [16, 185, 129]);
+        yPosition = renderResumoTable("RESUMO FILTRADO POR OM", filtrado.rows, yPosition, [41, 128, 185]);
       } else {
         yPosition = renderResumoTable("RESUMO", geral.rows, yPosition, [16, 185, 129]);
       }
