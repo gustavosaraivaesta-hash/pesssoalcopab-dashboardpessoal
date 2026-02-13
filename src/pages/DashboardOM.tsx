@@ -1089,7 +1089,7 @@ const DashboardOM = () => {
           headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
           bodyStyles: { fontStyle: "bold" },
           tableWidth: tableWidth,
-          margin: { left: leftX },
+          margin: { left: leftX, right: pageWidth - leftX - tableWidth },
         });
         const geralFinalY = (pdf as any).lastAutoTable.finalY;
 
@@ -1102,7 +1102,7 @@ const DashboardOM = () => {
           headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
           bodyStyles: { fontStyle: "bold" },
           tableWidth: tableWidth,
-          margin: { left: rightX },
+          margin: { left: rightX, right: pageWidth - rightX - tableWidth },
         });
         const filtFinalY = (pdf as any).lastAutoTable.finalY;
 
@@ -1156,7 +1156,7 @@ const DashboardOM = () => {
             headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
             bodyStyles: { fontStyle: "normal" },
             tableWidth: tableWidth,
-            margin: { left: leftX },
+            margin: { left: leftX, right: pageWidth - leftX - tableWidth },
             didParseCell: (data) => {
               if (data.section === "body" && data.row.raw?.[0] === "TOTAL GERAL") {
                 data.cell.styles.fontStyle = "bold";
@@ -1178,7 +1178,7 @@ const DashboardOM = () => {
             headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
             bodyStyles: { fontStyle: "normal" },
             tableWidth: tableWidth,
-            margin: { left: rightX },
+            margin: { left: rightX, right: pageWidth - rightX - tableWidth },
             didParseCell: (data) => {
               if (data.section === "body" && data.row.raw?.[0] === "TOTAL GERAL") {
                 data.cell.styles.fontStyle = "bold";
