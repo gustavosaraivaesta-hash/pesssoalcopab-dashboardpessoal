@@ -1068,7 +1068,13 @@ const DashboardOM = () => {
         pdf.setFontSize(9);
         pdf.setFont("helvetica", "bold");
         pdf.text("GERAL", leftX + tableWidth / 2, y, { align: "center" });
-        pdf.text("FILTRADO", rightX + tableWidth / 2, y, { align: "center" });
+        const filtLabelParts: string[] = [];
+        if (selectedCorpos.length > 0) filtLabelParts.push(selectedCorpos.join(", "));
+        if (selectedQuadros.length > 0) filtLabelParts.push(selectedQuadros.join(", "));
+        if (selectedPostoFilter.length > 0) filtLabelParts.push(selectedPostoFilter.join(", "));
+        if (selectedOpcoes.length > 0) filtLabelParts.push(selectedOpcoes.join(", "));
+        const filtTitleLabel = filtLabelParts.length > 0 ? `FILTRADO (${filtLabelParts.join(" | ")})` : "FILTRADO";
+        pdf.text(filtTitleLabel, rightX + tableWidth / 2, y, { align: "center" });
         y += 4;
 
         const geralAtend = geralTmft > 0 ? (geralEfetivo / geralTmft) * 100 : 0;
@@ -1082,7 +1088,8 @@ const DashboardOM = () => {
           styles: { fontSize: 8, cellPadding: 2, halign: "center" },
           headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
           bodyStyles: { fontStyle: "bold" },
-          margin: { left: leftX, right: pageWidth - leftX - tableWidth },
+          tableWidth: tableWidth,
+          margin: { left: leftX },
         });
         const geralFinalY = (pdf as any).lastAutoTable.finalY;
 
@@ -1094,7 +1101,8 @@ const DashboardOM = () => {
           styles: { fontSize: 8, cellPadding: 2, halign: "center" },
           headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
           bodyStyles: { fontStyle: "bold" },
-          margin: { left: rightX, right: pageWidth - rightX - tableWidth },
+          tableWidth: tableWidth,
+          margin: { left: rightX },
         });
         const filtFinalY = (pdf as any).lastAutoTable.finalY;
 
@@ -1119,11 +1127,20 @@ const DashboardOM = () => {
         const rightX = 20 + halfWidth + 6;
         const tableWidth = halfWidth - 3;
 
+        // Build filter description for title
+        const filterDescParts: string[] = [];
+        if (selectedCorpos.length > 0) filterDescParts.push(`Corpo: ${selectedCorpos.join(", ")}`);
+        if (selectedQuadros.length > 0) filterDescParts.push(`Quadro: ${selectedQuadros.join(", ")}`);
+        if (selectedPostoFilter.length > 0) filterDescParts.push(`Posto: ${selectedPostoFilter.join(", ")}`);
+        if (selectedOpcoes.length > 0) filterDescParts.push(`Opção: ${selectedOpcoes.join(", ")}`);
+        if (selectedOMs.length > 0) filterDescParts.push(`OM: ${selectedOMs.join(", ")}`);
+        const filtradoResumoLabel = filterDescParts.length > 0 ? `RESUMO FILTRADO POR OM (${filterDescParts.join(" | ")})` : "RESUMO FILTRADO POR OM";
+
         // Titles
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.text("RESUMO GERAL POR OM", leftX + tableWidth / 2, yPosition, { align: "center" });
-        pdf.text("RESUMO FILTRADO POR OM", rightX + tableWidth / 2, yPosition, { align: "center" });
+        pdf.text(filtradoResumoLabel, rightX + tableWidth / 2, yPosition, { align: "center" });
         yPosition += 6;
 
         const resumoSideBySideY = yPosition;
@@ -1138,7 +1155,8 @@ const DashboardOM = () => {
             styles: { fontSize: 7, cellPadding: 2, halign: "center" },
             headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
             bodyStyles: { fontStyle: "normal" },
-            margin: { left: leftX, right: pageWidth - leftX - tableWidth },
+            tableWidth: tableWidth,
+            margin: { left: leftX },
             didParseCell: (data) => {
               if (data.section === "body" && data.row.raw?.[0] === "TOTAL GERAL") {
                 data.cell.styles.fontStyle = "bold";
@@ -1159,7 +1177,8 @@ const DashboardOM = () => {
             styles: { fontSize: 7, cellPadding: 2, halign: "center" },
             headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
             bodyStyles: { fontStyle: "normal" },
-            margin: { left: rightX, right: pageWidth - rightX - tableWidth },
+            tableWidth: tableWidth,
+            margin: { left: rightX },
             didParseCell: (data) => {
               if (data.section === "body" && data.row.raw?.[0] === "TOTAL GERAL") {
                 data.cell.styles.fontStyle = "bold";
