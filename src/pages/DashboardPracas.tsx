@@ -986,51 +986,44 @@ const DashboardPracas = () => {
       ) => {
         let y = startY;
         y = checkNewPage(y, 40);
-        const halfW = (pageWidth - 46) / 2;
-        const lx = 20;
-        const rx = lx + halfW + 6;
 
-        pdf.setFontSize(9);
-        pdf.setFont("helvetica", "bold");
-        pdf.text("GERAL", lx + halfW / 2, y, { align: "center" });
+        const geralAtend = geralTmft > 0 ? (geralEfetivo / geralTmft) * 100 : 0;
+        const filtAtend = filtTmft > 0 ? (filtEfetivo / filtTmft) * 100 : 0;
+
         const filtLabelParts: string[] = [];
         if (selectedQuadros.length > 0) filtLabelParts.push(selectedQuadros.join(", "));
         if (selectedGraduacoes.length > 0) filtLabelParts.push(selectedGraduacoes.join(", "));
         if (selectedOpcoes.length > 0) filtLabelParts.push(selectedOpcoes.join(", "));
         const filtTitleLabel = filtLabelParts.length > 0 ? `FILTRADO (${filtLabelParts.join(" | ")})` : "FILTRADO";
+
+        const halfW = (pageWidth - 46) / 2;
+        const lx = 20;
+        const rx = lx + halfW + 6;
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("GERAL", lx + halfW / 2, y, { align: "center" });
         pdf.text(filtTitleLabel, rx + halfW / 2, y, { align: "center" });
         y += 4;
 
-        const geralAtend = geralTmft > 0 ? (geralEfetivo / geralTmft) * 100 : 0;
-        const filtAtend = filtTmft > 0 ? (filtEfetivo / filtTmft) * 100 : 0;
-
         autoTable(pdf, {
           startY: y,
-          head: [["TMFT", "EFETIVO", "ATENDIMENTO"]],
-          body: [[geralTmft.toString(), geralEfetivo.toString(), `${geralAtend.toFixed(1)}%`]],
+          head: [["TMFT", "EFETIVO", "ATEND.", "", "TMFT", "EFETIVO", "ATEND."]],
+          body: [[geralTmft.toString(), geralEfetivo.toString(), `${geralAtend.toFixed(1)}%`, "", filtTmft.toString(), filtEfetivo.toString(), `${filtAtend.toFixed(1)}%`]],
           theme: "grid",
           styles: { fontSize: 8, cellPadding: 2, halign: "center" },
-          headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
+          headStyles: { fontStyle: "bold", textColor: 255 },
           bodyStyles: { fontStyle: "bold" },
-          tableWidth: halfW,
-          margin: { left: lx, right: pageWidth - lx - halfW },
+          margin: { left: 20, right: 20 },
+          columnStyles: { 3: { cellWidth: 4, fillColor: [255, 255, 255] } },
+          didParseCell: (data) => {
+            const colIdx = data.column.index;
+            if (data.section === "head" && colIdx <= 2) data.cell.styles.fillColor = [16, 185, 129];
+            if (colIdx === 3) { data.cell.styles.fillColor = [255, 255, 255]; data.cell.styles.lineWidth = 0; data.cell.styles.textColor = [255, 255, 255]; }
+            if (data.section === "head" && colIdx >= 4) data.cell.styles.fillColor = [41, 128, 185];
+          },
         });
-        const geralFinalY = (pdf as any).lastAutoTable.finalY;
 
-        autoTable(pdf, {
-          startY: y,
-          head: [["TMFT", "EFETIVO", "ATENDIMENTO"]],
-          body: [[filtTmft.toString(), filtEfetivo.toString(), `${filtAtend.toFixed(1)}%`]],
-          theme: "grid",
-          styles: { fontSize: 8, cellPadding: 2, halign: "center" },
-          headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-          bodyStyles: { fontStyle: "bold" },
-          tableWidth: halfW,
-          margin: { left: rx, right: pageWidth - rx - halfW },
-        });
-        const filtFinalY = (pdf as any).lastAutoTable.finalY;
-
-        return Math.max(geralFinalY, filtFinalY) + 8;
+        return (pdf as any).lastAutoTable.finalY + 8;
       };
 
       // Helper: render color legend for personnel table
@@ -1072,12 +1065,8 @@ const DashboardPracas = () => {
           yPosition,
         );
 
-        // Per-OM tables - show GERAL and FILTRADO side-by-side
+        // Per-OM tables - show GERAL and FILTRADO side-by-side as ONE combined table
         yPosition = checkNewPage(yPosition, 50);
-        const halfWidth = (pageWidth - 40) / 2;
-        const leftX = 20;
-        const rightX = 20 + halfWidth + 6;
-        const tableWidth = halfWidth - 3;
 
         // Build filter description label
         const filterParts: string[] = [];
@@ -1088,58 +1077,63 @@ const DashboardPracas = () => {
         const filtradoLabel = filterParts.length > 0 ? `RESUMO FILTRADO POR OM (${filterParts.join(" | ")})` : "RESUMO FILTRADO POR OM";
 
         // Titles
+        const halfWidth = (pageWidth - 46) / 2;
+        const leftX = 20;
+        const rightX = leftX + halfWidth + 6;
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.text("RESUMO GERAL POR OM", leftX + halfWidth / 2, yPosition, { align: "center" });
         pdf.text(filtradoLabel, rightX + halfWidth / 2, yPosition, { align: "center" });
         yPosition += 6;
 
-        const resumoSideBySideY = yPosition;
+        // Combine GERAL and FILTRADO into a single table with separator column
+        const maxRows = Math.max(geral.rows.length, filtrado.rows.length);
+        const combinedBody: string[][] = [];
+        for (let i = 0; i < maxRows; i++) {
+          const gRow = geral.rows[i] || ["", "", "", ""];
+          const fRow = filtrado.rows[i] || ["", "", "", ""];
+          combinedBody.push([...gRow, "", ...fRow]);
+        }
 
-        // GERAL table (left)
-        if (geral.rows.length > 0) {
-          autoTable(pdf, {
-            startY: resumoSideBySideY,
-            head: [["OM", "TMFT", "EFE", "ATEND"]],
-            body: geral.rows,
-            theme: "grid",
-            styles: { fontSize: 7, cellPadding: 2, halign: "center" },
-            headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
-            bodyStyles: { fontStyle: "normal" },
-            tableWidth: halfWidth,
-            margin: { left: leftX, right: pageWidth - leftX - halfWidth },
-            didParseCell: (data) => {
-              if (data.section === "body" && data.row.raw?.[0] === "TOTAL GERAL") {
+        autoTable(pdf, {
+          startY: yPosition,
+          head: [["OM", "TMFT", "EFE", "ATEND", "", "OM", "TMFT", "EFE", "ATEND"]],
+          body: combinedBody,
+          theme: "grid",
+          styles: { fontSize: 7, cellPadding: 2, halign: "center" },
+          headStyles: { fontStyle: "bold", textColor: 255 },
+          margin: { left: 20, right: 20 },
+          columnStyles: {
+            4: { cellWidth: 4, fillColor: [255, 255, 255] },
+          },
+          didParseCell: (data) => {
+            const colIdx = data.column.index;
+            if (data.section === "head" && colIdx <= 3) {
+              data.cell.styles.fillColor = [16, 185, 129];
+            }
+            if (colIdx === 4) {
+              data.cell.styles.fillColor = [255, 255, 255];
+              data.cell.styles.lineWidth = 0;
+              data.cell.styles.textColor = [255, 255, 255];
+            }
+            if (data.section === "head" && colIdx >= 5) {
+              data.cell.styles.fillColor = [41, 128, 185];
+            }
+            if (data.section === "body") {
+              const geralOM = data.row.raw?.[0];
+              const filtOM = data.row.raw?.[5];
+              if (geralOM === "TOTAL GERAL" && colIdx <= 3) {
                 data.cell.styles.fontStyle = "bold";
                 data.cell.styles.fillColor = [229, 231, 235];
               }
-            },
-          });
-        }
-        const geralResumoFinalY = (pdf as any).lastAutoTable?.finalY || resumoSideBySideY;
-
-        // FILTRADO table (right)
-        if (filtrado.rows.length > 0) {
-          autoTable(pdf, {
-            startY: resumoSideBySideY,
-            head: [["OM", "TMFT", "EFE", "ATEND"]],
-            body: filtrado.rows,
-            theme: "grid",
-            styles: { fontSize: 7, cellPadding: 2, halign: "center" },
-            headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-            bodyStyles: { fontStyle: "normal" },
-            tableWidth: halfWidth,
-            margin: { left: rightX, right: pageWidth - rightX - halfWidth },
-            didParseCell: (data) => {
-              if (data.section === "body" && data.row.raw?.[0] === "TOTAL GERAL") {
+              if (filtOM === "TOTAL GERAL" && colIdx >= 5) {
                 data.cell.styles.fontStyle = "bold";
                 data.cell.styles.fillColor = [229, 231, 235];
               }
-            },
-          });
-        }
-        const filtResumoFinalY = (pdf as any).lastAutoTable?.finalY || resumoSideBySideY;
-        yPosition = Math.max(geralResumoFinalY, filtResumoFinalY) + 10;
+            }
+          },
+        });
+        yPosition = (pdf as any).lastAutoTable?.finalY + 10;
       } else {
         yPosition = renderResumoTable("RESUMO", geral.rows, yPosition, [16, 185, 129]);
       }
