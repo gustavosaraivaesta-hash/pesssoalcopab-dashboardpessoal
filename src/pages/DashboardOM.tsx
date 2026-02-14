@@ -1060,21 +1060,20 @@ const DashboardOM = () => {
       ) => {
         let y = startY;
         y = checkNewPage(y, 40);
-        const halfWidth = (pageWidth - 40) / 2;
-        const leftX = 20;
-        const rightX = 20 + halfWidth + 6;
-        const tableWidth = halfWidth - 3;
+        const halfW = (pageWidth - 46) / 2;
+        const lx = 20;
+        const rx = lx + halfW + 6;
 
         pdf.setFontSize(9);
         pdf.setFont("helvetica", "bold");
-        pdf.text("GERAL", leftX + tableWidth / 2, y, { align: "center" });
+        pdf.text("GERAL", lx + halfW / 2, y, { align: "center" });
         const filtLabelParts: string[] = [];
         if (selectedCorpos.length > 0) filtLabelParts.push(selectedCorpos.join(", "));
         if (selectedQuadros.length > 0) filtLabelParts.push(selectedQuadros.join(", "));
         if (selectedPostoFilter.length > 0) filtLabelParts.push(selectedPostoFilter.join(", "));
         if (selectedOpcoes.length > 0) filtLabelParts.push(selectedOpcoes.join(", "));
         const filtTitleLabel = filtLabelParts.length > 0 ? `FILTRADO (${filtLabelParts.join(" | ")})` : "FILTRADO";
-        pdf.text(filtTitleLabel, rightX + tableWidth / 2, y, { align: "center" });
+        pdf.text(filtTitleLabel, rx + halfW / 2, y, { align: "center" });
         y += 4;
 
         const geralAtend = geralTmft > 0 ? (geralEfetivo / geralTmft) * 100 : 0;
@@ -1088,8 +1087,8 @@ const DashboardOM = () => {
           styles: { fontSize: 8, cellPadding: 2, halign: "center" },
           headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
           bodyStyles: { fontStyle: "bold" },
-          tableWidth: tableWidth,
-          margin: { left: leftX, right: pageWidth - leftX - tableWidth },
+          tableWidth: halfW,
+          margin: { left: lx, right: pageWidth - lx - halfW },
         });
         const geralFinalY = (pdf as any).lastAutoTable.finalY;
 
@@ -1101,12 +1100,37 @@ const DashboardOM = () => {
           styles: { fontSize: 8, cellPadding: 2, halign: "center" },
           headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
           bodyStyles: { fontStyle: "bold" },
-          tableWidth: tableWidth,
-          margin: { left: rightX, right: pageWidth - rightX - tableWidth },
+          tableWidth: halfW,
+          margin: { left: rx, right: pageWidth - rx - halfW },
         });
         const filtFinalY = (pdf as any).lastAutoTable.finalY;
 
         return Math.max(geralFinalY, filtFinalY) + 8;
+      };
+
+      // Helper: render color legend for personnel table
+      const renderLegenda = (startY: number) => {
+        let y = checkNewPage(startY, 20);
+        pdf.setFontSize(7);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("LEGENDA:", 15, y);
+        y += 4;
+        const legendItems = [
+          { color: [254, 202, 202] as [number, number, number], textColor: [127, 29, 29] as [number, number, number], label: "VAGA - Cargo sem ocupante" },
+          { color: [255, 237, 213] as [number, number, number], textColor: [194, 65, 12] as [number, number, number], label: "FORA DA NEO - Especialidade divergente do cargo" },
+          { color: [219, 234, 254] as [number, number, number], textColor: [30, 64, 175] as [number, number, number], label: "EFETIVO EXTRA - Militar do filtro em posição de outra especialidade" },
+          { color: [254, 240, 138] as [number, number, number], textColor: [113, 63, 18] as [number, number, number], label: "EXTRA LOTAÇÃO - Militar além do efetivo previsto" },
+        ];
+        pdf.setFont("helvetica", "normal");
+        for (const item of legendItems) {
+          pdf.setFillColor(item.color[0], item.color[1], item.color[2]);
+          pdf.rect(15, y - 3, 6, 4, "F");
+          pdf.setTextColor(item.textColor[0], item.textColor[1], item.textColor[2]);
+          pdf.text(item.label, 23, y);
+          y += 5;
+        }
+        pdf.setTextColor(0, 0, 0);
+        return y + 2;
       };
 
       // When filters are active, show side-by-side totals then RESUMO per-OM table
@@ -1122,10 +1146,9 @@ const DashboardOM = () => {
 
         // Per-OM tables - show GERAL and FILTRADO side-by-side
         yPosition = checkNewPage(yPosition, 50);
-        const halfWidth = (pageWidth - 40) / 2;
+        const halfWidth = (pageWidth - 46) / 2;
         const leftX = 20;
-        const rightX = 20 + halfWidth + 6;
-        const tableWidth = halfWidth - 3;
+        const rightX = leftX + halfWidth + 6;
 
         // Build filter description for title
         const filterDescParts: string[] = [];
@@ -1139,8 +1162,8 @@ const DashboardOM = () => {
         // Titles
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
-        pdf.text("RESUMO GERAL POR OM", leftX + tableWidth / 2, yPosition, { align: "center" });
-        pdf.text(filtradoResumoLabel, rightX + tableWidth / 2, yPosition, { align: "center" });
+        pdf.text("RESUMO GERAL POR OM", leftX + halfWidth / 2, yPosition, { align: "center" });
+        pdf.text(filtradoResumoLabel, rightX + halfWidth / 2, yPosition, { align: "center" });
         yPosition += 6;
 
         const resumoSideBySideY = yPosition;
@@ -1155,8 +1178,8 @@ const DashboardOM = () => {
             styles: { fontSize: 7, cellPadding: 2, halign: "center" },
             headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
             bodyStyles: { fontStyle: "normal" },
-            tableWidth: tableWidth,
-            margin: { left: leftX, right: pageWidth - leftX - tableWidth },
+            tableWidth: halfWidth,
+            margin: { left: leftX, right: pageWidth - leftX - halfWidth },
             didParseCell: (data) => {
               if (data.section === "body" && data.row.raw?.[0] === "TOTAL GERAL") {
                 data.cell.styles.fontStyle = "bold";
@@ -1177,8 +1200,8 @@ const DashboardOM = () => {
             styles: { fontSize: 7, cellPadding: 2, halign: "center" },
             headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
             bodyStyles: { fontStyle: "normal" },
-            tableWidth: tableWidth,
-            margin: { left: rightX, right: pageWidth - rightX - tableWidth },
+            tableWidth: halfWidth,
+            margin: { left: rightX, right: pageWidth - rightX - halfWidth },
             didParseCell: (data) => {
               if (data.section === "body" && data.row.raw?.[0] === "TOTAL GERAL") {
                 data.cell.styles.fontStyle = "bold";
@@ -1490,7 +1513,8 @@ const DashboardOM = () => {
             }
           },
         });
-        yPosition = (pdf as any).lastAutoTable.finalY + 8;
+        yPosition = (pdf as any).lastAutoTable.finalY + 4;
+        yPosition = renderLegenda(yPosition);
 
         // ====== PREVISÃO DE DESEMBARQUE (per OM) ======
         const omDesembarque = desembarqueData.filter(
