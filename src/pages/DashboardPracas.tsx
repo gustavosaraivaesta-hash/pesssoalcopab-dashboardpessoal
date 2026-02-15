@@ -915,7 +915,6 @@ const DashboardPracas = () => {
 
         for (const om of activeOMs) {
           const omBaseData = baseFilteredData.filter((item) => item.om === om);
-          if (omBaseData.length === 0) continue;
           const omRegularData = omBaseData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
 
           let omTmft: number;
@@ -933,9 +932,7 @@ const DashboardPracas = () => {
           tTmft += omTmft;
           tEfetivo += omEfetivo;
 
-          if (omTmft > 0) {
-            rows.push([om, omTmft.toString(), omEfetivo.toString(), `${atend.toFixed(1)}%`]);
-          }
+          rows.push([om, omTmft.toString(), omEfetivo.toString(), `${atend.toFixed(1)}%`]);
         }
 
         const totalAtend = tTmft > 0 ? (tEfetivo / tTmft) * 100 : 0;
