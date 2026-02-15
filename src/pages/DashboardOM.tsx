@@ -1101,21 +1101,26 @@ const DashboardOM = () => {
         return (pdf as any).lastAutoTable.finalY + 8;
       };
 
-      // Helper: render color legend for personnel table
-      const renderLegenda = (startY: number) => {
+      // Track which highlight types are used per table
+      const usedHighlights = new Set<string>();
+
+      // Helper: render color legend for personnel table (only used colors)
+      const renderLegenda = (startY: number, highlights: Set<string>) => {
+        if (highlights.size === 0) return startY;
         let y = checkNewPage(startY, 20);
         pdf.setFontSize(7);
         pdf.setFont("helvetica", "bold");
         pdf.text("LEGENDA:", 15, y);
         y += 4;
-        const legendItems = [
-          { color: [254, 202, 202] as [number, number, number], textColor: [127, 29, 29] as [number, number, number], label: "VAGA - Cargo sem ocupante" },
-          { color: [255, 237, 213] as [number, number, number], textColor: [194, 65, 12] as [number, number, number], label: "FORA DA NEO - Especialidade divergente do cargo" },
-          { color: [219, 234, 254] as [number, number, number], textColor: [30, 64, 175] as [number, number, number], label: "EFETIVO EXTRA - Militar do filtro em posição de outra especialidade" },
-          { color: [254, 240, 138] as [number, number, number], textColor: [113, 63, 18] as [number, number, number], label: "EXTRA LOTAÇÃO - Militar além do efetivo previsto" },
+        const allLegendItems = [
+          { key: "VAGA", color: [254, 202, 202] as [number, number, number], textColor: [127, 29, 29] as [number, number, number], label: "VAGA - Cargo sem ocupante" },
+          { key: "FORA_NEO", color: [255, 237, 213] as [number, number, number], textColor: [194, 65, 12] as [number, number, number], label: "FORA DA NEO - Especialidade divergente do cargo" },
+          { key: "EFETIVO_EXTRA", color: [219, 234, 254] as [number, number, number], textColor: [30, 64, 175] as [number, number, number], label: "EFETIVO EXTRA - Militar do filtro em posição de outra especialidade" },
+          { key: "EXTRA_LOTACAO", color: [254, 240, 138] as [number, number, number], textColor: [113, 63, 18] as [number, number, number], label: "EXTRA LOTAÇÃO - Militar além do efetivo previsto" },
         ];
+        const filtered = allLegendItems.filter(item => highlights.has(item.key));
         pdf.setFont("helvetica", "normal");
-        for (const item of legendItems) {
+        for (const item of filtered) {
           pdf.setFillColor(item.color[0], item.color[1], item.color[2]);
           pdf.rect(15, y - 3, 6, 4, "F");
           pdf.setTextColor(item.textColor[0], item.textColor[1], item.textColor[2]);
@@ -1493,27 +1498,32 @@ const DashboardOM = () => {
               if (statusStr === "EFETIVO") {
                 data.cell.styles.fillColor = [219, 234, 254]; // blue-100
                 data.cell.styles.textColor = [30, 64, 175]; // blue-800
+                usedHighlights.add("EFETIVO_EXTRA");
               }
               // Destaque LARANJA para FORA DA NEO (Quadro ou Corpo divergente quando ocupado)
               else if (statusStr === "FORA NEO") {
                 data.cell.styles.fillColor = [255, 237, 213]; // orange-100
                 data.cell.styles.textColor = [194, 65, 12]; // orange-700
+                usedHighlights.add("FORA_NEO");
               }
               // Destaque amarelo para EXTRA LOTAÇÃO
               else if (setorStr.includes("EXTRA LOTA") || setorStr === "EXTRA LOTAÇÃO") {
                 data.cell.styles.fillColor = [254, 240, 138];
                 data.cell.styles.textColor = [113, 63, 18];
+                usedHighlights.add("EXTRA_LOTACAO");
               }
               // Destaque vermelho para NOME vazio/vago
               else if (!isOcupado) {
                 data.cell.styles.fillColor = [254, 202, 202];
                 data.cell.styles.textColor = [127, 29, 29];
+                usedHighlights.add("VAGA");
               }
             }
           },
         });
         yPosition = (pdf as any).lastAutoTable.finalY + 4;
-        yPosition = renderLegenda(yPosition);
+        yPosition = renderLegenda(yPosition, usedHighlights);
+        usedHighlights.clear();
 
         // ====== PREVISÃO DE DESEMBARQUE (per OM) ======
         const omDesembarque = desembarqueData.filter(
