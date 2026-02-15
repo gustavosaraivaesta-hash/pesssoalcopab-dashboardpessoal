@@ -955,30 +955,46 @@ const DashboardOM = () => {
       // ====== Helper: build resumo rows (OM, TMFT, EFETIVO, ATENDIMENTO) ======
       const hasEfeFiltersGlobal = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
 
+      // Check if there's extra lotação in filtered data
+      const hasExtraLotacao = filteredData.some((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
+
       // Build GERAL rows from ALL personnelData (no filters) across ALL availableOMs
       const buildGeralResumoRows = () => {
         const rows: string[][] = [];
         let tTmft = 0;
         let tEfetivo = 0;
+        let tExtra = 0;
 
         for (const om of availableOMs) {
           const omAllData = personnelData.filter((item) => item.om === om);
           if (omAllData.length === 0) continue;
           const omRegularData = omAllData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+          const omExtraData = omAllData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
           const omTmft = omRegularData.length;
           const omEfetivo = omRegularData.filter((item) => item.ocupado).length;
+          const omExtra = omExtraData.length;
+          const omVagos = omTmft - omEfetivo;
 
-          const atend = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
           tTmft += omTmft;
           tEfetivo += omEfetivo;
+          tExtra += omExtra;
 
           if (omTmft > 0) {
-            rows.push([om, omTmft.toString(), omEfetivo.toString(), `${atend.toFixed(1)}%`]);
+            const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
+            if (hasExtraLotacao) {
+              const atendTotal = omTmft > 0 ? ((omEfetivo + omExtra) / omTmft) * 100 : 0;
+              row.push(omExtra.toString(), `${atendTotal.toFixed(1)}%`);
+            }
+            rows.push(row);
           }
         }
 
-        const totalAtend = tTmft > 0 ? (tEfetivo / tTmft) * 100 : 0;
-        rows.push(["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), `${totalAtend.toFixed(1)}%`]);
+        const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
+        if (hasExtraLotacao) {
+          const totalAtendTotal = tTmft > 0 ? ((tEfetivo + tExtra) / tTmft) * 100 : 0;
+          totalRow.push(tExtra.toString(), `${totalAtendTotal.toFixed(1)}%`);
+        }
+        rows.push(totalRow);
         return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo };
       };
 
@@ -987,11 +1003,14 @@ const DashboardOM = () => {
         const rows: string[][] = [];
         let tTmft = 0;
         let tEfetivo = 0;
+        let tExtra = 0;
 
         for (const om of activeOMs) {
           const omData = filteredData.filter((item) => item.om === om);
           const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+          const omExtraData = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
           const omTmft = omRegularData.length;
+          const omExtra = omExtraData.length;
 
           let omEfetivo: number;
           if (hasEfeFiltersGlobal) {
@@ -1004,15 +1023,25 @@ const DashboardOM = () => {
             omEfetivo = omRegularData.filter((item) => item.ocupado).length;
           }
 
-          const atend = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
+          const omVagos = omTmft - omEfetivo;
           tTmft += omTmft;
           tEfetivo += omEfetivo;
+          tExtra += omExtra;
 
-          rows.push([om, omTmft.toString(), omEfetivo.toString(), `${atend.toFixed(1)}%`]);
+          const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
+          if (hasExtraLotacao) {
+            const atendTotal = omTmft > 0 ? ((omEfetivo + omExtra) / omTmft) * 100 : 0;
+            row.push(omExtra.toString(), `${atendTotal.toFixed(1)}%`);
+          }
+          rows.push(row);
         }
 
-        const totalAtend = tTmft > 0 ? (tEfetivo / tTmft) * 100 : 0;
-        rows.push(["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), `${totalAtend.toFixed(1)}%`]);
+        const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
+        if (hasExtraLotacao) {
+          const totalAtendTotal = tTmft > 0 ? ((tEfetivo + tExtra) / tTmft) * 100 : 0;
+          totalRow.push(tExtra.toString(), `${totalAtendTotal.toFixed(1)}%`);
+        }
+        rows.push(totalRow);
         return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo };
       };
 
@@ -1027,7 +1056,7 @@ const DashboardOM = () => {
         if (rows.length > 1) {
           autoTable(pdf, {
             startY: y,
-            head: [["OM", "TMFT", "EFETIVO", "ATENDIMENTO"]],
+            head: [hasExtraLotacao ? ["OM", "TMFT", "EFETIVO", "VAGOS", "EXT LOT", "AT. TOTAL"] : ["OM", "TMFT", "EFETIVO", "VAGOS"]],
             body: rows,
             theme: "grid",
             styles: { fontSize: 9, cellPadding: 3, halign: "center" },
@@ -1161,51 +1190,58 @@ const DashboardOM = () => {
         pdf.text(filtradoResumoLabel, rightX + halfWidth / 2, yPosition, { align: "center" });
         yPosition += 6;
 
+        // Dynamic columns based on extra lotação
+        const geralCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "EXT LOT", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS"];
+        const filtCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "EXT LOT", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS"];
+        const colsPerSide = geralCols.length;
+        const sepIdx = colsPerSide; // separator column index
+
         // Combine GERAL and FILTRADO into a single table with separator column
         const maxRows = Math.max(geral.rows.length, filtrado.rows.length);
+        const emptyRow = Array(colsPerSide).fill("");
         const combinedBody: string[][] = [];
         for (let i = 0; i < maxRows; i++) {
-          const gRow = geral.rows[i] || ["", "", "", ""];
-          const fRow = filtrado.rows[i] || ["", "", "", ""];
+          const gRow = geral.rows[i] || emptyRow;
+          const fRow = filtrado.rows[i] || emptyRow;
           combinedBody.push([...gRow, "", ...fRow]);
         }
 
         autoTable(pdf, {
           startY: yPosition,
-          head: [["OM", "TMFT", "EFE", "ATEND", "", "OM", "TMFT", "EFE", "ATEND"]],
+          head: [[...geralCols, "", ...filtCols]],
           body: combinedBody,
           theme: "grid",
           styles: { fontSize: 7, cellPadding: 2, halign: "center" },
           headStyles: { fontStyle: "bold", textColor: 255 },
           margin: { left: 20, right: 20 },
           columnStyles: {
-            4: { cellWidth: 4, fillColor: [255, 255, 255] },
+            [sepIdx]: { cellWidth: 4, fillColor: [255, 255, 255] },
           },
           didParseCell: (data) => {
             const colIdx = data.column.index;
-            // GERAL header (cols 0-3) green
-            if (data.section === "head" && colIdx <= 3) {
+            // GERAL header green
+            if (data.section === "head" && colIdx < sepIdx) {
               data.cell.styles.fillColor = [16, 185, 129];
             }
             // Separator column - no borders, white
-            if (colIdx === 4) {
+            if (colIdx === sepIdx) {
               data.cell.styles.fillColor = [255, 255, 255];
               data.cell.styles.lineWidth = 0;
               data.cell.styles.textColor = [255, 255, 255];
             }
-            // FILTRADO header (cols 5-8) blue
-            if (data.section === "head" && colIdx >= 5) {
+            // FILTRADO header blue
+            if (data.section === "head" && colIdx > sepIdx) {
               data.cell.styles.fillColor = [41, 128, 185];
             }
             // TOTAL GERAL row styling
             if (data.section === "body") {
               const geralOM = data.row.raw?.[0];
-              const filtOM = data.row.raw?.[5];
-              if (geralOM === "TOTAL GERAL" && colIdx <= 3) {
+              const filtOM = data.row.raw?.[sepIdx + 1];
+              if (geralOM === "TOTAL GERAL" && colIdx < sepIdx) {
                 data.cell.styles.fontStyle = "bold";
                 data.cell.styles.fillColor = [229, 231, 235];
               }
-              if (filtOM === "TOTAL GERAL" && colIdx >= 5) {
+              if (filtOM === "TOTAL GERAL" && colIdx > sepIdx) {
                 data.cell.styles.fontStyle = "bold";
                 data.cell.styles.fillColor = [229, 231, 235];
               }
