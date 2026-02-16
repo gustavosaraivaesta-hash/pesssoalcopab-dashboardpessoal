@@ -489,7 +489,7 @@ const DashboardOM = () => {
 
     // EFETIVO: quando há filtros de corpo/quadro/posto, conta ocupados pelo campo EFE correspondente
     // Aplica os mesmos filtros (OM, Opção, Search) mas usa corpoEfe/quadroEfe/postoEfe ao invés de TMFT
-    const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+    const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
 
     let totalEXI: number;
     if (hasEfeFilters) {
@@ -500,9 +500,9 @@ const DashboardOM = () => {
       if (selectedOMs.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedOMs.includes(item.om));
       }
-      // Aplicar filtro de Opção
+      // Aplicar filtro de Opção (usa opcaoEfe para filtragem independente)
       if (selectedOpcoes.length > 0) {
-        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
+        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
       }
       // Aplicar filtro de busca
       if (searchQuery.trim()) {
@@ -528,6 +528,9 @@ const DashboardOM = () => {
       }
       if (selectedPostoFilter.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+      }
+      if (selectedOpcoes.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
       }
 
       totalEXI = efetivoData.length;
@@ -630,8 +633,12 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro));
     }
 
+    if (selectedOpcoes.length > 0) {
+      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcao));
+    }
+
     return filtered;
-  }, [desembarqueData, selectedOMs, selectedQuadros]);
+  }, [desembarqueData, selectedOMs, selectedQuadros, selectedOpcoes]);
 
   const filteredEmbarqueData = useMemo(() => {
     let filtered = embarqueData;
@@ -644,8 +651,12 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro));
     }
 
+    if (selectedOpcoes.length > 0) {
+      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcao));
+    }
+
     return filtered;
-  }, [embarqueData, selectedOMs, selectedQuadros]);
+  }, [embarqueData, selectedOMs, selectedQuadros, selectedOpcoes]);
 
   const chartDataByPosto = useMemo(() => {
     const POSTO_ORDER = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM"];
@@ -953,7 +964,7 @@ const DashboardOM = () => {
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
       // ====== Helper: build resumo rows (OM, TMFT, EFETIVO, ATENDIMENTO) ======
-      const hasEfeFiltersGlobal = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+      const hasEfeFiltersGlobal = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
 
       // Check if there's extra lotação in filtered data
       const hasExtraLotacao = filteredData.some((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
@@ -1018,6 +1029,7 @@ const DashboardOM = () => {
             if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+            if (selectedOpcoes.length > 0) ef = ef.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
             omEfetivo = ef.length;
           } else {
             omEfetivo = omRegularData.filter((item) => item.ocupado).length;
@@ -1364,6 +1376,7 @@ const DashboardOM = () => {
             if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+            if (selectedOpcoes.length > 0) ef = ef.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
             filtEfetivo = ef.length;
           } else {
             filtTmft = omRegularData.length;
@@ -1398,7 +1411,7 @@ const DashboardOM = () => {
         // Quando há filtros de corpo/quadro/posto, incluir linhas extras de militares que estão em outras posições
         let omTableData = omData;
         const hasEfeFiltersTable =
-          selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+          selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
 
         if (hasEfeFiltersTable) {
           // Buscar militares desta OM que têm campos EFE no filtro mas TMFT diferente
@@ -1420,6 +1433,10 @@ const DashboardOM = () => {
             if (selectedPostoFilter.length > 0) {
               matchesEfeFilters = matchesEfeFilters && selectedPostoFilter.includes(item.postoEfe);
               matchesTmftFilters = matchesTmftFilters && selectedPostoFilter.includes(item.postoTmft);
+            }
+            if (selectedOpcoes.length > 0) {
+              matchesEfeFilters = matchesEfeFilters && selectedOpcoes.includes(item.opcaoEfe);
+              matchesTmftFilters = matchesTmftFilters && selectedOpcoes.includes(item.opcaoTmft);
             }
 
             // Incluir se atende aos filtros EFE mas NÃO aos filtros TMFT (linha extra)
@@ -1450,6 +1467,10 @@ const DashboardOM = () => {
             if (selectedPostoFilter.length > 0) {
               matchesEfe = matchesEfe && selectedPostoFilter.includes(item.postoEfe);
               matchesTmft = matchesTmft && selectedPostoFilter.includes(item.postoTmft);
+            }
+            if (selectedOpcoes.length > 0) {
+              matchesEfe = matchesEfe && selectedOpcoes.includes(item.opcaoEfe);
+              matchesTmft = matchesTmft && selectedOpcoes.includes(item.opcaoTmft);
             }
 
             isExtraRow = item.ocupado && matchesEfe && !matchesTmft;
@@ -1560,7 +1581,7 @@ const DashboardOM = () => {
 
         // ====== PREVISÃO DE DESEMBARQUE (per OM) ======
         const omDesembarque = desembarqueData.filter(
-          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)),
+          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)) && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)),
         );
         if (omDesembarque.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
@@ -1592,7 +1613,7 @@ const DashboardOM = () => {
         }
 
         // ====== PREVISÃO DE TRRM (per OM) ======
-        const omTrrm = trrmData.filter((item) => item.om === om);
+        const omTrrm = trrmData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
         if (omTrrm.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -1622,7 +1643,7 @@ const DashboardOM = () => {
         }
 
         // ====== LICENÇAS (per OM) ======
-        const omLicencas = licencasData.filter((item) => item.om === om);
+        const omLicencas = licencasData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
         if (omLicencas.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -1651,7 +1672,7 @@ const DashboardOM = () => {
         }
 
         // ====== DESTAQUES (per OM) ======
-        const omDestaques = destaquesData.filter((item) => item.om === om);
+        const omDestaques = destaquesData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
         if (omDestaques.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -1682,7 +1703,7 @@ const DashboardOM = () => {
         }
 
         // ====== CONCURSO C-EMOS (per OM) ======
-        const omConcurso = concursoData.filter((item) => item.om === om);
+        const omConcurso = concursoData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
         if (omConcurso.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -2160,7 +2181,7 @@ const DashboardOM = () => {
         }
 
         // PREVISÃO DE TRRM
-        const omTrrm = trrmData.filter((item) => item.om === om);
+        const omTrrm = trrmData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
         if (omTrrm.length > 0) {
           omChildren.push(
             new Paragraph({
@@ -2201,7 +2222,7 @@ const DashboardOM = () => {
         }
 
         // LICENÇAS
-        const omLicencas = licencasData.filter((item) => item.om === om);
+        const omLicencas = licencasData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
         if (omLicencas.length > 0) {
           omChildren.push(
             new Paragraph({
@@ -2240,7 +2261,7 @@ const DashboardOM = () => {
         }
 
         // DESTAQUES
-        const omDestaques = destaquesData.filter((item) => item.om === om);
+        const omDestaques = destaquesData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
         if (omDestaques.length > 0) {
           omChildren.push(
             new Paragraph({
@@ -2283,7 +2304,7 @@ const DashboardOM = () => {
         }
 
         // CONCURSO C-EMOS
-        const omConcurso = concursoData.filter((item) => item.om === om);
+        const omConcurso = concursoData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
         if (omConcurso.length > 0) {
           omChildren.push(
             new Paragraph({
