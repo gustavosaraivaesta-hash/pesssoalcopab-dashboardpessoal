@@ -991,20 +991,22 @@ const DashboardOM = () => {
           tExtra += omExtra;
 
           if (omTmft > 0) {
+            const atendTotal = omTmft > 0 ? ((omEfetivo + omExtra) / omTmft) * 100 : 0;
             const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
             if (hasExtraLotacao) {
-              const atendTotal = omTmft > 0 ? ((omEfetivo + omExtra) / omTmft) * 100 : 0;
-              row.push(omExtra.toString(), `${atendTotal.toFixed(1)}%`);
+              row.push(omExtra.toString());
             }
+            row.push(`${atendTotal.toFixed(1)}%`);
             rows.push(row);
           }
         }
 
+        const totalAtendTotal = tTmft > 0 ? ((tEfetivo + tExtra) / tTmft) * 100 : 0;
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
-          const totalAtendTotal = tTmft > 0 ? ((tEfetivo + tExtra) / tTmft) * 100 : 0;
-          totalRow.push(tExtra.toString(), `${totalAtendTotal.toFixed(1)}%`);
+          totalRow.push(tExtra.toString());
         }
+        totalRow.push(`${totalAtendTotal.toFixed(1)}%`);
         rows.push(totalRow);
         return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo };
       };
@@ -1040,19 +1042,21 @@ const DashboardOM = () => {
           tEfetivo += omEfetivo;
           tExtra += omExtra;
 
+          const atendTotal = omTmft > 0 ? ((omEfetivo + omExtra) / omTmft) * 100 : 0;
           const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
           if (hasExtraLotacao) {
-            const atendTotal = omTmft > 0 ? ((omEfetivo + omExtra) / omTmft) * 100 : 0;
-            row.push(omExtra.toString(), `${atendTotal.toFixed(1)}%`);
+            row.push(omExtra.toString());
           }
+          row.push(`${atendTotal.toFixed(1)}%`);
           rows.push(row);
         }
 
+        const totalAtendTotal = tTmft > 0 ? ((tEfetivo + tExtra) / tTmft) * 100 : 0;
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
-          const totalAtendTotal = tTmft > 0 ? ((tEfetivo + tExtra) / tTmft) * 100 : 0;
-          totalRow.push(tExtra.toString(), `${totalAtendTotal.toFixed(1)}%`);
+          totalRow.push(tExtra.toString());
         }
+        totalRow.push(`${totalAtendTotal.toFixed(1)}%`);
         rows.push(totalRow);
         return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo };
       };
@@ -1068,7 +1072,7 @@ const DashboardOM = () => {
         if (rows.length > 1) {
           autoTable(pdf, {
             startY: y,
-            head: [hasExtraLotacao ? ["OM", "TMFT", "EFETIVO", "VAGOS", "EXT LOT", "AT. TOTAL"] : ["OM", "TMFT", "EFETIVO", "VAGOS"]],
+            head: [hasExtraLotacao ? ["OM", "TMFT", "EFETIVO", "VAGOS", "EXT LOT", "AT. TOTAL"] : ["OM", "TMFT", "EFETIVO", "VAGOS", "AT. TOTAL"]],
             body: rows,
             theme: "grid",
             styles: { fontSize: 9, cellPadding: 3, halign: "center" },
@@ -1203,8 +1207,8 @@ const DashboardOM = () => {
         yPosition += 6;
 
         // Dynamic columns based on extra lotação
-        const geralCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "EXT LOT", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS"];
-        const filtCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "EXT LOT", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS"];
+        const geralCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "EXT LOT", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS", "AT. TOTAL"];
+        const filtCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "EXT LOT", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS", "AT. TOTAL"];
         const colsPerSide = geralCols.length;
         const sepIdx = colsPerSide; // separator column index
 
@@ -1305,6 +1309,8 @@ const DashboardOM = () => {
             omImEfetivo.toString(),
             omImVagos.toString(),
             `${omImAtendimento.toFixed(1)}%`,
+            omImExtra.toString(),
+            `${omImAtendTotal.toFixed(1)}%`,
           ]);
         }
 
@@ -1319,11 +1325,13 @@ const DashboardOM = () => {
           totalImEfetivo.toString(),
           totalImVagos.toString(),
           `${totalImAtendimento.toFixed(1)}%`,
+          totalImExtra.toString(),
+          `${totalImAtendTotal.toFixed(1)}%`,
         ]);
 
         autoTable(pdf, {
           startY: yPosition,
-          head: [["OM", "TMFT IM", "EFETIVO IM", "FALTAS IM", "ATENDIMENTO IM"]],
+          head: [["OM", "TMFT IM", "EFE IM", "FALTAS IM", "ATEND. IM", "EXT LOT IM", "AT. TOTAL IM"]],
           body: imResumoRows,
           theme: "grid",
           styles: { fontSize: 9, cellPadding: 3, halign: "center" },
