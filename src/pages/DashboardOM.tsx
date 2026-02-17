@@ -401,6 +401,12 @@ const DashboardOM = () => {
       );
     }
 
+    // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
+    const hasNonOpcaoFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+    if (hasNonOpcaoFilters && !selectedOpcoes.includes("TTC")) {
+      filtered = filtered.filter((item) => item.opcaoTmft !== "TTC");
+    }
+
     return filtered;
   }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedCorpos, searchQuery]);
 
@@ -495,6 +501,11 @@ const DashboardOM = () => {
     if (hasEfeFilters) {
       // Aplica todos os filtros usando campos EFE para corpo/quadro/posto
       let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+      // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
+      const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+      if (hasNonOpcaoFiltersEfe && !selectedOpcoes.includes("TTC")) {
+        efetivoData = efetivoData.filter((item) => item.opcaoEfe !== "TTC");
+      }
 
       // Aplicar filtro de OM
       if (selectedOMs.length > 0) {
@@ -734,6 +745,12 @@ const DashboardOM = () => {
       filtered = filtered.filter(
         (item) => selectedCorpos.includes(item.corpoTmft) || selectedCorpos.includes(item.corpoEfe),
       );
+    }
+
+    // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
+    const hasNonOpcaoFiltersVagas = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+    if (hasNonOpcaoFiltersVagas && !selectedOpcoes.includes("TTC")) {
+      filtered = filtered.filter((item) => item.opcaoTmft !== "TTC");
     }
 
     // Apply search filter
@@ -1028,6 +1045,11 @@ const DashboardOM = () => {
           let omEfetivo: number;
           if (hasEfeFiltersGlobal) {
             let ef = personnelData.filter((item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+            // Excluir TTC quando filtros específicos estão ativos
+            const hasNonOpcaoFiltersPdf = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+            if (hasNonOpcaoFiltersPdf && !selectedOpcoes.includes("TTC")) {
+              ef = ef.filter((item) => item.opcaoEfe !== "TTC");
+            }
             if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
@@ -1381,6 +1403,11 @@ const DashboardOM = () => {
           if (hasEfeFiltersGlobal) {
             filtTmft = omRegularData.length;
             let ef = personnelData.filter((item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+            // Excluir TTC quando filtros específicos estão ativos
+            const hasNonOpcaoFiltersPdf2 = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+            if (hasNonOpcaoFiltersPdf2 && !selectedOpcoes.includes("TTC")) {
+              ef = ef.filter((item) => item.opcaoEfe !== "TTC");
+            }
             if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
