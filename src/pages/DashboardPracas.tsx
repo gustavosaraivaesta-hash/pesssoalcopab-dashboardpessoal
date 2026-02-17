@@ -423,6 +423,9 @@ const DashboardPracas = () => {
     if (selectedQuadros.length > 0 && !expandedQuadros.includes(item.quadroTmft)) return false;
     if (selectedGraduacoes.length > 0 && !selectedGraduacoes.includes(item.postoTmft)) return false;
     if (selectedOpcoes.length > 0 && !selectedOpcoes.includes(item.opcaoTmft)) return false;
+    // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
+    const hasNonOpcaoFiltersPracas = selectedQuadros.length > 0 || selectedGraduacoes.length > 0;
+    if (hasNonOpcaoFiltersPracas && !selectedOpcoes.includes("TTC") && item.opcaoTmft === "TTC") return false;
     return true;
   };
 
@@ -430,6 +433,9 @@ const DashboardPracas = () => {
     if (selectedQuadros.length > 0 && !expandedQuadros.includes(item.quadroEfe)) return false;
     if (selectedGraduacoes.length > 0 && !selectedGraduacoes.includes(item.postoEfe)) return false;
     if (selectedOpcoes.length > 0 && !selectedOpcoes.includes(item.opcaoEfe)) return false;
+    // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
+    const hasNonOpcaoFiltersPracas = selectedQuadros.length > 0 || selectedGraduacoes.length > 0;
+    if (hasNonOpcaoFiltersPracas && !selectedOpcoes.includes("TTC") && item.opcaoEfe === "TTC") return false;
     return true;
   };
 
