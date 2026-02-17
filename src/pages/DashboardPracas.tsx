@@ -880,8 +880,8 @@ const DashboardPracas = () => {
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
       // ====== Helper: build resumo rows (OM, TMFT, EFETIVO, ATENDIMENTO) ======
-      // Check if there's extra lotação in filtered data
-      const hasExtraLotacao = filteredData.some((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
+      // Check if there's extra lotação in ALL data (not just filtered)
+      const hasExtraLotacao = personnelData.some((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
 
       // Build GERAL rows from ALL personnelData (no filters) across ALL availableOMs
       const buildGeralResumoRows = () => {
