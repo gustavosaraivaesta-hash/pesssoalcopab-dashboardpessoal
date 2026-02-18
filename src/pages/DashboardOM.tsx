@@ -1058,7 +1058,7 @@ const DashboardOM = () => {
         }
         totalRow.push(`${totalAtendTotal.toFixed(1)}%`);
         rows.push(totalRow);
-        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo };
+        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra };
       };
 
       // Build FILTRADO rows from filtered data
@@ -1113,7 +1113,7 @@ const DashboardOM = () => {
         }
         totalRow.push(`${totalAtendTotal.toFixed(1)}%`);
         rows.push(totalRow);
-        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo };
+        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra };
       };
 
       const renderResumoTable = (title: string, rows: string[][], startY: number, color: [number, number, number]) => {
@@ -1151,15 +1151,17 @@ const DashboardOM = () => {
 
       // Helper: render side-by-side GERAL / FILTRADO summary (single-row totals)
       const renderSideBySideTotals = (
-        geralTmft: number, geralEfetivo: number,
-        filtTmft: number, filtEfetivo: number,
+        geralTmft: number, geralEfetivo: number, geralExtra: number,
+        filtTmft: number, filtEfetivo: number, filtExtra: number,
         startY: number
       ) => {
         let y = startY;
         y = checkNewPage(y, 40);
 
-        const geralAtend = geralTmft > 0 ? (geralEfetivo / geralTmft) * 100 : 0;
-        const filtAtend = filtTmft > 0 ? (filtEfetivo / filtTmft) * 100 : 0;
+        const geralVagos = geralTmft - geralEfetivo;
+        const geralAtTotal = geralTmft > 0 ? ((geralEfetivo + geralExtra) / geralTmft) * 100 : 0;
+        const filtVagos = filtTmft - filtEfetivo;
+        const filtAtTotal = filtTmft > 0 ? ((filtEfetivo + filtExtra) / filtTmft) * 100 : 0;
 
         const filtLabelParts: string[] = [];
         if (selectedCorpos.length > 0) filtLabelParts.push(selectedCorpos.join(", "));
@@ -1177,21 +1179,28 @@ const DashboardOM = () => {
         pdf.text(filtTitleLabel, rx + halfW / 2, y, { align: "center" });
         y += 4;
 
+        const cols = ["TMFT", "EFE", "VAGOS", "EXT LOT", "AT. TOTAL"];
+        const sepIdx = cols.length;
+
         autoTable(pdf, {
           startY: y,
-          head: [["TMFT", "EFETIVO", "ATEND.", "", "TMFT", "EFETIVO", "ATEND."]],
-          body: [[geralTmft.toString(), geralEfetivo.toString(), `${geralAtend.toFixed(1)}%`, "", filtTmft.toString(), filtEfetivo.toString(), `${filtAtend.toFixed(1)}%`]],
+          head: [[...cols, "", ...cols]],
+          body: [[
+            geralTmft.toString(), geralEfetivo.toString(), geralVagos.toString(), geralExtra.toString(), `${geralAtTotal.toFixed(1)}%`,
+            "",
+            filtTmft.toString(), filtEfetivo.toString(), filtVagos.toString(), filtExtra.toString(), `${filtAtTotal.toFixed(1)}%`,
+          ]],
           theme: "grid",
-          styles: { fontSize: 8, cellPadding: 2, halign: "center" },
+          styles: { fontSize: 7, cellPadding: 2, halign: "center" },
           headStyles: { fontStyle: "bold", textColor: 255 },
           bodyStyles: { fontStyle: "bold" },
           margin: { left: 20, right: 20 },
-          columnStyles: { 3: { cellWidth: 4, fillColor: [255, 255, 255] } },
+          columnStyles: { [sepIdx]: { cellWidth: 4, fillColor: [255, 255, 255] } },
           didParseCell: (data) => {
             const colIdx = data.column.index;
-            if (data.section === "head" && colIdx <= 2) data.cell.styles.fillColor = [16, 185, 129];
-            if (colIdx === 3) { data.cell.styles.fillColor = [255, 255, 255]; data.cell.styles.lineWidth = 0; data.cell.styles.textColor = [255, 255, 255]; }
-            if (data.section === "head" && colIdx >= 4) data.cell.styles.fillColor = [41, 128, 185];
+            if (data.section === "head" && colIdx < sepIdx) data.cell.styles.fillColor = [16, 185, 129];
+            if (colIdx === sepIdx) { data.cell.styles.fillColor = [255, 255, 255]; data.cell.styles.lineWidth = 0; data.cell.styles.textColor = [255, 255, 255]; }
+            if (data.section === "head" && colIdx > sepIdx) data.cell.styles.fillColor = [41, 128, 185];
           },
         });
 
@@ -1234,8 +1243,8 @@ const DashboardOM = () => {
         const filtrado = buildFiltradoResumoRows();
 
         yPosition = renderSideBySideTotals(
-          geral.totalTmft, geral.totalEfetivo,
-          filtrado.totalTmft, filtrado.totalEfetivo,
+          geral.totalTmft, geral.totalEfetivo, geral.totalExtra,
+          filtrado.totalTmft, filtrado.totalEfetivo, filtrado.totalExtra,
           yPosition
         );
 
@@ -1424,11 +1433,15 @@ const DashboardOM = () => {
         // GERAL metrics from ALL personnelData (unfiltered) for this OM
         const omAllData = personnelData.filter((item) => item.om === om);
         const omAllRegular = omAllData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+        const omAllExtra = omAllData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
         const omGeralTmft = omAllRegular.length;
         const omGeralEfetivo = omAllRegular.filter((item) => item.ocupado).length;
+        const omGeralExtra = omAllExtra.length;
 
         // Calculate filtered metrics per OM
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
+        const omFiltExtraData = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
+        const omFiltExtra = omFiltExtraData.length;
 
         if (hasEfeFiltersGlobal || selectedOMs.length > 0) {
           let filtTmft: number;
@@ -1450,22 +1463,23 @@ const DashboardOM = () => {
             filtTmft = omRegularData.length;
             filtEfetivo = omRegularData.filter((item) => item.ocupado).length;
           }
-          yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, filtTmft, filtEfetivo, yPosition);
+          yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, omGeralExtra, filtTmft, filtEfetivo, omFiltExtra, yPosition);
         } else {
-          const atend = omGeralTmft > 0 ? (omGeralEfetivo / omGeralTmft) * 100 : 0;
+          const omVagos = omGeralTmft - omGeralEfetivo;
+          const atTotal = omGeralTmft > 0 ? ((omGeralEfetivo + omGeralExtra) / omGeralTmft) * 100 : 0;
           pdf.setFontSize(8);
           pdf.setFont("helvetica", "bold");
           pdf.text("GERAL", pageWidth / 2, yPosition, { align: "center" });
           yPosition += 4;
           autoTable(pdf, {
             startY: yPosition,
-            head: [["TMFT", "EFETIVO", "ATENDIMENTO"]],
-            body: [[omGeralTmft.toString(), omGeralEfetivo.toString(), `${atend.toFixed(1)}%`]],
+            head: [["TMFT", "EFE", "VAGOS", "EXT LOT", "AT. TOTAL"]],
+            body: [[omGeralTmft.toString(), omGeralEfetivo.toString(), omVagos.toString(), omGeralExtra.toString(), `${atTotal.toFixed(1)}%`]],
             theme: "grid",
             styles: { fontSize: 8, cellPadding: 2, halign: "center" },
             headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
             bodyStyles: { fontStyle: "bold" },
-            margin: { left: 60, right: 60 },
+            margin: { left: 40, right: 40 },
           });
           yPosition = (pdf as any).lastAutoTable.finalY + 6;
         }
