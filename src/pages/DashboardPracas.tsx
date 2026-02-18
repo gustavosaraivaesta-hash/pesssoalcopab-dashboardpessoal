@@ -886,8 +886,8 @@ const DashboardPracas = () => {
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
       // ====== Helper: build resumo rows (OM, TMFT, EFETIVO, ATENDIMENTO) ======
-      // Check if there's extra lotação in ALL data (not just filtered)
-      const hasExtraLotacao = personnelData.some((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
+      // EXT LOT e AT. TOTAL sempre visíveis em todas as tabelas do PDF
+      const hasExtraLotacao = true;
 
       // Build GERAL rows from ALL personnelData (no filters) across ALL availableOMs
       const buildGeralResumoRows = () => {

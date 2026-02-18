@@ -1016,8 +1016,8 @@ const DashboardOM = () => {
       // ====== Helper: build resumo rows (OM, TMFT, EFETIVO, ATENDIMENTO) ======
       const hasEfeFiltersGlobal = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
 
-      // Check if there's extra lotação in ALL data (not just filtered)
-      const hasExtraLotacao = personnelData.some((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
+      // EXT LOT e AT. TOTAL sempre visíveis em todas as tabelas do PDF
+      const hasExtraLotacao = true;
 
       // Build GERAL rows from ALL personnelData (no filters) across ALL availableOMs
       const buildGeralResumoRows = () => {
