@@ -418,19 +418,11 @@ const DashboardOM = () => {
     if (statusFilter === "ocupados") {
       filtered = filtered.filter((item) => item.ocupado);
 
-      // Apply efetivo sub-filter based on CORPO match
+      // Apply efetivo sub-filter using the same isForaDaNeo logic as neoMetrics
       if (efetivoSubFilter === "na_neo") {
-        filtered = filtered.filter((item) => {
-          const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
-          const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
-          return !corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe;
-        });
+        filtered = filtered.filter((item) => !isForaDaNeo(item.quadroTmft || "", item.quadroEfe || ""));
       } else if (efetivoSubFilter === "fora_neo") {
-        filtered = filtered.filter((item) => {
-          const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
-          const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
-          return corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
-        });
+        filtered = filtered.filter((item) => isForaDaNeo(item.quadroTmft || "", item.quadroEfe || ""));
       }
     } else if (statusFilter === "vagos") {
       filtered = filtered.filter((item) => !item.ocupado);
@@ -574,20 +566,61 @@ const DashboardOM = () => {
     searchQuery,
   ]);
 
-  // Calculate NA NEO and FORA DA NEO metrics for EFETIVO drill-down (based on CORPO match)
-  const neoMetrics = useMemo(() => {
-    const regularData = baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+  // Calculate the same EFETIVO population used by metrics to ensure NA NEO + FORA DA NEO = EFETIVO
+  const efetivoPopulation = useMemo(() => {
+    const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
 
-    // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are meaningful)
-    // Corpo difference alone does NOT make someone "FORA DA NEO"
-    const foraNeo = regularData.filter((item) => {
+    if (hasEfeFilters) {
+      let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+      const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+      if (hasNonOpcaoFiltersEfe && !selectedOpcoes.includes("TTC")) {
+        efetivoData = efetivoData.filter((item) => item.opcaoEfe !== "TTC");
+      }
+      if (selectedOMs.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedOMs.includes(item.om));
+      }
+      if (selectedOpcoes.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
+      }
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        efetivoData = efetivoData.filter(
+          (item) =>
+            (item.nome && item.nome.toLowerCase().includes(query)) ||
+            (item.postoTmft && item.postoTmft.toLowerCase().includes(query)) ||
+            (item.postoEfe && item.postoEfe.toLowerCase().includes(query)) ||
+            (item.setor && item.setor.toLowerCase().includes(query)) ||
+            (item.quadroTmft && item.quadroTmft.toLowerCase().includes(query)) ||
+            (item.quadroEfe && item.quadroEfe.toLowerCase().includes(query)) ||
+            (item.neo && item.neo.toString().includes(query)),
+        );
+      }
+      if (selectedCorpos.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedCorpos.includes(item.corpoEfe));
+      }
+      if (selectedQuadros.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedQuadros.includes(item.quadroEfe));
+      }
+      if (selectedPostoFilter.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+      }
+      if (selectedOpcoes.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
+      }
+      return efetivoData;
+    } else {
+      return baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
+    }
+  }, [baseFilteredData, personnelData, selectedCorpos, selectedQuadros, selectedPostoFilter, selectedOMs, selectedOpcoes, searchQuery]);
+
+  // Calculate NA NEO and FORA DA NEO metrics using the same population as EFETIVO
+  const neoMetrics = useMemo(() => {
+    const foraNeo = efetivoPopulation.filter((item) => {
       return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
     });
 
-    // NA NEO: everyone who is NOT FORA DA NEO
-    // This ensures NA NEO + FORA DA NEO = EFETIVO (total occupied)
     const foraNeoIds = new Set(foraNeo.map((item) => item.id));
-    const naNeo = regularData.filter((item) => !foraNeoIds.has(item.id));
+    const naNeo = efetivoPopulation.filter((item) => !foraNeoIds.has(item.id));
 
     return {
       foraNeoCount: foraNeo.length,
@@ -595,7 +628,7 @@ const DashboardOM = () => {
       foraNeoPersonnel: foraNeo,
       naNeoPersonnel: naNeo,
     };
-  }, [baseFilteredData]);
+  }, [efetivoPopulation]);
 
   // Handle NA NEO sub-card click
   const handleNaNeoClick = () => {
