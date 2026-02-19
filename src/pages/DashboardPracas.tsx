@@ -941,7 +941,8 @@ const DashboardPracas = () => {
         for (const om of activeOMs) {
           const omBaseData = baseFilteredData.filter((item) => item.om === om);
           const omRegularData = omBaseData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
-          const omExtraData = omBaseData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
+          const omExtraDataAll = omBaseData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
+          const omExtraData = hasSpecificFilters ? omExtraDataAll.filter(matchesEfeFilters) : omExtraDataAll;
           const omExtra = omExtraData.length;
 
           let omTmft: number;
@@ -1221,7 +1222,8 @@ const DashboardPracas = () => {
         const omGeralExtra = omAllExtra.length;
 
         // FILTRADO metrics (only when filters active)
-        const omFiltExtraData = omBaseData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
+        const omFiltExtraDataAll = omBaseData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
+        const omFiltExtraData = hasSpecificFilters ? omFiltExtraDataAll.filter(matchesEfeFilters) : omFiltExtraDataAll;
         const omFiltExtra = omFiltExtraData.length;
 
         if (hasSpecificFilters || selectedOMs.length > 0) {
