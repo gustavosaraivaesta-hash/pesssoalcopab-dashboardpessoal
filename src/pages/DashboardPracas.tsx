@@ -2420,7 +2420,7 @@ const DashboardPracas = () => {
                     </Badge>
                   )}
                 </div>
-                <div className="grid grid-cols-4 gap-2 p-3 border rounded-lg bg-card shadow-sm max-h-48 overflow-y-auto">
+                <div className="grid grid-cols-4 gap-2 p-3 border rounded-lg bg-card shadow-sm overflow-y-auto">
                   {availableQuadros.map((quadro) => (
                     <div key={quadro} className="flex items-center space-x-2">
                       <Checkbox
