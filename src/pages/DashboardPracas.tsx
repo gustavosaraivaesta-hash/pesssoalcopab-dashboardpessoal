@@ -2603,6 +2603,22 @@ const DashboardPracas = () => {
           </Card>
 
           <Card
+            className={`bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 border-orange-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${showOnlyExtraLotacao ? "ring-2 ring-orange-500 ring-offset-2" : ""}`}
+            onClick={() => setShowOnlyExtraLotacao((prev) => !prev)}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">EXTRA LOTAÇÃO</p>
+                  <p className="text-4xl font-bold text-orange-900 dark:text-orange-100">{metrics.totalExtraLotacao}</p>
+                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Militares sem NEO</p>
+                </div>
+                <Users2 className="h-8 w-8 text-orange-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
             className={`bg-gradient-to-br ${
               metrics.atendimentoTotal >= 100
                 ? "from-cyan-50 to-cyan-100 dark:from-cyan-950/20 dark:to-cyan-900/20 border-cyan-200"
@@ -2657,22 +2673,6 @@ const DashboardPracas = () => {
                         : "text-amber-500"
                   }`}
                 />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className={`bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 border-orange-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${showOnlyExtraLotacao ? "ring-2 ring-orange-500 ring-offset-2" : ""}`}
-            onClick={() => setShowOnlyExtraLotacao((prev) => !prev)}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">EXTRA LOTAÇÃO</p>
-                  <p className="text-4xl font-bold text-orange-900 dark:text-orange-100">{metrics.totalExtraLotacao}</p>
-                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Militares sem NEO</p>
-                </div>
-                <Users2 className="h-8 w-8 text-orange-500" />
               </div>
             </CardContent>
           </Card>
