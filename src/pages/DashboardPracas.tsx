@@ -2383,7 +2383,7 @@ const DashboardPracas = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
               {/* OM Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -2394,7 +2394,7 @@ const DashboardPracas = () => {
                     </Badge>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-1 p-2 border rounded-lg bg-muted/30 max-h-32 overflow-y-auto">
+                <div className="grid grid-cols-2 gap-2 p-3 border rounded-lg bg-card shadow-sm max-h-32 overflow-y-auto">
                   {availableOMs.map((om) => (
                     <div key={om} className="flex items-center space-x-2">
                       <Checkbox
@@ -2420,7 +2420,7 @@ const DashboardPracas = () => {
                     </Badge>
                   )}
                 </div>
-                <div className="grid grid-cols-4 gap-1 p-2 border rounded-lg bg-muted/30 max-h-48 overflow-y-auto">
+                <div className="grid grid-cols-4 gap-2 p-3 border rounded-lg bg-card shadow-sm max-h-48 overflow-y-auto">
                   {availableQuadros.map((quadro) => (
                     <div key={quadro} className="flex items-center space-x-2">
                       <Checkbox
@@ -2446,7 +2446,7 @@ const DashboardPracas = () => {
                     </Badge>
                   )}
                 </div>
-                <div className="grid grid-cols-3 gap-1 p-2 border rounded-lg bg-muted/30">
+                <div className="grid grid-cols-3 gap-2 p-3 border rounded-lg bg-card shadow-sm">
                   {availableGraduacoes.map((graduacao) => (
                     <div key={graduacao} className="flex items-center space-x-2">
                       <Checkbox
@@ -2472,7 +2472,7 @@ const DashboardPracas = () => {
                     </Badge>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-1 p-2 border rounded-lg bg-muted/30">
+                <div className="grid grid-cols-2 gap-2 p-3 border rounded-lg bg-card shadow-sm">
                   {OPCOES_FIXAS.map((opcao) => (
                     <div key={opcao} className="flex items-center space-x-2">
                       <Checkbox
