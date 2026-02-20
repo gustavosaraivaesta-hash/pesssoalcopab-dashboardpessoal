@@ -99,7 +99,7 @@ export default function Solicitacoes() {
   const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch personnel data from NEO
+  // Fetch personnel data from NEO (Praças + Oficiais)
   const fetchPersonnelData = async () => {
     setIsLoadingPersonnel(true);
     try {
@@ -109,44 +109,55 @@ export default function Solicitacoes() {
           new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms)),
         ]);
 
-      const { data, error } = await withTimeout(
-        supabase.functions.invoke("fetch-pracas-data", {
-          body: {},
-        }),
-        25000,
-      );
+      // Fetch both praças and oficiais in parallel
+      const [pracasResult, oficiaisResult] = await Promise.allSettled([
+        withTimeout(supabase.functions.invoke("fetch-pracas-data", { body: {} }), 25000),
+        withTimeout(supabase.functions.invoke("fetch-om-data", { body: {} }), 25000),
+      ]);
 
-      if (error) throw error;
+      const mapRecords = (records: any[], prefix: string): PersonnelRecord[] =>
+        records.map((item: any, index: number) => ({
+          id: item.id || `${prefix}-${index}`,
+          neo: item.neo || '',
+          tipoSetor: item.tipoSetor || '',
+          setor: item.setor || '',
+          cargo: item.cargo || '',
+          postoTmft: item.postoTmft || item.posto || '',
+          especialidadeTmft: item.quadroTmft || item.especialidadeTmft || item.especialidade || '',
+          opcaoTmft: item.opcaoTmft || item.opcao || '',
+          nome: item.nome || '',
+          postoEfe: item.postoEfe || '',
+          especialidadeEfe: item.especialidadeEfe || item.especialidade || '',
+          opcaoEfe: item.opcaoEfe || '',
+          om: item.om || '',
+          isVago: item.isVago || !item.ocupado || item.nome?.toUpperCase() === 'VAGO',
+          isExtraLotacao: item.isExtraLotacao || false,
+          quadroTmft: item.quadroTmft || item.quadro || '',
+          quadroEfe: item.quadroEfe || '',
+        }));
+
+      let allRecords: PersonnelRecord[] = [];
+
+      if (pracasResult.status === 'fulfilled' && !pracasResult.value.error) {
+        const pracasData = pracasResult.value.data?.data || pracasResult.value.data?.personnel || [];
+        allRecords = [...allRecords, ...mapRecords(pracasData, 'praca')];
+      } else {
+        console.error("Error fetching praças data:", pracasResult.status === 'rejected' ? pracasResult.reason : pracasResult.value.error);
+      }
+
+      if (oficiaisResult.status === 'fulfilled' && !oficiaisResult.value.error) {
+        const oficiaisData = oficiaisResult.value.data?.data || oficiaisResult.value.data?.personnel || [];
+        allRecords = [...allRecords, ...mapRecords(oficiaisData, 'oficial')];
+      } else {
+        console.error("Error fetching oficiais data:", oficiaisResult.status === 'rejected' ? oficiaisResult.reason : oficiaisResult.value.error);
+      }
+
+      if (allRecords.length === 0) {
+        toast.error("Erro ao carregar dados do efetivo");
+      }
       
-      // The edge function returns 'data' field with personnel records
-      const personnelRecords = data.data || data.personnel || [];
-      
-      console.log('Raw personnel data sample:', personnelRecords.slice(0, 2));
-      
-      // Map to PersonnelRecord format
-      const mappedRecords: PersonnelRecord[] = personnelRecords.map((item: any, index: number) => ({
-        id: item.id || `personnel-${index}`,
-        neo: item.neo || '',
-        tipoSetor: item.tipoSetor || '',
-        setor: item.setor || '',
-        cargo: item.cargo || '',
-        postoTmft: item.postoTmft || item.posto || '',
-        especialidadeTmft: item.quadroTmft || item.especialidadeTmft || item.especialidade || '',
-        opcaoTmft: item.opcaoTmft || item.opcao || '',
-        nome: item.nome || '',
-        postoEfe: item.postoEfe || '',
-        // BUGFIX: especialidadeEfe estava sendo preenchida com quadroEfe.
-        especialidadeEfe: item.especialidadeEfe || item.especialidade || '',
-        opcaoEfe: item.opcaoEfe || '',
-        om: item.om || '',
-        isVago: item.isVago || !item.ocupado || item.nome?.toUpperCase() === 'VAGO',
-        isExtraLotacao: item.isExtraLotacao || false,
-        quadroTmft: item.quadroTmft || item.quadro || '',
-        quadroEfe: item.quadroEfe || '',
-      }));
-      
-      setPersonnelData(mappedRecords);
-      console.log(`Loaded ${mappedRecords.length} personnel records for search`);
+      setPersonnelData(allRecords);
+      console.log(`Loaded ${allRecords.length} personnel records for search (praças + oficiais)`);
     } catch (error) {
       console.error("Error fetching personnel data:", error);
       toast.error("Erro ao carregar dados do efetivo");
