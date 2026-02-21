@@ -115,10 +115,25 @@ export default function Solicitacoes() {
         withTimeout(supabase.functions.invoke("fetch-om-data", { body: {} }), 25000),
       ]);
 
+      const extractNeoFromId = (item: any): string => {
+        // For oficiais, neo is stored as number (lossy). Extract from id which has format "OM-neoString"
+        if (item.neo && typeof item.neo === 'string' && item.neo.includes('.')) return item.neo;
+        if (item.id && typeof item.id === 'string' && item.id.includes('-')) {
+          const parts = item.id.split('-');
+          // Skip first part (OM name), rejoin rest (neo might not have dashes but handle EXTRA cases)
+          if (parts.length >= 2) {
+            const neoCandidate = parts.slice(1).join('-');
+            if (/^\d+(\.\d+)*$/.test(neoCandidate)) return neoCandidate;
+          }
+        }
+        // Fallback: convert number to string
+        return item.neo ? String(item.neo) : '';
+      };
+
       const mapRecords = (records: any[], prefix: string): PersonnelRecord[] =>
         records.map((item: any, index: number) => ({
           id: item.id || `${prefix}-${index}`,
-          neo: item.neo || '',
+          neo: extractNeoFromId(item),
           tipoSetor: item.tipoSetor || '',
           setor: item.setor || '',
           cargo: item.cargo || '',
