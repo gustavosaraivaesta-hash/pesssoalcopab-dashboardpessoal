@@ -297,11 +297,12 @@ serve(async (req) => {
         // Trigger Google Sheets sync for approved requests
         try {
           const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+          const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
           const syncResponse = await fetch(`${supabaseUrl}/functions/v1/sync-sheets`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': req.headers.get('Authorization') || ''
+              'Authorization': `Bearer ${serviceRoleKey}`
             },
             body: JSON.stringify({ action: 'sync', request_id: id })
           });

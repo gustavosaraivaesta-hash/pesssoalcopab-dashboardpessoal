@@ -512,12 +512,19 @@ serve(async (req) => {
   }
 
   try {
-    const auth = await authenticateUser(req);
-    if (!auth || !auth.isCopab) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Only COPAB can sync sheets' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // Allow service role key (internal calls) or COPAB users
+    const authHeader = req.headers.get('Authorization') || '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const isServiceRole = authHeader === `Bearer ${serviceRoleKey}`;
+    
+    if (!isServiceRole) {
+      const auth = await authenticateUser(req);
+      if (!auth || !auth.isCopab) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized - Only COPAB can sync sheets' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     const { action, request_id } = await req.json();
