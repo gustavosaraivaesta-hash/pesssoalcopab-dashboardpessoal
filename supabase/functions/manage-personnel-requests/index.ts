@@ -296,19 +296,15 @@ serve(async (req) => {
 
         // Trigger Google Sheets sync for approved requests
         try {
-          const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-          const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-          const syncResponse = await fetch(`${supabaseUrl}/functions/v1/sync-sheets`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${serviceRoleKey}`
-            },
-            body: JSON.stringify({ action: 'sync', request_id: id })
+          const { data: syncResult, error: syncInvokeError } = await adminClient.functions.invoke('sync-sheets', {
+            body: { action: 'sync', request_id: id },
           });
-          
-          const syncResult = await syncResponse.json();
-          console.log(`Sheet sync result for request ${id}:`, syncResult);
+
+          if (syncInvokeError) {
+            console.error(`Sheet sync invoke error for request ${id}:`, syncInvokeError);
+          } else {
+            console.log(`Sheet sync result for request ${id}:`, syncResult);
+          }
         } catch (syncError) {
           console.error('Sheet sync error:', syncError);
           // Don't fail the approval, just log the sync error
