@@ -194,6 +194,21 @@ function normalizeOm(v: unknown): string {
   return String(v ?? '').trim().toUpperCase();
 }
 
+function extractBearerToken(authHeader: string): string {
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  return match?.[1]?.trim() ?? '';
+}
+
+function isServiceRoleRequest(req: Request): boolean {
+  const serviceRoleKey = (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '').trim();
+  if (!serviceRoleKey) return false;
+
+  const authToken = extractBearerToken(req.headers.get('Authorization') ?? '');
+  const apiKey = String(req.headers.get('apikey') ?? '').trim();
+
+  return authToken === serviceRoleKey || apiKey === serviceRoleKey;
+}
+
 function pickRequestOm(request: any): string {
   const candidates = [
     request?.target_om,
@@ -405,51 +420,74 @@ async function syncToSheet(
         valuesToWrite = personnelToRowValues(personnelData, columnMapping);
       }
 
-      const payload = {
-        action,
-        spreadsheetId,
-        sheetName,
-        rowNumber,
-        values: action !== 'EXCLUSAO' ? valuesToWrite : null,
-        neo: personnelData.neo,
-      };
+      const sheetNameCandidates = Array.from(new Set([
+        String(sheetName ?? '').trim(),
+        String(om ?? '').trim(),
+        String(om ?? '').trim().toUpperCase(),
+      ].filter(Boolean)));
 
-      console.log('Enviando para Apps Script:', JSON.stringify(payload, null, 2));
+      let lastErrorMessage = 'Erro desconhecido';
 
-      const response = await fetch(appsScriptUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      for (const candidateSheetName of sheetNameCandidates) {
+        const payload = {
+          action,
+          spreadsheetId,
+          sheetName: candidateSheetName,
+          rowNumber,
+          values: action !== 'EXCLUSAO' ? valuesToWrite : null,
+          neo: personnelData.neo,
+        };
 
-      const contentType = response.headers.get('content-type') || '';
-      const bodyText = await response.text().catch(() => '');
+        console.log('Enviando para Apps Script:', JSON.stringify(payload, null, 2));
 
-      if (!response.ok) {
-        console.error('Erro Apps Script:', { status: response.status, contentType, bodyPreview: bodyText.slice(0, 300) });
-        if (looksLikeHtml(bodyText)) {
-          return {
-            success: false,
-            message: 'Falha ao chamar o Apps Script (URL incorreta ou não publicada). Atualize o GOOGLE_APPS_SCRIPT_URL.',
-          };
+        const response = await fetch(appsScriptUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const contentType = response.headers.get('content-type') || '';
+        const bodyText = await response.text().catch(() => '');
+
+        if (!response.ok) {
+          console.error('Erro Apps Script:', { status: response.status, contentType, bodyPreview: bodyText.slice(0, 300) });
+          if (looksLikeHtml(bodyText)) {
+            return {
+              success: false,
+              message: 'Falha ao chamar o Apps Script (URL incorreta ou não publicada). Atualize o GOOGLE_APPS_SCRIPT_URL.',
+            };
+          }
+          lastErrorMessage = `Erro ao atualizar planilha (Apps Script HTTP ${response.status}).`;
+          continue;
         }
-        return { success: false, message: `Erro ao atualizar planilha (Apps Script HTTP ${response.status}).` };
+
+        let result: any = null;
+        try {
+          result = JSON.parse(bodyText);
+        } catch (_e) {
+          console.error('Resposta Apps Script não-JSON:', { contentType, bodyPreview: bodyText.slice(0, 300) });
+          return { success: false, message: 'Apps Script respondeu em formato inesperado.' };
+        }
+
+        console.log('Resultado Apps Script:', result);
+
+        if (result.success) {
+          return { success: true, message: `Planilha ${candidateSheetName} (${tipo}) atualizada com sucesso - ${action}` };
+        }
+
+        const resultMessage = String(result.message || 'Erro desconhecido');
+        lastErrorMessage = resultMessage;
+
+        const abaNaoEncontrada = /aba\s+.*nao\s+encontrada|aba\s+.*não\s+encontrada/i.test(resultMessage);
+        if (abaNaoEncontrada) {
+          console.warn(`Aba '${candidateSheetName}' não encontrada, tentando próximo nome...`);
+          continue;
+        }
+
+        return { success: false, message: resultMessage };
       }
 
-      let result: any = null;
-      try { result = JSON.parse(bodyText); }
-      catch (_e) {
-        console.error('Resposta Apps Script não-JSON:', { contentType, bodyPreview: bodyText.slice(0, 300) });
-        return { success: false, message: 'Apps Script respondeu em formato inesperado.' };
-      }
-
-      console.log('Resultado Apps Script:', result);
-
-      if (result.success) {
-        return { success: true, message: `Planilha ${sheetName} (${tipo}) atualizada com sucesso - ${action}` };
-      } else {
-        return { success: false, message: result.message || 'Erro desconhecido' };
-      }
+      return { success: false, message: lastErrorMessage };
     } catch (error) {
       console.error('Erro ao sincronizar:', error);
       return { success: false, message: `Erro de sincronização: ${error}` };
@@ -513,10 +551,8 @@ serve(async (req) => {
 
   try {
     // Allow service role key (internal calls) or COPAB users
-    const authHeader = req.headers.get('Authorization') || '';
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-    const isServiceRole = authHeader === `Bearer ${serviceRoleKey}`;
-    
+    const isServiceRole = isServiceRoleRequest(req);
+
     if (!isServiceRole) {
       const auth = await authenticateUser(req);
       if (!auth || !auth.isCopab) {
