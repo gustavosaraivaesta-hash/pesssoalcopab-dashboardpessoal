@@ -29,6 +29,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { isForaDaNeo } from "@/lib/utils";
+import { detectGender } from "@/lib/genderDetection";
 import {
   BarChart,
   Bar,
@@ -185,6 +186,7 @@ const DashboardOM = () => {
   const [selectedCorpos, setSelectedCorpos] = useState<string[]>([]);
   const [isUsingCache, setIsUsingCache] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedSexo, setSelectedSexo] = useState<string[]>([]);
 
   const [efetivoSubFilter, setEfetivoSubFilter] = useState<"all" | "na_neo" | "fora_neo">("all");
 
@@ -358,6 +360,10 @@ const DashboardOM = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const toggleSexo = (sexo: string) => {
+    setSelectedSexo((prev) => (prev.includes(sexo) ? prev.filter((s) => s !== sexo) : [...prev, sexo]));
+  };
+
   // Base filtered data for metrics calculation (independent of card clicks)
   // Para TMFT: usa postoTmft, quadroTmft, corpoTmft
   const baseFilteredData = useMemo(() => {
@@ -386,6 +392,15 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedCorpos.includes(item.corpoTmft));
     }
 
+    // Apply gender filter
+    if (selectedSexo.length > 0) {
+      filtered = filtered.filter((item) => {
+        const gender = detectGender(item.nome);
+        if (gender === null) return true; // Keep VAGO entries
+        return selectedSexo.includes(gender);
+      });
+    }
+
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -408,7 +423,7 @@ const DashboardOM = () => {
     }
 
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedCorpos, searchQuery]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedCorpos, searchQuery, selectedSexo]);
 
   // Filtered data for display (applies status filter and extra lotação for drill-down)
   const filteredData = useMemo(() => {
@@ -464,6 +479,7 @@ const DashboardOM = () => {
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
     setSelectedCorpos([]);
+    setSelectedSexo([]);
     setSearchQuery("");
     setEfetivoSubFilter("all");
   };
@@ -2877,6 +2893,32 @@ const DashboardOM = () => {
                       />
                       <label htmlFor={`opcao-${opcao}`} className="text-xs cursor-pointer">
                         {opcao}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sexo Filter */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Sexo</h4>
+                  {selectedSexo.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {selectedSexo.length}
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-1 p-2 border rounded-lg bg-muted/30">
+                  {[{ value: 'M', label: 'Masculino' }, { value: 'F', label: 'Feminino' }].map(({ value, label }) => (
+                    <div key={value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`sexo-${value}`}
+                        checked={selectedSexo.includes(value)}
+                        onCheckedChange={() => toggleSexo(value)}
+                      />
+                      <label htmlFor={`sexo-${value}`} className="text-xs cursor-pointer">
+                        {label}
                       </label>
                     </div>
                   ))}
