@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { isForaDaNeo, expandSpecialtyEquivalents } from "@/lib/utils";
+import { detectGender } from "@/lib/genderDetection";
 import {
   BarChart,
   Bar,
@@ -174,6 +175,7 @@ const DashboardPracas = () => {
   const [selectedPostos, setSelectedPostos] = useState<string[]>([]);
   const [isUsingCache, setIsUsingCache] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedSexo, setSelectedSexo] = useState<string[]>([]);
   const [showNeoComparison, setShowNeoComparison] = useState(false);
   const [neoComparisonFilter, setNeoComparisonFilter] = useState<"all" | "fora" | "na">("all");
   const [showNeoPersonnel, setShowNeoPersonnel] = useState<"fora" | "na" | null>(null);
@@ -388,12 +390,25 @@ const DashboardPracas = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Base filtered data: only common filters (OM + search)
+  const toggleSexo = (sexo: string) => {
+    setSelectedSexo((prev) => (prev.includes(sexo) ? prev.filter((s) => s !== sexo) : [...prev, sexo]));
+  };
+
+  // Base filtered data: only common filters (OM + search + sexo)
   const baseFilteredData = useMemo(() => {
     let filtered = personnelData;
 
     if (selectedOMs.length > 0) {
       filtered = filtered.filter((item) => selectedOMs.includes(item.om));
+    }
+
+    // Apply gender filter
+    if (selectedSexo.length > 0) {
+      filtered = filtered.filter((item) => {
+        const gender = detectGender(item.nome);
+        if (gender === null) return true; // Keep VAGO entries
+        return selectedSexo.includes(gender);
+      });
     }
 
     // Apply search filter
@@ -412,7 +427,7 @@ const DashboardPracas = () => {
     }
 
     return filtered;
-  }, [personnelData, selectedOMs, searchQuery]);
+  }, [personnelData, selectedOMs, searchQuery, selectedSexo]);
 
   // Independent filter matching functions
   const hasSpecificFilters = selectedQuadros.length > 0 || selectedGraduacoes.length > 0 || selectedOpcoes.length > 0;
@@ -486,6 +501,7 @@ const DashboardPracas = () => {
 
     setSelectedOpcoes([]);
     setSelectedGraduacoes([]);
+    setSelectedSexo([]);
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
     setSearchQuery("");
@@ -2383,7 +2399,7 @@ const DashboardPracas = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr_1fr] gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr_1fr_auto] gap-6">
               {/* OM Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -2459,8 +2475,34 @@ const DashboardPracas = () => {
                       </label>
                     </div>
                   ))}
+              </div>
+
+              {/* Sexo Filter */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Sexo</h4>
+                  {selectedSexo.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {selectedSexo.length}
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 gap-2 p-3 border rounded-lg bg-card shadow-sm">
+                  {[{ value: 'M', label: 'Masculino' }, { value: 'F', label: 'Feminino' }].map(({ value, label }) => (
+                    <div key={value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`sexo-${value}`}
+                        checked={selectedSexo.includes(value)}
+                        onCheckedChange={() => toggleSexo(value)}
+                      />
+                      <label htmlFor={`sexo-${value}`} className="text-xs cursor-pointer">
+                        {label}
+                      </label>
+                    </div>
+                  ))}
                 </div>
               </div>
+            </div>
 
               {/* Opção Filter */}
               <div className="space-y-2">
