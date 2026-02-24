@@ -25,6 +25,7 @@ import {
   WifiOff,
   ArrowLeft,
   Search,
+  X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -3134,6 +3135,39 @@ const DashboardOM = () => {
               </Card>
             )}
           </div>
+        )}
+
+        {/* Lista de militares NA NEO ou FORA DA NEO */}
+        {efetivoSubFilter !== "all" && filteredData.length > 0 && (
+          <Card className={`border ${efetivoSubFilter === "na_neo" ? "border-emerald-300 bg-gradient-to-br from-emerald-50/50 to-background" : "border-orange-300 bg-gradient-to-br from-orange-50/50 to-background"}`}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className={`flex items-center gap-2 ${efetivoSubFilter === "na_neo" ? "text-emerald-700" : "text-orange-700"}`}>
+                  {efetivoSubFilter === "na_neo" ? <UserCheck className="h-5 w-5" /> : <UserX className="h-5 w-5" />}
+                  Militares {efetivoSubFilter === "na_neo" ? "NA NEO" : "FORA DA NEO"}
+                  <Badge variant="outline" className="ml-2">
+                    {filteredData.length} {filteredData.length === 1 ? "militar" : "militares"}
+                  </Badge>
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => { setEfetivoSubFilter("all"); setStatusFilter("all"); }}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {filteredData.map((item, index) => (
+                  <OfficerCard
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    keyPrefix={`neo-${efetivoSubFilter}`}
+                    variant={efetivoSubFilter === "na_neo" ? "blue" : "orange"}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Vagos por OM */}
