@@ -631,9 +631,9 @@ const Index = () => {
   }, [filters.categoria, filters.om, filters.pessoal, filters.especialidade, rawPersonnel]);
 
   const metrics = useMemo(() => {
-    const totalTMFT = filteredData.reduce((sum, item) => sum + item.tmft, 0);
-    const totalEXI = filteredData.reduce((sum, item) => sum + item.exi, 0);
-    const totalDIF = filteredData.reduce((sum, item) => sum + item.dif, 0);
+    const totalTMFT = filteredData.length;
+    const totalEXI = filteredData.filter((item) => item.exi > 0).length;
+    const totalDIF = totalEXI - totalTMFT;
     // Porcentagem de ocupação (EXI/TMFT)
     const occupancyPercent = totalTMFT > 0 ? ((totalEXI / totalTMFT) * 100).toFixed(1) : "0.0";
 
