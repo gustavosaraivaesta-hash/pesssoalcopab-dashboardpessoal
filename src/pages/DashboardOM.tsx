@@ -414,31 +414,7 @@ const DashboardOM = () => {
     return filtered;
   }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedCorpos, searchQuery]);
 
-  // Filtered data for display (applies status filter and extra lotação for drill-down)
-  const filteredData = useMemo(() => {
-    let filtered = baseFilteredData;
-
-    // Apply status filter from card click
-    if (statusFilter === "ocupados") {
-      filtered = filtered.filter((item) => item.ocupado);
-
-      // Apply efetivo sub-filter using the same isForaDaNeo logic as neoMetrics
-      if (efetivoSubFilter === "na_neo") {
-        filtered = filtered.filter((item) => !isForaDaNeo(item.quadroTmft || "", item.quadroEfe || ""));
-      } else if (efetivoSubFilter === "fora_neo") {
-        filtered = filtered.filter((item) => isForaDaNeo(item.quadroTmft || "", item.quadroEfe || ""));
-      }
-    } else if (statusFilter === "vagos") {
-      filtered = filtered.filter((item) => !item.ocupado);
-    }
-
-    // Apply EXTRA LOTAÇÃO filter
-    if (showOnlyExtraLotacao) {
-      filtered = filtered.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO");
-    }
-
-    return filtered;
-  }, [baseFilteredData, statusFilter, showOnlyExtraLotacao, efetivoSubFilter]);
+  
 
   const toggleOM = (om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
@@ -617,6 +593,29 @@ const DashboardOM = () => {
       return baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
     }
   }, [baseFilteredData, personnelData, selectedCorpos, selectedQuadros, selectedPostoFilter, selectedOMs, selectedOpcoes, searchQuery]);
+
+  // Filtered data for display (applies status filter and extra lotação for drill-down)
+  const filteredData = useMemo(() => {
+    // When showing EFETIVO (ocupados), use efetivoPopulation which filters by EFE fields
+    if (statusFilter === "ocupados") {
+      let filtered = [...efetivoPopulation];
+      if (efetivoSubFilter === "na_neo") {
+        filtered = filtered.filter((item) => !isForaDaNeo(item.quadroTmft || "", item.quadroEfe || ""));
+      } else if (efetivoSubFilter === "fora_neo") {
+        filtered = filtered.filter((item) => isForaDaNeo(item.quadroTmft || "", item.quadroEfe || ""));
+      }
+      return filtered;
+    }
+
+    let filtered = baseFilteredData;
+    if (statusFilter === "vagos") {
+      filtered = filtered.filter((item) => !item.ocupado);
+    }
+    if (showOnlyExtraLotacao) {
+      filtered = filtered.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO");
+    }
+    return filtered;
+  }, [baseFilteredData, efetivoPopulation, statusFilter, showOnlyExtraLotacao, efetivoSubFilter]);
 
   // Calculate NA NEO and FORA DA NEO metrics using the same population as EFETIVO
   const neoMetrics = useMemo(() => {
