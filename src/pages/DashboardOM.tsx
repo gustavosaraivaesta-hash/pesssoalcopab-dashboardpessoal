@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Table as UITable, TableBody as UITableBody, TableCell as UITableCell, TableHead as UITableHead, TableHeader as UITableHeader, TableRow as UITableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   Download,
@@ -3155,17 +3157,48 @@ const DashboardOM = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {filteredData.map((item, index) => (
-                  <OfficerCard
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    keyPrefix={`neo-${efetivoSubFilter}`}
-                    variant={efetivoSubFilter === "na_neo" ? "blue" : "orange"}
-                  />
-                ))}
-              </div>
+              <ScrollArea className="h-[420px] rounded-md border">
+                <UITable>
+                  <UITableHeader>
+                    <UITableRow>
+                      <UITableHead>Nº</UITableHead>
+                      <UITableHead>NEO</UITableHead>
+                      <UITableHead>SETOR</UITableHead>
+                      <UITableHead>CARGO</UITableHead>
+                      <UITableHead>POSTO TMFT</UITableHead>
+                      <UITableHead>QUADRO TMFT</UITableHead>
+                      <UITableHead>CORPO TMFT</UITableHead>
+                      <UITableHead>NOME</UITableHead>
+                      <UITableHead>POSTO EFE</UITableHead>
+                      <UITableHead>QUADRO EFE</UITableHead>
+                      <UITableHead>CORPO EFE</UITableHead>
+                      <UITableHead>STATUS</UITableHead>
+                    </UITableRow>
+                  </UITableHeader>
+                  <UITableBody>
+                    {filteredData.map((item, index) => (
+                      <UITableRow key={item.id}>
+                        <UITableCell>{index + 1}</UITableCell>
+                        <UITableCell>{item.neo || "-"}</UITableCell>
+                        <UITableCell>{item.setor || "-"}</UITableCell>
+                        <UITableCell>{item.cargo || "-"}</UITableCell>
+                        <UITableCell>{item.postoTmft || "-"}</UITableCell>
+                        <UITableCell>{item.quadroTmft || "-"}</UITableCell>
+                        <UITableCell>{item.corpoTmft || "-"}</UITableCell>
+                        <UITableCell className="font-medium">{item.nome || "-"}</UITableCell>
+                        <UITableCell>{item.postoEfe || "-"}</UITableCell>
+                        <UITableCell>{item.quadroEfe || "-"}</UITableCell>
+                        <UITableCell>{item.corpoEfe || "-"}</UITableCell>
+                        <UITableCell>
+                          <Badge variant={efetivoSubFilter === "na_neo" ? "default" : "outline"} className={efetivoSubFilter === "na_neo" ? "bg-emerald-600" : "bg-orange-100 text-orange-700 border-orange-300"}>
+                            {efetivoSubFilter === "na_neo" ? "NA NEO" : "FORA DA NEO"}
+                          </Badge>
+                        </UITableCell>
+                      </UITableRow>
+                    ))}
+                  </UITableBody>
+                </UITable>
+              </ScrollArea>
             </CardContent>
           </Card>
         )}
