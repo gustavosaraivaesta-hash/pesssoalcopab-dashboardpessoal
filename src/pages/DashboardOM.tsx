@@ -1637,8 +1637,12 @@ const DashboardOM = () => {
               // Verifica se é ocupado (tem nome válido)
               const isOcupado = nome && nome !== "-" && nomeStr !== "" && nomeStr !== "VAGO" && nomeStr !== "VAZIO";
 
-              // Destaque AZUL CLARO para EFETIVO EXTRA (militar do corpo filtrado em posição de outro corpo)
-              if (statusStr === "EFETIVO") {
+              // Destaque AZUL CLARO para EFETIVO EXTRA (militar em posição de outro quadro ou corpo)
+              const isEfetivoExtra = isOcupado && statusStr === "EFETIVO" && (
+                (quadroTmftStr && quadroEfeStr && quadroTmftStr !== "-" && quadroEfeStr !== "-" && quadroTmftStr !== quadroEfeStr) ||
+                (corpoTmftStr && corpoEfeStr && corpoTmftStr !== "-" && corpoEfeStr !== "-" && corpoTmftStr !== corpoEfeStr)
+              );
+              if (isEfetivoExtra) {
                 data.cell.styles.fillColor = [219, 234, 254]; // blue-100
                 data.cell.styles.textColor = [30, 64, 175]; // blue-800
                 usedHighlights.add("EFETIVO_EXTRA");
