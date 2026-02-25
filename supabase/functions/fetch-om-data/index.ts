@@ -157,6 +157,9 @@ function getAllowedOMsForRole(role: string): string[] | 'all' {
   // CSUPAB sees specific OMs under its command
   if (role === 'CSUPAB') return [...CSUPAB_ALLOWED_OMS];
   
+  // DEPFMRJ também vê CDU-BAMRJ e CDU-1DN
+  if (role === 'DEPFMRJ') return ['DEPFMRJ', 'CDU-BAMRJ', 'CDU-1DN'];
+  
   // Individual OMs only see their own data
   return [role];
 }
