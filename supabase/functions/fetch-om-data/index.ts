@@ -147,7 +147,7 @@ const SHEET_CONFIGS = [
 ];
 
 // OMs allowed for CSUPAB role
-const CSUPAB_ALLOWED_OMS = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
+const CSUPAB_ALLOWED_OMS = new Set(['CSUPAB', 'DEPCMRJ', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ', 'CDU-BAMRJ', 'CDU-1DN']);
 
 // Get allowed OMs based on user role
 function getAllowedOMsForRole(role: string): string[] | 'all' {
