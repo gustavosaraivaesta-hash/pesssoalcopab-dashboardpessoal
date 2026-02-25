@@ -79,7 +79,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
       {/* Top badges row - TMFT data */}
       <div className="flex items-center gap-1.5 mb-2 flex-wrap">
         {item.neo && String(item.neo).trim() !== '' && String(item.neo) !== '0' && (
-          <Badge variant="outline" className={`${getNeoVariantColor()} text-xs font-semibold`}>
+          <Badge variant="outline" className="bg-white border-gray-300 text-gray-700 text-xs font-semibold">
             NEO {item.neo}
           </Badge>
         )}
@@ -94,7 +94,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
           </Badge>
         )}
         {item.opcaoTmft && (
-          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs font-medium">
+          <Badge variant="outline" className="bg-white border-gray-300 text-gray-700 text-xs font-medium">
             {item.opcaoTmft}
           </Badge>
         )}
