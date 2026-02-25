@@ -39,7 +39,7 @@ async function authenticateRequest(req: Request): Promise<{ userId: string; role
 }
 
 // OMs allowed for CSUPAB role (sem DEPCMRJ)
-const CSUPAB_ALLOWED_OMS = new Set(['CSUPAB', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
+const CSUPAB_ALLOWED_OMS = new Set(['CSUPAB', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ', 'CDU-BAMRJ', 'CDU-1DN']);
 
 // Get allowed OMs based on user role
 function getAllowedOMsForRole(role: string): string[] | 'all' {

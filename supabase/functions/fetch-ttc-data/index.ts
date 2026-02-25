@@ -162,7 +162,7 @@ serve(async (req) => {
     }
 
     // OMs allowed for CSUPAB role (sem DEPCMRJ)
-    const csupabAllowedOMs = new Set(['CSUPAB', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ']);
+    const csupabAllowedOMs = new Set(['CSUPAB', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ', 'DEPSMRJ', 'CDU-BAMRJ', 'CDU-1DN']);
     
     // Get allowed OMs based on user role
     function getAllowedOMsForRole(role: string): string[] | 'all' {

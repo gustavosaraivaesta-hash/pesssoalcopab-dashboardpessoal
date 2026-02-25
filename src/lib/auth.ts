@@ -22,7 +22,7 @@ export const ALL_OMS = [
 ];
 
 // CSUPAB has access to specific OMs under its command (sem DEPCMRJ)
-const CSUPAB_OMS = ["CSUPAB", "DEPFMRJ", "DEPMSMRJ", "DEPSIMRJ", "DEPSMRJ"];
+const CSUPAB_OMS = ["CSUPAB", "DEPFMRJ", "DEPMSMRJ", "DEPSIMRJ", "DEPSMRJ", "CDU-BAMRJ", "CDU-1DN"];
 
 export const USER_ACCESS_CONFIG: Record<string, UserAccess> = {
   // COPAB sees everything
