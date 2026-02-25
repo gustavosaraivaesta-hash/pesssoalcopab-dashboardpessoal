@@ -1228,7 +1228,7 @@ const DashboardOM = () => {
         const allLegendItems = [
           { key: "VAGA", color: [254, 202, 202] as [number, number, number], textColor: [127, 29, 29] as [number, number, number], label: "VAGA - Cargo sem ocupante" },
           { key: "FORA_NEO", color: [255, 237, 213] as [number, number, number], textColor: [194, 65, 12] as [number, number, number], label: "FORA DA NEO - Especialidade divergente do cargo" },
-          { key: "EFETIVO_EXTRA", color: [219, 234, 254] as [number, number, number], textColor: [30, 64, 175] as [number, number, number], label: "EFETIVO EXTRA - Militar do filtro em posição de outra especialidade" },
+          { key: "EFETIVO_EXTRA", color: [219, 234, 254] as [number, number, number], textColor: [30, 64, 175] as [number, number, number], label: "EFETIVO EXTRA - Militar em posição de outro quadro ou corpo" },
           { key: "EXTRA_LOTACAO", color: [254, 240, 138] as [number, number, number], textColor: [113, 63, 18] as [number, number, number], label: "EXTRA LOTAÇÃO - Militar além do efetivo previsto" },
         ];
         const filtered = allLegendItems.filter(item => highlights.has(item.key));
