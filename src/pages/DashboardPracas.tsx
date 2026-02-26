@@ -219,11 +219,13 @@ const DashboardPracas = () => {
       const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
       const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
       // Extrair especialidades TMFT diretamente dos dados em cache
+      const DISPLAY_MAP: Record<string, string> = { AD: "ADM", QI: "QUI" };
       const quadrosFromData = [
         ...new Set(
           data
             .map((item: any) => item.quadroTmft)
-            .filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"),
+            .filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2")
+            .map((q: string) => DISPLAY_MAP[q] || q),
         ),
       ];
 
@@ -345,11 +347,13 @@ const DashboardPracas = () => {
 
         setAvailableOMs(getAvailableOMsForUser(oms as string[]));
         // Extrair especialidades TMFT diretamente dos dados atuais da planilha
+        const DISPLAY_MAP: Record<string, string> = { AD: "ADM", QI: "QUI" };
         const quadrosFromData = [
           ...new Set(
             data
               .map((item: any) => item.quadroTmft)
-              .filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2"),
+              .filter((q: string) => q && q.trim() !== "" && q !== "-" && q !== "RM2" && q !== "RM-2")
+              .map((q: string) => DISPLAY_MAP[q] || q),
           ),
         ];
         setAvailableQuadros(quadrosFromData as string[]);
