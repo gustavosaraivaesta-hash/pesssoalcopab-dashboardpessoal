@@ -53,7 +53,7 @@ export const ExtraLotacaoTable = ({ rows }: ExtraLotacaoTableProps) => {
                   <TableCell>{r.posto || "-"}</TableCell>
                   <TableCell>{r.quadro || "-"}</TableCell>
                   <TableCell>{r.opcao || "-"}</TableCell>
-                  <TableCell>{r.cargo || "-"}</TableCell>
+                  <TableCell>{r.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : (r.cargo || "-")}</TableCell>
                   <TableCell>{r.nome || "-"}</TableCell>
                   <TableCell className="text-right">
                     <Badge variant={r.ocupado ? "default" : "outline"}>{r.ocupado ? "OCUPADO" : "VAGO"}</Badge>
