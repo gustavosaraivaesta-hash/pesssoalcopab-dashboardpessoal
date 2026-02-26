@@ -1569,7 +1569,7 @@ const DashboardOM = () => {
             (index + 1).toString(),
             item.neo.toString(),
             item.setor,
-            item.cargo,
+            item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo,
             item.postoTmft,
             item.quadroTmft,
             item.corpoTmft || "-",
@@ -2211,7 +2211,7 @@ const DashboardOM = () => {
               children: [
                 createCell(item.neo.toString(), false, bgColor, textColor),
                 createCell(item.setor || "-", false, bgColor, textColor),
-                createCell(item.cargo || "-", false, bgColor, textColor),
+                createCell(item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.cargo || "-"), false, bgColor, textColor),
                 createCell(item.postoTmft || "-", false, bgColor, textColor),
                 createCell(item.quadroTmft || "-", false, bgColor, textColor),
                 createCell(item.corpoTmft || "-", false, bgColor, textColor),
@@ -2555,7 +2555,7 @@ const DashboardOM = () => {
           item.neo,
           item.tipoSetor,
           item.setor,
-          item.cargo,
+          item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo,
           item.postoTmft,
           item.corpoTmft,
           item.quadroTmft,
@@ -3185,7 +3185,7 @@ const DashboardOM = () => {
                         <UITableCell>{index + 1}</UITableCell>
                         <UITableCell>{item.neo || "-"}</UITableCell>
                         <UITableCell>{item.setor || "-"}</UITableCell>
-                        <UITableCell>{item.cargo || "-"}</UITableCell>
+                        <UITableCell>{(item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo) || "-"}</UITableCell>
                         <UITableCell>{item.postoTmft || "-"}</UITableCell>
                         <UITableCell>{item.quadroTmft || "-"}</UITableCell>
                         <UITableCell>{item.corpoTmft || "-"}</UITableCell>
@@ -3288,7 +3288,7 @@ const DashboardOM = () => {
                         {item.om}
                       </Badge>
                     </div>
-                    <p className="font-medium text-sm text-foreground">{item.cargo}</p>
+                    <p className="font-medium text-sm text-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
                     <p className="text-xs text-muted-foreground">{item.setor}</p>
                     <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
                       <span>Quadro: {item.quadroTmft || "-"}</span>
@@ -3560,7 +3560,7 @@ const DashboardOM = () => {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                          <p className="text-sm text-muted-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-amber-600">Destino: {item.destino || "-"}</span>
                             <span className="text-muted-foreground">{item.mesAno || "-"}</span>
@@ -3592,7 +3592,7 @@ const DashboardOM = () => {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                          <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                          <p className="text-sm text-muted-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-green-600">Destino: {item.destino || "-"}</span>
                             <span className="text-muted-foreground">{item.mesAno || "-"}</span>
@@ -3624,7 +3624,7 @@ const DashboardOM = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
-                            <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                            <p className="text-sm text-muted-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
                             <div className="flex items-center gap-4 mt-2 text-sm">
                               <span className="text-purple-600">
                                 Época Prevista: {item.epocaPrevista || "Não informado"}

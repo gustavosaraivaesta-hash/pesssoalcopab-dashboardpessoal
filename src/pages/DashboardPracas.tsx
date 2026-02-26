@@ -1316,7 +1316,7 @@ const DashboardPracas = () => {
             (index + 1).toString(),
             item.neo.toString(),
             item.setor,
-            item.cargo,
+            item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo,
             item.postoTmft,
             item.quadroTmft,
             item.nome || "-",

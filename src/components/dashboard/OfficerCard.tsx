@@ -114,7 +114,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
       </p>
 
       {/* Cargo */}
-      <p className="text-xs text-muted-foreground uppercase">{item.cargo}</p>
+      <p className="text-xs text-muted-foreground uppercase">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
 
       {/* Setor */}
       <p className="text-xs text-muted-foreground">{item.setor}</p>

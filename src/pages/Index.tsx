@@ -612,7 +612,8 @@ const Index = () => {
         const posto = String(p.postoEfe || p.postoTmft || "").trim();
         const quadro = String(p.quadroEfe || p.quadroTmft || p.especialidadeEfe || p.especialidadeTmft || "").trim();
         const opcao = String(p.opcaoEfe || p.opcaoTmft || "").trim();
-        const cargo = String(p.cargo || "").trim();
+        const cargoRaw = String(p.cargo || "").trim();
+        const cargo = cargoRaw.toUpperCase() === "EXTRA LOTAÇÃO" ? "SEM NEO" : cargoRaw;
         const nome = String(p.nome || "").trim();
         const ocupado = normalizeOcupado(p);
 

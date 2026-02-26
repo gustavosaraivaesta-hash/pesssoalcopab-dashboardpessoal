@@ -344,7 +344,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             neo: '0',
             tipoSetor: 'EXTRA LOTAÇÃO',
             setor: 'EXTRA LOTAÇÃO',
-            cargo: 'EXTRA LOTAÇÃO',
+            cargo: 'SEM NEO',
             postoTmft: '',
             especialidadeTmft: '',
             opcaoTmft: '',
