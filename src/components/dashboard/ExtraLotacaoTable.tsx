@@ -26,7 +26,7 @@ export const ExtraLotacaoTable = ({ rows }: ExtraLotacaoTableProps) => {
     <Card className="shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-3">
-          <span>Extra Lotação</span>
+          <span>Sem NEO</span>
           <Badge variant="secondary">{rows.length}</Badge>
         </CardTitle>
       </CardHeader>

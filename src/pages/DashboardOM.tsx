@@ -1134,7 +1134,7 @@ const DashboardOM = () => {
         if (rows.length > 1) {
           autoTable(pdf, {
             startY: y,
-            head: [hasExtraLotacao ? ["OM", "TMFT", "EFETIVO", "VAGOS", "EXT LOT", "AT. TOTAL"] : ["OM", "TMFT", "EFETIVO", "VAGOS", "AT. TOTAL"]],
+            head: [hasExtraLotacao ? ["OM", "TMFT", "EFETIVO", "VAGOS", "SEM NEO", "AT. TOTAL"] : ["OM", "TMFT", "EFETIVO", "VAGOS", "AT. TOTAL"]],
             body: rows,
             theme: "grid",
             styles: { fontSize: 9, cellPadding: 3, halign: "center" },
@@ -1186,7 +1186,7 @@ const DashboardOM = () => {
         pdf.text(filtTitleLabel, rx + halfW / 2, y, { align: "center" });
         y += 4;
 
-        const cols = ["TMFT", "EFE", "VAGOS", "EXT LOT", "AT. TOTAL"];
+        const cols = ["TMFT", "EFE", "VAGOS", "SEM NEO", "AT. TOTAL"];
         const sepIdx = cols.length;
 
         autoTable(pdf, {
@@ -1229,7 +1229,7 @@ const DashboardOM = () => {
           { key: "VAGA", color: [254, 202, 202] as [number, number, number], textColor: [127, 29, 29] as [number, number, number], label: "VAGA - Cargo sem ocupante" },
           { key: "FORA_NEO", color: [255, 237, 213] as [number, number, number], textColor: [194, 65, 12] as [number, number, number], label: "FORA DA NEO - Especialidade divergente do cargo" },
           { key: "EFETIVO_EXTRA", color: [219, 234, 254] as [number, number, number], textColor: [30, 64, 175] as [number, number, number], label: "EFETIVO EXTRA - Militar em posição de outro quadro ou corpo" },
-          { key: "EXTRA_LOTACAO", color: [254, 240, 138] as [number, number, number], textColor: [113, 63, 18] as [number, number, number], label: "EXTRA LOTAÇÃO - Militar além do efetivo previsto" },
+          { key: "EXTRA_LOTACAO", color: [254, 240, 138] as [number, number, number], textColor: [113, 63, 18] as [number, number, number], label: "SEM NEO - Militar além do efetivo previsto" },
         ];
         const filtered = allLegendItems.filter(item => highlights.has(item.key));
         pdf.setFont("helvetica", "normal");
@@ -1278,8 +1278,8 @@ const DashboardOM = () => {
         yPosition += 6;
 
         // Dynamic columns based on extra lotação
-        const geralCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "EXT LOT", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS", "AT. TOTAL"];
-        const filtCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "EXT LOT", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS", "AT. TOTAL"];
+        const geralCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "SEM NEO", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS", "AT. TOTAL"];
+        const filtCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "SEM NEO", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS", "AT. TOTAL"];
         const colsPerSide = geralCols.length;
         const sepIdx = colsPerSide; // separator column index
 
@@ -1402,7 +1402,7 @@ const DashboardOM = () => {
 
         autoTable(pdf, {
           startY: yPosition,
-          head: [["OM", "TMFT IM", "EFE IM", "FALTAS IM", "ATEND. IM", "EXT LOT IM", "AT. TOTAL IM"]],
+          head: [["OM", "TMFT IM", "EFE IM", "FALTAS IM", "ATEND. IM", "SEM NEO IM", "AT. TOTAL IM"]],
           body: imResumoRows,
           theme: "grid",
           styles: { fontSize: 9, cellPadding: 3, halign: "center" },
@@ -1480,7 +1480,7 @@ const DashboardOM = () => {
           yPosition += 4;
           autoTable(pdf, {
             startY: yPosition,
-            head: [["TMFT", "EFE", "VAGOS", "EXT LOT", "AT. TOTAL"]],
+            head: [["TMFT", "EFE", "VAGOS", "SEM NEO", "AT. TOTAL"]],
             body: [[omGeralTmft.toString(), omGeralEfetivo.toString(), omVagos.toString(), omGeralExtra.toString(), `${atTotal.toFixed(1)}%`]],
             theme: "grid",
             styles: { fontSize: 8, cellPadding: 2, halign: "center" },
@@ -3014,7 +3014,7 @@ const DashboardOM = () => {
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">EXTRA LOTAÇÃO</p>
+                  <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">SEM NEO</p>
                   <p className="text-4xl font-bold text-orange-900 dark:text-orange-100">{metrics.totalExtraLotacao}</p>
                   <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Militares sem NEO</p>
                 </div>

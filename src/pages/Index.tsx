@@ -984,7 +984,7 @@ const Index = () => {
                   : "destructive"
             }
           />
-          <MetricsCard title="Extra Lotação" value={extraLotacaoTotal} icon={Users} variant="warning" />
+          <MetricsCard title="Sem NEO" value={extraLotacaoTotal} icon={Users} variant="warning" />
         </div>
 
         {/* Card de Solicitações Pendentes - Apenas para COpAb */}

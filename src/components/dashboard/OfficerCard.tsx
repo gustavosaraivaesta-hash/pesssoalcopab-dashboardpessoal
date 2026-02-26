@@ -102,7 +102,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
           {item.om}
         </Badge>
         {item.tipoSetor === "EXTRA LOTAÇÃO" && (
-          <Badge className="bg-orange-500 text-white text-xs">EXTRA</Badge>
+          <Badge className="bg-orange-500 text-white text-xs">SEM NEO</Badge>
         )}
       </div>
 
