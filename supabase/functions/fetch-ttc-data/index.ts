@@ -267,6 +267,63 @@ serve(async (req) => {
         const termino = String(cells[11]?.f || cells[11]?.v || '').trim();
         const qtdRenovacoes = Number(cells[12]?.v || 0);
         
+        // Read 5 contracts from columns 13-37
+        // Each contract: INICIAL(col), FINAL(col+1), ANOS(col+2), MESES(col+3), DIAS(col+4)
+        let totalAnosServidos = 0;
+        let totalMesesServidos = 0;
+        let totalDiasServidos = 0;
+        
+        for (let c = 0; c < 5; c++) {
+          const baseCol = 13 + (c * 5);
+          const anos = Number(cells[baseCol + 2]?.v || 0);
+          const meses = Number(cells[baseCol + 3]?.v || 0);
+          const dias = Number(cells[baseCol + 4]?.v || 0);
+          
+          // Only count if there's actual time (skip empty/invalid contracts)
+          if (anos > 0 || meses > 0 || dias > 0) {
+            totalAnosServidos += anos;
+            totalMesesServidos += meses;
+            totalDiasServidos += dias;
+          }
+        }
+        
+        // Normalize: carry over days > 30 to months, months > 12 to years
+        totalMesesServidos += Math.floor(totalDiasServidos / 30);
+        totalDiasServidos = totalDiasServidos % 30;
+        totalAnosServidos += Math.floor(totalMesesServidos / 12);
+        totalMesesServidos = totalMesesServidos % 12;
+        
+        // Calculate time remaining to 10 years
+        let faltanteAnos = 10 - totalAnosServidos;
+        let faltanteMeses = 0 - totalMesesServidos;
+        let faltanteDias = 0 - totalDiasServidos;
+        
+        // Normalize negative values
+        if (faltanteDias < 0) {
+          faltanteMeses -= 1;
+          faltanteDias += 30;
+        }
+        if (faltanteMeses < 0) {
+          faltanteAnos -= 1;
+          faltanteMeses += 12;
+        }
+        
+        const excedeu10Anos = faltanteAnos < 0;
+        
+        // Format strings
+        const formatTempo = (a: number, m: number, d: number) => {
+          const partes = [];
+          if (a > 0) partes.push(`${a}a`);
+          if (m > 0) partes.push(`${m}m`);
+          if (d > 0 || partes.length === 0) partes.push(`${d}d`);
+          return partes.join(' ');
+        };
+        
+        const tempoServido = formatTempo(totalAnosServidos, totalMesesServidos, totalDiasServidos);
+        const tempoFaltante = excedeu10Anos 
+          ? `Excedido ${formatTempo(Math.abs(faltanteAnos), Math.abs(faltanteMeses), Math.abs(faltanteDias))}`
+          : formatTempo(faltanteAnos, faltanteMeses, faltanteDias);
+        
         // Skip header rows (column titles)
         const isHeaderRow = 
           graduacao.toUpperCase() === 'VAGAS' || 
@@ -299,9 +356,6 @@ serve(async (req) => {
         let tipo = getTipoPessoal(graduacao, neo, espQuadro);
         if (tipo === 'INDEFINIDO' && currentSection) {
           tipo = currentSection;
-          console.log(`${sheet.om} row ${i + 1}: Using section ${currentSection} for empty/unknown graduação "${graduacao}" (NEO: ${neo})`);
-        } else if (tipo !== 'INDEFINIDO' && graduacao === '') {
-          console.log(`${sheet.om} row ${i + 1}: Inferred tipo ${tipo} from NEO "${neo}"`);
         }
         
         transformedData.push({
@@ -322,6 +376,9 @@ serve(async (req) => {
           ocupado: !isVaga,
           om: omFromCell || sheet.om,
           tipo: tipo,
+          tempoServido: isVaga ? '-' : tempoServido,
+          tempoFaltante: isVaga ? '-' : tempoFaltante,
+          excedeu10Anos: excedeu10Anos,
         });
       }
     }

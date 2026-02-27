@@ -94,68 +94,18 @@ const parseDataFlexivel = (dataStr: string): Date | null => {
   return null;
 };
 
-// Calculate total TTC time served and time remaining to 10 years
-const calcularTempoTTC = (periodoInicioStr: string, qtdRenovacoes: number): { servido: string; faltante: string; statusFaltante: 'normal' | 'warning' | 'danger' | 'exceeded' } => {
-  if (!periodoInicioStr) return { servido: "-", faltante: "-", statusFaltante: 'normal' };
-  
-  const inicioAtual = parseDataFlexivel(periodoInicioStr);
-  if (!inicioAtual) return { servido: "-", faltante: "-", statusFaltante: 'normal' };
-  
-  // Estimate first contract start: each prior contract ≈ 2 years
-  const primeiroInicio = new Date(inicioAtual);
-  primeiroInicio.setFullYear(primeiroInicio.getFullYear() - (qtdRenovacoes * 2));
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  // Total time served from first contract to today
-  const anosServidos = differenceInYears(today, primeiroInicio);
-  const afterYears = addYears(primeiroInicio, anosServidos);
-  const mesesServidos = differenceInMonths(today, afterYears);
-  const afterMonths = addMonths(afterYears, mesesServidos);
-  const diasServidos = differenceInDays(today, afterMonths);
-  
-  const partesServido = [];
-  if (anosServidos > 0) partesServido.push(`${anosServidos}a`);
-  if (mesesServidos > 0) partesServido.push(`${mesesServidos}m`);
-  if (diasServidos > 0 || partesServido.length === 0) partesServido.push(`${diasServidos}d`);
-  
-  // Calculate remaining to 10 years
-  const limite10Anos = addYears(primeiroInicio, 10);
-  let statusFaltante: 'normal' | 'warning' | 'danger' | 'exceeded' = 'normal';
-  let faltanteTexto = "";
-  
-  if (isBefore(limite10Anos, today) || limite10Anos.getTime() === today.getTime()) {
-    // Already exceeded 10 years
-    const mesesExcedidos = differenceInMonths(today, limite10Anos);
-    const aExc = Math.floor(mesesExcedidos / 12);
-    const mExc = mesesExcedidos % 12;
-    const afterMExc = addMonths(limite10Anos, mesesExcedidos);
-    const dExc = differenceInDays(today, afterMExc);
-    const p = [];
-    if (aExc > 0) p.push(`${aExc}a`);
-    if (mExc > 0) p.push(`${mExc}m`);
-    if (dExc > 0 || p.length === 0) p.push(`${dExc}d`);
-    faltanteTexto = `Excedido ${p.join(' ')}`;
-    statusFaltante = 'exceeded';
-  } else {
-    const anosFalt = differenceInYears(limite10Anos, today);
-    const afterYF = addYears(today, anosFalt);
-    const mesesFalt = differenceInMonths(limite10Anos, afterYF);
-    const afterMF = addMonths(afterYF, mesesFalt);
-    const diasFalt = differenceInDays(limite10Anos, afterMF);
-    const p = [];
-    if (anosFalt > 0) p.push(`${anosFalt}a`);
-    if (mesesFalt > 0) p.push(`${mesesFalt}m`);
-    if (diasFalt > 0 || p.length === 0) p.push(`${diasFalt}d`);
-    faltanteTexto = p.join(' ');
-    
-    const totalMesesFalt = anosFalt * 12 + mesesFalt;
-    if (totalMesesFalt < 6) statusFaltante = 'danger';
-    else if (totalMesesFalt < 24) statusFaltante = 'warning';
-  }
-  
-  return { servido: partesServido.join(' '), faltante: faltanteTexto, statusFaltante };
+// Get status for tempoFaltante badge styling based on data from API
+const getTempoFaltanteStatus = (tempoFaltante: string | undefined, excedeu: boolean | undefined): 'normal' | 'warning' | 'danger' | 'exceeded' => {
+  if (!tempoFaltante || tempoFaltante === '-') return 'normal';
+  if (excedeu) return 'exceeded';
+  const anosMatch = tempoFaltante.match(/(\d+)a/);
+  const mesesMatch = tempoFaltante.match(/(\d+)m/);
+  const anos = anosMatch ? parseInt(anosMatch[1]) : 0;
+  const meses = mesesMatch ? parseInt(mesesMatch[1]) : 0;
+  const totalMeses = anos * 12 + meses;
+  if (totalMeses < 6) return 'danger';
+  if (totalMeses < 24) return 'warning';
+  return 'normal';
 };
 
 // Calculate remaining time until termino date
@@ -372,21 +322,18 @@ const DashboardTTC = () => {
       currentY += 8;
       
       // Table data for this OM
-      const tableData = omData.map(item => {
-        const ttc = calcularTempoTTC(item.periodoInicio, item.qtdRenovacoes);
-        return [
-          item.graduacao,
-          item.nomeCompleto || "VAGO",
-          item.espQuadro,
-          item.area,
-          item.tarefaDesignada,
-          item.qtdRenovacoes.toString(),
-          calcularTempoRestante(item.termino).texto,
-          item.isVaga ? "-" : ttc.servido,
-          item.isVaga ? "-" : ttc.faltante,
-          item.isVaga ? "VAGO" : "CONTRATADO"
-        ];
-      });
+      const tableData = omData.map(item => [
+        item.graduacao,
+        item.nomeCompleto || "VAGO",
+        item.espQuadro,
+        item.area,
+        item.tarefaDesignada,
+        item.qtdRenovacoes.toString(),
+        calcularTempoRestante(item.termino).texto,
+        item.isVaga ? "-" : (item.tempoServido || "-"),
+        item.isVaga ? "-" : (item.tempoFaltante || "-"),
+        item.isVaga ? "VAGO" : "CONTRATADO"
+      ]);
       
       // Track which rows are "VAGO" for styling
       const vagaRowIndexes = omData.map((item, index) => item.isVaga ? index : -1).filter(i => i !== -1);
@@ -1060,20 +1007,19 @@ const DashboardTTC = () => {
                           })()}
                         </TableCell>
                         <TableCell className="text-sm">
-                          {!row.isVaga && (() => {
-                            const { servido } = calcularTempoTTC(row.periodoInicio, row.qtdRenovacoes);
-                            return <Badge variant="secondary">{servido}</Badge>;
-                          })()}
+                          {!row.isVaga && row.tempoServido && row.tempoServido !== '-' && (
+                            <Badge variant="secondary">{row.tempoServido}</Badge>
+                          )}
                         </TableCell>
                         <TableCell className="text-sm">
-                          {!row.isVaga && (() => {
-                            const { faltante, statusFaltante } = calcularTempoTTC(row.periodoInicio, row.qtdRenovacoes);
+                          {!row.isVaga && row.tempoFaltante && row.tempoFaltante !== '-' && (() => {
+                            const status = getTempoFaltanteStatus(row.tempoFaltante, row.excedeu10Anos);
                             return (
                               <Badge 
-                                variant={statusFaltante === 'exceeded' ? 'destructive' : statusFaltante === 'danger' ? 'destructive' : statusFaltante === 'warning' ? 'default' : 'secondary'}
-                                className={statusFaltante === 'warning' ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}
+                                variant={status === 'exceeded' ? 'destructive' : status === 'danger' ? 'destructive' : status === 'warning' ? 'default' : 'secondary'}
+                                className={status === 'warning' ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}
                               >
-                                {faltante}
+                                {row.tempoFaltante}
                               </Badge>
                             );
                           })()}
