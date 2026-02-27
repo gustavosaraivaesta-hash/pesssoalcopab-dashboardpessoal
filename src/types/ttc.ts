@@ -15,6 +15,9 @@ export interface TTCData {
   isVaga: boolean;
   ocupado: boolean;
   om: string;
+  tempoServido?: string;
+  tempoFaltante?: string;
+  excedeu10Anos?: boolean;
 }
 
 export interface TTCSummary {
