@@ -324,17 +324,25 @@ serve(async (req) => {
           ? `Excedido ${formatTempo(Math.abs(faltanteAnos), Math.abs(faltanteMeses), Math.abs(faltanteDias))}`
           : formatTempo(faltanteAnos, faltanteMeses, faltanteDias);
         
-        // Skip header rows (column titles)
+        // Skip header rows (column titles) - including contract headers
+        const allCellText = Array.from({ length: Math.min(cells.length, 38) }, (_, ci) => String(cells[ci]?.v || '')).join(' ').toUpperCase();
         const isHeaderRow = 
           graduacao.toUpperCase() === 'VAGAS' || 
           graduacao.toUpperCase() === 'CONTRATADOS' ||
           graduacao.toUpperCase() === 'GRADUAÇÃO' ||
           graduacao.toUpperCase().includes('GRADUAÇÃO') ||
           graduacao.toUpperCase().includes('POSTO') ||
+          cell0.includes('POSTO') ||
           espQuadro.toUpperCase().includes('ESP/QUADRO') ||
           espQuadro.toUpperCase().includes('CORPO') ||
+          espQuadro.toUpperCase() === 'NIP' ||
           nomeCompleto.toUpperCase().includes('NOME COMPLETO') ||
-          nomeCompleto.toUpperCase().includes('DATA NASC');
+          nomeCompleto.toUpperCase() === 'NOME' ||
+          nomeCompleto.toUpperCase().includes('DATA NASC') ||
+          allCellText.includes('CONTRATO') ||
+          allCellText.includes('TEMPO NO PERÍODO') ||
+          allCellText.includes('N@NDOPHD') ||
+          (graduacao.toUpperCase().includes('CORPO') && espQuadro.toUpperCase().includes('ESP'));
         
         if (isHeaderRow) {
           continue;
