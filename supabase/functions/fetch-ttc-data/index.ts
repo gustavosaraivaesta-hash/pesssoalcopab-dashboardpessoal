@@ -267,6 +267,11 @@ serve(async (req) => {
         const termino = String(cells[11]?.f || cells[11]?.v || '').trim();
         const qtdRenovacoes = Number(cells[12]?.v || 0);
         
+        // Debug: log all rows for first sheet
+        if (sheet.om === 'COPAB') {
+          console.log(`COPAB row ${i}: num="${numero}" grad="${graduacao}" esp="${espQuadro}" nome="${nomeCompleto}" tarefa="${tarefaDesignada}" cols=${cells.length}`);
+        }
+        
         // Read 5 contracts from columns 13-37
         // Each contract: INICIAL(col), FINAL(col+1), ANOS(col+2), MESES(col+3), DIAS(col+4)
         let totalAnosServidos = 0;
@@ -324,32 +329,19 @@ serve(async (req) => {
           ? `Excedido ${formatTempo(Math.abs(faltanteAnos), Math.abs(faltanteMeses), Math.abs(faltanteDias))}`
           : formatTempo(faltanteAnos, faltanteMeses, faltanteDias);
         
-        // Skip header rows (column titles) - including contract headers
-        const allCellText = Array.from({ length: Math.min(cells.length, 38) }, (_, ci) => String(cells[ci]?.v || '')).join(' ').toUpperCase();
-        const isHeaderRow = 
-          graduacao.toUpperCase() === 'VAGAS' || 
-          graduacao.toUpperCase() === 'CONTRATADOS' ||
-          graduacao.toUpperCase() === 'GRADUAÇÃO' ||
-          graduacao.toUpperCase().includes('GRADUAÇÃO') ||
-          graduacao.toUpperCase().includes('POSTO') ||
-          cell0.includes('POSTO') ||
-          espQuadro.toUpperCase().includes('ESP/QUADRO') ||
-          espQuadro.toUpperCase().includes('CORPO') ||
-          espQuadro.toUpperCase() === 'NIP' ||
-          nomeCompleto.toUpperCase().includes('NOME COMPLETO') ||
-          nomeCompleto.toUpperCase() === 'NOME' ||
-          nomeCompleto.toUpperCase().includes('DATA NASC') ||
-          allCellText.includes('CONTRATO') ||
-          allCellText.includes('TEMPO NO PERÍODO') ||
-          allCellText.includes('N@NDOPHD') ||
-          (graduacao.toUpperCase().includes('CORPO') && espQuadro.toUpperCase().includes('ESP'));
+        // Skip rows that don't have a valid sequential number in column 0
+        // Real data rows always have a numeric value (1, 2, 3...) in the first column
+        const numeroVal = Number(numero);
+        const hasValidNumero = numero !== '' && !isNaN(numeroVal) && numeroVal > 0;
         
-        if (isHeaderRow) {
+        if (!hasValidNumero) {
+          // This is a header row, section separator, or empty row - skip it
+          console.log(`${sheet.om}: Skipping non-data row ${i + 1}: col0="${cell0}", col1="${cell1}", col2="${cell2}", col3="${cell3}"`);
           continue;
         }
         
-        // Skip completely empty rows
-        if (!numero && !graduacao && !nomeCompleto && !tarefaDesignada) {
+        // Skip completely empty rows (shouldn't reach here due to numero check, but just in case)
+        if (!graduacao && !nomeCompleto && !tarefaDesignada) {
           continue;
         }
         
