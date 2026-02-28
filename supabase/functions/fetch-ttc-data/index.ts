@@ -222,162 +222,209 @@ serve(async (req) => {
       // Track current section (OFICIAL or PRAÇA) based on section headers
       let currentSection: 'OFICIAL' | 'PRAÇA' | null = null;
       
+      // Two-pass approach:
+      // Pass 1: Collect main data rows (have valid numero) and contract rows (name + dates)
+      const personnelRows: any[] = [];
+      const contractRows: Map<string, { iniciais: string[], finais: string[] }> = new Map();
+      let inContractSection = false;
+      
       for (let i = 0; i < rows.length; i++) {
         const cells = rows[i].c || [];
         
-        // Get all cell values to check for section headers
         const cell0 = String(cells[0]?.v || '').trim().toUpperCase();
         const cell1 = String(cells[1]?.v || '').trim().toUpperCase();
         const cell2 = String(cells[2]?.v || '').trim().toUpperCase();
         const cell3 = String(cells[3]?.v || '').trim().toUpperCase();
-        
-        // Check if this row is a section header (OFICIAL or PRAÇA)
         const rowText = `${cell0} ${cell1} ${cell2} ${cell3}`;
         
-        // Detect OFICIAL section header
+        // Detect OFICIAL/PRAÇA section headers
         if (cell0 === 'OFICIAL' || cell1 === 'OFICIAL' || 
             (rowText.includes('OFICIAL') && !rowText.includes('SUBOFICIAL') && 
              (rowText.includes('POSTO') || rowText.includes('CORPO') || rowText.includes('QUADRO')))) {
           currentSection = 'OFICIAL';
-          console.log(`${sheet.om}: Detected OFICIAL section at row ${i + 1}`);
+          inContractSection = false;
           continue;
         }
         
-        // Detect PRAÇA section header
         if (cell0 === 'PRAÇA' || cell1 === 'PRAÇA' || cell0 === 'PRACA' || cell1 === 'PRACA' ||
             (rowText.includes('PRAÇA') || rowText.includes('PRACA')) && 
              (rowText.includes('GRADUAÇÃO') || rowText.includes('GRADUACAO') || 
               rowText.includes('ESP') || rowText.includes('QUADRO'))) {
           currentSection = 'PRAÇA';
-          console.log(`${sheet.om}: Detected PRAÇA section at row ${i + 1}`);
+          inContractSection = false;
+          continue;
+        }
+        
+        // Detect contract section header (row with "1º CONTRATO")
+        const allCellText = Array.from({ length: Math.min(cells.length, 20) }, (_, ci) => String(cells[ci]?.v || '')).join(' ').toUpperCase();
+        if (allCellText.includes('CONTRATO') && !allCellText.match(/^\d+$/)) {
+          inContractSection = true;
+          continue;
+        }
+        
+        // Detect INICIAL/FINAL sub-header
+        if (cell2 === 'INICIAL' || cell3 === 'FINAL' || 
+            (allCellText.includes('INICIAL') && allCellText.includes('FINAL'))) {
+          inContractSection = true;
           continue;
         }
         
         const numero = cells[0]?.v ?? '';
-        const graduacao = String(cells[1]?.v || '').trim();
-        const espQuadro = String(cells[2]?.v || '').trim();
-        const nomeCompleto = String(cells[3]?.v || '').trim();
-        const idade = String(cells[4]?.f || cells[4]?.v || '').trim();
-        const omFromCell = String(cells[5]?.v || '').trim();
-        const area = String(cells[6]?.v || '').trim();
-        const neo = String(cells[7]?.v || '').trim();
-        const tarefaDesignada = String(cells[8]?.v || '').trim();
-        const portariaAtual = String(cells[9]?.v || '').trim();
-        const periodoInicio = String(cells[10]?.f || cells[10]?.v || '').trim();
-        const termino = String(cells[11]?.f || cells[11]?.v || '').trim();
-        const qtdRenovacoes = Number(cells[12]?.v || 0);
-        
-        // Debug: log all rows for first sheet
-        if (sheet.om === 'COPAB') {
-          console.log(`COPAB row ${i}: num="${numero}" grad="${graduacao}" esp="${espQuadro}" nome="${nomeCompleto}" tarefa="${tarefaDesignada}" cols=${cells.length}`);
-        }
-        
-        // Read 5 contracts from columns 13-37
-        // Each contract: INICIAL(col), FINAL(col+1), ANOS(col+2), MESES(col+3), DIAS(col+4)
-        let totalAnosServidos = 0;
-        let totalMesesServidos = 0;
-        let totalDiasServidos = 0;
-        
-        for (let c = 0; c < 5; c++) {
-          const baseCol = 13 + (c * 5);
-          const anos = Number(cells[baseCol + 2]?.v || 0);
-          const meses = Number(cells[baseCol + 3]?.v || 0);
-          const dias = Number(cells[baseCol + 4]?.v || 0);
-          
-          // Only count if there's actual time (skip empty/invalid contracts)
-          if (anos > 0 || meses > 0 || dias > 0) {
-            totalAnosServidos += anos;
-            totalMesesServidos += meses;
-            totalDiasServidos += dias;
-          }
-        }
-        
-        // Normalize: carry over days > 30 to months, months > 12 to years
-        totalMesesServidos += Math.floor(totalDiasServidos / 30);
-        totalDiasServidos = totalDiasServidos % 30;
-        totalAnosServidos += Math.floor(totalMesesServidos / 12);
-        totalMesesServidos = totalMesesServidos % 12;
-        
-        // Calculate time remaining to 10 years
-        let faltanteAnos = 10 - totalAnosServidos;
-        let faltanteMeses = 0 - totalMesesServidos;
-        let faltanteDias = 0 - totalDiasServidos;
-        
-        // Normalize negative values
-        if (faltanteDias < 0) {
-          faltanteMeses -= 1;
-          faltanteDias += 30;
-        }
-        if (faltanteMeses < 0) {
-          faltanteAnos -= 1;
-          faltanteMeses += 12;
-        }
-        
-        const excedeu10Anos = faltanteAnos < 0;
-        
-        // Format strings
-        const formatTempo = (a: number, m: number, d: number) => {
-          const partes = [];
-          if (a > 0) partes.push(`${a}a`);
-          if (m > 0) partes.push(`${m}m`);
-          if (d > 0 || partes.length === 0) partes.push(`${d}d`);
-          return partes.join(' ');
-        };
-        
-        const tempoServido = formatTempo(totalAnosServidos, totalMesesServidos, totalDiasServidos);
-        const tempoFaltante = excedeu10Anos 
-          ? `Excedido ${formatTempo(Math.abs(faltanteAnos), Math.abs(faltanteMeses), Math.abs(faltanteDias))}`
-          : formatTempo(faltanteAnos, faltanteMeses, faltanteDias);
-        
-        // Skip rows that don't have a valid sequential number in column 0
-        // Real data rows always have a numeric value (1, 2, 3...) in the first column
         const numeroVal = Number(numero);
         const hasValidNumero = numero !== '' && !isNaN(numeroVal) && numeroVal > 0;
         
-        if (!hasValidNumero) {
-          // This is a header row, section separator, or empty row - skip it
-          console.log(`${sheet.om}: Skipping non-data row ${i + 1}: col0="${cell0}", col1="${cell1}", col2="${cell2}", col3="${cell3}"`);
-          continue;
+        if (hasValidNumero && !inContractSection) {
+          // This is a main data row
+          const graduacao = String(cells[1]?.v || '').trim();
+          const espQuadro = String(cells[2]?.v || '').trim();
+          const nomeCompleto = String(cells[3]?.v || '').trim();
+          const idade = String(cells[4]?.f || cells[4]?.v || '').trim();
+          const omFromCell = String(cells[5]?.v || '').trim();
+          const area = String(cells[6]?.v || '').trim();
+          const neo = String(cells[7]?.v || '').trim();
+          const tarefaDesignada = String(cells[8]?.v || '').trim();
+          const portariaAtual = String(cells[9]?.v || '').trim();
+          const periodoInicio = String(cells[10]?.f || cells[10]?.v || '').trim();
+          const termino = String(cells[11]?.f || cells[11]?.v || '').trim();
+          const qtdRenovacoes = Number(cells[12]?.v || 0);
+          
+          const isVaga = !nomeCompleto || 
+            nomeCompleto.toUpperCase() === 'VAGO' || 
+            nomeCompleto.toUpperCase() === 'VAZIA' || 
+            nomeCompleto.toUpperCase() === 'VAZIO' ||
+            nomeCompleto.toUpperCase() === 'VAGA' ||
+            nomeCompleto.toUpperCase().includes('VAGA ABERTA');
+          
+          let tipo = getTipoPessoal(graduacao, neo, espQuadro);
+          if (tipo === 'INDEFINIDO' && currentSection) {
+            tipo = currentSection;
+          }
+          
+          personnelRows.push({
+            cells, i, graduacao, espQuadro, nomeCompleto, idade, omFromCell,
+            area, neo, tarefaDesignada, portariaAtual, periodoInicio, termino,
+            qtdRenovacoes, isVaga, tipo, numero, sheet
+          });
+        } else if (inContractSection && !hasValidNumero) {
+          // This is a contract data row: col1=name, col2-col11=dates (5 contracts × INICIAL+FINAL)
+          const nome = String(cells[1]?.v || '').trim().toUpperCase();
+          if (!nome) continue;
+          
+          const iniciais: string[] = [];
+          const finais: string[] = [];
+          
+          for (let c = 0; c < 5; c++) {
+            const inicialCol = 2 + (c * 2);
+            const finalCol = 3 + (c * 2);
+            const inicial = String(cells[inicialCol]?.f || cells[inicialCol]?.v || '').trim();
+            const final_ = String(cells[finalCol]?.f || cells[finalCol]?.v || '').trim();
+            iniciais.push(inicial);
+            finais.push(final_);
+          }
+          
+          contractRows.set(nome, { iniciais, finais });
+          console.log(`${sheet.om}: Contract row for "${nome}": ${iniciais.length} periods`);
         }
-        
-        // Skip completely empty rows (shouldn't reach here due to numero check, but just in case)
-        if (!graduacao && !nomeCompleto && !tarefaDesignada) {
-          continue;
+      }
+      
+      // Helper: parse date string (d/m/yyyy or dd/mm/yyyy)
+      function parseDate(dateStr: string): Date | null {
+        if (!dateStr) return null;
+        // Try d/m/yyyy format
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const year = parseInt(parts[2], 10);
+          if (year > 2005 && !isNaN(day) && !isNaN(month) && !isNaN(year)) {
+            return new Date(year, month, day);
+          }
         }
+        return null;
+      }
+      
+      // Helper: calculate difference in days between two dates
+      function diffDays(start: Date, end: Date): number {
+        return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      }
+      
+      // Format tempo
+      const formatTempo = (a: number, m: number, d: number) => {
+        const partes: string[] = [];
+        if (a > 0) partes.push(`${a}a`);
+        if (m > 0) partes.push(`${m}m`);
+        if (d > 0 || partes.length === 0) partes.push(`${d}d`);
+        return partes.join(' ');
+      };
+      
+      // Pass 2: Match contracts to personnel and build final data
+      for (const p of personnelRows) {
+        let tempoServido = '-';
+        let tempoFaltante = '-';
+        let excedeu10Anos = false;
         
-        const isVaga = !nomeCompleto || 
-          nomeCompleto.toUpperCase() === 'VAGO' || 
-          nomeCompleto.toUpperCase() === 'VAZIA' || 
-          nomeCompleto.toUpperCase() === 'VAZIO' ||
-          nomeCompleto.toUpperCase() === 'VAGA' ||
-          nomeCompleto.toUpperCase().includes('VAGA ABERTA');
-        
-        // Determine tipo: first try graduação + NEO, then fallback to current section
-        let tipo = getTipoPessoal(graduacao, neo, espQuadro);
-        if (tipo === 'INDEFINIDO' && currentSection) {
-          tipo = currentSection;
+        if (!p.isVaga) {
+          const nameKey = p.nomeCompleto.toUpperCase();
+          const contract = contractRows.get(nameKey);
+          
+          if (contract) {
+            let totalDias = 0;
+            
+            for (let c = 0; c < 5; c++) {
+              const inicio = parseDate(contract.iniciais[c]);
+              const fim = parseDate(contract.finais[c]);
+              
+              if (inicio && fim && fim > inicio) {
+                totalDias += diffDays(inicio, fim);
+              }
+            }
+            
+            // Convert total days to years, months, days
+            const anos = Math.floor(totalDias / 365);
+            const remainDays1 = totalDias % 365;
+            const meses = Math.floor(remainDays1 / 30);
+            const dias = remainDays1 % 30;
+            
+            tempoServido = formatTempo(anos, meses, dias);
+            
+            // Calculate time remaining to 10 years (3650 days)
+            const faltanteTotalDias = 3650 - totalDias;
+            excedeu10Anos = faltanteTotalDias < 0;
+            
+            const absFaltante = Math.abs(faltanteTotalDias);
+            const fAnos = Math.floor(absFaltante / 365);
+            const fRemain = absFaltante % 365;
+            const fMeses = Math.floor(fRemain / 30);
+            const fDias = fRemain % 30;
+            
+            tempoFaltante = excedeu10Anos 
+              ? `Excedido ${formatTempo(fAnos, fMeses, fDias)}`
+              : formatTempo(fAnos, fMeses, fDias);
+            
+            console.log(`${p.sheet.om}: ${p.nomeCompleto} -> ${totalDias} dias servidos, tempo=${tempoServido}, faltante=${tempoFaltante}`);
+          }
         }
         
         transformedData.push({
-          id: `TTC-${omFromCell || sheet.om}-${i + 1}`,
-          numero: numero,
-          graduacao: graduacao,
-          espQuadro: espQuadro,
-          nomeCompleto: isVaga ? 'VAGA ABERTA' : nomeCompleto,
-          idade: idade,
-          area: area,
-          neo: neo,
-          tarefaDesignada: tarefaDesignada,
-          periodoInicio: periodoInicio,
-          termino: termino,
-          qtdRenovacoes: qtdRenovacoes,
-          portariaAtual: portariaAtual,
-          isVaga: isVaga,
-          ocupado: !isVaga,
-          om: omFromCell || sheet.om,
-          tipo: tipo,
-          tempoServido: isVaga ? '-' : tempoServido,
-          tempoFaltante: isVaga ? '-' : tempoFaltante,
+          id: `TTC-${p.omFromCell || p.sheet.om}-${p.i + 1}`,
+          numero: p.numero,
+          graduacao: p.graduacao,
+          espQuadro: p.espQuadro,
+          nomeCompleto: p.isVaga ? 'VAGA ABERTA' : p.nomeCompleto,
+          idade: p.idade,
+          area: p.area,
+          neo: p.neo,
+          tarefaDesignada: p.tarefaDesignada,
+          periodoInicio: p.periodoInicio,
+          termino: p.termino,
+          qtdRenovacoes: p.qtdRenovacoes,
+          portariaAtual: p.portariaAtual,
+          isVaga: p.isVaga,
+          ocupado: !p.isVaga,
+          om: p.omFromCell || p.sheet.om,
+          tipo: p.tipo,
+          tempoServido: tempoServido,
+          tempoFaltante: tempoFaltante,
           excedeu10Anos: excedeu10Anos,
         });
       }
