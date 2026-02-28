@@ -255,25 +255,32 @@ serve(async (req) => {
           continue;
         }
         
-        // Detect contract section header (row with "1º CONTRATO")
-        const allCellText = Array.from({ length: Math.min(cells.length, 20) }, (_, ci) => String(cells[ci]?.v || '')).join(' ').toUpperCase();
-        if (allCellText.includes('CONTRATO') && !allCellText.match(/^\d+$/)) {
-          inContractSection = true;
-          continue;
-        }
-        
-        // Detect INICIAL/FINAL sub-header
-        if (cell2 === 'INICIAL' || cell3 === 'FINAL' || 
-            (allCellText.includes('INICIAL') && allCellText.includes('FINAL'))) {
-          inContractSection = true;
-          continue;
-        }
-        
         const numero = cells[0]?.v ?? '';
         const numeroVal = Number(numero);
         const hasValidNumero = numero !== '' && !isNaN(numeroVal) && numeroVal > 0;
         
-        if (hasValidNumero && !inContractSection) {
+        // Detect contract section header: must NOT have a valid numero and must contain "1º CONTRATO" or similar pattern
+        if (!hasValidNumero) {
+          const allCellText = Array.from({ length: Math.min(cells.length, 20) }, (_, ci) => String(cells[ci]?.v || '')).join(' ').toUpperCase();
+          
+          // Contract section header (e.g. "1º CONTRATO", "2º CONTRATO")
+          if (/\d[ºª°]\s*CONTRATO/.test(allCellText)) {
+            inContractSection = true;
+            console.log(`${sheet.om}: Entering contract section at row ${i + 1}`);
+            continue;
+          }
+          
+          // INICIAL/FINAL sub-header row
+          if ((cell2 === 'INICIAL' || cell3 === 'FINAL') || 
+              (allCellText.includes('INICIAL') && allCellText.includes('FINAL') && !allCellText.match(/\d{2}\/\d{2}\/\d{4}/))) {
+            inContractSection = true;
+            continue;
+          }
+        }
+        
+        // If we find a valid numbered row, we're back in personnel section
+        if (hasValidNumero) {
+          inContractSection = false;
           // This is a main data row
           const graduacao = String(cells[1]?.v || '').trim();
           const espQuadro = String(cells[2]?.v || '').trim();
@@ -283,7 +290,7 @@ serve(async (req) => {
           const area = String(cells[6]?.v || '').trim();
           const neo = String(cells[7]?.v || '').trim();
           const tarefaDesignada = String(cells[8]?.v || '').trim();
-          const portariaAtual = String(cells[9]?.v || '').trim();
+          const portariaAtual = String(cells[9]?.f || cells[9]?.v || '').trim();
           const periodoInicio = String(cells[10]?.f || cells[10]?.v || '').trim();
           const termino = String(cells[11]?.f || cells[11]?.v || '').trim();
           const qtdRenovacoes = Number(cells[12]?.v || 0);
