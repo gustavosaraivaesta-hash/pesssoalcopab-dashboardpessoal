@@ -290,6 +290,15 @@ serve(async (req) => {
           const area = String(cells[6]?.v || '').trim();
           const neo = String(cells[7]?.v || '').trim();
           const tarefaDesignada = String(cells[8]?.v || '').trim();
+          
+          // Debug: log cells 8-13 for first 3 rows to find portaria column
+          if (personnelRows.length < 3) {
+            console.log(`${sheet.om}: Row ${numero} cell mapping:`);
+            for (let ci = 8; ci <= 14; ci++) {
+              console.log(`  col[${ci}]: v="${cells[ci]?.v}", f="${cells[ci]?.f}"`);
+            }
+          }
+          
           const portariaAtual = String(cells[9]?.f || cells[9]?.v || '').trim();
           const periodoInicio = String(cells[10]?.f || cells[10]?.v || '').trim();
           const termino = String(cells[11]?.f || cells[11]?.v || '').trim();
