@@ -291,11 +291,12 @@ serve(async (req) => {
           const neo = String(cells[7]?.v || '').trim();
           const tarefaDesignada = String(cells[8]?.v || '').trim();
           
-          // Debug: log cells 8-13 for first 3 rows to find portaria column
-          if (personnelRows.length < 3) {
-            console.log(`${sheet.om}: Row ${numero} cell mapping:`);
-            for (let ci = 8; ci <= 14; ci++) {
-              console.log(`  col[${ci}]: v="${cells[ci]?.v}", f="${cells[ci]?.f}"`);
+          // Debug: dump ALL cells for first row of COPAB only
+          if (sheet.om === 'COPAB' && personnelRows.length === 0) {
+            console.log(`COPAB FULL ROW DUMP for row ${numero} (${nomeCompleto}), total cells: ${cells.length}`);
+            for (let ci = 0; ci < Math.min(cells.length, 25); ci++) {
+              const cellVal = cells[ci];
+              console.log(`  col[${ci}]: ${cellVal === null ? 'NULL' : `v="${cellVal?.v}", f="${cellVal?.f}"`}`);
             }
           }
           
