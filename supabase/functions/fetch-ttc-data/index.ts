@@ -290,10 +290,12 @@ serve(async (req) => {
           const area = String(cells[6]?.v || '').trim();
           const neo = String(cells[7]?.v || '').trim();
           const tarefaDesignada = String(cells[8]?.v || '').trim();
-          const portariaAtual = String(cells[9]?.f || cells[9]?.v || '').trim();
-          const periodoInicio = String(cells[10]?.f || cells[10]?.v || '').trim();
-          const termino = String(cells[11]?.f || cells[11]?.v || '').trim();
-          const qtdRenovacoes = Number(cells[12]?.v || 0);
+          const periodoInicio = String(cells[9]?.f || cells[9]?.v || '').trim();
+          const termino = String(cells[10]?.f || cells[10]?.v || '').trim();
+          const qtdRenovacoes = Number(cells[11]?.v || 0);
+          const portariaAtual = String(cells[12]?.f || cells[12]?.v || '').trim();
+          
+          console.log(`${sheet.om}: Row ${numero} portaria col12="${cells[12]?.v}" col13="${cells[13]?.v}" col9="${cells[9]?.v}"`);
           
           const isVaga = !nomeCompleto || 
             nomeCompleto.toUpperCase() === 'VAGO' || 
