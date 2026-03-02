@@ -56,7 +56,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
 
   const getCardBackground = () => {
     if (isDifferentNeoEfe) return "bg-amber-50 border-amber-400 border-2";
-    if (item.tipoSetor === "EXTRA LOTAÇÃO") return "bg-orange-100/50 border-orange-200";
+    if (item.tipoSetor === "EXTRA LOTAÇÃO" || item.setor === "EXTRA LOTAÇÃO") return "bg-orange-100/50 border-orange-200";
     if (!item.ocupado) return "bg-red-100/50 border-red-200";
     return "bg-green-100/50 border-green-200";
   };
@@ -117,7 +117,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
       <p className="text-xs text-muted-foreground uppercase">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
 
       {/* Setor */}
-      <p className="text-xs text-muted-foreground">{item.setor}</p>
+      <p className="text-xs text-muted-foreground">{item.tipoSetor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor}</p>
 
       {/* Warning message for NEO ≠ EFE discrepancy */}
       {isDifferentNeoEfe && (
