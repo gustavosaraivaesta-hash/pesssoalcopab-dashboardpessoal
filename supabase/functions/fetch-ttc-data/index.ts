@@ -396,33 +396,25 @@ serve(async (req) => {
               }
             }
             
-            // Convert total days to years, months, days
-            let anos = Math.floor(totalDias / 365);
-            const remainDays1 = totalDias % 365;
-            let meses = Math.floor(remainDays1 / 30);
-            let dias = remainDays1 % 30;
-            // Normalize: carry over months >= 12
-            if (meses >= 12) {
-              anos += Math.floor(meses / 12);
-              meses = meses % 12;
-            }
+            // Convert total days to years, months, days using 30/360 convention
+            // (30 days = 1 month, 12 months = 1 year = 360 days)
+            const totalMeses = Math.floor(totalDias / 30);
+            const dias = totalDias % 30;
+            const anos = Math.floor(totalMeses / 12);
+            const meses = totalMeses % 12;
             
             tempoServido = formatTempo(anos, meses, dias);
             
-            // Calculate time remaining to 10 years (3650 days)
-            const faltanteTotalDias = 3650 - totalDias;
+            // Calculate time remaining to 10 years (3600 days in 30/360 convention)
+            const LIMITE_10_ANOS = 3600; // 10 * 12 * 30
+            const faltanteTotalDias = LIMITE_10_ANOS - totalDias;
             excedeu10Anos = faltanteTotalDias < 0;
             
             const absFaltante = Math.abs(faltanteTotalDias);
-            let fAnos = Math.floor(absFaltante / 365);
-            const fRemain = absFaltante % 365;
-            let fMeses = Math.floor(fRemain / 30);
-            const fDias = fRemain % 30;
-            // Normalize: carry over months >= 12
-            if (fMeses >= 12) {
-              fAnos += Math.floor(fMeses / 12);
-              fMeses = fMeses % 12;
-            }
+            const fTotalMeses = Math.floor(absFaltante / 30);
+            const fDias = absFaltante % 30;
+            const fAnos = Math.floor(fTotalMeses / 12);
+            const fMeses = fTotalMeses % 12;
             
             tempoFaltante = excedeu10Anos 
               ? `Excedido ${formatTempo(fAnos, fMeses, fDias)}`
