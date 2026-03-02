@@ -3228,7 +3228,7 @@ const DashboardPracas = () => {
                   <div key={setor}>
                     <div className="flex items-center gap-3 mb-4">
                       <Building2 className="h-5 w-5 text-muted-foreground" />
-                      <h3 className="text-lg font-semibold">{setor}</h3>
+                      <h3 className="text-lg font-semibold">{setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : setor}</h3>
                       <Badge variant="secondary" className="rounded-full">
                         {items.length}
                       </Badge>
@@ -3299,9 +3299,9 @@ const DashboardPracas = () => {
                                     ? formatMilitarName()
                                     : item.nome || `NEO ${item.neo} - VAZIO`}
                                 </h4>
-                                <p className="text-sm text-muted-foreground">{item.cargo}</p>
+                                <p className="text-sm text-muted-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
                                 <p className="text-xs text-blue-600 mt-1">
-                                  NEO: {item.neo} - {item.cargo}
+                                  NEO: {item.neo} - {item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}
                                 </p>
                                 {isDifferentNeoEfe && (
                                   <p className="text-xs text-amber-600 mt-1 font-medium">
