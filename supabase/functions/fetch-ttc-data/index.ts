@@ -397,10 +397,15 @@ serve(async (req) => {
             }
             
             // Convert total days to years, months, days
-            const anos = Math.floor(totalDias / 365);
+            let anos = Math.floor(totalDias / 365);
             const remainDays1 = totalDias % 365;
-            const meses = Math.floor(remainDays1 / 30);
-            const dias = remainDays1 % 30;
+            let meses = Math.floor(remainDays1 / 30);
+            let dias = remainDays1 % 30;
+            // Normalize: carry over months >= 12
+            if (meses >= 12) {
+              anos += Math.floor(meses / 12);
+              meses = meses % 12;
+            }
             
             tempoServido = formatTempo(anos, meses, dias);
             
@@ -409,10 +414,15 @@ serve(async (req) => {
             excedeu10Anos = faltanteTotalDias < 0;
             
             const absFaltante = Math.abs(faltanteTotalDias);
-            const fAnos = Math.floor(absFaltante / 365);
+            let fAnos = Math.floor(absFaltante / 365);
             const fRemain = absFaltante % 365;
-            const fMeses = Math.floor(fRemain / 30);
+            let fMeses = Math.floor(fRemain / 30);
             const fDias = fRemain % 30;
+            // Normalize: carry over months >= 12
+            if (fMeses >= 12) {
+              fAnos += Math.floor(fMeses / 12);
+              fMeses = fMeses % 12;
+            }
             
             tempoFaltante = excedeu10Anos 
               ? `Excedido ${formatTempo(fAnos, fMeses, fDias)}`
