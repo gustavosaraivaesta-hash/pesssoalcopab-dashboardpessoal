@@ -3138,7 +3138,7 @@ const DashboardPracas = () => {
                           {item.om}
                         </Badge>
                         {item.tipoSetor === "EXTRA LOTAÇÃO" && (
-                          <Badge className="bg-orange-500 text-white text-xs">EXTRA</Badge>
+                          <Badge className="bg-orange-500 text-white text-xs">SEM NEO</Badge>
                         )}
                       </div>
                       <p
@@ -3148,8 +3148,8 @@ const DashboardPracas = () => {
                           ? formatMilitarName()
                           : item.nome || "VAGO"}
                       </p>
-                      <p className="text-xs text-muted-foreground">{item.cargo}</p>
-                      <p className="text-xs text-muted-foreground">{item.setor}</p>
+                      <p className="text-xs text-muted-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
+                      <p className="text-xs text-muted-foreground">{item.tipoSetor === "EXTRA LOTAÇÃO" || item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor}</p>
                       {isDifferentNeoEfe && (
                         <p className="text-xs mt-1 font-medium text-amber-700">
                           ⚠️ NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE ({item.postoEfe || "?"}/
