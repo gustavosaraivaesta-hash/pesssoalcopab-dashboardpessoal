@@ -360,6 +360,21 @@ serve(async (req) => {
         return null;
       }
       
+      // Helper: parse birth date from idade field (may be Date(y,m,d) or dd/mm/yyyy)
+      function parseBirthDate(idadeStr: string): Date | null {
+        if (!idadeStr) return null;
+        // Google Sheets Date format
+        const googleDateMatch = idadeStr.match(/Date\((\d+),(\d+),(\d+)\)/);
+        if (googleDateMatch) {
+          const year = parseInt(googleDateMatch[1]);
+          const month = parseInt(googleDateMatch[2]);
+          const day = parseInt(googleDateMatch[3]);
+          return new Date(year, month, day);
+        }
+        // Try dd/mm/yyyy
+        return parseDate(idadeStr);
+      }
+      
       // Helper: calculate difference in days between two dates
       function diffDays(start: Date, end: Date): number {
         return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
@@ -373,6 +388,14 @@ serve(async (req) => {
         if (d > 0 || partes.length === 0) partes.push(`${d}d`);
         return partes.join(' ');
       };
+      
+      // Helper: format date as dd/mm/yyyy
+      function formatDateBR(date: Date): string {
+        const d = String(date.getDate()).padStart(2, '0');
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const y = date.getFullYear();
+        return `${d}/${m}/${y}`;
+      }
       
       // Pass 2: Match contracts to personnel and build final data
       for (const p of personnelRows) {
