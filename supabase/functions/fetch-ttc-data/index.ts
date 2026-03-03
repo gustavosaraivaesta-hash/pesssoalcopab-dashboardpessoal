@@ -383,21 +383,45 @@ serve(async (req) => {
         if (!p.isVaga) {
           const nameKey = p.nomeCompleto.toUpperCase();
           const contract = contractRows.get(nameKey);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          let totalDias = 0;
+          let hasContractData = false;
           
           if (contract) {
-            let totalDias = 0;
-            
             for (let c = 0; c < 5; c++) {
               const inicio = parseDate(contract.iniciais[c]);
               const fim = parseDate(contract.finais[c]);
               
               if (inicio && fim && fim > inicio) {
-                totalDias += diffDays(inicio, fim);
+                // Cap end date to today if contract hasn't ended yet
+                const fimEfetivo = fim > today ? today : fim;
+                if (fimEfetivo > inicio) {
+                  totalDias += diffDays(inicio, fimEfetivo);
+                  hasContractData = true;
+                }
               }
             }
-            
+          }
+          
+          // Fallback: if no contract data found, use periodoInicio from main row
+          if (!hasContractData && p.periodoInicio) {
+            const inicio = parseDate(p.periodoInicio);
+            if (inicio) {
+              const fimEfetivo = p.termino ? parseDate(p.termino) : null;
+              const fimData = fimEfetivo && fimEfetivo > inicio 
+                ? (fimEfetivo > today ? today : fimEfetivo) 
+                : today;
+              if (fimData > inicio) {
+                totalDias = diffDays(inicio, fimData);
+                hasContractData = true;
+              }
+            }
+          }
+          
+          if (hasContractData && totalDias > 0) {
             // Convert total days to years, months, days using 30/360 convention
-            // (30 days = 1 month, 12 months = 1 year = 360 days)
             const totalMeses = Math.floor(totalDias / 30);
             const dias = totalDias % 30;
             const anos = Math.floor(totalMeses / 12);
@@ -406,7 +430,7 @@ serve(async (req) => {
             tempoServido = formatTempo(anos, meses, dias);
             
             // Calculate time remaining to 10 years (3600 days in 30/360 convention)
-            const LIMITE_10_ANOS = 3600; // 10 * 12 * 30
+            const LIMITE_10_ANOS = 3600;
             const faltanteTotalDias = LIMITE_10_ANOS - totalDias;
             excedeu10Anos = faltanteTotalDias < 0;
             
