@@ -328,7 +328,7 @@ const DashboardTTC = () => {
         item.espQuadro,
         item.area,
         item.tarefaDesignada,
-        item.qtdRenovacoes.toString(),
+        item.isVaga ? "-" : (item.dataLimite || "-"),
         calcularTempoRestante(item.termino).texto,
         item.isVaga ? "-" : (item.tempoServido || "-"),
         item.isVaga ? "-" : (item.tempoFaltante || "-"),
@@ -930,7 +930,7 @@ const DashboardTTC = () => {
                       <TableHead>Tempo Restante</TableHead>
                       <TableHead>Tempo TTC</TableHead>
                       <TableHead>Tempo Faltante (10a)</TableHead>
-                      <TableHead className="text-center">Renovações</TableHead>
+                      <TableHead>Data Limite</TableHead>
                       <TableHead>Portaria Atual</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1024,12 +1024,14 @@ const DashboardTTC = () => {
                             );
                           })()}
                         </TableCell>
-                        <TableCell className="text-center">
-                          {!row.isVaga && (
+                        <TableCell className="text-sm">
+                          {!row.isVaga && row.dataLimite && row.dataLimite !== '-' && (
                             <Badge 
-                              variant={row.qtdRenovacoes >= 5 ? "destructive" : row.qtdRenovacoes >= 3 ? "default" : "secondary"}
+                              variant={row.dataLimiteTipo === '70a' ? 'destructive' : 'secondary'}
+                              title={row.dataLimiteTipo === '70a' ? 'Limite por idade (70 anos)' : 'Limite por tempo de serviço (10 anos)'}
                             >
-                              {row.qtdRenovacoes}
+                              {row.dataLimite}
+                              {row.dataLimiteTipo === '70a' && ' (70a)'}
                             </Badge>
                           )}
                         </TableCell>

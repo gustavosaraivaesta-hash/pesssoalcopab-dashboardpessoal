@@ -360,6 +360,21 @@ serve(async (req) => {
         return null;
       }
       
+      // Helper: parse birth date from idade field (may be Date(y,m,d) or dd/mm/yyyy)
+      function parseBirthDate(idadeStr: string): Date | null {
+        if (!idadeStr) return null;
+        // Google Sheets Date format
+        const googleDateMatch = idadeStr.match(/Date\((\d+),(\d+),(\d+)\)/);
+        if (googleDateMatch) {
+          const year = parseInt(googleDateMatch[1]);
+          const month = parseInt(googleDateMatch[2]);
+          const day = parseInt(googleDateMatch[3]);
+          return new Date(year, month, day);
+        }
+        // Try dd/mm/yyyy
+        return parseDate(idadeStr);
+      }
+      
       // Helper: calculate difference in days between two dates
       function diffDays(start: Date, end: Date): number {
         return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
@@ -373,6 +388,14 @@ serve(async (req) => {
         if (d > 0 || partes.length === 0) partes.push(`${d}d`);
         return partes.join(' ');
       };
+      
+      // Helper: format date as dd/mm/yyyy
+      function formatDateBR(date: Date): string {
+        const d = String(date.getDate()).padStart(2, '0');
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const y = date.getFullYear();
+        return `${d}/${m}/${y}`;
+      }
       
       // Pass 2: Match contracts to personnel and build final data
       for (const p of personnelRows) {
@@ -448,6 +471,53 @@ serve(async (req) => {
           }
         }
         
+        // Calculate dataLimite: the earlier of (10-year service limit) and (70-year age limit)
+        let dataLimite = '-';
+        let dataLimiteTipo = '';
+        
+        if (!p.isVaga) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          let dataLimite10Anos: Date | null = null;
+          let dataLimite70Anos: Date | null = null;
+          
+          // 10-year TTC limit: today + remaining days (3600 - totalDias)
+          if (hasContractData && totalDias > 0) {
+            const diasRestantes = 3600 - totalDias;
+            if (diasRestantes > 0) {
+              dataLimite10Anos = new Date(today.getTime() + diasRestantes * 24 * 60 * 60 * 1000);
+            } else {
+              // Already exceeded 10 years - limit is today (already passed)
+              dataLimite10Anos = new Date(today);
+            }
+          }
+          
+          // 70-year age limit
+          const birthDate = parseBirthDate(p.idade);
+          if (birthDate) {
+            dataLimite70Anos = new Date(birthDate.getFullYear() + 70, birthDate.getMonth(), birthDate.getDate());
+          }
+          
+          // Pick the earlier date
+          let limiteDate: Date | null = null;
+          if (dataLimite10Anos && dataLimite70Anos) {
+            limiteDate = dataLimite10Anos < dataLimite70Anos ? dataLimite10Anos : dataLimite70Anos;
+            dataLimiteTipo = dataLimite10Anos < dataLimite70Anos ? '10a' : '70a';
+          } else if (dataLimite10Anos) {
+            limiteDate = dataLimite10Anos;
+            dataLimiteTipo = '10a';
+          } else if (dataLimite70Anos) {
+            limiteDate = dataLimite70Anos;
+            dataLimiteTipo = '70a';
+          }
+          
+          if (limiteDate) {
+            dataLimite = formatDateBR(limiteDate);
+            console.log(`${p.sheet.om}: ${p.nomeCompleto} -> dataLimite=${dataLimite} (${dataLimiteTipo})`);
+          }
+        }
+        
         transformedData.push({
           id: `TTC-${p.omFromCell || p.sheet.om}-${p.i + 1}`,
           numero: p.numero,
@@ -469,6 +539,8 @@ serve(async (req) => {
           tempoServido: tempoServido,
           tempoFaltante: tempoFaltante,
           excedeu10Anos: excedeu10Anos,
+          dataLimite: dataLimite,
+          dataLimiteTipo: dataLimiteTipo,
         });
       }
     }
