@@ -328,7 +328,7 @@ const DashboardTTC = () => {
         item.espQuadro,
         item.area,
         item.tarefaDesignada,
-        item.qtdRenovacoes.toString(),
+        item.isVaga ? "-" : (item.dataLimite || "-"),
         calcularTempoRestante(item.termino).texto,
         item.isVaga ? "-" : (item.tempoServido || "-"),
         item.isVaga ? "-" : (item.tempoFaltante || "-"),
