@@ -402,6 +402,10 @@ serve(async (req) => {
         let tempoServido = '-';
         let tempoFaltante = '-';
         let excedeu10Anos = false;
+        let totalDias = 0;
+        let hasContractData = false;
+        let dataLimite = '-';
+        let dataLimiteTipo = '';
         
         if (!p.isVaga) {
           const nameKey = p.nomeCompleto.toUpperCase();
@@ -409,16 +413,12 @@ serve(async (req) => {
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           
-          let totalDias = 0;
-          let hasContractData = false;
-          
           if (contract) {
             for (let c = 0; c < 5; c++) {
               const inicio = parseDate(contract.iniciais[c]);
               const fim = parseDate(contract.finais[c]);
               
               if (inicio && fim && fim > inicio) {
-                // Cap end date to today if contract hasn't ended yet
                 const fimEfetivo = fim > today ? today : fim;
                 if (fimEfetivo > inicio) {
                   totalDias += diffDays(inicio, fimEfetivo);
@@ -444,7 +444,6 @@ serve(async (req) => {
           }
           
           if (hasContractData && totalDias > 0) {
-            // Convert total days to years, months, days using 30/360 convention
             const totalMeses = Math.floor(totalDias / 30);
             const dias = totalDias % 30;
             const anos = Math.floor(totalMeses / 12);
@@ -452,7 +451,6 @@ serve(async (req) => {
             
             tempoServido = formatTempo(anos, meses, dias);
             
-            // Calculate time remaining to 10 years (3600 days in 30/360 convention)
             const LIMITE_10_ANOS = 3600;
             const faltanteTotalDias = LIMITE_10_ANOS - totalDias;
             excedeu10Anos = faltanteTotalDias < 0;
@@ -469,16 +467,8 @@ serve(async (req) => {
             
             console.log(`${p.sheet.om}: ${p.nomeCompleto} -> ${totalDias} dias servidos, tempo=${tempoServido}, faltante=${tempoFaltante}`);
           }
-        }
-        
-        // Calculate dataLimite: the earlier of (10-year service limit) and (70-year age limit)
-        let dataLimite = '-';
-        let dataLimiteTipo = '';
-        
-        if (!p.isVaga) {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
           
+          // Calculate dataLimite: the earlier of (10-year service limit) and (70-year age limit)
           let dataLimite10Anos: Date | null = null;
           let dataLimite70Anos: Date | null = null;
           
@@ -488,7 +478,6 @@ serve(async (req) => {
             if (diasRestantes > 0) {
               dataLimite10Anos = new Date(today.getTime() + diasRestantes * 24 * 60 * 60 * 1000);
             } else {
-              // Already exceeded 10 years - limit is today (already passed)
               dataLimite10Anos = new Date(today);
             }
           }
