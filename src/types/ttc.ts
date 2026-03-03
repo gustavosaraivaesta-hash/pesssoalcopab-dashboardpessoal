@@ -18,6 +18,8 @@ export interface TTCData {
   tempoServido?: string;
   tempoFaltante?: string;
   excedeu10Anos?: boolean;
+  dataLimite?: string;
+  dataLimiteTipo?: string;
 }
 
 export interface TTCSummary {
