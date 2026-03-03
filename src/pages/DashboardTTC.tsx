@@ -930,7 +930,7 @@ const DashboardTTC = () => {
                       <TableHead>Tempo Restante</TableHead>
                       <TableHead>Tempo TTC</TableHead>
                       <TableHead>Tempo Faltante (10a)</TableHead>
-                      <TableHead className="text-center">Renovações</TableHead>
+                      <TableHead>Data Limite</TableHead>
                       <TableHead>Portaria Atual</TableHead>
                     </TableRow>
                   </TableHeader>
