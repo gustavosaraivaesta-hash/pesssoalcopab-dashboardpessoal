@@ -339,7 +339,7 @@ const DashboardTTC = () => {
       const vagaRowIndexes = omData.map((item, index) => item.isVaga ? index : -1).filter(i => i !== -1);
       
       autoTable(doc, {
-        head: [["Grad", "Nome Completo", "Esp/Quadro", "Área", "Tarefa", "Renov.", "Tempo Rest.", "Tempo TTC", "Faltante 10a", "Status"]],
+        head: [["Grad", "Nome Completo", "Esp/Quadro", "Área", "Tarefa", "Renov.", "Tempo Rest. Contrato", "Tempo Total TTC", "Faltante 10a", "Status"]],
         body: tableData,
         startY: currentY,
         styles: { fontSize: 7, cellPadding: 1.5 },
