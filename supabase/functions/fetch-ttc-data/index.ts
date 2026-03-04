@@ -472,14 +472,26 @@ serve(async (req) => {
           let dataLimite10Anos: Date | null = null;
           let dataLimite70Anos: Date | null = null;
           
-          // 10-year TTC limit: today + remaining days (3600 - totalDias)
-          if (hasContractData && totalDias > 0) {
-            const diasRestantes = 3600 - totalDias;
-            if (diasRestantes > 0) {
-              dataLimite10Anos = new Date(today.getTime() + diasRestantes * 24 * 60 * 60 * 1000);
-            } else {
-              dataLimite10Anos = new Date(today);
+          // 10-year TTC limit: first contract start date + 3600 days (10 years in 30/360 convention)
+          // Find the earliest contract start date
+          let primeiroInicio: Date | null = null;
+          const contract = contractRows.get(p.nomeCompleto.toUpperCase());
+          if (contract) {
+            for (let c = 0; c < 5; c++) {
+              const inicio = parseDate(contract.iniciais[c]);
+              if (inicio && (!primeiroInicio || inicio < primeiroInicio)) {
+                primeiroInicio = inicio;
+              }
             }
+          }
+          // Fallback to periodoInicio from main row
+          if (!primeiroInicio && p.periodoInicio) {
+            primeiroInicio = parseDate(p.periodoInicio);
+          }
+          
+          if (primeiroInicio) {
+            // Add 10 years (using calendar: +10 years from start)
+            dataLimite10Anos = new Date(primeiroInicio.getFullYear() + 10, primeiroInicio.getMonth(), primeiroInicio.getDate());
           }
           
           // 70-year age limit
