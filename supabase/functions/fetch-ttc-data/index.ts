@@ -490,8 +490,8 @@ serve(async (req) => {
           }
           
           if (primeiroInicio) {
-            // Add 10 years (using calendar: +10 years from start)
-            dataLimite10Anos = new Date(primeiroInicio.getFullYear() + 10, primeiroInicio.getMonth(), primeiroInicio.getDate());
+            // Add 10 years minus 1 day (using calendar: +10 years from start, -1 day)
+            dataLimite10Anos = new Date(primeiroInicio.getFullYear() + 10, primeiroInicio.getMonth(), primeiroInicio.getDate() - 1);
           }
           
           // 70-year age limit
