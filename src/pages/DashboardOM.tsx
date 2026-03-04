@@ -3524,7 +3524,7 @@ const DashboardOM = () => {
                   <div key={setor}>
                     <div className="flex items-center gap-3 mb-4">
                       <Building2 className="h-5 w-5 text-muted-foreground" />
-                      <h3 className="text-lg font-semibold">{setor}</h3>
+                      <h3 className="text-lg font-semibold">{setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : setor}</h3>
                       <Badge variant="secondary" className="rounded-full">
                         {items.length}
                       </Badge>
