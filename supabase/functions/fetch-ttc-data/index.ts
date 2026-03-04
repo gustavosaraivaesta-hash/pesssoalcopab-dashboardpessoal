@@ -475,8 +475,8 @@ serve(async (req) => {
           // 10-year TTC limit: first contract start date + 3600 days (10 years in 30/360 convention)
           // Find the earliest contract start date
           let primeiroInicio: Date | null = null;
-          const contract = contractRows.get(p.nomeCompleto.toUpperCase());
-          if (contract) {
+          const contractData = contractRows.get(p.nomeCompleto.toUpperCase());
+          if (contractData) {
             for (let c = 0; c < 5; c++) {
               const inicio = parseDate(contract.iniciais[c]);
               if (inicio && (!primeiroInicio || inicio < primeiroInicio)) {
