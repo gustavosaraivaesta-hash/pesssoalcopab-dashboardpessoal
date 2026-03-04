@@ -927,8 +927,8 @@ const DashboardTTC = () => {
                       <TableHead className="min-w-[200px]">Tarefa Designada</TableHead>
                       <TableHead>Início</TableHead>
                       <TableHead>Término</TableHead>
-                      <TableHead>Tempo Restante</TableHead>
-                      <TableHead>Tempo TTC</TableHead>
+                      <TableHead>Tempo Restante no Contrato Vigente</TableHead>
+                      <TableHead>Tempo Total de TTC até Hoje</TableHead>
                       <TableHead>Tempo Faltante (10a)</TableHead>
                       <TableHead>Data Limite</TableHead>
                       <TableHead>Portaria Atual</TableHead>
