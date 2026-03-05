@@ -444,7 +444,7 @@ serve(async (req) => {
                 ? (fimEfetivo > today ? today : fimEfetivo) 
                 : today;
               if (fimData > inicio) {
-                totalDias = diffDays(inicio, fimData);
+                totalDias = diffDays360(inicio, fimData);
                 hasContractData = true;
               }
             }
