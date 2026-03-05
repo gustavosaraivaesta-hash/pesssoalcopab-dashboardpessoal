@@ -428,7 +428,7 @@ serve(async (req) => {
               if (inicio && fim && fim > inicio) {
                 const fimEfetivo = fim > today ? today : fim;
                 if (fimEfetivo > inicio) {
-                  totalDias += diffDays(inicio, fimEfetivo);
+                  totalDias += diffDays360(inicio, fimEfetivo);
                   hasContractData = true;
                 }
               }
