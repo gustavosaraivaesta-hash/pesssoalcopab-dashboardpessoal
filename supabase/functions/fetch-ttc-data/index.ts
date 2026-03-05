@@ -459,20 +459,9 @@ serve(async (req) => {
             tempoServido = formatTempo(anos, meses, dias);
             
             const LIMITE_10_ANOS = 3600;
-            const faltanteTotalDias = LIMITE_10_ANOS - totalDias;
-            excedeu10Anos = faltanteTotalDias < 0;
+            excedeu10Anos = totalDias > LIMITE_10_ANOS;
             
-            const absFaltante = Math.abs(faltanteTotalDias);
-            const fTotalMeses = Math.floor(absFaltante / 30);
-            const fDias = absFaltante % 30;
-            const fAnos = Math.floor(fTotalMeses / 12);
-            const fMeses = fTotalMeses % 12;
-            
-            tempoFaltante = excedeu10Anos 
-              ? `Excedido ${formatTempo(fAnos, fMeses, fDias)}`
-              : formatTempo(fAnos, fMeses, fDias);
-            
-            console.log(`${p.sheet.om}: ${p.nomeCompleto} -> ${totalDias} dias servidos, tempo=${tempoServido}, faltante=${tempoFaltante}`);
+            console.log(`${p.sheet.om}: ${p.nomeCompleto} -> ${totalDias} dias servidos, tempo=${tempoServido}`);
           }
           
           // Calculate dataLimite: the earlier of (10-year service limit) and (70-year age limit)
