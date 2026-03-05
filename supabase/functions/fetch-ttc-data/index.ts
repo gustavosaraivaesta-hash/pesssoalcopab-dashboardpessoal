@@ -511,7 +511,26 @@ serve(async (req) => {
           
           if (limiteDate) {
             dataLimite = formatDateBR(limiteDate);
-            console.log(`${p.sheet.om}: ${p.nomeCompleto} -> dataLimite=${dataLimite} (${dataLimiteTipo})`);
+            
+            // Calculate tempoFaltante using diffDays360(today, limiteDate) for consistency with frontend
+            const faltanteDias = diffDays360(today, limiteDate);
+            if (faltanteDias < 0) {
+              excedeu10Anos = true;
+              const absDias = Math.abs(faltanteDias);
+              const fTotalMeses = Math.floor(absDias / 30);
+              const fDias = absDias % 30;
+              const fAnos = Math.floor(fTotalMeses / 12);
+              const fMeses = fTotalMeses % 12;
+              tempoFaltante = `Excedido ${formatTempo(fAnos, fMeses, fDias)}`;
+            } else {
+              const fTotalMeses = Math.floor(faltanteDias / 30);
+              const fDias = faltanteDias % 30;
+              const fAnos = Math.floor(fTotalMeses / 12);
+              const fMeses = fTotalMeses % 12;
+              tempoFaltante = formatTempo(fAnos, fMeses, fDias);
+            }
+            
+            console.log(`${p.sheet.om}: ${p.nomeCompleto} -> dataLimite=${dataLimite} (${dataLimiteTipo}), faltante=${tempoFaltante}`);
           }
         }
         
