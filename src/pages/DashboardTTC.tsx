@@ -153,9 +153,9 @@ const calcularTempoRestante = (terminoStr: string): { texto: string; status: 'no
   
   // Determine status based on remaining time
   let status: 'normal' | 'warning' | 'danger' | 'expired' = 'normal';
-  if (totalMeses < 1) {
+  if (totalMeses360 < 1) {
     status = 'danger';
-  } else if (totalMeses < 3) {
+  } else if (totalMeses360 < 3) {
     status = 'warning';
   }
   
