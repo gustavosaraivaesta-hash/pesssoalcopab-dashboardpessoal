@@ -120,11 +120,17 @@ const calcularTempoRestante = (terminoStr: string): { texto: string; status: 'no
   
   // If already expired
   if (isBefore(termino, today)) {
-    const totalMesesPassados = differenceInMonths(today, termino);
+    const d1 = Math.min(termino.getDate(), 30);
+    const d2 = Math.min(today.getDate(), 30);
+    const m1 = termino.getMonth() + 1;
+    const m2 = today.getMonth() + 1;
+    const y1 = termino.getFullYear();
+    const y2 = today.getFullYear();
+    const totalDias360 = (y2 - y1) * 360 + (m2 - m1) * 30 + (d2 - d1);
+    const totalMesesPassados = Math.floor(totalDias360 / 30);
     const anosPassados = Math.floor(totalMesesPassados / 12);
     const mesesPassados = totalMesesPassados % 12;
-    const afterMonths = addMonths(termino, totalMesesPassados);
-    const diasPassados = differenceInDays(today, afterMonths);
+    const diasPassados = totalDias360 % 30;
     
     const partes = [];
     if (anosPassados > 0) partes.push(`${anosPassados}a`);
