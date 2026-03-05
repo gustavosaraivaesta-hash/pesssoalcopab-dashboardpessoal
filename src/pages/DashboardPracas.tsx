@@ -1867,7 +1867,7 @@ const DashboardPracas = () => {
               children: [
                 createCell(item.neo.toString(), false, bgColor, txtColor),
                 createCell(item.setor || "-", false, bgColor, txtColor),
-                createCell(item.cargo || "-", false, bgColor, txtColor),
+                createCell(item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.cargo || "-"), false, bgColor, txtColor),
                 createCell(item.postoTmft || "-", false, bgColor, txtColor),
                 createCell(item.quadroTmft || "-", false, bgColor, txtColor),
                 createCell(item.nome || "-", false, bgColor, txtColor),
