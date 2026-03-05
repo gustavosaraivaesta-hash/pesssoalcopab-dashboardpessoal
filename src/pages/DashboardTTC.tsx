@@ -120,11 +120,17 @@ const calcularTempoRestante = (terminoStr: string): { texto: string; status: 'no
   
   // If already expired
   if (isBefore(termino, today)) {
-    const totalMesesPassados = differenceInMonths(today, termino);
+    const d1 = Math.min(termino.getDate(), 30);
+    const d2 = Math.min(today.getDate(), 30);
+    const m1 = termino.getMonth() + 1;
+    const m2 = today.getMonth() + 1;
+    const y1 = termino.getFullYear();
+    const y2 = today.getFullYear();
+    const totalDias360 = (y2 - y1) * 360 + (m2 - m1) * 30 + (d2 - d1);
+    const totalMesesPassados = Math.floor(totalDias360 / 30);
     const anosPassados = Math.floor(totalMesesPassados / 12);
     const mesesPassados = totalMesesPassados % 12;
-    const afterMonths = addMonths(termino, totalMesesPassados);
-    const diasPassados = differenceInDays(today, afterMonths);
+    const diasPassados = totalDias360 % 30;
     
     const partes = [];
     if (anosPassados > 0) partes.push(`${anosPassados}a`);
@@ -137,18 +143,25 @@ const calcularTempoRestante = (terminoStr: string): { texto: string; status: 'no
     };
   }
   
-  // Calculate remaining time
-  const totalMeses = differenceInMonths(termino, today);
-  const anos = Math.floor(totalMeses / 12);
-  const meses = totalMeses % 12;
-  const afterMonths = addMonths(today, totalMeses);
-  const dias = differenceInDays(termino, afterMonths);
+// Calculate remaining time using 30/360 convention (same as backend)
+  const d1 = Math.min(today.getDate(), 30);
+  const d2 = Math.min(termino.getDate(), 30);
+  const m1 = today.getMonth() + 1;
+  const m2 = termino.getMonth() + 1;
+  const y1 = today.getFullYear();
+  const y2 = termino.getFullYear();
+  const totalDias360 = (y2 - y1) * 360 + (m2 - m1) * 30 + (d2 - d1);
+  
+  const totalMeses360 = Math.floor(totalDias360 / 30);
+  const dias = totalDias360 % 30;
+  const anos = Math.floor(totalMeses360 / 12);
+  const meses = totalMeses360 % 12;
   
   // Determine status based on remaining time
   let status: 'normal' | 'warning' | 'danger' | 'expired' = 'normal';
-  if (totalMeses < 1) {
+  if (totalMeses360 < 1) {
     status = 'danger';
-  } else if (totalMeses < 3) {
+  } else if (totalMeses360 < 3) {
     status = 'warning';
   }
   
