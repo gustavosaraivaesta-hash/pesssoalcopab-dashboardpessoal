@@ -375,9 +375,16 @@ serve(async (req) => {
         return parseDate(idadeStr);
       }
       
-      // Helper: calculate difference in days between two dates
-      function diffDays(start: Date, end: Date): number {
-        return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      // Helper: calculate difference in days using 30/360 convention
+      // Each month = 30 days, each year = 360 days
+      function diffDays360(start: Date, end: Date): number {
+        const d1 = Math.min(start.getDate(), 30);
+        const d2 = Math.min(end.getDate(), 30);
+        const m1 = start.getMonth() + 1;
+        const m2 = end.getMonth() + 1;
+        const y1 = start.getFullYear();
+        const y2 = end.getFullYear();
+        return (y2 - y1) * 360 + (m2 - m1) * 30 + (d2 - d1);
       }
       
       // Format tempo
@@ -421,7 +428,7 @@ serve(async (req) => {
               if (inicio && fim && fim > inicio) {
                 const fimEfetivo = fim > today ? today : fim;
                 if (fimEfetivo > inicio) {
-                  totalDias += diffDays(inicio, fimEfetivo);
+                  totalDias += diffDays360(inicio, fimEfetivo);
                   hasContractData = true;
                 }
               }
@@ -437,7 +444,7 @@ serve(async (req) => {
                 ? (fimEfetivo > today ? today : fimEfetivo) 
                 : today;
               if (fimData > inicio) {
-                totalDias = diffDays(inicio, fimData);
+                totalDias = diffDays360(inicio, fimData);
                 hasContractData = true;
               }
             }
