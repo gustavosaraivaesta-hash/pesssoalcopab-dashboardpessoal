@@ -1607,10 +1607,11 @@ const DashboardOM = () => {
                   } else {
                     const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
                     const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
-                    if (!corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe) {
-                      return "NA NEO";
-                    } else {
+                    const corpoDivergente = corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
+                    if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "") || corpoDivergente) {
                       return "FORA NEO";
+                    } else {
+                      return "NA NEO";
                     }
                   }
                 })()
