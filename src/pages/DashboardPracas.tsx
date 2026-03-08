@@ -1311,11 +1311,17 @@ const DashboardPracas = () => {
             isExtraRow = matchesEfeFilters(item) && !matchesTmftFilters(item);
           }
 
+          // Check if this is a SEM NEO position (EXTRA LOTAÇÃO)
+          const tipoSetorStr = (item.tipoSetor || "").trim().toUpperCase();
+          const isSemNeo = tipoSetorStr === "EXTRA LOTAÇÃO" || tipoSetorStr.includes("EXTRA LOTA");
+
           let status: string;
           if (isExtraRow) {
             status = "EFETIVO";
           } else if (!item.ocupado) {
             status = "VAGO";
+          } else if (isSemNeo) {
+            status = "SEM NEO";
           } else {
             if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "")) {
               status = "FORA NEO";
