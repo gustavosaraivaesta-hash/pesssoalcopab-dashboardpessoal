@@ -48,30 +48,27 @@ function looksLikeHtml(s: string): boolean {
 // This function manually follows redirects while keeping the POST method.
 async function fetchWithPostRedirect(url: string, body: string, maxRedirects = 5): Promise<Response> {
   let currentUrl = url;
-  for (let i = 0; i < maxRedirects; i++) {
+  
+  // First attempt: Try with redirect:follow to see if it works
+  try {
     const response = await fetch(currentUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body,
-      redirect: 'manual', // Don't auto-follow redirects
+      redirect: 'follow',
     });
-
-    if (response.status >= 300 && response.status < 400) {
-      const location = response.headers.get('location');
-      if (location) {
-        console.log(`Redirect ${response.status} → ${location.slice(0, 80)}...`);
-        // For 302/303, switch to GET (which is what Apps Script expects after redirect)
-        const getResponse = await fetch(location, {
-          method: 'GET',
-          redirect: 'follow',
-        });
-        return getResponse;
-      }
-    }
-
+    
+    const contentType = response.headers.get('content-type') || '';
+    console.log(`Response status: ${response.status}, content-type: ${contentType}`);
+    
     return response;
+  } catch (error) {
+    console.error('Erro ao fazer POST para Apps Script:', error);
+    throw error;
   }
-  throw new Error('Too many redirects');
 }
 
 // ── Sheet configs per OM ───────────────────────────────────────────────
@@ -490,9 +487,11 @@ async function syncToSheet(
         if (!response.ok) {
           console.error('Erro Apps Script:', { status: response.status, contentType, bodyPreview: bodyText.slice(0, 300) });
           if (looksLikeHtml(bodyText)) {
+            const isPracas = !oficiais;
+            const secretName = isPracas ? 'GOOGLE_APPS_SCRIPT_URL' : 'GOOGLE_APPS_SCRIPT_URL_OFICIAIS';
             return {
               success: false,
-              message: 'Falha ao chamar o Apps Script (URL incorreta ou não publicada). Atualize o GOOGLE_APPS_SCRIPT_URL.',
+              message: `Falha ao chamar o Apps Script. Verifique:\n1. ${secretName} está configurada corretamente\n2. Apps Script foi implantado como "Aplicativo Web"\n3. Permissões: "Executar como: Eu" e "Quem pode acessar: Qualquer pessoa"\n4. URL termina em /exec (não /dev)`,
             };
           }
           lastErrorMessage = `Erro ao atualizar planilha (Apps Script HTTP ${response.status}).`;
@@ -504,7 +503,12 @@ async function syncToSheet(
           result = JSON.parse(bodyText);
         } catch (_e) {
           console.error('Resposta Apps Script não-JSON:', { contentType, bodyPreview: bodyText.slice(0, 300) });
-          return { success: false, message: 'Apps Script respondeu em formato inesperado.' };
+          const isPracas = !oficiais;
+          const secretName = isPracas ? 'GOOGLE_APPS_SCRIPT_URL' : 'GOOGLE_APPS_SCRIPT_URL_OFICIAIS';
+          return { 
+            success: false, 
+            message: `Apps Script respondeu em formato inesperado (não-JSON).\n\nVerifique:\n1. ${secretName} é a URL do "Aplicativo Web" (termina em /exec)\n2. Apps Script tem permissão para acessar a planilha\n3. Código do Apps Script está correto\n\nURL atual: ${appsScriptUrl.slice(0, 50)}...` 
+          };
         }
 
         console.log('Resultado Apps Script:', result);
