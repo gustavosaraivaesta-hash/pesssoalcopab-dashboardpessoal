@@ -338,21 +338,25 @@ const DashboardTTC = () => {
       const tableData = omData.map(item => [
         item.graduacao,
         item.nomeCompleto || "VAGO",
-        item.espQuadro,
-        item.area,
-        item.tarefaDesignada,
-        item.isVaga ? "-" : (item.dataLimite || "-"),
+        item.neo || "-",
+        item.espQuadro || "-",
+        item.idade || "-",
+        item.area || "-",
+        item.tarefaDesignada || "-",
+        item.isVaga ? "-" : (item.periodoInicio || "-"),
+        item.isVaga ? "-" : (item.termino || "-"),
         calcularTempoRestante(item.termino).texto,
         item.isVaga ? "-" : (item.tempoServido || "-"),
         item.isVaga ? "-" : (item.tempoFaltante || "-"),
-        item.isVaga ? "VAGO" : "CONTRATADO"
+        item.isVaga ? "-" : (item.dataLimite || "-"),
+        item.isVaga ? "-" : (item.portariaAtual || "-"),
       ]);
       
       // Track which rows are "VAGO" for styling
       const vagaRowIndexes = omData.map((item, index) => item.isVaga ? index : -1).filter(i => i !== -1);
       
       autoTable(doc, {
-        head: [["Grad", "Nome Completo", "Esp/Quadro", "Área", "Tarefa", "Renov.", "Tempo Rest. Contrato", "Tempo Total TTC", "Faltante 10a", "Status"]],
+        head: [["Grad", "Nome", "NEO", "EFE", "Idade", "Área", "Tarefa", "Início", "Término", "Tempo Rest. Contrato", "Tempo Total TTC", "Faltante (10a)", "Data Limite", "Portaria Atual"]],
         body: tableData,
         startY: currentY,
         styles: { fontSize: 7, cellPadding: 1.5 },
