@@ -41,6 +41,38 @@ function looksLikeHtml(s: string): boolean {
   return t.startsWith('<!doctype html') || t.startsWith('<html') || t.includes('<head') || t.includes('<body');
 }
 
+// Google Apps Script returns 302 redirects on POST requests.
+// Deno fetch follows redirects but may change POST to GET (per HTTP spec),
+// which causes the Apps Script to return an HTML error page.
+// This function manually follows redirects while keeping the POST method.
+async function fetchWithPostRedirect(url: string, body: string, maxRedirects = 5): Promise<Response> {
+  let currentUrl = url;
+  for (let i = 0; i < maxRedirects; i++) {
+    const response = await fetch(currentUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      redirect: 'manual', // Don't auto-follow redirects
+    });
+
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log(`Redirect ${response.status} → ${location.slice(0, 80)}...`);
+        // For 302/303, switch to GET (which is what Apps Script expects after redirect)
+        const getResponse = await fetch(location, {
+          method: 'GET',
+          redirect: 'follow',
+        });
+        return getResponse;
+      }
+    }
+
+    return response;
+  }
+  throw new Error('Too many redirects');
+}
+
 // ── Sheet configs per OM ───────────────────────────────────────────────
 // Praças GIDs (tabs in the praças spreadsheet)
 const PRACAS_SHEET_CONFIGS: Record<string, { sheetName: string; gid: string }> = {
