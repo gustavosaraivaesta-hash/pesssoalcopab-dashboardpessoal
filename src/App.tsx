@@ -16,7 +16,16 @@ import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 2 * 60 * 1000, // 2 minutes - data is fresh for 2min, no refetch on navigation
+      gcTime: 10 * 60 * 1000, // 10 minutes - keep unused data in cache for 10min
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
