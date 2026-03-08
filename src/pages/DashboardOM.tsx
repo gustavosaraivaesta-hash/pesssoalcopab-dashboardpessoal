@@ -1582,6 +1582,10 @@ const DashboardOM = () => {
             isExtraRow = item.ocupado && matchesEfe && !matchesTmft;
           }
 
+          // Check if this is a SEM NEO position (EXTRA LOTAÇÃO)
+          const tipoSetorStr = (item.tipoSetor || "").trim().toUpperCase();
+          const isSemNeo = tipoSetorStr === "EXTRA LOTAÇÃO" || tipoSetorStr.includes("EXTRA LOTA");
+
           return [
             (index + 1).toString(),
             item.neo.toString(),
@@ -1596,14 +1600,18 @@ const DashboardOM = () => {
             item.corpoEfe || "-",
             item.ocupado
               ? (() => {
-                  const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
-                  const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
                   if (isExtraRow) {
                     return "EFETIVO";
-                  } else if (!corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe) {
-                    return "NA NEO";
+                  } else if (isSemNeo) {
+                    return "SEM NEO";
                   } else {
-                    return "FORA NEO";
+                    const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+                    const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+                    if (!corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe) {
+                      return "NA NEO";
+                    } else {
+                      return "FORA NEO";
+                    }
                   }
                 })()
               : "VAGO",
@@ -1671,7 +1679,7 @@ const DashboardOM = () => {
                 usedHighlights.add("FORA_NEO");
               }
               // Destaque VERDE para SEM NEO (EXTRA LOTAÇÃO)
-               else if (setorStr.includes("EXTRA LOTA") || setorStr === "EXTRA LOTAÇÃO") {
+               else if (statusStr === "SEM NEO") {
                  data.cell.styles.fillColor = [209, 250, 229]; // green-100
                  data.cell.styles.textColor = [6, 95, 70]; // green-900
                  usedHighlights.add("EXTRA_LOTACAO");

@@ -1311,11 +1311,17 @@ const DashboardPracas = () => {
             isExtraRow = matchesEfeFilters(item) && !matchesTmftFilters(item);
           }
 
+          // Check if this is a SEM NEO position (EXTRA LOTAÇÃO)
+          const tipoSetorStr = (item.tipoSetor || "").trim().toUpperCase();
+          const isSemNeo = tipoSetorStr === "EXTRA LOTAÇÃO" || tipoSetorStr.includes("EXTRA LOTA");
+
           let status: string;
           if (isExtraRow) {
             status = "EFETIVO";
           } else if (!item.ocupado) {
             status = "VAGO";
+          } else if (isSemNeo) {
+            status = "SEM NEO";
           } else {
             if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "")) {
               status = "FORA NEO";
@@ -1370,10 +1376,10 @@ const DashboardPracas = () => {
                 data.cell.styles.textColor = [194, 65, 12]; // orange-700
                 usedHighlights.add("FORA_NEO");
               }
-              // Destaque amarelo para EXTRA LOTAÇÃO
-              else if (setorStr.includes("EXTRA LOTA") || setorStr === "EXTRA LOTAÇÃO") {
-                data.cell.styles.fillColor = [254, 240, 138];
-                data.cell.styles.textColor = [113, 63, 18];
+              // Destaque VERDE para SEM NEO (EXTRA LOTAÇÃO)
+              else if (statusStr === "SEM NEO") {
+                data.cell.styles.fillColor = [209, 250, 229]; // green-100
+                data.cell.styles.textColor = [6, 95, 70]; // green-900
                 usedHighlights.add("EXTRA_LOTACAO");
               }
               // Destaque vermelho para VAGO
