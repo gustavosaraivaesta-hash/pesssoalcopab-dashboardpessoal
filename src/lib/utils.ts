@@ -60,5 +60,7 @@ export function isForaDaNeo(quadroTmft: string, quadroEfe: string): boolean {
   const tmft = (quadroTmft || "").trim().toUpperCase();
   const efe = (quadroEfe || "").trim().toUpperCase();
   if (!tmft || !efe || tmft === "-" || efe === "-") return false;
+  // Posições TTC são sempre consideradas "NA NEO"
+  if (tmft === "TTC" || efe === "TTC") return false;
   return !areSpecialtiesEquivalent(tmft, efe);
 }
