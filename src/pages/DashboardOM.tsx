@@ -2750,7 +2750,7 @@ const DashboardOM = () => {
                     Limpar Filtros
                   </Button>
                 )}
-                <Button onClick={fetchData} variant="outline" size="sm">
+                <Button onClick={() => fetchData()} variant="outline" size="sm">
                   <RefreshCw className="mr-2 h-4 w-4" />
                   Atualizar
                 </Button>
