@@ -14,11 +14,12 @@ const PRACAS_SPREADSHEET_ID = '13YC7pfsERAJxdwzWPN12tTdNOVhlT_bbZXZigDZvalA';
 // Oficiais spreadsheet (same as fetch-om-data)
 const OFICIAIS_SPREADSHEET_ID = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
 
-// Google Apps Script Web App URL for writing to sheets
-function getAppsScriptUrl(): string {
-  const raw = Deno.env.get('GOOGLE_APPS_SCRIPT_URL') ?? '';
+// Google Apps Script Web App URLs for writing to sheets
+function getAppsScriptUrl(isPracas: boolean): string {
+  const envKey = isPracas ? 'GOOGLE_APPS_SCRIPT_URL' : 'GOOGLE_APPS_SCRIPT_URL_OFICIAIS';
+  const raw = Deno.env.get(envKey) ?? '';
   const url = normalizeAppsScriptUrl(raw);
-  console.log(`[APPS_SCRIPT_URL] raw length=${raw.length}, normalized="${url}"`);
+  console.log(`[${envKey}] raw length=${raw.length}, normalized="${url}"`);
   return url;
 }
 
@@ -409,7 +410,7 @@ async function syncToSheet(
   console.log('='.repeat(60));
   console.log(`OM: ${om} | Planilha: ${sheetName} | Spreadsheet: ${tipo}`);
 
-  const appsScriptUrl = getAppsScriptUrl();
+  const appsScriptUrl = getAppsScriptUrl(!oficiais);
   if (appsScriptUrl) {
     if (!isAppsScriptWebAppUrl(appsScriptUrl)) {
       return {

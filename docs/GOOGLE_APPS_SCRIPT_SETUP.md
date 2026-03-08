@@ -1,6 +1,13 @@
 # Configuração do Google Apps Script para Sincronização Automática
 
-## Passo 1: Criar o Apps Script
+## IMPORTANTE: Duas URLs Necessárias
+
+O sistema utiliza **DUAS planilhas diferentes** (Oficiais e Praças), portanto você precisa criar **DOIS Apps Scripts** separados e configurar **DUAS URLs**:
+
+1. **GOOGLE_APPS_SCRIPT_URL** - Para sincronização de PRAÇAS
+2. **GOOGLE_APPS_SCRIPT_URL_OFICIAIS** - Para sincronização de OFICIAIS
+
+## Passo 1: Criar o Apps Script (REPETIR PARA CADA PLANILHA)
 
 1. Acesse [Google Apps Script](https://script.google.com)
 2. Clique em "Novo Projeto"
@@ -89,10 +96,11 @@ function doGet(e) {
 5. Autorize o acesso à planilha quando solicitado
 6. **Copie a URL** do aplicativo web (será algo como `https://script.google.com/macros/s/xxx/exec`)
 
-## Passo 3: Configurar o Secret no Lovable
+## Passo 3: Configurar os Secrets no Lovable
 
-1. A URL copiada deve ser adicionada ao secret `GOOGLE_APPS_SCRIPT_URL`
-2. O sistema já está configurado para usar essa URL automaticamente
+1. **Para PRAÇAS**: Configure o secret `GOOGLE_APPS_SCRIPT_URL` com a URL do Apps Script da planilha de Praças
+2. **Para OFICIAIS**: Configure o secret `GOOGLE_APPS_SCRIPT_URL_OFICIAIS` com a URL do Apps Script da planilha de Oficiais
+3. Ambas as URLs devem terminar em `/exec`
 
 ## Teste
 
