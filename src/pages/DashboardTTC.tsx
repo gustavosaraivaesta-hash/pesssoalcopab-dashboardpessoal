@@ -359,7 +359,7 @@ const DashboardTTC = () => {
         head: [["Grad", "Nome", "NEO", "EFE", "Idade", "Área", "Tarefa", "Início", "Término", "Tempo Rest. Contrato", "Tempo Total TTC", "Faltante (10a)", "Data Limite", "Portaria Atual"]],
         body: tableData,
         startY: currentY,
-        styles: { fontSize: 7, cellPadding: 1.5 },
+        styles: { fontSize: 5.5, cellPadding: 1 },
         headStyles: { fillColor: [37, 99, 235], textColor: 255 },
         alternateRowStyles: { fillColor: [240, 240, 240] },
         didParseCell: (data) => {
