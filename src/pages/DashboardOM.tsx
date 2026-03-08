@@ -1568,7 +1568,7 @@ const DashboardOM = () => {
           return [
             (index + 1).toString(),
             item.neo.toString(),
-            item.setor,
+            item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor,
             item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo,
             item.postoTmft,
             item.quadroTmft,
@@ -2210,7 +2210,7 @@ const DashboardOM = () => {
             new TableRow({
               children: [
                 createCell(item.neo.toString(), false, bgColor, textColor),
-                createCell(item.setor || "-", false, bgColor, textColor),
+                createCell(item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.setor || "-"), false, bgColor, textColor),
                 createCell(item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.cargo || "-"), false, bgColor, textColor),
                 createCell(item.postoTmft || "-", false, bgColor, textColor),
                 createCell(item.quadroTmft || "-", false, bgColor, textColor),
@@ -2553,8 +2553,8 @@ const DashboardOM = () => {
         efetivoData.push([
           item.om,
           item.neo,
-          item.tipoSetor,
-          item.setor,
+          item.tipoSetor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.tipoSetor,
+          item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor,
           item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo,
           item.postoTmft,
           item.corpoTmft,
@@ -3184,7 +3184,7 @@ const DashboardOM = () => {
                       <UITableRow key={item.id}>
                         <UITableCell>{index + 1}</UITableCell>
                         <UITableCell>{item.neo || "-"}</UITableCell>
-                        <UITableCell>{item.setor || "-"}</UITableCell>
+                        <UITableCell>{item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.setor || "-")}</UITableCell>
                         <UITableCell>{(item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo) || "-"}</UITableCell>
                         <UITableCell>{item.postoTmft || "-"}</UITableCell>
                         <UITableCell>{item.quadroTmft || "-"}</UITableCell>

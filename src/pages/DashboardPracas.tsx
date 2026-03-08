@@ -1315,7 +1315,7 @@ const DashboardPracas = () => {
           return [
             (index + 1).toString(),
             item.neo.toString(),
-            item.setor,
+            item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor,
             item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo,
             item.postoTmft,
             item.quadroTmft,
@@ -1866,7 +1866,7 @@ const DashboardPracas = () => {
             new TableRow({
               children: [
                 createCell(item.neo.toString(), false, bgColor, txtColor),
-                createCell(item.setor || "-", false, bgColor, txtColor),
+                createCell(item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.setor || "-"), false, bgColor, txtColor),
                 createCell(item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.cargo || "-"), false, bgColor, txtColor),
                 createCell(item.postoTmft || "-", false, bgColor, txtColor),
                 createCell(item.quadroTmft || "-", false, bgColor, txtColor),
@@ -2161,9 +2161,9 @@ const DashboardPracas = () => {
         efetivoData.push([
           item.om,
           item.neo,
-          item.tipoSetor,
-          item.setor,
-          item.cargo,
+          item.tipoSetor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.tipoSetor,
+          item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor,
+          item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo,
           item.postoTmft,
           item.quadroTmft,
           item.opcaoTmft,
@@ -2801,8 +2801,8 @@ const DashboardPracas = () => {
                       >
                         {formatMilitarName()}
                       </p>
-                      <p className="text-xs text-muted-foreground">{item.cargo}</p>
-                      <p className="text-xs text-muted-foreground">{item.setor}</p>
+                      <p className="text-xs text-muted-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
+                      <p className="text-xs text-muted-foreground">{item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor}</p>
                       <div className="mt-2 text-xs">
                         <span className="font-medium">NEO:</span> {item.quadroTmft || "-"}
                         <span className="mx-2">•</span>
@@ -2896,8 +2896,8 @@ const DashboardPracas = () => {
                         {item.om}
                       </Badge>
                     </div>
-                    <p className="font-medium text-sm text-foreground">{item.cargo}</p>
-                    <p className="text-xs text-muted-foreground">{item.setor}</p>
+                    <p className="font-medium text-sm text-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
+                    <p className="text-xs text-muted-foreground">{item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor}</p>
                     <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
                       <span>Especialidade: {item.quadroTmft || "-"}</span>
                       <span>•</span>
