@@ -2553,7 +2553,7 @@ const DashboardOM = () => {
         efetivoData.push([
           item.om,
           item.neo,
-          item.tipoSetor,
+          item.tipoSetor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.tipoSetor,
           item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor,
           item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo,
           item.postoTmft,
