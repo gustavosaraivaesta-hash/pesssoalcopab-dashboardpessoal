@@ -481,11 +481,7 @@ async function syncToSheet(
 
         console.log('Enviando para Apps Script:', JSON.stringify(payload, null, 2));
 
-        const response = await fetch(appsScriptUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        const response = await fetchWithPostRedirect(appsScriptUrl, JSON.stringify(payload));
 
         const contentType = response.headers.get('content-type') || '';
         const bodyText = await response.text().catch(() => '');
