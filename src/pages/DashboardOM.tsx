@@ -3184,7 +3184,7 @@ const DashboardOM = () => {
                       <UITableRow key={item.id}>
                         <UITableCell>{index + 1}</UITableCell>
                         <UITableCell>{item.neo || "-"}</UITableCell>
-                        <UITableCell>{item.setor || "-"}</UITableCell>
+                        <UITableCell>{item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.setor || "-")}</UITableCell>
                         <UITableCell>{(item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo) || "-"}</UITableCell>
                         <UITableCell>{item.postoTmft || "-"}</UITableCell>
                         <UITableCell>{item.quadroTmft || "-"}</UITableCell>
