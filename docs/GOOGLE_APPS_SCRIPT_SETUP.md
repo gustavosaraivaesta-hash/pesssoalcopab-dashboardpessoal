@@ -96,10 +96,11 @@ function doGet(e) {
 5. Autorize o acesso à planilha quando solicitado
 6. **Copie a URL** do aplicativo web (será algo como `https://script.google.com/macros/s/xxx/exec`)
 
-## Passo 3: Configurar o Secret no Lovable
+## Passo 3: Configurar os Secrets no Lovable
 
-1. A URL copiada deve ser adicionada ao secret `GOOGLE_APPS_SCRIPT_URL`
-2. O sistema já está configurado para usar essa URL automaticamente
+1. **Para PRAÇAS**: Configure o secret `GOOGLE_APPS_SCRIPT_URL` com a URL do Apps Script da planilha de Praças
+2. **Para OFICIAIS**: Configure o secret `GOOGLE_APPS_SCRIPT_URL_OFICIAIS` com a URL do Apps Script da planilha de Oficiais
+3. Ambas as URLs devem terminar em `/exec`
 
 ## Teste
 
