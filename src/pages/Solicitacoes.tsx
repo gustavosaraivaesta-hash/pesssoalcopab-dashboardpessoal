@@ -334,7 +334,16 @@ export default function Solicitacoes() {
 
       if (error) throw error;
 
-      toast.success("Solicitação criada com sucesso!");
+      if (data?.autoApproved) {
+        const syncOk = data?.sheetSync?.success !== false;
+        if (syncOk) {
+          toast.success("Solicitação auto-aprovada e planilha atualizada! ✅");
+        } else {
+          toast.warning("Solicitação auto-aprovada, mas houve erro ao sincronizar a planilha.");
+        }
+      } else {
+        toast.success("Solicitação criada com sucesso!");
+      }
       setIsDialogOpen(false);
       resetForm();
       fetchRequests();
