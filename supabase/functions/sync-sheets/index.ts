@@ -377,7 +377,7 @@ async function syncToSheet(
   console.log('='.repeat(60));
   console.log(`OM: ${om} | Planilha: ${sheetName} | Spreadsheet: ${tipo}`);
 
-  const appsScriptUrl = normalizeAppsScriptUrl(RAW_APPS_SCRIPT_URL);
+  const appsScriptUrl = getAppsScriptUrl();
   if (appsScriptUrl) {
     if (!isAppsScriptWebAppUrl(appsScriptUrl)) {
       return {
