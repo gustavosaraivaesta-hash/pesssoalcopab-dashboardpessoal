@@ -1679,7 +1679,7 @@ const DashboardOM = () => {
                 usedHighlights.add("FORA_NEO");
               }
               // Destaque VERDE para SEM NEO (EXTRA LOTAÇÃO)
-               else if (setorStr.includes("EXTRA LOTA") || setorStr === "EXTRA LOTAÇÃO") {
+               else if (statusStr === "SEM NEO") {
                  data.cell.styles.fillColor = [209, 250, 229]; // green-100
                  data.cell.styles.textColor = [6, 95, 70]; // green-900
                  usedHighlights.add("EXTRA_LOTACAO");
