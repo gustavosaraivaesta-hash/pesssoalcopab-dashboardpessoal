@@ -48,30 +48,27 @@ function looksLikeHtml(s: string): boolean {
 // This function manually follows redirects while keeping the POST method.
 async function fetchWithPostRedirect(url: string, body: string, maxRedirects = 5): Promise<Response> {
   let currentUrl = url;
-  for (let i = 0; i < maxRedirects; i++) {
+  
+  // First attempt: Try with redirect:follow to see if it works
+  try {
     const response = await fetch(currentUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body,
-      redirect: 'manual', // Don't auto-follow redirects
+      redirect: 'follow',
     });
-
-    if (response.status >= 300 && response.status < 400) {
-      const location = response.headers.get('location');
-      if (location) {
-        console.log(`Redirect ${response.status} → ${location.slice(0, 80)}...`);
-        // For 302/303, switch to GET (which is what Apps Script expects after redirect)
-        const getResponse = await fetch(location, {
-          method: 'GET',
-          redirect: 'follow',
-        });
-        return getResponse;
-      }
-    }
-
+    
+    const contentType = response.headers.get('content-type') || '';
+    console.log(`Response status: ${response.status}, content-type: ${contentType}`);
+    
     return response;
+  } catch (error) {
+    console.error('Erro ao fazer POST para Apps Script:', error);
+    throw error;
   }
-  throw new Error('Too many redirects');
 }
 
 // ── Sheet configs per OM ───────────────────────────────────────────────
