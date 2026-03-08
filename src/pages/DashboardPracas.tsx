@@ -2896,8 +2896,8 @@ const DashboardPracas = () => {
                         {item.om}
                       </Badge>
                     </div>
-                    <p className="font-medium text-sm text-foreground">{item.cargo}</p>
-                    <p className="text-xs text-muted-foreground">{item.setor}</p>
+                    <p className="font-medium text-sm text-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
+                    <p className="text-xs text-muted-foreground">{item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor}</p>
                     <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
                       <span>Especialidade: {item.quadroTmft || "-"}</span>
                       <span>•</span>
