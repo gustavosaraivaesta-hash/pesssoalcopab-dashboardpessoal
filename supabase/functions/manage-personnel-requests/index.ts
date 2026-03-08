@@ -94,23 +94,34 @@ serve(async (req) => {
       }
 
       // COPAB pode abrir solicitação para outra OM (ex.: editar dados da BAMRJ estando logado como COPAB)
-      // Preferência de OM alvo: target_om explícito > personnel_data.om > original_data.om
       const requestedTargetOmRaw = target_om ?? personnel_data?.om ?? original_data?.om;
       const requestedTargetOm = auth.isCopab ? normalizeOm(requestedTargetOmRaw) : '';
       const effectiveRequestingOm = auth.isCopab && requestedTargetOm ? requestedTargetOm : requestingOm;
 
+      // COPAB requests are auto-approved
+      const initialStatus = auth.isCopab ? 'APROVADO' : 'PENDENTE';
+
+      const insertData: any = {
+        request_type,
+        personnel_data,
+        original_data: original_data || null,
+        justification,
+        requesting_om: effectiveRequestingOm,
+        target_om: auth.isCopab && requestedTargetOm ? requestedTargetOm : null,
+        requested_by: auth.user.id,
+        status: initialStatus,
+      };
+
+      // If auto-approved (COPAB), set review fields
+      if (auth.isCopab) {
+        insertData.reviewed_by = auth.user.id;
+        insertData.reviewed_at = new Date().toISOString();
+        insertData.review_notes = 'Auto-aprovado pelo COPAB';
+      }
+
       const { data: newRequest, error: insertError } = await adminClient
         .from('personnel_requests')
-        .insert({
-          request_type,
-          personnel_data,
-          original_data: original_data || null,
-          justification,
-          requesting_om: effectiveRequestingOm,
-          target_om: auth.isCopab && requestedTargetOm ? requestedTargetOm : null,
-          requested_by: auth.user.id,
-          status: 'PENDENTE'
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -122,9 +133,56 @@ serve(async (req) => {
         );
       }
 
-      console.log(`Created personnel request ${newRequest.id} by user ${auth.user.id}`);
+      console.log(`Created personnel request ${newRequest.id} by user ${auth.user.id} (status: ${initialStatus})`);
+
+      // If auto-approved (COPAB), archive and trigger sheet sync immediately
+      let sheetSyncResult = null;
+      if (auth.isCopab) {
+        // Archive original data for ALTERACAO/EXCLUSAO
+        if (['ALTERACAO', 'EXCLUSAO'].includes(request_type)) {
+          const dataToArchive = request_type === 'ALTERACAO' ? original_data : personnel_data;
+          if (dataToArchive) {
+            const { error: archiveError } = await adminClient
+              .from('personnel_history')
+              .insert({
+                request_id: newRequest.id,
+                action_type: request_type,
+                personnel_data: dataToArchive,
+                om: effectiveRequestingOm,
+                archived_by: auth.user.id
+              });
+            if (archiveError) {
+              console.error('Archive error:', archiveError);
+            }
+          }
+        }
+
+        // Trigger Google Sheets sync
+        try {
+          const { data: syncResult, error: syncInvokeError } = await adminClient.functions.invoke('sync-sheets', {
+            body: { action: 'sync', request_id: newRequest.id },
+          });
+
+          if (syncInvokeError) {
+            console.error(`Sheet sync invoke error for request ${newRequest.id}:`, syncInvokeError);
+            sheetSyncResult = { success: false, error: String(syncInvokeError) };
+          } else {
+            console.log(`Sheet sync result for request ${newRequest.id}:`, syncResult);
+            sheetSyncResult = syncResult;
+          }
+        } catch (syncError) {
+          console.error('Sheet sync error:', syncError);
+          sheetSyncResult = { success: false, error: String(syncError) };
+        }
+      }
+
       return new Response(
-        JSON.stringify({ success: true, request: newRequest }),
+        JSON.stringify({ 
+          success: true, 
+          request: newRequest,
+          autoApproved: auth.isCopab,
+          sheetSync: sheetSyncResult,
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 201 }
       );
     }
