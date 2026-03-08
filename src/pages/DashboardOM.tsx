@@ -273,9 +273,12 @@ const DashboardOM = () => {
     ]);
   };
 
-  const fetchData = async () => {
+  const fetchData = async (isBackground = false) => {
     try {
-      setLoading(true);
+      // Only show loading spinner if no data is already displayed
+      if (!isBackground && personnelData.length === 0) {
+        setLoading(true);
+      }
       console.log("Fetching OM data...");
 
       // Check if offline using navigator.onLine for real-time status
@@ -306,15 +309,17 @@ const DashboardOM = () => {
       if (error) {
         console.error("Error fetching OM data:", error);
         // Try to load from cache on error
-        const cachedData = getFromCache();
-        if (cachedData) {
-          console.log("Error fetching - loading from cache");
-          applyUserFiltering(cachedData);
-          setIsUsingCache(true);
-          toast.warning("Erro ao atualizar - usando dados do cache");
-          return;
+        if (personnelData.length === 0) {
+          const cachedData = getFromCache();
+          if (cachedData) {
+            console.log("Error fetching - loading from cache");
+            applyUserFiltering(cachedData);
+            setIsUsingCache(true);
+            toast.warning("Erro ao atualizar - usando dados do cache");
+            return;
+          }
         }
-        toast.error("Erro ao carregar dados");
+        if (!isBackground) toast.error("Erro ao carregar dados");
         return;
       }
 
@@ -340,26 +345,38 @@ const DashboardOM = () => {
       }
     } catch (error) {
       console.error("Error in fetchData:", error);
-      // Try to load from cache on error
-      const cachedData = getFromCache();
-      if (cachedData) {
-        console.log("Exception - loading from cache");
-        applyUserFiltering(cachedData);
-        setIsUsingCache(true);
-        toast.warning("Erro ao atualizar - usando dados do cache");
-        return;
+      // Try to load from cache on error only if no data displayed
+      if (personnelData.length === 0) {
+        const cachedData = getFromCache();
+        if (cachedData) {
+          console.log("Exception - loading from cache");
+          applyUserFiltering(cachedData);
+          setIsUsingCache(true);
+          toast.warning("Erro ao atualizar - usando dados do cache");
+          return;
+        }
       }
-      toast.error("Erro ao carregar dados");
+      if (!isBackground) toast.error("Erro ao carregar dados");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    // Try loading from cache first for instant display
+    const cachedData = getFromCache();
+    if (cachedData) {
+      console.log("Showing cached OM data instantly");
+      applyUserFiltering(cachedData);
+      setIsUsingCache(true);
+      setLoading(false);
+    }
 
-    // Auto-sync every 5 minutes
-    const interval = setInterval(fetchData, 300000);
+    // Then fetch fresh data (in background if cache was shown)
+    fetchData(!!cachedData);
+
+    // Auto-sync every 2 minutes
+    const interval = setInterval(() => fetchData(true), 120000);
     return () => clearInterval(interval);
   }, []);
 
@@ -2733,7 +2750,7 @@ const DashboardOM = () => {
                     Limpar Filtros
                   </Button>
                 )}
-                <Button onClick={fetchData} variant="outline" size="sm">
+                <Button onClick={() => fetchData()} variant="outline" size="sm">
                   <RefreshCw className="mr-2 h-4 w-4" />
                   Atualizar
                 </Button>

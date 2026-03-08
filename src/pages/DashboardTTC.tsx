@@ -225,17 +225,28 @@ const DashboardTTC = () => {
     ]);
   };
 
-  const fetchData = async (showToast = false) => {
+  const fetchData = async (showToast = false, isBackground = false) => {
     if (showToast) setIsRefreshing(true);
 
+    if (!navigator.onLine) {
+      toast.info("Modo offline - dados TTC indisponíveis");
+      setIsLoading(false);
+      if (showToast) setIsRefreshing(false);
+      return;
+    }
+
     try {
+      // Only show loading if no data displayed yet
+      if (!isBackground && ttcData.length === 0) {
+        setIsLoading(true);
+      }
       console.log("Fetching TTC data...");
 
       const response = await invokeFunction<any>("fetch-ttc-data");
 
       if (response.error) {
         console.error("Error fetching TTC data:", response.error);
-        toast.error("Erro ao carregar dados TTC");
+        if (!isBackground) toast.error("Erro ao carregar dados TTC");
         return;
       }
 
@@ -252,7 +263,7 @@ const DashboardTTC = () => {
       }
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Erro ao conectar com o servidor");
+      if (!isBackground) toast.error("Erro ao conectar com o servidor");
     }
     
     setIsLoading(false);
@@ -265,7 +276,7 @@ const DashboardTTC = () => {
     // Auto-refresh every 2 minutes
     const interval = setInterval(() => {
       console.log("Auto-refreshing TTC data...");
-      fetchData();
+      fetchData(false, true);
     }, 120000);
 
     return () => clearInterval(interval);

@@ -262,7 +262,7 @@ const DashboardPracas = () => {
     ]);
   };
 
-  const fetchData = async () => {
+  const fetchData = async (isBackground = false) => {
     // If offline, try to load from cache
     if (!navigator.onLine) {
       const hasCache = loadFromCache();
@@ -276,19 +276,23 @@ const DashboardPracas = () => {
     }
 
     try {
-      setLoading(true);
+      // Only show loading if no data displayed yet
+      if (!isBackground && personnelData.length === 0) {
+        setLoading(true);
+      }
       console.log("Fetching PRAÇAS data...");
 
       const { data: result, error } = await invokeFunction<any>("fetch-pracas-data");
 
       if (error) {
         console.error("Error fetching PRAÇAS data:", error);
-        // Try cache on error
-        const hasCache = loadFromCache();
-        if (hasCache) {
-          toast.warning("Erro ao atualizar - usando dados em cache");
-        } else {
-          toast.error("Erro ao carregar dados de PRAÇAS");
+        if (personnelData.length === 0) {
+          const hasCache = loadFromCache();
+          if (hasCache) {
+            toast.warning("Erro ao atualizar - usando dados em cache");
+          } else {
+            toast.error("Erro ao carregar dados de PRAÇAS");
+          }
         }
         return;
       }
@@ -375,12 +379,13 @@ const DashboardPracas = () => {
       }
     } catch (error) {
       console.error("Error in fetchData:", error);
-      // Try cache on error
-      const hasCache = loadFromCache();
-      if (hasCache) {
-        toast.warning("Erro ao atualizar - usando dados em cache");
-      } else {
-        toast.error("Erro ao carregar dados");
+      if (personnelData.length === 0) {
+        const hasCache = loadFromCache();
+        if (hasCache) {
+          toast.warning("Erro ao atualizar - usando dados em cache");
+        } else {
+          toast.error("Erro ao carregar dados");
+        }
       }
     } finally {
       setLoading(false);
@@ -388,9 +393,16 @@ const DashboardPracas = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    // Show cached data instantly
+    const hasCache = loadFromCache();
+    if (hasCache) {
+      setLoading(false);
+    }
 
-    const interval = setInterval(fetchData, 300000);
+    // Then fetch fresh data in background
+    fetchData(hasCache);
+
+    const interval = setInterval(() => fetchData(true), 120000);
     return () => clearInterval(interval);
   }, []);
 
@@ -2362,7 +2374,7 @@ const DashboardPracas = () => {
                     Limpar Filtros
                   </Button>
                 )}
-                <Button onClick={fetchData} variant="outline" size="sm">
+                <Button onClick={() => fetchData()} variant="outline" size="sm">
                   <RefreshCw className="mr-2 h-4 w-4" />
                   Atualizar
                 </Button>
