@@ -247,8 +247,7 @@ const Index = () => {
     return arr.filter((item: any) => allowedUpper.has(String(item?.om || "").toUpperCase()));
   };
 
-  // Fetch data from both PRAÇAS and OFICIAIS edge functions
-  const fetchData = async (showToast = false) => {
+  const fetchData = async (showToast = false, isBackground = false) => {
     if (showToast) setIsRefreshing(true);
 
     // Check if offline using navigator.onLine for real-time status
@@ -259,10 +258,7 @@ const Index = () => {
       const cachedData = getFromCache();
       if (cachedData && cachedData.length > 0) {
         console.log("Loading COpAb data from cache:", cachedData.length, "records");
-
-        // Apply user access filtering to cached data (case-insensitive)
         const filteredByAccess = filterDataForCurrentUser(cachedData);
-
         setMilitaryData(filteredByAccess);
         setRawPersonnel({ pracas: [], oficiais: [] });
         setIsUsingCache(true);
@@ -282,6 +278,10 @@ const Index = () => {
     }
     
     try {
+      // Only show loading spinner if no data displayed yet
+      if (!isBackground && militaryData.length === 0) {
+        setIsLoading(true);
+      }
       console.log("Fetching data from PRAÇAS and OFICIAIS edge functions...");
       
       const invoke = (name: string, ms = 25000) =>
@@ -303,7 +303,7 @@ const Index = () => {
       const nextRawPracas: any[] = [];
       const nextRawOficiais: any[] = [];
 
-      // Process PRAÇAS data - use 'data' property (or 'personnel' for backwards compatibility)
+      // Process PRAÇAS data
       if (pracasResponse.error) {
         console.error("Error fetching PRAÇAS data:", pracasResponse.error);
       } else {
@@ -318,7 +318,7 @@ const Index = () => {
         }
       }
 
-      // Process OFICIAIS data - use 'data' property (or 'personnel' for backwards compatibility)
+      // Process OFICIAIS data
       if (oficiaisResponse.error) {
         console.error("Error fetching OFICIAIS data:", oficiaisResponse.error);
       } else {
@@ -329,7 +329,6 @@ const Index = () => {
         if (oficiaisFiltered.length > 0) {
           console.log(`Loaded ${oficiaisFiltered.length} OFICIAIS records`);
 
-          // Debug: conferir se existe 2T em COpAb nos dados brutos
           const copab = oficiaisFiltered.filter((p: any) => String(p?.om || "") === "COpAb");
           const postosCopab = Array.from(
             new Set(
@@ -350,23 +349,18 @@ const Index = () => {
       if (allMilitaryData.length > 0) {
         console.log(`Total combined records: ${allMilitaryData.length}`);
 
-        // Save raw data to cache before filtering
         saveToCache(allMilitaryData);
         setIsUsingCache(false);
 
-        // Apply user access filtering (case-insensitive)
         const filteredByAccess = filterDataForCurrentUser<MilitaryData>(allMilitaryData);
 
         console.log("Index - After access filter:", filteredByAccess.length, "records");
 
-        // Detectar alterações nos valores
         if (previousData.length > 0 && showToast) {
           const changes = detectChanges(previousData, filteredByAccess);
           if (changes.length > 0) {
             changes.forEach((change) => {
-              toast.success(change, {
-                duration: 5000,
-              });
+              toast.success(change, { duration: 5000 });
             });
           }
         }
@@ -377,29 +371,28 @@ const Index = () => {
         if (showToast) {
           toast.success(`Dados atualizados! ${filteredByAccess.length} registros combinados.`);
         }
-      } else {
+      } else if (militaryData.length === 0) {
         console.log("No data from edge functions, using mock data");
         toast("Usando dados de exemplo", {
           description: "Adicione dados na planilha para ver informações reais.",
         });
-        
-        // Also filter mock data by access (case-insensitive)
         const filteredMock = filterDataForCurrentUser(mockMilitaryData);
         setMilitaryData(filteredMock);
       }
     } catch (error) {
       console.error("Error:", error);
-      // Try to load from cache on error
-      const cachedData = getFromCache();
-      if (cachedData && cachedData.length > 0) {
-        console.log("Exception - loading from cache");
-        const filteredByAccess = filterDataForCurrentUser(cachedData);
-        setMilitaryData(filteredByAccess);
-        setIsUsingCache(true);
-        toast.warning("Erro ao conectar - usando dados do cache");
-      } else {
-        toast.error("Erro ao conectar. Usando dados de exemplo.");
-        setMilitaryData(mockMilitaryData);
+      if (militaryData.length === 0) {
+        const cachedData = getFromCache();
+        if (cachedData && cachedData.length > 0) {
+          console.log("Exception - loading from cache");
+          const filteredByAccess = filterDataForCurrentUser(cachedData);
+          setMilitaryData(filteredByAccess);
+          setIsUsingCache(true);
+          toast.warning("Erro ao conectar - usando dados do cache");
+        } else {
+          toast.error("Erro ao conectar. Usando dados de exemplo.");
+          setMilitaryData(mockMilitaryData);
+        }
       }
     }
     setIsLoading(false);
@@ -407,21 +400,30 @@ const Index = () => {
   };
 
   const handleManualRefresh = () => {
-    // Evita ficar preso em dados antigos (ex.: posto 2T não aparecendo por cache)
     clearCache();
     setIsUsingCache(false);
     fetchData(true);
   };
 
   useEffect(() => {
-    // Initial fetch
-    fetchData();
+    // Show cached data instantly
+    const cachedData = getFromCache();
+    if (cachedData && cachedData.length > 0) {
+      const filteredByAccess = filterDataForCurrentUser(cachedData);
+      setMilitaryData(filteredByAccess);
+      setRawPersonnel({ pracas: [], oficiais: [] });
+      setIsUsingCache(true);
+      setIsLoading(false);
+    }
+
+    // Fetch fresh data in background
+    fetchData(false, !!cachedData);
 
     // Auto-refresh a cada 2 minutos
     const interval = setInterval(() => {
       console.log("Auto-refreshing data...");
-      fetchData();
-    }, 120000); // 2 minutos
+      fetchData(false, true);
+    }, 120000);
 
     return () => clearInterval(interval);
   }, []);
