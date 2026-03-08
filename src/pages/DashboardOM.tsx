@@ -2554,7 +2554,7 @@ const DashboardOM = () => {
           item.om,
           item.neo,
           item.tipoSetor,
-          item.setor,
+          item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor,
           item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo,
           item.postoTmft,
           item.corpoTmft,
