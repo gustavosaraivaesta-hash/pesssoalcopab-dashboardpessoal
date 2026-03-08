@@ -1,6 +1,13 @@
 # Configuração do Google Apps Script para Sincronização Automática
 
-## Passo 1: Criar o Apps Script
+## IMPORTANTE: Duas URLs Necessárias
+
+O sistema utiliza **DUAS planilhas diferentes** (Oficiais e Praças), portanto você precisa criar **DOIS Apps Scripts** separados e configurar **DUAS URLs**:
+
+1. **GOOGLE_APPS_SCRIPT_URL** - Para sincronização de PRAÇAS
+2. **GOOGLE_APPS_SCRIPT_URL_OFICIAIS** - Para sincronização de OFICIAIS
+
+## Passo 1: Criar o Apps Script (REPETIR PARA CADA PLANILHA)
 
 1. Acesse [Google Apps Script](https://script.google.com)
 2. Clique em "Novo Projeto"
