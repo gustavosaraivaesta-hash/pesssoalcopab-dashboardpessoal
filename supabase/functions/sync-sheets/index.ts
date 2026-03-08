@@ -15,16 +15,25 @@ const PRACAS_SPREADSHEET_ID = '13YC7pfsERAJxdwzWPN12tTdNOVhlT_bbZXZigDZvalA';
 const OFICIAIS_SPREADSHEET_ID = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
 
 // Google Apps Script Web App URL for writing to sheets
-const RAW_APPS_SCRIPT_URL = Deno.env.get('GOOGLE_APPS_SCRIPT_URL') ?? '';
+function getAppsScriptUrl(): string {
+  const raw = Deno.env.get('GOOGLE_APPS_SCRIPT_URL') ?? '';
+  const url = normalizeAppsScriptUrl(raw);
+  console.log(`[APPS_SCRIPT_URL] raw length=${raw.length}, normalized="${url}"`);
+  return url;
+}
 
 function normalizeAppsScriptUrl(raw: string): string {
   let url = String(raw ?? '').trim();
+  // Remove trailing whitespace/newlines
+  url = url.replace(/[\s\r\n]+$/g, '');
+  // Fix /dev to /exec
   url = url.replace(/\/dev(\?|#|$)/, '/exec$1');
   return url;
 }
 
 function isAppsScriptWebAppUrl(url: string): boolean {
-  return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/(exec|dev)(?:[?#].*)?$/.test(url);
+  // Accept any script.google.com URL ending in /exec
+  return /^https:\/\/script\.google\.com\//.test(url) && /\/exec\s*$/.test(url);
 }
 
 function looksLikeHtml(s: string): boolean {
@@ -368,7 +377,7 @@ async function syncToSheet(
   console.log('='.repeat(60));
   console.log(`OM: ${om} | Planilha: ${sheetName} | Spreadsheet: ${tipo}`);
 
-  const appsScriptUrl = normalizeAppsScriptUrl(RAW_APPS_SCRIPT_URL);
+  const appsScriptUrl = getAppsScriptUrl();
   if (appsScriptUrl) {
     if (!isAppsScriptWebAppUrl(appsScriptUrl)) {
       return {
