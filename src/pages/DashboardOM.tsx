@@ -1582,6 +1582,10 @@ const DashboardOM = () => {
             isExtraRow = item.ocupado && matchesEfe && !matchesTmft;
           }
 
+          // Check if this is a SEM NEO position (EXTRA LOTAÇÃO)
+          const tipoSetorStr = (item.tipoSetor || "").trim().toUpperCase();
+          const isSemNeo = tipoSetorStr === "EXTRA LOTAÇÃO" || tipoSetorStr.includes("EXTRA LOTA");
+
           return [
             (index + 1).toString(),
             item.neo.toString(),
@@ -1596,14 +1600,18 @@ const DashboardOM = () => {
             item.corpoEfe || "-",
             item.ocupado
               ? (() => {
-                  const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
-                  const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
                   if (isExtraRow) {
                     return "EFETIVO";
-                  } else if (!corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe) {
-                    return "NA NEO";
+                  } else if (isSemNeo) {
+                    return "SEM NEO";
                   } else {
-                    return "FORA NEO";
+                    const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
+                    const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
+                    if (!corpoEfe || corpoEfe === "-" || corpoTmft === corpoEfe) {
+                      return "NA NEO";
+                    } else {
+                      return "FORA NEO";
+                    }
                   }
                 })()
               : "VAGO",
