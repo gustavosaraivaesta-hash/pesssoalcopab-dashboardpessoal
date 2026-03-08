@@ -1229,7 +1229,7 @@ const DashboardOM = () => {
           { key: "VAGA", color: [254, 202, 202] as [number, number, number], textColor: [127, 29, 29] as [number, number, number], label: "VAGA - Cargo sem ocupante" },
           { key: "FORA_NEO", color: [255, 237, 213] as [number, number, number], textColor: [194, 65, 12] as [number, number, number], label: "FORA DA NEO - Especialidade divergente do cargo" },
           { key: "EFETIVO_EXTRA", color: [219, 234, 254] as [number, number, number], textColor: [30, 64, 175] as [number, number, number], label: "EFETIVO EXTRA - Militar em posição de outro quadro ou corpo" },
-          { key: "EXTRA_LOTACAO", color: [254, 240, 138] as [number, number, number], textColor: [113, 63, 18] as [number, number, number], label: "SEM NEO - Militar além do efetivo previsto" },
+          { key: "EXTRA_LOTACAO", color: [209, 250, 229] as [number, number, number], textColor: [6, 95, 70] as [number, number, number], label: "SEM NEO - Militar além do efetivo previsto" },
         ];
         const filtered = allLegendItems.filter(item => highlights.has(item.key));
         pdf.setFont("helvetica", "normal");
@@ -1653,12 +1653,12 @@ const DashboardOM = () => {
                 data.cell.styles.textColor = [194, 65, 12]; // orange-700
                 usedHighlights.add("FORA_NEO");
               }
-              // Destaque amarelo para EXTRA LOTAÇÃO
-              else if (setorStr.includes("EXTRA LOTA") || setorStr === "EXTRA LOTAÇÃO") {
-                data.cell.styles.fillColor = [254, 240, 138];
-                data.cell.styles.textColor = [113, 63, 18];
-                usedHighlights.add("EXTRA_LOTACAO");
-              }
+              // Destaque VERDE para SEM NEO (EXTRA LOTAÇÃO)
+               else if (setorStr.includes("EXTRA LOTA") || setorStr === "EXTRA LOTAÇÃO") {
+                 data.cell.styles.fillColor = [209, 250, 229]; // green-100
+                 data.cell.styles.textColor = [6, 95, 70]; // green-900
+                 usedHighlights.add("EXTRA_LOTACAO");
+               }
               // Destaque vermelho para NOME vazio/vago
               else if (!isOcupado) {
                 data.cell.styles.fillColor = [254, 202, 202];
