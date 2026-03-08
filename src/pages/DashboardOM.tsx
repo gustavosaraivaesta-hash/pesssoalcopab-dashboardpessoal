@@ -2210,7 +2210,7 @@ const DashboardOM = () => {
             new TableRow({
               children: [
                 createCell(item.neo.toString(), false, bgColor, textColor),
-                createCell(item.setor || "-", false, bgColor, textColor),
+                createCell(item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.setor || "-"), false, bgColor, textColor),
                 createCell(item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.cargo || "-"), false, bgColor, textColor),
                 createCell(item.postoTmft || "-", false, bgColor, textColor),
                 createCell(item.quadroTmft || "-", false, bgColor, textColor),
