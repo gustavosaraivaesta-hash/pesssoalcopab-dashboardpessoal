@@ -2801,8 +2801,8 @@ const DashboardPracas = () => {
                       >
                         {formatMilitarName()}
                       </p>
-                      <p className="text-xs text-muted-foreground">{item.cargo}</p>
-                      <p className="text-xs text-muted-foreground">{item.setor}</p>
+                      <p className="text-xs text-muted-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
+                      <p className="text-xs text-muted-foreground">{item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor}</p>
                       <div className="mt-2 text-xs">
                         <span className="font-medium">NEO:</span> {item.quadroTmft || "-"}
                         <span className="mx-2">•</span>
