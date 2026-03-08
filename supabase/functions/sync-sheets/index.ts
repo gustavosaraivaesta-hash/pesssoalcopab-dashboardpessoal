@@ -487,9 +487,11 @@ async function syncToSheet(
         if (!response.ok) {
           console.error('Erro Apps Script:', { status: response.status, contentType, bodyPreview: bodyText.slice(0, 300) });
           if (looksLikeHtml(bodyText)) {
+            const isPracas = !oficiais;
+            const secretName = isPracas ? 'GOOGLE_APPS_SCRIPT_URL' : 'GOOGLE_APPS_SCRIPT_URL_OFICIAIS';
             return {
               success: false,
-              message: 'Falha ao chamar o Apps Script (URL incorreta ou não publicada). Atualize o GOOGLE_APPS_SCRIPT_URL.',
+              message: `Falha ao chamar o Apps Script. Verifique:\n1. ${secretName} está configurada corretamente\n2. Apps Script foi implantado como "Aplicativo Web"\n3. Permissões: "Executar como: Eu" e "Quem pode acessar: Qualquer pessoa"\n4. URL termina em /exec (não /dev)`,
             };
           }
           lastErrorMessage = `Erro ao atualizar planilha (Apps Script HTTP ${response.status}).`;
@@ -501,7 +503,12 @@ async function syncToSheet(
           result = JSON.parse(bodyText);
         } catch (_e) {
           console.error('Resposta Apps Script não-JSON:', { contentType, bodyPreview: bodyText.slice(0, 300) });
-          return { success: false, message: 'Apps Script respondeu em formato inesperado.' };
+          const isPracas = !oficiais;
+          const secretName = isPracas ? 'GOOGLE_APPS_SCRIPT_URL' : 'GOOGLE_APPS_SCRIPT_URL_OFICIAIS';
+          return { 
+            success: false, 
+            message: `Apps Script respondeu em formato inesperado (não-JSON).\n\nVerifique:\n1. ${secretName} é a URL do "Aplicativo Web" (termina em /exec)\n2. Apps Script tem permissão para acessar a planilha\n3. Código do Apps Script está correto\n\nURL atual: ${appsScriptUrl.slice(0, 50)}...` 
+          };
         }
 
         console.log('Resultado Apps Script:', result);
