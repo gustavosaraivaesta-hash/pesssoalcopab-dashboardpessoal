@@ -1855,8 +1855,8 @@ const DashboardPracas = () => {
               txtColor = "C2410C";
             } else if (setorStr.includes("EXTRA LOTA")) {
               status = "SEM NEO";
-              bgColor = "FEF08A";
-              txtColor = "713F12";
+              bgColor = "D1FAE5";
+              txtColor = "065F46";
             } else {
               status = "NA NEO";
             }
