@@ -375,8 +375,8 @@ const DashboardOM = () => {
     // Then fetch fresh data (in background if cache was shown)
     fetchData(!!cachedData);
 
-    // Auto-sync every 2 minutes
-    const interval = setInterval(() => fetchData(true), 120000);
+    // Auto-sync every 5 minutes
+    const interval = setInterval(() => fetchData(true), 300000);
 
     // Auto-refresh when user returns to the tab/app
     const handleVisibility = () => {

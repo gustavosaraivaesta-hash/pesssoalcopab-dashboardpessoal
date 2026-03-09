@@ -273,11 +273,11 @@ const DashboardTTC = () => {
   useEffect(() => {
     fetchData();
 
-    // Auto-refresh every 2 minutes
+    // Auto-refresh every 5 minutes
     const interval = setInterval(() => {
       console.log("Auto-refreshing TTC data...");
       fetchData(false, true);
-    }, 120000);
+    }, 300000);
 
     // Auto-refresh when user returns to the tab/app
     const handleVisibility = () => {
