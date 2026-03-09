@@ -279,7 +279,19 @@ const DashboardTTC = () => {
       fetchData(false, true);
     }, 120000);
 
-    return () => clearInterval(interval);
+    // Auto-refresh when user returns to the tab/app
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        console.log("Tab visible - refreshing TTC data...");
+        fetchData(false, true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   const handleLogout = async () => {
