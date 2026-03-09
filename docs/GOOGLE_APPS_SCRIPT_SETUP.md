@@ -158,11 +158,19 @@ function testPost() {
 
 ## Teste
 
-Após configurar, faça uma solicitação de teste:
-1. Faça login como uma OM
-2. Crie uma nova solicitação de INCLUSÃO
-3. Faça login como COPAB e aprove a solicitação
-4. Verifique se os dados foram adicionados à planilha correspondente
+**IMPORTANTE**: Antes de usar no sistema, teste cada Apps Script:
+
+### Para testar PRAÇAS:
+1. Faça login como uma OM (ex: BAMRJ)
+2. Crie uma solicitação de ALTERAÇÃO de uma praça
+3. Faça login como COPAB e aprove
+4. Verifique se os dados foram atualizados na planilha de PRAÇAS
+
+### Para testar OFICIAIS:
+1. Faça login como uma OM (ex: COPAB)
+2. Crie uma solicitação de ALTERAÇÃO de um oficial
+3. Faça login como COPAB e aprove
+4. Verifique se os dados foram atualizados na planilha de OFICIAIS
 
 ## Mapeamento de Colunas
 
