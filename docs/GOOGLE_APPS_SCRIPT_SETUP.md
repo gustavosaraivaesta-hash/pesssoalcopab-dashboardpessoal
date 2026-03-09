@@ -191,10 +191,31 @@ O sistema mapeia os campos da seguinte forma:
 
 ## Troubleshooting
 
+### Erro: "Apps Script respondeu em formato inesperado"
+**Causa**: O Apps Script não foi implantado corretamente ou as permissões não foram concedidas.
+
+**Solução**:
+1. Acesse o Apps Script que tem problema
+2. Vá em **Implantar** > **Gerenciar implantações**
+3. Clique nos 3 pontos (...) da implantação e selecione **Editar**
+4. **Verifique**:
+   - "Executar como" está como **Eu** (não "Usuário que acessa...")
+   - "Quem pode acessar" está como **Qualquer pessoa** (não "Somente eu")
+5. Clique em **Implantar**
+6. **IMPORTANTE**: Autorize novamente as permissões se solicitado
+7. Copie a nova URL e atualize o secret correspondente
+
+### Como saber qual Apps Script tem problema?
+Veja nos logs da edge function:
+- Se diz `GOOGLE_APPS_SCRIPT_URL` → problema no Apps Script de **PRAÇAS**
+- Se diz `GOOGLE_APPS_SCRIPT_URL_OFICIAIS` → problema no Apps Script de **OFICIAIS**
+
 ### Erro de autorização
-- Certifique-se de que o Apps Script tem permissão para acessar a planilha
-- Re-implante o script se necessário
+- O Apps Script precisa ter permissão explícita para acessar a planilha
+- Ao implantar pela primeira vez, você DEVE clicar em "Revisar permissões" e autorizar
+- Se não autorizou, re-implante e autorize quando solicitado
 
 ### Dados não aparecem na planilha
-- Verifique os logs do Apps Script em **Visualizar** > **Execuções**
-- Verifique os logs da Edge Function no painel de administração
+- Verifique os logs do Apps Script em **Executar** > **Execuções**
+- Verifique os logs da Edge Function usando os logs do Lovable Cloud
+- Confirme que o ID da planilha está correto no código da edge function
