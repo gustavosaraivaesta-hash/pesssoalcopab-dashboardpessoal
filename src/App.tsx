@@ -13,6 +13,7 @@ import Solicitacoes from "./pages/Solicitacoes";
 import AdminSolicitacoes from "./pages/AdminSolicitacoes";
 import AdminHistorico from "./pages/AdminHistorico";
 import Install from "./pages/Install";
+import Manual from "./pages/Manual";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 
