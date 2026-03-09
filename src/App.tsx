@@ -13,6 +13,7 @@ import Solicitacoes from "./pages/Solicitacoes";
 import AdminSolicitacoes from "./pages/AdminSolicitacoes";
 import AdminHistorico from "./pages/AdminHistorico";
 import Install from "./pages/Install";
+import Manual from "./pages/Manual";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/admin/solicitacoes" element={<AuthGuard><AdminSolicitacoes /></AuthGuard>} />
           <Route path="/admin/historico" element={<AuthGuard><AdminHistorico /></AuthGuard>} />
           <Route path="/install" element={<Install />} />
+          <Route path="/manual" element={<Manual />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
