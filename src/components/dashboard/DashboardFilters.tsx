@@ -276,6 +276,12 @@ export const DashboardFilters = ({
                 Atualizar
               </Button>
             )}
+            {onManual && (
+              <Button variant="outline" onClick={onManual} className="gap-2">
+                <BookOpen className="h-4 w-4" />
+                Manual
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
