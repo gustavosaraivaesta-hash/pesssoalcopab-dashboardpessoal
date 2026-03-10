@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FilterOptions, MilitaryData } from "@/types/military";
-import { X, FileText, Filter, RefreshCw } from "lucide-react";
+import { X, FileText, Filter, RefreshCw, BookOpen } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -94,6 +94,7 @@ interface DashboardFiltersProps {
   chartRef: React.RefObject<HTMLDivElement>;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  onManual?: () => void;
 }
 
 export const DashboardFilters = ({ 
@@ -104,7 +105,8 @@ export const DashboardFilters = ({
   metrics,
   chartRef,
   onRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  onManual
 }: DashboardFiltersProps) => {
   const [open, setOpen] = useState(false);
 
@@ -272,6 +274,12 @@ export const DashboardFilters = ({
               <Button variant="outline" onClick={onRefresh} disabled={isRefreshing} className="gap-2">
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
                 Atualizar
+              </Button>
+            )}
+            {onManual && (
+              <Button variant="outline" onClick={onManual} className="gap-2">
+                <BookOpen className="h-4 w-4" />
+                Manual
               </Button>
             )}
           </div>

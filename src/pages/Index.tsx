@@ -906,10 +906,6 @@ const Index = () => {
                 </DropdownMenu>
               )}
 
-              <Button variant="outline" onClick={() => navigate("/manual")} className="text-primary-foreground border-primary-foreground/30 hover:bg-primary-foreground/10">
-                <BookOpen size={18} className="mr-2" />
-                Manual
-              </Button>
 
               <Button variant="destructive" onClick={handleLogout}>
                 <LogOut size={18} className="mr-2" />
@@ -970,6 +966,7 @@ const Index = () => {
           chartRef={chartRef}
           onRefresh={handleManualRefresh}
           isRefreshing={isRefreshing}
+          onManual={() => navigate("/manual")}
         />
 
         {/* Métricas principais */}
