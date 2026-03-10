@@ -105,7 +105,8 @@ export const DashboardFilters = ({
   metrics,
   chartRef,
   onRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  onManual
 }: DashboardFiltersProps) => {
   const [open, setOpen] = useState(false);
 
