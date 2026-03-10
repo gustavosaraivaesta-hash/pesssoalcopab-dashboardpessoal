@@ -43,21 +43,22 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
-          <Route path="/dashboard-om" element={<AuthGuard><DashboardOM /></AuthGuard>} />
-          <Route path="/dashboard-pracas" element={<AuthGuard><DashboardPracas /></AuthGuard>} />
-          <Route path="/dashboard-ttc" element={<AuthGuard><DashboardTTC /></AuthGuard>} />
-          <Route path="/admin/users" element={<AuthGuard><AdminUsers /></AuthGuard>} />
-          <Route path="/solicitacoes" element={<AuthGuard><Solicitacoes /></AuthGuard>} />
-          <Route path="/admin/solicitacoes" element={<AuthGuard><AdminSolicitacoes /></AuthGuard>} />
-          <Route path="/admin/historico" element={<AuthGuard><AdminHistorico /></AuthGuard>} />
-          <Route path="/install" element={<Install />} />
-          <Route path="/manual" element={<Manual />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
+            <Route path="/dashboard-om" element={<AuthGuard><DashboardOM /></AuthGuard>} />
+            <Route path="/dashboard-pracas" element={<AuthGuard><DashboardPracas /></AuthGuard>} />
+            <Route path="/dashboard-ttc" element={<AuthGuard><DashboardTTC /></AuthGuard>} />
+            <Route path="/admin/users" element={<AuthGuard><AdminUsers /></AuthGuard>} />
+            <Route path="/solicitacoes" element={<AuthGuard><Solicitacoes /></AuthGuard>} />
+            <Route path="/admin/solicitacoes" element={<AuthGuard><AdminSolicitacoes /></AuthGuard>} />
+            <Route path="/admin/historico" element={<AuthGuard><AdminHistorico /></AuthGuard>} />
+            <Route path="/install" element={<Install />} />
+            <Route path="/manual" element={<Manual />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
