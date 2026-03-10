@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-// jsPDF loaded dynamically on export only
+import jsPDF from "jspdf";
 
 const MANUAL_VERSION = "1.5";
 const MANUAL_DATE = new Date().toLocaleDateString("pt-BR");

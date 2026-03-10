@@ -42,8 +42,21 @@ import {
   Legend,
   Brush,
 } from "recharts";
-// Heavy libraries loaded dynamically on export only
-// jsPDF, autoTable, XLSX, docx are imported inside export functions
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  Table,
+  TableCell,
+  TableRow,
+  WidthType,
+  TextRun,
+  AlignmentType,
+  ShadingType,
+} from "docx";
 
 import brasaoRepublica from "@/assets/brasao-republica.png";
 
