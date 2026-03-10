@@ -419,13 +419,25 @@ const Index = () => {
     // Fetch fresh data in background
     fetchData(false, !!cachedData);
 
-    // Auto-refresh a cada 2 minutos
+    // Auto-refresh a cada 5 minutos
     const interval = setInterval(() => {
       console.log("Auto-refreshing data...");
       fetchData(false, true);
-    }, 120000);
+    }, 300000);
 
-    return () => clearInterval(interval);
+    // Auto-refresh when user returns to the tab/app
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        console.log("Tab visible - refreshing Index data...");
+        fetchData(false, true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   // Fetch pending requests count for COpAb
