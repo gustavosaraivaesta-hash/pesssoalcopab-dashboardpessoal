@@ -94,6 +94,7 @@ interface DashboardFiltersProps {
   chartRef: React.RefObject<HTMLDivElement>;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  onManual?: () => void;
 }
 
 export const DashboardFilters = ({ 
