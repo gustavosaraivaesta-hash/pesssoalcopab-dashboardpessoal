@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, Award, FileDown, X, ChevronDown, ArrowLeft } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+// jsPDF and autoTable loaded dynamically on export only
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
