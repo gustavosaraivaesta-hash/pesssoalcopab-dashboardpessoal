@@ -970,6 +970,7 @@ const Index = () => {
           chartRef={chartRef}
           onRefresh={handleManualRefresh}
           isRefreshing={isRefreshing}
+          onManual={() => navigate("/manual")}
         />
 
         {/* Métricas principais */}
