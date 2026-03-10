@@ -270,18 +270,20 @@ export const DashboardFilters = ({
                 </Button>
               </div>
             </div>
-            {onRefresh && (
-              <Button variant="outline" onClick={onRefresh} disabled={isRefreshing} className="gap-2">
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                Atualizar
-              </Button>
-            )}
-            {onManual && (
-              <Button variant="outline" onClick={onManual} className="gap-2">
-                <BookOpen className="h-4 w-4" />
-                Manual
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {onRefresh && (
+                <Button variant="outline" onClick={onRefresh} disabled={isRefreshing} className="gap-2">
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                  Atualizar
+                </Button>
+              )}
+              {onManual && (
+                <Button variant="outline" onClick={onManual} className="gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Manual
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
