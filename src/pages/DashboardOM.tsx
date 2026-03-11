@@ -3780,7 +3780,10 @@ const DashboardOM = () => {
                       <div key={index} className="border-l-4 border-l-emerald-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <h4 className="text-base font-bold text-foreground">
+                              {[item.posto, item.quadro].filter(Boolean).join(" ")}{" "}
+                              {item.nome}
+                            </h4>
                             <p className="text-sm text-muted-foreground">{item.cargo}</p>
                             <div className="flex items-center gap-4 mt-2 text-sm">
                               <span className="text-emerald-600">
@@ -3789,15 +3792,11 @@ const DashboardOM = () => {
                               <Badge variant="secondary">{item.om}</Badge>
                             </div>
                           </div>
-                          <div className="flex gap-2">
-                            <Badge variant="outline">{item.posto}</Badge>
-                            <Badge variant="outline">{item.quadro}</Badge>
-                            {item.opcao && (
-                              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                                {item.opcao}
-                              </Badge>
-                            )}
-                          </div>
+                          {item.opcao && (
+                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                              {item.opcao}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     ))
