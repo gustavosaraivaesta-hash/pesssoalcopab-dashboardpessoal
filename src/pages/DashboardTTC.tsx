@@ -1002,7 +1002,7 @@ const DashboardTTC = () => {
                         const nome = row.nomeCompleto || '';
                         
                         // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
-                        const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
+                        const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN", "PL"].includes(esp);
 
                         if (!grad) return nome;
                         return `${grad}${isValidEsp ? `-${esp}` : ""} ${nome}`;
