@@ -2812,7 +2812,7 @@ const DashboardPracas = () => {
                       esp &&
                       grad !== "MN" &&
                       esp !== "-" &&
-                      !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
+                      !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN", "PL"].includes(esp);
                     if (!grad) return nomeCompleto;
                     return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}`;
                   };
