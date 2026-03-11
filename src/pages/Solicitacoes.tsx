@@ -342,6 +342,7 @@ export default function Solicitacoes() {
         } else {
           toast.warning("Solicitação auto-aprovada, mas houve erro ao sincronizar a planilha.");
         }
+        triggerDataRefresh();
       } else {
         toast.success("Solicitação criada com sucesso!");
       }

@@ -165,6 +165,7 @@ export default function AdminSolicitacoes() {
         toast.success("Solicitação aprovada! Alteração registrada para sincronização com a planilha.", {
           duration: 5000,
         });
+        triggerDataRefresh();
       } else {
         toast.success("Solicitação rejeitada com sucesso!");
       }
