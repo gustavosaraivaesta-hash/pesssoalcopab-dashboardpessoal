@@ -288,9 +288,21 @@ const DashboardTTC = () => {
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
+    const handleDataRefresh = () => {
+      console.log("Data refresh triggered - reloading TTC data...");
+      fetchData(false, true);
+    };
+    window.addEventListener('data-refresh', handleDataRefresh);
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'data_refresh_requested') handleDataRefresh();
+    };
+    window.addEventListener('storage', handleStorage);
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('data-refresh', handleDataRefresh);
+      window.removeEventListener('storage', handleStorage);
     };
   }, []);
 

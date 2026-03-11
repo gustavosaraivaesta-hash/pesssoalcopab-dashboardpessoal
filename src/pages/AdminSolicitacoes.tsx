@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { triggerDataRefresh } from "@/lib/refreshEvent";
 import { useNavigate } from "react-router-dom";
 import { FileText, Clock, CheckCircle2, XCircle, ArrowLeft, RefreshCw, Eye, Check, X, Edit, Trash2, Plus, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -164,6 +165,7 @@ export default function AdminSolicitacoes() {
         toast.success("Solicitação aprovada! Alteração registrada para sincronização com a planilha.", {
           duration: 5000,
         });
+        triggerDataRefresh();
       } else {
         toast.success("Solicitação rejeitada com sucesso!");
       }

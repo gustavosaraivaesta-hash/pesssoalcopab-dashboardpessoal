@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { triggerDataRefresh } from "@/lib/refreshEvent";
 import { useNavigate } from "react-router-dom";
 import { Plus, FileText, Clock, CheckCircle2, XCircle, ArrowLeft, RefreshCw, Search, User, Edit, Trash2, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -341,6 +342,7 @@ export default function Solicitacoes() {
         } else {
           toast.warning("Solicitação auto-aprovada, mas houve erro ao sincronizar a planilha.");
         }
+        triggerDataRefresh();
       } else {
         toast.success("Solicitação criada com sucesso!");
       }
