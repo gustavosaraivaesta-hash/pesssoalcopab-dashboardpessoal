@@ -48,7 +48,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
     const nomeCompleto = item.nome;
     
     // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
-    const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "CATP", "PRM", "CPRM", "QFN", "CFN"].includes(esp);
+    const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "CATP", "PRM", "CPRM", "QFN", "CFN", "PL"].includes(esp);
 
     if (!grad) return nomeCompleto;
     return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}`;
