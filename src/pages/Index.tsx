@@ -434,9 +434,22 @@ const Index = () => {
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
+    // Refresh immediately when data changes are triggered from other pages
+    const handleDataRefresh = () => {
+      console.log("Data refresh triggered - reloading Index data...");
+      fetchData(false, true);
+    };
+    window.addEventListener('data-refresh', handleDataRefresh);
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'data_refresh_requested') handleDataRefresh();
+    };
+    window.addEventListener('storage', handleStorage);
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('data-refresh', handleDataRefresh);
+      window.removeEventListener('storage', handleStorage);
     };
   }, []);
 

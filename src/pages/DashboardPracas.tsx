@@ -413,9 +413,22 @@ const DashboardPracas = () => {
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
+    // Refresh immediately when data changes are triggered
+    const handleDataRefresh = () => {
+      console.log("Data refresh triggered - reloading PRAÇAS data...");
+      fetchData(true);
+    };
+    window.addEventListener('data-refresh', handleDataRefresh);
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'data_refresh_requested') handleDataRefresh();
+    };
+    window.addEventListener('storage', handleStorage);
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('data-refresh', handleDataRefresh);
+      window.removeEventListener('storage', handleStorage);
     };
   }, []);
 
