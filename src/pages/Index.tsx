@@ -537,9 +537,9 @@ const Index = () => {
       data = data.filter((item) => item.categoria === filters.categoria);
     }
 
-    // Filtrar por OM
+    // Filtrar por OM (comparação case-insensitive)
     if (filters.om.length > 0) {
-      data = data.filter((item) => filters.om.includes(item.om));
+      data = data.filter((item) => filters.om.includes(String(item.om || "").toUpperCase()));
     }
 
     // Filtrar por especialidade
