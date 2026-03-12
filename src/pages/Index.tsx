@@ -980,6 +980,8 @@ const Index = () => {
           onRefresh={handleManualRefresh}
           isRefreshing={isRefreshing}
           onManual={() => navigate("/manual")}
+          extraLotacaoRows={extraLotacaoRows}
+          extraLotacaoTotal={extraLotacaoTotal}
         />
 
         {/* Métricas principais */}
