@@ -572,7 +572,7 @@ const Index = () => {
 
     const matches = (p: any) => {
       // OM
-      if (filters.om.length > 0 && !filters.om.includes(String(p.om || "").trim())) return false;
+      if (filters.om.length > 0 && !filters.om.includes(String(p.om || "").toUpperCase())) return false;
 
       // Pessoal (graduação) - para EXTRA LOTAÇÃO normalmente vem em postoEfe
       if (filters.pessoal.length > 0) {
