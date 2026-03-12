@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
+import brasaoRepublica from "@/assets/brasao-republica.png";
+import { ExtraLotacaoRow } from "@/components/dashboard/ExtraLotacaoTable";
 
 const ESPECIALIDADES = [
   "NEO 1",
@@ -90,11 +92,14 @@ interface DashboardFiltersProps {
     totalTMFT: number;
     totalEXI: number;
     totalDIF: number;
+    occupancyPercent?: string;
   };
   chartRef: React.RefObject<HTMLDivElement>;
   onRefresh?: () => void;
   isRefreshing?: boolean;
   onManual?: () => void;
+  extraLotacaoRows?: ExtraLotacaoRow[];
+  extraLotacaoTotal?: number;
 }
 
 export const DashboardFilters = ({ 
@@ -106,7 +111,9 @@ export const DashboardFilters = ({
   chartRef,
   onRefresh,
   isRefreshing = false,
-  onManual
+  onManual,
+  extraLotacaoRows = [],
+  extraLotacaoTotal = 0,
 }: DashboardFiltersProps) => {
   const [open, setOpen] = useState(false);
 
@@ -135,102 +142,330 @@ export const DashboardFilters = ({
     const autoTable = (await import('jspdf-autotable')).default;
     const html2canvas = (await import('html2canvas')).default;
     
-    const pdf = new jsPDF();
-    let yPos = 20;
-    
-    // Título
-    pdf.setFontSize(18);
-    pdf.text("Relatório COpAb - Dashboard", 14, yPos);
-    yPos += 10;
-    
-    // Filtros aplicados
-    pdf.setFontSize(12);
-    pdf.text("Filtros Aplicados:", 14, yPos);
-    yPos += 7;
-    
-    if (selectedFilters.om.length > 0) {
-      pdf.setFontSize(10);
-      pdf.text("OM:", 14, yPos);
-      yPos += 5;
-      selectedFilters.om.forEach(value => {
-        pdf.text(`  • ${value}`, 14, yPos);
-        yPos += 4;
-      });
-      yPos += 3;
-    }
+    try {
+      const pdf = new jsPDF("l", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      let yPos = 20;
 
-    if (selectedFilters.pessoal.length > 0) {
-      pdf.setFontSize(10);
-      pdf.text("Pessoal:", 14, yPos);
-      yPos += 5;
-      selectedFilters.pessoal.forEach(value => {
-        pdf.text(`  • ${value}`, 14, yPos);
-        yPos += 4;
-      });
-      yPos += 3;
-    }
-    
-    if (!hasSelectedFilters) {
-      pdf.setFontSize(10);
-      pdf.text("Nenhum filtro aplicado", 14, yPos);
-      yPos += 3;
-    }
-    
-    yPos += 10;
-    
-    // Métricas
-    pdf.setFontSize(12);
-    pdf.text("Métricas Totais:", 14, yPos);
-    yPos += 7;
-    
-    pdf.setFontSize(10);
-    pdf.text(`Total TMFT: ${metrics.totalTMFT}`, 14, yPos);
-    yPos += 5;
-    pdf.text(`Total EXI: ${metrics.totalEXI}`, 14, yPos);
-    yPos += 5;
-    pdf.text(`Total DIF: ${metrics.totalDIF}`, 14, yPos);
-    yPos += 10;
-    
-    // Capturar gráfico
-    if (chartRef.current) {
-      try {
-        const canvas = await html2canvas(chartRef.current, {
-          scale: 2,
-          backgroundColor: '#ffffff'
-        });
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = 180;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
-        pdf.addPage();
-        pdf.setFontSize(12);
-        pdf.text("Gráfico de Totais:", 14, 20);
-        pdf.addImage(imgData, 'PNG', 14, 30, imgWidth, imgHeight);
-      } catch (error) {
-        console.error('Erro ao capturar gráfico:', error);
+      // Load brasão
+      const brasaoImg = new Image();
+      brasaoImg.src = brasaoRepublica;
+      await new Promise((resolve) => { brasaoImg.onload = resolve; });
+
+      // Helper to check and add new page
+      const checkNewPage = (currentY: number, neededHeight: number) => {
+        if (currentY + neededHeight > pageHeight - 20) {
+          pdf.addPage();
+          return 20;
+        }
+        return currentY;
+      };
+
+      // ====== CAPA / HEADER ======
+      pdf.addImage(brasaoImg, "PNG", (pageWidth - 20) / 2, yPos, 20, 24);
+      yPos += 28;
+
+      pdf.setFontSize(16);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("CENTRO DE OPERAÇÕES DO ABASTECIMENTO", pageWidth / 2, yPos, { align: "center" });
+      yPos += 10;
+
+      const categoriaLabel = selectedFilters.categoria === "TODOS" 
+        ? "PRAÇAS E OFICIAIS" 
+        : selectedFilters.categoria;
+      pdf.setFontSize(14);
+      pdf.text(`Tabela Mestra de Força de Trabalho - ${categoriaLabel}`, pageWidth / 2, yPos, { align: "center" });
+      yPos += 8;
+
+      // Data de geração
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      const now = new Date();
+      pdf.text(`Gerado em: ${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString("pt-BR")}`, pageWidth / 2, yPos, { align: "center" });
+      yPos += 10;
+
+      // Filtros aplicados
+      const hasFilters = selectedFilters.om.length > 0 || selectedFilters.pessoal.length > 0 || selectedFilters.especialidade.length > 0;
+      if (hasFilters) {
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Filtros Aplicados:", 14, yPos);
+        yPos += 6;
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "normal");
+        let filterX = 20;
+        if (selectedFilters.om.length > 0) {
+          pdf.text(`OM: ${selectedFilters.om.join(", ")}`, filterX, yPos);
+          filterX += 80;
+        }
+        if (selectedFilters.pessoal.length > 0) {
+          pdf.text(`Pessoal: ${selectedFilters.pessoal.join(", ")}`, filterX, yPos);
+          filterX += 80;
+        }
+        if (selectedFilters.especialidade.length > 0) {
+          pdf.text(`Especialidade: ${selectedFilters.especialidade.join(", ")}`, filterX, yPos);
+        }
+        yPos += 10;
       }
+
+      // ====== RESUMO TOTAIS ======
+      const totalTMFT = metrics.totalTMFT;
+      const totalEXI = metrics.totalEXI;
+      const totalDIF = metrics.totalDIF;
+      const atendimento = metrics.occupancyPercent || (totalTMFT > 0 ? ((totalEXI / totalTMFT) * 100).toFixed(1) : "0.0");
+      const semNeo = extraLotacaoTotal;
+      const atendTotal = totalTMFT > 0 ? (((totalEXI + semNeo) / totalTMFT) * 100).toFixed(1) : "0.0";
+
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("RESUMO GERAL", pageWidth / 2, yPos, { align: "center" });
+      yPos += 6;
+
+      autoTable(pdf, {
+        startY: yPos,
+        head: [["TMFT", "EFETIVO", "DIF", "VAGOS", "SEM NEO", "ATENDIMENTO", "AT. TOTAL"]],
+        body: [[
+          totalTMFT.toString(),
+          totalEXI.toString(),
+          totalDIF.toString(),
+          (totalTMFT - totalEXI).toString(),
+          semNeo.toString(),
+          `${atendimento}%`,
+          `${atendTotal}%`,
+        ]],
+        theme: "grid",
+        styles: { fontSize: 9, cellPadding: 3, halign: "center" },
+        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: "bold" },
+        bodyStyles: { fontStyle: "bold" },
+        margin: { left: 50, right: 50 },
+        didParseCell: (data: any) => {
+          if (data.section === "body") {
+            const colIdx = data.column.index;
+            // DIF coloring
+            if (colIdx === 2 && totalDIF < 0) {
+              data.cell.styles.textColor = [220, 38, 38];
+            }
+          }
+        },
+      });
+      yPos = (pdf as any).lastAutoTable.finalY + 10;
+
+      // ====== RESUMO POR OM ======
+      yPos = checkNewPage(yPos, 50);
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("RESUMO POR OM", pageWidth / 2, yPos, { align: "center" });
+      yPos += 6;
+
+      // Group data by OM
+      const omGroups = new Map<string, { tmft: number; exi: number; dif: number; extra: number }>();
+      filteredData.forEach((item) => {
+        const existing = omGroups.get(item.om) || { tmft: 0, exi: 0, dif: 0, extra: 0 };
+        existing.tmft += item.tmft;
+        existing.exi += item.exi;
+        existing.dif += item.exi - item.tmft;
+        omGroups.set(item.om, existing);
+      });
+
+      // Count extra lotação per OM
+      extraLotacaoRows.forEach((row) => {
+        const existing = omGroups.get(row.om);
+        if (existing) {
+          existing.extra += 1;
+        }
+      });
+
+      const omRows: string[][] = [];
+      let totalRowTmft = 0, totalRowExi = 0, totalRowExtra = 0;
+      const sortedOMs = Array.from(omGroups.entries()).sort(([a], [b]) => a.localeCompare(b));
+      
+      for (const [om, vals] of sortedOMs) {
+        const vagos = vals.tmft - vals.exi;
+        const atTotal = vals.tmft > 0 ? (((vals.exi + vals.extra) / vals.tmft) * 100).toFixed(1) : "0.0";
+        omRows.push([om, vals.tmft.toString(), vals.exi.toString(), vagos.toString(), vals.extra.toString(), `${atTotal}%`]);
+        totalRowTmft += vals.tmft;
+        totalRowExi += vals.exi;
+        totalRowExtra += vals.extra;
+      }
+
+      const totalVagos = totalRowTmft - totalRowExi;
+      const totalAtTotal = totalRowTmft > 0 ? (((totalRowExi + totalRowExtra) / totalRowTmft) * 100).toFixed(1) : "0.0";
+      omRows.push(["TOTAL GERAL", totalRowTmft.toString(), totalRowExi.toString(), totalVagos.toString(), totalRowExtra.toString(), `${totalAtTotal}%`]);
+
+      autoTable(pdf, {
+        startY: yPos,
+        head: [["OM", "TMFT", "EFETIVO", "VAGOS", "SEM NEO", "AT. TOTAL"]],
+        body: omRows,
+        theme: "grid",
+        styles: { fontSize: 8, cellPadding: 2, halign: "center" },
+        headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
+        margin: { left: 20, right: 20 },
+        didParseCell: (data: any) => {
+          if (data.section === "body") {
+            const omCell = data.row.raw?.[0];
+            if (omCell === "TOTAL GERAL") {
+              data.cell.styles.fontStyle = "bold";
+              data.cell.styles.fillColor = [229, 231, 235];
+            }
+          }
+        },
+      });
+      yPos = (pdf as any).lastAutoTable.finalY + 10;
+
+      // ====== GRÁFICO DE TOTAIS ======
+      if (chartRef.current) {
+        try {
+          yPos = checkNewPage(yPos, 100);
+          const canvas = await html2canvas(chartRef.current, {
+            scale: 2,
+            backgroundColor: '#ffffff'
+          });
+          const imgData = canvas.toDataURL('image/png');
+          const imgWidth = 200;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          
+          pdf.setFontSize(11);
+          pdf.setFont("helvetica", "bold");
+          pdf.text("GRÁFICO DE TOTAIS", pageWidth / 2, yPos, { align: "center" });
+          yPos += 6;
+          pdf.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, yPos, imgWidth, imgHeight);
+          yPos += imgHeight + 10;
+        } catch (error) {
+          console.error('Erro ao capturar gráfico:', error);
+        }
+      }
+
+      // ====== TABELA DETALHADA ======
+      pdf.addPage();
+      yPos = 20;
+
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("TABELA DETALHADA POR GRADUAÇÃO E ESPECIALIDADE", pageWidth / 2, yPos, { align: "center" });
+      yPos += 6;
+
+      const detailRows = filteredData.map((item) => {
+        const atend = item.tmft > 0 ? ((item.exi / item.tmft) * 100).toFixed(1) : "0.0";
+        return [
+          item.om,
+          item.graduacao,
+          item.especialidade,
+          item.tmft.toString(),
+          item.exi.toString(),
+          item.dif.toString(),
+          `${atend}%`,
+        ];
+      });
+
+      autoTable(pdf, {
+        startY: yPos,
+        head: [["OM", "GRADUAÇÃO", "ESPECIALIDADE", "TMFT", "EXI", "DIF", "ATEND."]],
+        body: detailRows,
+        theme: "grid",
+        styles: { fontSize: 7, cellPadding: 1.5 },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+        margin: { left: 15, right: 15 },
+        didParseCell: (data: any) => {
+          if (data.section === "body") {
+            const dif = Number(data.row.raw?.[5] || 0);
+            const colIdx = data.column.index;
+            // Highlight negative DIF
+            if (colIdx === 5 && dif < 0) {
+              data.cell.styles.fillColor = [254, 202, 202];
+              data.cell.styles.textColor = [127, 29, 29];
+            }
+            // Highlight zero EXI (fully vacant)
+            if (colIdx === 4 && Number(data.row.raw?.[4]) === 0 && Number(data.row.raw?.[3]) > 0) {
+              data.cell.styles.fillColor = [254, 202, 202];
+              data.cell.styles.textColor = [127, 29, 29];
+            }
+          }
+        },
+      });
+      yPos = (pdf as any).lastAutoTable.finalY + 8;
+
+      // Legenda
+      yPos = checkNewPage(yPos, 20);
+      pdf.setFontSize(7);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("LEGENDA:", 15, yPos);
+      yPos += 4;
+      pdf.setFont("helvetica", "normal");
+
+      // Vermelho - DIF negativo
+      pdf.setFillColor(254, 202, 202);
+      pdf.rect(15, yPos - 3, 6, 4, "F");
+      pdf.setTextColor(127, 29, 29);
+      pdf.text("DÉFICIT - Diferença negativa (EXI < TMFT)", 23, yPos);
+      yPos += 5;
+
+      // Verde - SEM NEO
+      pdf.setFillColor(209, 250, 229);
+      pdf.rect(15, yPos - 3, 6, 4, "F");
+      pdf.setTextColor(6, 95, 70);
+      pdf.text("SEM NEO - Militar SEM NEO", 23, yPos);
+      yPos += 5;
+
+      pdf.setTextColor(0, 0, 0);
+
+      // ====== SEM NEO (EXTRA LOTAÇÃO) ======
+      if (extraLotacaoRows.length > 0) {
+        pdf.addPage();
+        yPos = 20;
+
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(`SEM NEO - EFETIVO EXTRA (${extraLotacaoRows.length} militar(es))`, pageWidth / 2, yPos, { align: "center" });
+        yPos += 6;
+
+        const extraRows = extraLotacaoRows.map((row, idx) => [
+          (idx + 1).toString(),
+          row.om,
+          row.posto,
+          row.quadro || "-",
+          row.cargo,
+          row.nome || "-",
+          row.ocupado ? "SIM" : "NÃO",
+        ]);
+
+        autoTable(pdf, {
+          startY: yPos,
+          head: [["Nº", "OM", "GRADUAÇÃO", "ESPECIALIDADE", "CARGO", "NOME", "OCUPADO"]],
+          body: extraRows,
+          theme: "grid",
+          styles: { fontSize: 7, cellPadding: 1.5 },
+          headStyles: { fillColor: [5, 150, 105], textColor: 255, fontStyle: "bold" },
+          margin: { left: 15, right: 15 },
+          didParseCell: (data: any) => {
+            if (data.section === "body") {
+              data.cell.styles.fillColor = [209, 250, 229];
+              data.cell.styles.textColor = [6, 95, 70];
+            }
+          },
+        });
+      }
+
+      // ====== PAGE NUMBERS ======
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(9);
+        pdf.setTextColor(100, 100, 100);
+        pdf.text(`${i} / ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+      }
+
+      // Save
+      const categoriaFile = selectedFilters.categoria === "TODOS" ? "geral" : selectedFilters.categoria.toLowerCase();
+      pdf.save(`relatorio-copab-${categoriaFile}-${new Date().toISOString().split('T')[0]}.pdf`);
+
+      const { toast } = await import('sonner');
+      toast.success("PDF gerado com sucesso!");
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      const { toast } = await import('sonner');
+      toast.error("Erro ao gerar PDF");
     }
-    
-    // Tabela de dados
-    pdf.addPage();
-    const tableData = filteredData.map(item => [
-      item.graduacao,
-      item.om,
-      item.tmft.toString(),
-      item.exi.toString(),
-      item.dif.toString()
-    ]);
-    
-    autoTable(pdf, {
-      head: [['Graduação', 'OM', 'TMFT', 'EXI', 'DIF']],
-      body: tableData,
-      startY: 20,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [37, 99, 235] }
-    });
-    
-    // Salvar
-    pdf.save(`relatorio-copab-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   const handleClearFilters = () => {
