@@ -756,7 +756,7 @@ const Index = () => {
     // Filter by OM
     let baseData = candidates;
     if (filters.om.length > 0) {
-      baseData = baseData.filter((p) => filters.om.includes(String(p.om || "").trim()));
+      baseData = baseData.filter((p) => filters.om.includes(String(p.om || "").toUpperCase()));
     }
 
     // Filter by especialidade (TMFT)
