@@ -336,54 +336,76 @@ export const DashboardFilters = ({
         }
       }
 
-      // ====== TABELA DETALHADA ======
+      // ====== TABELA DETALHADA POR GRADUAÇÃO - SEPARADA POR OM ======
       pdf.addPage();
       yPos = 20;
 
-      pdf.setFontSize(11);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("TABELA DETALHADA POR GRADUAÇÃO E ESPECIALIDADE", pageWidth / 2, yPos, { align: "center" });
-      yPos += 6;
-
-      const detailRows = filteredData.map((item) => {
-        const atend = item.tmft > 0 ? ((item.exi / item.tmft) * 100).toFixed(1) : "0.0";
-        return [
-          item.om,
-          item.graduacao,
-          item.especialidade,
-          item.tmft.toString(),
-          item.exi.toString(),
-          item.dif.toString(),
-          `${atend}%`,
-        ];
+      // Group data by OM, then aggregate by graduação
+      const omDetailGroups = new Map<string, Map<string, { tmft: number; exi: number; dif: number }>>();
+      filteredData.forEach((item) => {
+        if (!omDetailGroups.has(item.om)) {
+          omDetailGroups.set(item.om, new Map());
+        }
+        const gradMap = omDetailGroups.get(item.om)!;
+        const existing = gradMap.get(item.graduacao) || { tmft: 0, exi: 0, dif: 0 };
+        existing.tmft += item.tmft;
+        existing.exi += item.exi;
+        existing.dif += item.exi - item.tmft;
+        gradMap.set(item.graduacao, existing);
       });
 
-      autoTable(pdf, {
-        startY: yPos,
-        head: [["OM", "GRADUAÇÃO", "ESPECIALIDADE", "TMFT", "EXI", "DIF", "ATEND."]],
-        body: detailRows,
-        theme: "grid",
-        styles: { fontSize: 7, cellPadding: 1.5 },
-        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-        margin: { left: 15, right: 15 },
-        didParseCell: (data: any) => {
-          if (data.section === "body") {
-            const dif = Number(data.row.raw?.[5] || 0);
-            const colIdx = data.column.index;
-            // Highlight negative DIF
-            if (colIdx === 5 && dif < 0) {
-              data.cell.styles.fillColor = [254, 202, 202];
-              data.cell.styles.textColor = [127, 29, 29];
+      const sortedOMDetails = Array.from(omDetailGroups.entries()).sort(([a], [b]) => a.localeCompare(b));
+
+      for (const [om, gradMap] of sortedOMDetails) {
+        yPos = checkNewPage(yPos, 30);
+
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(37, 99, 235);
+        pdf.text(`OM: ${om}`, 15, yPos);
+        pdf.setTextColor(0, 0, 0);
+        yPos += 5;
+
+        const rows: string[][] = [];
+        let omTmft = 0, omExi = 0, omDif = 0;
+        const sortedGrads = Array.from(gradMap.entries()).sort(([a], [b]) => a.localeCompare(b));
+        for (const [grad, vals] of sortedGrads) {
+          const atend = vals.tmft > 0 ? ((vals.exi / vals.tmft) * 100).toFixed(1) : "0.0";
+          rows.push([grad, vals.tmft.toString(), vals.exi.toString(), vals.dif.toString(), `${atend}%`]);
+          omTmft += vals.tmft;
+          omExi += vals.exi;
+          omDif += vals.dif;
+        }
+        const omAtend = omTmft > 0 ? ((omExi / omTmft) * 100).toFixed(1) : "0.0";
+        rows.push(["TOTAL", omTmft.toString(), omExi.toString(), omDif.toString(), `${omAtend}%`]);
+
+        autoTable(pdf, {
+          startY: yPos,
+          head: [["GRADUAÇÃO", "TMFT", "EXI", "DIF", "ATEND."]],
+          body: rows,
+          theme: "grid",
+          styles: { fontSize: 8, cellPadding: 2, halign: "center" },
+          headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+          columnStyles: { 0: { halign: "left" } },
+          margin: { left: 15, right: 15 },
+          didParseCell: (data: any) => {
+            if (data.section === "body") {
+              const rowRaw = data.row.raw;
+              const dif = Number(rowRaw?.[3] || 0);
+              const colIdx = data.column.index;
+              if (colIdx === 3 && dif < 0) {
+                data.cell.styles.fillColor = [254, 202, 202];
+                data.cell.styles.textColor = [127, 29, 29];
+              }
+              if (rowRaw?.[0] === "TOTAL") {
+                data.cell.styles.fontStyle = "bold";
+                data.cell.styles.fillColor = [229, 231, 235];
+              }
             }
-            // Highlight zero EXI (fully vacant)
-            if (colIdx === 4 && Number(data.row.raw?.[4]) === 0 && Number(data.row.raw?.[3]) > 0) {
-              data.cell.styles.fillColor = [254, 202, 202];
-              data.cell.styles.textColor = [127, 29, 29];
-            }
-          }
-        },
-      });
-      yPos = (pdf as any).lastAutoTable.finalY + 8;
+          },
+        });
+        yPos = (pdf as any).lastAutoTable.finalY + 8;
+      }
 
       // Legenda
       yPos = checkNewPage(yPos, 20);
