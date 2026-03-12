@@ -505,9 +505,9 @@ const Index = () => {
       ? militaryData 
       : militaryData.filter((item) => item.categoria === filters.categoria);
 
-    // Obter valores únicos apenas da categoria selecionada
+    // Obter valores únicos apenas da categoria selecionada (normalizar para uppercase)
     const filteredOMs = getAvailableOMsForUser(
-      Array.from(new Set(dataByCategory.map((item) => item.om))).sort()
+      Array.from(new Set(dataByCategory.map((item) => String(item.om || "").toUpperCase()).filter(Boolean))).sort()
     );
 
     const filteredEspecialidades = Array.from(new Set(dataByCategory.map((item) => item.especialidade).filter((e) => e && e.trim() !== "" && e !== "-"))).sort();
