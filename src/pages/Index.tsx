@@ -609,7 +609,7 @@ const Index = () => {
     };
 
     const matches = (p: any) => {
-      if (filters.om.length > 0 && !filters.om.includes(String(p.om || "").trim())) return false;
+      if (filters.om.length > 0 && !filters.om.includes(String(p.om || "").toUpperCase())) return false;
 
       if (filters.pessoal.length > 0) {
         const posto = String(p.postoEfe || p.postoTmft || "").trim();
