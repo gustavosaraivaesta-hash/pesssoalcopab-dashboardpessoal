@@ -505,9 +505,9 @@ const Index = () => {
       ? militaryData 
       : militaryData.filter((item) => item.categoria === filters.categoria);
 
-    // Obter valores únicos apenas da categoria selecionada
+    // Obter valores únicos apenas da categoria selecionada (normalizar para uppercase)
     const filteredOMs = getAvailableOMsForUser(
-      Array.from(new Set(dataByCategory.map((item) => item.om))).sort()
+      Array.from(new Set(dataByCategory.map((item) => String(item.om || "").toUpperCase()).filter(Boolean))).sort()
     );
 
     const filteredEspecialidades = Array.from(new Set(dataByCategory.map((item) => item.especialidade).filter((e) => e && e.trim() !== "" && e !== "-"))).sort();
@@ -537,9 +537,9 @@ const Index = () => {
       data = data.filter((item) => item.categoria === filters.categoria);
     }
 
-    // Filtrar por OM
+    // Filtrar por OM (comparação case-insensitive)
     if (filters.om.length > 0) {
-      data = data.filter((item) => filters.om.includes(item.om));
+      data = data.filter((item) => filters.om.includes(String(item.om || "").toUpperCase()));
     }
 
     // Filtrar por especialidade
@@ -572,7 +572,7 @@ const Index = () => {
 
     const matches = (p: any) => {
       // OM
-      if (filters.om.length > 0 && !filters.om.includes(String(p.om || "").trim())) return false;
+      if (filters.om.length > 0 && !filters.om.includes(String(p.om || "").toUpperCase())) return false;
 
       // Pessoal (graduação) - para EXTRA LOTAÇÃO normalmente vem em postoEfe
       if (filters.pessoal.length > 0) {
@@ -609,7 +609,7 @@ const Index = () => {
     };
 
     const matches = (p: any) => {
-      if (filters.om.length > 0 && !filters.om.includes(String(p.om || "").trim())) return false;
+      if (filters.om.length > 0 && !filters.om.includes(String(p.om || "").toUpperCase())) return false;
 
       if (filters.pessoal.length > 0) {
         const posto = String(p.postoEfe || p.postoTmft || "").trim();
@@ -681,7 +681,7 @@ const Index = () => {
       // Filter by OM
       let baseData = candidates;
       if (filters.om.length > 0) {
-        baseData = baseData.filter((p) => filters.om.includes(String(p.om || "").trim()));
+        baseData = baseData.filter((p) => filters.om.includes(String(p.om || "").toUpperCase()));
       }
 
       // Filter by especialidade (TMFT)
@@ -756,7 +756,7 @@ const Index = () => {
     // Filter by OM
     let baseData = candidates;
     if (filters.om.length > 0) {
-      baseData = baseData.filter((p) => filters.om.includes(String(p.om || "").trim()));
+      baseData = baseData.filter((p) => filters.om.includes(String(p.om || "").toUpperCase()));
     }
 
     // Filter by especialidade (TMFT)
