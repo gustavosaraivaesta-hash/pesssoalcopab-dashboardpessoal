@@ -283,11 +283,12 @@ export const DashboardFilters = ({
 
       const totalVagos = totalRowTmft - totalRowExi;
       const totalAtTotal = totalRowTmft > 0 ? (((totalRowExi + totalRowExtra) / totalRowTmft) * 100).toFixed(1) : "0.0";
-      omRows.push(["TOTAL GERAL", totalRowTmft.toString(), totalRowExi.toString(), totalVagos.toString(), totalRowExtra.toString(), `${totalAtTotal}%`]);
+      const totalDif = totalRowExi - totalRowTmft;
+      omRows.push(["TOTAL GERAL", totalRowTmft.toString(), totalRowExi.toString(), totalDif.toString(), totalVagos.toString(), totalRowExtra.toString(), `${totalAtTotal}%`]);
 
       autoTable(pdf, {
         startY: yPos,
-        head: [["OM", "TMFT", "EFETIVO", "VAGOS", "SEM NEO", "AT. TOTAL"]],
+        head: [["OM", "TMFT", "EFETIVO", "DIFERENÇA", "VAGOS", "SEM NEO", "AT. TOTAL"]],
         body: omRows,
         theme: "grid",
         styles: { fontSize: 8, cellPadding: 2, halign: "center" },
