@@ -1710,7 +1710,7 @@ const DashboardPracas = () => {
           ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
           : omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omEfetivoForNeo.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
         }).length;
 
         const omNaNeo = omEfetivoTotal - omForaNeoCount;
