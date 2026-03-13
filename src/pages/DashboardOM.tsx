@@ -2538,7 +2538,7 @@ const DashboardOM = () => {
         const omVagos = omTmft - omEfetivoTotal;
 
         const omForaNeoCount = omRegularOcupados.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
         }).length;
         const omNaNeoCount = omEfetivoTotal - omForaNeoCount;
         const atendimento = omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100).toFixed(1) : "0";
