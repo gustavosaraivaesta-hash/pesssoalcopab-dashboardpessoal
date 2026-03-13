@@ -33,9 +33,9 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
   const quadroEfeNorm = (item.quadroEfe || '').trim().toUpperCase();
   const opcaoTmftNorm = (item.opcaoTmft || '').trim().toUpperCase();
   const opcaoEfeNorm = (item.opcaoEfe || '').trim().toUpperCase();
-  const isDifferentQuadro = item.ocupado && quadroTmftNorm && quadroEfeNorm && quadroTmftNorm !== quadroEfeNorm;
-  // TTC vs Carreira divergence
-  const isTTCDivergent = item.ocupado && opcaoTmftNorm && opcaoEfeNorm && opcaoTmftNorm !== '-' && opcaoEfeNorm !== '-' && ((opcaoTmftNorm === 'TTC') !== (opcaoEfeNorm === 'TTC'));
+  const isDifferentQuadro = item.ocupado && quadroTmftNorm && quadroEfeNorm && quadroTmftNorm !== '-' && quadroEfeNorm !== '-' && quadroTmftNorm !== quadroEfeNorm;
+  // TTC vs Carreira divergence - check even if opcao fields are empty
+  const isTTCDivergent = item.ocupado && ((opcaoTmftNorm === 'TTC') !== (opcaoEfeNorm === 'TTC'));
   
   // Highlight if quadro is different OR TTC/career mismatch
   const isDifferentNeoEfe = isDifferentQuadro || isTTCDivergent;
