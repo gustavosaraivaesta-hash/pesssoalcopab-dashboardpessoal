@@ -2237,7 +2237,7 @@ const DashboardOM = () => {
           const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
           const setorStr = (item.setor || "").trim().toUpperCase();
 
-          const quadroDivergente = isOcupado && isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+          const quadroDivergente = isOcupado && isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
           const corpoDivergente =
             isOcupado && corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
 
