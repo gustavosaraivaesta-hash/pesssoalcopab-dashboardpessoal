@@ -993,7 +993,7 @@ const Index = () => {
         />
 
         {/* Métricas principais */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
           <MetricsCard title="Total TMFT" value={metrics.totalTMFT} icon={Shield} variant="default" />
           <div 
             onClick={handleEfetivoCardClick}
@@ -1025,6 +1025,12 @@ const Index = () => {
             }
           />
           <MetricsCard title="Sem NEO" value={extraLotacaoTotal} icon={Users} variant="warning" />
+          <MetricsCard 
+            title="Atend. Total" 
+            value={`${metrics.totalTMFT > 0 ? (((metrics.totalEXI + extraLotacaoTotal) / metrics.totalTMFT) * 100).toFixed(1) : "0.0"}%`} 
+            icon={Percent} 
+            variant="success" 
+          />
         </div>
 
         {/* Card de Solicitações Pendentes - Apenas para COpAb */}
