@@ -357,7 +357,15 @@ export const DashboardFilters = ({
 
         const rows: string[][] = [];
         let omTmft = 0, omExi = 0;
-        const sortedGrads = Array.from(gradMap.entries()).sort(([a], [b]) => a.localeCompare(b));
+        const gradHierarchy = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM", "SO", "1SG", "2SG", "3SG", "CB", "MN"];
+        const sortedGrads = Array.from(gradMap.entries()).sort(([a], [b]) => {
+          const idxA = gradHierarchy.indexOf(a);
+          const idxB = gradHierarchy.indexOf(b);
+          if (idxA === -1 && idxB === -1) return a.localeCompare(b);
+          if (idxA === -1) return 1;
+          if (idxB === -1) return -1;
+          return idxA - idxB;
+        });
         for (const [grad, vals] of sortedGrads) {
           const vagos = vals.tmft - vals.exi;
           const atend = vals.tmft > 0 ? ((vals.exi / vals.tmft) * 100).toFixed(1) : "0.0";

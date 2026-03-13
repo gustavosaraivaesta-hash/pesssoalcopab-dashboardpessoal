@@ -30,13 +30,13 @@ export const DifferenceByGraduationChart = ({ data, categoria }: DifferenceByGra
   ];
   
   const graduationOrderOficiais = [
-    'CONTRA-ALMIRANTE',
+    'C ALTE',
     'CMG',
     'CF',
     'CC',
     'CT',
-    '1TEN',
-    '2TEN',
+    '1T',
+    '2T',
     'GM',
     'OFICIAIS TTC',
     'SERVIDORES CIVIS (NA + NI)'
