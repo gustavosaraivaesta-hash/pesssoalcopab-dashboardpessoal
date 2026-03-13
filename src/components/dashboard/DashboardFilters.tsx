@@ -224,13 +224,11 @@ export const DashboardFilters = ({
 
       autoTable(pdf, {
         startY: yPos,
-        head: [["TMFT", "EFETIVO", "DIF", "VAGOS", "SEM NEO", "ATENDIMENTO", "AT. TOTAL"]],
+        head: [["TMFT", "EFETIVO", "VAGOS", "ATENDIMENTO", "AT. TOTAL"]],
         body: [[
           totalTMFT.toString(),
           totalEXI.toString(),
-          totalDIF.toString(),
           (totalTMFT - totalEXI).toString(),
-          semNeo.toString(),
           `${atendimento}%`,
           `${atendTotal}%`,
         ]],
@@ -238,16 +236,7 @@ export const DashboardFilters = ({
         styles: { fontSize: 9, cellPadding: 3, halign: "center" },
         headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: "bold" },
         bodyStyles: { fontStyle: "bold" },
-        margin: { left: 50, right: 50 },
-        didParseCell: (data: any) => {
-          if (data.section === "body") {
-            const colIdx = data.column.index;
-            // DIF coloring
-            if (colIdx === 2 && totalDIF < 0) {
-              data.cell.styles.textColor = [220, 38, 38];
-            }
-          }
-        },
+        margin: { left: 60, right: 60 },
       });
       yPos = (pdf as any).lastAutoTable.finalY + 10;
 
