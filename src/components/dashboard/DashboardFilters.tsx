@@ -373,7 +373,8 @@ export const DashboardFilters = ({
         for (const [grad, vals] of sortedGrads) {
           const vagos = vals.tmft - vals.exi;
           const atend = vals.tmft > 0 ? ((vals.exi / vals.tmft) * 100).toFixed(1) : "0.0";
-          rows.push([grad, vals.tmft.toString(), vals.exi.toString(), vagos.toString(), `${atend}%`]);
+          const dif = vals.exi - vals.tmft;
+          rows.push([grad, vals.tmft.toString(), vals.exi.toString(), dif.toString(), vagos.toString(), `${atend}%`]);
           omTmft += vals.tmft;
           omExi += vals.exi;
         }
