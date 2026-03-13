@@ -2594,7 +2594,7 @@ const DashboardOM = () => {
         let status = "VAGO";
 
         if (isOcupado) {
-          if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "")) {
+          if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "")) {
             status = "FORA DA NEO";
           } else {
             status = "NA NEO";

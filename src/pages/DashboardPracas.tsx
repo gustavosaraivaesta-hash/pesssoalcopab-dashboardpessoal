@@ -2200,7 +2200,7 @@ const DashboardPracas = () => {
       for (const item of displayFilteredData) {
         let status = "VAGO";
         if (item.ocupado) {
-          status = isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "") ? "FORA DA NEO" : "NA NEO";
+          status = isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "") ? "FORA DA NEO" : "NA NEO";
         }
         efetivoData.push([
           item.om,
