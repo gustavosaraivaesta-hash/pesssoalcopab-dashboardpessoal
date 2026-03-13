@@ -645,7 +645,7 @@ const DashboardOM = () => {
     if (statusFilter === "ocupados") {
       let filtered = [...efetivoPopulation];
       if (efetivoSubFilter === "na_neo") {
-        filtered = filtered.filter((item) => !isForaDaNeo(item.quadroTmft || "", item.quadroEfe || ""));
+        filtered = filtered.filter((item) => !isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || ""));
       } else if (efetivoSubFilter === "fora_neo") {
         filtered = filtered.filter((item) => isForaDaNeo(item.quadroTmft || "", item.quadroEfe || ""));
       }
