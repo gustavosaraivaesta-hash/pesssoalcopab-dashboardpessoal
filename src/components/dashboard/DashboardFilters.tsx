@@ -405,11 +405,11 @@ export const DashboardFilters = ({
       yPos += 4;
       pdf.setFont("helvetica", "normal");
 
-      // Vermelho - DIF negativo
+      // Vermelho - VAGOS
       pdf.setFillColor(254, 202, 202);
       pdf.rect(15, yPos - 3, 6, 4, "F");
       pdf.setTextColor(127, 29, 29);
-      pdf.text("DÉFICIT - Diferença negativa (EXI < TMFT)", 23, yPos);
+      pdf.text("VAGOS - Vagas não preenchidas (TMFT > EFETIVO)", 23, yPos);
       yPos += 5;
 
       // Verde - SEM NEO
