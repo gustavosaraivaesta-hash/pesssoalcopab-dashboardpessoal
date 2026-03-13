@@ -665,7 +665,7 @@ const DashboardOM = () => {
   // Calculate NA NEO and FORA DA NEO metrics using the same population as EFETIVO
   const neoMetrics = useMemo(() => {
     const foraNeo = efetivoPopulation.filter((item) => {
-      return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+      return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
     });
 
     const foraNeoIds = new Set(foraNeo.map((item) => item.id));
