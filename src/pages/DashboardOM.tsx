@@ -1999,7 +1999,7 @@ const DashboardOM = () => {
         const omEfetivoTotal = omRegularOcupados.length;
 
         const omForaNeoList = omRegularOcupados.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
         }).length;
 
         const omNaNeo = omEfetivoTotal - omForaNeoList;
