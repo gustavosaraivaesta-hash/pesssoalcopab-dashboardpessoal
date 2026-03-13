@@ -2166,7 +2166,7 @@ const DashboardOM = () => {
 
         const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omRegularOcupados.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
         }).length;
         const omNaNeoCount = omEfetivo - omForaNeoCount;
 
