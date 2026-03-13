@@ -395,9 +395,9 @@ export const DashboardFilters = ({
           didParseCell: (data: any) => {
             if (data.section === "body") {
               const rowRaw = data.row.raw;
-              const vagos = Number(rowRaw?.[3] || 0);
+              const vagos = Number(rowRaw?.[4] || 0);
               const colIdx = data.column.index;
-              if (colIdx === 3 && vagos > 0) {
+              if (colIdx === 4 && vagos > 0) {
                 data.cell.styles.fillColor = [254, 202, 202];
                 data.cell.styles.textColor = [127, 29, 29];
               }
