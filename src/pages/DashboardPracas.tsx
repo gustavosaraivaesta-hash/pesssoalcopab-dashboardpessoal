@@ -1893,7 +1893,7 @@ const DashboardPracas = () => {
             bgColor = "FECACA";
             txtColor = "7F1D1D";
           } else {
-            if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "")) {
+            if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "")) {
               status = "FORA NEO";
               bgColor = "FFEDD5";
               txtColor = "C2410C";
