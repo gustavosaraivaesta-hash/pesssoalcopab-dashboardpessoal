@@ -1633,7 +1633,7 @@ const DashboardOM = () => {
                     const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
                     const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
                     const corpoDivergente = corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
-                    if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "") || corpoDivergente) {
+                    if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "") || corpoDivergente) {
                       return "FORA NEO";
                     } else {
                       return "NA NEO";
