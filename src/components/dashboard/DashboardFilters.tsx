@@ -224,10 +224,11 @@ export const DashboardFilters = ({
 
       autoTable(pdf, {
         startY: yPos,
-        head: [["TMFT", "EFETIVO", "VAGOS", "SEM NEO", "ATENDIMENTO", "AT. TOTAL"]],
+        head: [["TMFT", "EFETIVO", "DIFERENÇA", "VAGOS", "SEM NEO", "ATENDIMENTO", "AT. TOTAL"]],
         body: [[
           totalTMFT.toString(),
           totalEXI.toString(),
+          (totalEXI - totalTMFT).toString(),
           (totalTMFT - totalEXI).toString(),
           semNeo.toString(),
           `${atendimento}%`,
