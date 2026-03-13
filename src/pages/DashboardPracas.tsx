@@ -574,7 +574,7 @@ const DashboardPracas = () => {
     }
 
     return baseData.filter((item) => {
-      const isForaNeoResult = isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+      const isForaNeoResult = isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
       if (showNeoPersonnel === "fora") {
         return isForaNeoResult;
       } else {
@@ -617,7 +617,7 @@ const DashboardPracas = () => {
     const efetivoForNeo = hasSpecificFilters ? occupiedRegular.filter(matchesEfeFilters) : occupiedRegular;
 
     const foraDaNeoList = efetivoForNeo.filter((item) => {
-      return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+      return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
     });
 
     const foraDaNeo = foraDaNeoList.length;
@@ -1349,7 +1349,7 @@ const DashboardPracas = () => {
           } else if (isSemNeo) {
             status = "SEM NEO";
           } else {
-            if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "")) {
+            if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "")) {
               status = "FORA NEO";
             } else {
               status = "NA NEO";
@@ -1710,7 +1710,7 @@ const DashboardPracas = () => {
           ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
           : omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omEfetivoForNeo.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
         }).length;
 
         const omNaNeo = omEfetivoTotal - omForaNeoCount;
@@ -1799,7 +1799,7 @@ const DashboardPracas = () => {
           ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
           : omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omEfetivoForNeo.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
         }).length;
         const omNaNeoCount = omEfetivo - omForaNeoCount;
 
@@ -1893,7 +1893,7 @@ const DashboardPracas = () => {
             bgColor = "FECACA";
             txtColor = "7F1D1D";
           } else {
-            if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "")) {
+            if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "")) {
               status = "FORA NEO";
               bgColor = "FFEDD5";
               txtColor = "C2410C";
@@ -2159,7 +2159,7 @@ const DashboardPracas = () => {
           ? omRegularData.filter((item) => item.ocupado && matchesEfeFilters(item))
           : omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omEfetivoForNeo.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
         }).length;
         const omNaNeoCount = omEfetivoTotal - omForaNeoCount;
         const atendimento = omTmft > 0 ? parseFloat(((omEfetivoTotal / omTmft) * 100).toFixed(1)) : 0;
@@ -2200,7 +2200,7 @@ const DashboardPracas = () => {
       for (const item of displayFilteredData) {
         let status = "VAGO";
         if (item.ocupado) {
-          status = isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "") ? "FORA DA NEO" : "NA NEO";
+          status = isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "") ? "FORA DA NEO" : "NA NEO";
         }
         efetivoData.push([
           item.om,

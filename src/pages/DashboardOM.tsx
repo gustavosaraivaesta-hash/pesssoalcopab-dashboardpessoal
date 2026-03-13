@@ -645,9 +645,9 @@ const DashboardOM = () => {
     if (statusFilter === "ocupados") {
       let filtered = [...efetivoPopulation];
       if (efetivoSubFilter === "na_neo") {
-        filtered = filtered.filter((item) => !isForaDaNeo(item.quadroTmft || "", item.quadroEfe || ""));
+        filtered = filtered.filter((item) => !isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || ""));
       } else if (efetivoSubFilter === "fora_neo") {
-        filtered = filtered.filter((item) => isForaDaNeo(item.quadroTmft || "", item.quadroEfe || ""));
+        filtered = filtered.filter((item) => isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || ""));
       }
       return filtered;
     }
@@ -665,7 +665,7 @@ const DashboardOM = () => {
   // Calculate NA NEO and FORA DA NEO metrics using the same population as EFETIVO
   const neoMetrics = useMemo(() => {
     const foraNeo = efetivoPopulation.filter((item) => {
-      return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+      return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
     });
 
     const foraNeoIds = new Set(foraNeo.map((item) => item.id));
@@ -1633,7 +1633,7 @@ const DashboardOM = () => {
                     const corpoTmft = (item.corpoTmft || "").trim().toUpperCase();
                     const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
                     const corpoDivergente = corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
-                    if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "") || corpoDivergente) {
+                    if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "") || corpoDivergente) {
                       return "FORA NEO";
                     } else {
                       return "NA NEO";
@@ -1999,7 +1999,7 @@ const DashboardOM = () => {
         const omEfetivoTotal = omRegularOcupados.length;
 
         const omForaNeoList = omRegularOcupados.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
         }).length;
 
         const omNaNeo = omEfetivoTotal - omForaNeoList;
@@ -2166,7 +2166,7 @@ const DashboardOM = () => {
 
         const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
         const omForaNeoCount = omRegularOcupados.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
         }).length;
         const omNaNeoCount = omEfetivo - omForaNeoCount;
 
@@ -2237,7 +2237,7 @@ const DashboardOM = () => {
           const corpoEfe = (item.corpoEfe || "").trim().toUpperCase();
           const setorStr = (item.setor || "").trim().toUpperCase();
 
-          const quadroDivergente = isOcupado && isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+          const quadroDivergente = isOcupado && isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
           const corpoDivergente =
             isOcupado && corpoTmft && corpoEfe && corpoTmft !== "-" && corpoEfe !== "-" && corpoTmft !== corpoEfe;
 
@@ -2538,7 +2538,7 @@ const DashboardOM = () => {
         const omVagos = omTmft - omEfetivoTotal;
 
         const omForaNeoCount = omRegularOcupados.filter((item) => {
-          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+          return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
         }).length;
         const omNaNeoCount = omEfetivoTotal - omForaNeoCount;
         const atendimento = omTmft > 0 ? ((omEfetivoTotal / omTmft) * 100).toFixed(1) : "0";
@@ -2594,7 +2594,7 @@ const DashboardOM = () => {
         let status = "VAGO";
 
         if (isOcupado) {
-          if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "")) {
+          if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "")) {
             status = "FORA DA NEO";
           } else {
             status = "NA NEO";

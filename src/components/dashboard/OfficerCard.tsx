@@ -31,10 +31,14 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
   // Check if quadro TMFT and quadro EFE are different (this determines FORA DA NEO)
   const quadroTmftNorm = (item.quadroTmft || '').trim().toUpperCase();
   const quadroEfeNorm = (item.quadroEfe || '').trim().toUpperCase();
+  const opcaoTmftNorm = (item.opcaoTmft || '').trim().toUpperCase();
+  const opcaoEfeNorm = (item.opcaoEfe || '').trim().toUpperCase();
   const isDifferentQuadro = item.ocupado && quadroTmftNorm && quadroEfeNorm && quadroTmftNorm !== quadroEfeNorm;
+  // TTC vs Carreira divergence
+  const isTTCDivergent = item.ocupado && opcaoTmftNorm && opcaoEfeNorm && opcaoTmftNorm !== '-' && opcaoEfeNorm !== '-' && ((opcaoTmftNorm === 'TTC') !== (opcaoEfeNorm === 'TTC'));
   
-  // Highlight only if quadro is different (corpo difference alone is not FORA DA NEO)
-  const isDifferentNeoEfe = isDifferentQuadro;
+  // Highlight if quadro is different OR TTC/career mismatch
+  const isDifferentNeoEfe = isDifferentQuadro || isTTCDivergent;
 
   // Format military name: graduação-especialidade nome
   const formatMilitarName = () => {
