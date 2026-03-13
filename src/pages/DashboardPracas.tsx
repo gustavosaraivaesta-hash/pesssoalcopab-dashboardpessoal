@@ -574,7 +574,7 @@ const DashboardPracas = () => {
     }
 
     return baseData.filter((item) => {
-      const isForaNeoResult = isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+      const isForaNeoResult = isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
       if (showNeoPersonnel === "fora") {
         return isForaNeoResult;
       } else {
