@@ -380,11 +380,12 @@ export const DashboardFilters = ({
         }
         const omVagos = omTmft - omExi;
         const omAtend = omTmft > 0 ? ((omExi / omTmft) * 100).toFixed(1) : "0.0";
-        rows.push(["TOTAL", omTmft.toString(), omExi.toString(), omVagos.toString(), `${omAtend}%`]);
+        const omDif = omExi - omTmft;
+        rows.push(["TOTAL", omTmft.toString(), omExi.toString(), omDif.toString(), omVagos.toString(), `${omAtend}%`]);
 
         autoTable(pdf, {
           startY: yPos,
-          head: [["GRADUAÇÃO", "TMFT", "EFETIVO", "VAGOS", "ATEND."]],
+          head: [["GRADUAÇÃO", "TMFT", "EFETIVO", "DIFERENÇA", "VAGOS", "ATEND."]],
           body: rows,
           theme: "grid",
           styles: { fontSize: 8, cellPadding: 2, halign: "center" },
