@@ -55,11 +55,23 @@ export function expandSpecialtyEquivalents(selected: string[]): string[] {
 /**
  * Checks if a person is "FORA DA NEO" based on specialty comparison.
  * Returns true if FORA DA NEO (specialties don't match and aren't equivalent).
+ * Also checks opcao: if one is TTC and the other is not, it's divergent (TTC x Carreira).
  */
-export function isForaDaNeo(quadroTmft: string, quadroEfe: string): boolean {
+export function isForaDaNeo(quadroTmft: string, quadroEfe: string, opcaoTmft?: string, opcaoEfe?: string): boolean {
   const tmft = (quadroTmft || "").trim().toUpperCase();
   const efe = (quadroEfe || "").trim().toUpperCase();
   if (!tmft || !efe || tmft === "-" || efe === "-") return false;
+
+  // Check opcao TTC divergence: TTC x Carreira = FORA DA NEO
+  const oTmft = (opcaoTmft || "").trim().toUpperCase();
+  const oEfe = (opcaoEfe || "").trim().toUpperCase();
+  if (oTmft && oEfe && oTmft !== "-" && oEfe !== "-") {
+    const tmftIsTTC = oTmft === "TTC";
+    const efeIsTTC = oEfe === "TTC";
+    // If one is TTC and the other is not, it's divergent
+    if (tmftIsTTC !== efeIsTTC) return true;
+  }
+
   // Quando AMBOS são TTC, está NA NEO
   if (tmft === "TTC" && efe === "TTC") return false;
   return !areSpecialtiesEquivalent(tmft, efe);
