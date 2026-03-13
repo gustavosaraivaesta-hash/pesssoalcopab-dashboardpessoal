@@ -512,7 +512,15 @@ const Index = () => {
 
     const filteredEspecialidades = Array.from(new Set(dataByCategory.map((item) => item.especialidade).filter((e) => e && e.trim() !== "" && e !== "-"))).sort();
 
-    const filteredGraduacoes = Array.from(new Set(dataByCategory.map((item) => item.graduacao))).sort();
+    const graduacaoHierarchy = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM", "SO", "1SG", "2SG", "3SG", "CB", "MN"];
+    const filteredGraduacoes = Array.from(new Set(dataByCategory.map((item) => item.graduacao))).sort((a, b) => {
+      const idxA = graduacaoHierarchy.indexOf(a);
+      const idxB = graduacaoHierarchy.indexOf(b);
+      if (idxA === -1 && idxB === -1) return a.localeCompare(b);
+      if (idxA === -1) return 1;
+      if (idxB === -1) return -1;
+      return idxA - idxB;
+    });
 
     const filteredSDPs = Array.from(new Set(dataByCategory.map((item) => item.sdp).filter(Boolean))).sort();
 
