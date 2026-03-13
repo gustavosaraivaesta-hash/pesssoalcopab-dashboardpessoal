@@ -65,12 +65,10 @@ export function isForaDaNeo(quadroTmft: string, quadroEfe: string, opcaoTmft?: s
   // Check opcao TTC divergence: TTC x Carreira = FORA DA NEO
   const oTmft = (opcaoTmft || "").trim().toUpperCase();
   const oEfe = (opcaoEfe || "").trim().toUpperCase();
-  if (oTmft && oEfe && oTmft !== "-" && oEfe !== "-") {
-    const tmftIsTTC = oTmft === "TTC";
-    const efeIsTTC = oEfe === "TTC";
-    // If one is TTC and the other is not, it's divergent
-    if (tmftIsTTC !== efeIsTTC) return true;
-  }
+  const tmftIsTTC = oTmft === "TTC";
+  const efeIsTTC = oEfe === "TTC";
+  // If one is TTC and the other is not (including when opcao is empty = carreira), it's divergent
+  if (tmftIsTTC !== efeIsTTC) return true;
 
   // Quando AMBOS são TTC, está NA NEO
   if (tmft === "TTC" && efe === "TTC") return false;
