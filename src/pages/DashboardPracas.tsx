@@ -1349,7 +1349,7 @@ const DashboardPracas = () => {
           } else if (isSemNeo) {
             status = "SEM NEO";
           } else {
-            if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "")) {
+            if (isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "")) {
               status = "FORA NEO";
             } else {
               status = "NA NEO";
