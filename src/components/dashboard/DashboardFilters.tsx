@@ -224,11 +224,10 @@ export const DashboardFilters = ({
 
       autoTable(pdf, {
         startY: yPos,
-        head: [["TMFT", "EFETIVO", "DIFERENÇA", "VAGOS", "SEM NEO", "ATENDIMENTO", "AT. TOTAL"]],
+        head: [["TMFT", "EFETIVO", "VAGOS", "SEM NEO", "ATENDIMENTO", "AT. TOTAL"]],
         body: [[
           totalTMFT.toString(),
           totalEXI.toString(),
-          (totalEXI - totalTMFT).toString(),
           (totalTMFT - totalEXI).toString(),
           semNeo.toString(),
           `${atendimento}%`,
@@ -274,8 +273,7 @@ export const DashboardFilters = ({
       for (const [om, vals] of sortedOMs) {
         const vagos = vals.tmft - vals.exi;
         const atTotal = vals.tmft > 0 ? (((vals.exi + vals.extra) / vals.tmft) * 100).toFixed(1) : "0.0";
-        const dif = vals.exi - vals.tmft;
-        omRows.push([om, vals.tmft.toString(), vals.exi.toString(), dif.toString(), vagos.toString(), vals.extra.toString(), `${atTotal}%`]);
+        omRows.push([om, vals.tmft.toString(), vals.exi.toString(), vagos.toString(), vals.extra.toString(), `${atTotal}%`]);
         totalRowTmft += vals.tmft;
         totalRowExi += vals.exi;
         totalRowExtra += vals.extra;
@@ -283,12 +281,11 @@ export const DashboardFilters = ({
 
       const totalVagos = totalRowTmft - totalRowExi;
       const totalAtTotal = totalRowTmft > 0 ? (((totalRowExi + totalRowExtra) / totalRowTmft) * 100).toFixed(1) : "0.0";
-      const totalDif = totalRowExi - totalRowTmft;
-      omRows.push(["TOTAL GERAL", totalRowTmft.toString(), totalRowExi.toString(), totalDif.toString(), totalVagos.toString(), totalRowExtra.toString(), `${totalAtTotal}%`]);
+      omRows.push(["TOTAL GERAL", totalRowTmft.toString(), totalRowExi.toString(), totalVagos.toString(), totalRowExtra.toString(), `${totalAtTotal}%`]);
 
       autoTable(pdf, {
         startY: yPos,
-        head: [["OM", "TMFT", "EFETIVO", "DIFERENÇA", "VAGOS", "SEM NEO", "AT. TOTAL"]],
+        head: [["OM", "TMFT", "EFETIVO", "VAGOS", "SEM NEO", "AT. TOTAL"]],
         body: omRows,
         theme: "grid",
         styles: { fontSize: 8, cellPadding: 2, halign: "center" },
@@ -373,19 +370,17 @@ export const DashboardFilters = ({
         for (const [grad, vals] of sortedGrads) {
           const vagos = vals.tmft - vals.exi;
           const atend = vals.tmft > 0 ? ((vals.exi / vals.tmft) * 100).toFixed(1) : "0.0";
-          const dif = vals.exi - vals.tmft;
-          rows.push([grad, vals.tmft.toString(), vals.exi.toString(), dif.toString(), vagos.toString(), `${atend}%`]);
+          rows.push([grad, vals.tmft.toString(), vals.exi.toString(), vagos.toString(), `${atend}%`]);
           omTmft += vals.tmft;
           omExi += vals.exi;
         }
         const omVagos = omTmft - omExi;
         const omAtend = omTmft > 0 ? ((omExi / omTmft) * 100).toFixed(1) : "0.0";
-        const omDif = omExi - omTmft;
-        rows.push(["TOTAL", omTmft.toString(), omExi.toString(), omDif.toString(), omVagos.toString(), `${omAtend}%`]);
+        rows.push(["TOTAL", omTmft.toString(), omExi.toString(), omVagos.toString(), `${omAtend}%`]);
 
         autoTable(pdf, {
           startY: yPos,
-          head: [["GRADUAÇÃO", "TMFT", "EFETIVO", "DIFERENÇA", "VAGOS", "ATEND."]],
+          head: [["GRADUAÇÃO", "TMFT", "EFETIVO", "VAGOS", "ATEND."]],
           body: rows,
           theme: "grid",
           styles: { fontSize: 8, cellPadding: 2, halign: "center" },
@@ -395,9 +390,9 @@ export const DashboardFilters = ({
           didParseCell: (data: any) => {
             if (data.section === "body") {
               const rowRaw = data.row.raw;
-              const vagos = Number(rowRaw?.[4] || 0);
+              const vagos = Number(rowRaw?.[3] || 0);
               const colIdx = data.column.index;
-              if (colIdx === 4 && vagos > 0) {
+              if (colIdx === 3 && vagos > 0) {
                 data.cell.styles.fillColor = [254, 202, 202];
                 data.cell.styles.textColor = [127, 29, 29];
               }
