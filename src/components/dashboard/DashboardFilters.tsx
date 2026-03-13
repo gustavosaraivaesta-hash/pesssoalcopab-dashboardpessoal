@@ -356,21 +356,22 @@ export const DashboardFilters = ({
         yPos += 5;
 
         const rows: string[][] = [];
-        let omTmft = 0, omExi = 0, omDif = 0;
+        let omTmft = 0, omExi = 0;
         const sortedGrads = Array.from(gradMap.entries()).sort(([a], [b]) => a.localeCompare(b));
         for (const [grad, vals] of sortedGrads) {
+          const vagos = vals.tmft - vals.exi;
           const atend = vals.tmft > 0 ? ((vals.exi / vals.tmft) * 100).toFixed(1) : "0.0";
-          rows.push([grad, vals.tmft.toString(), vals.exi.toString(), vals.dif.toString(), `${atend}%`]);
+          rows.push([grad, vals.tmft.toString(), vals.exi.toString(), vagos.toString(), `${atend}%`]);
           omTmft += vals.tmft;
           omExi += vals.exi;
-          omDif += vals.dif;
         }
+        const omVagos = omTmft - omExi;
         const omAtend = omTmft > 0 ? ((omExi / omTmft) * 100).toFixed(1) : "0.0";
-        rows.push(["TOTAL", omTmft.toString(), omExi.toString(), omDif.toString(), `${omAtend}%`]);
+        rows.push(["TOTAL", omTmft.toString(), omExi.toString(), omVagos.toString(), `${omAtend}%`]);
 
         autoTable(pdf, {
           startY: yPos,
-          head: [["GRADUAÇÃO", "TMFT", "EXI", "DIF", "ATEND."]],
+          head: [["GRADUAÇÃO", "TMFT", "EFETIVO", "VAGOS", "ATEND."]],
           body: rows,
           theme: "grid",
           styles: { fontSize: 8, cellPadding: 2, halign: "center" },
@@ -380,9 +381,9 @@ export const DashboardFilters = ({
           didParseCell: (data: any) => {
             if (data.section === "body") {
               const rowRaw = data.row.raw;
-              const dif = Number(rowRaw?.[3] || 0);
+              const vagos = Number(rowRaw?.[3] || 0);
               const colIdx = data.column.index;
-              if (colIdx === 3 && dif < 0) {
+              if (colIdx === 3 && vagos > 0) {
                 data.cell.styles.fillColor = [254, 202, 202];
                 data.cell.styles.textColor = [127, 29, 29];
               }
