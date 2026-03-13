@@ -617,7 +617,7 @@ const DashboardPracas = () => {
     const efetivoForNeo = hasSpecificFilters ? occupiedRegular.filter(matchesEfeFilters) : occupiedRegular;
 
     const foraDaNeoList = efetivoForNeo.filter((item) => {
-      return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "");
+      return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
     });
 
     const foraDaNeo = foraDaNeoList.length;
