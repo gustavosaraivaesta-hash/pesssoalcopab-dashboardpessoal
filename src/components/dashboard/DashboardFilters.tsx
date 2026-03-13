@@ -274,7 +274,8 @@ export const DashboardFilters = ({
       for (const [om, vals] of sortedOMs) {
         const vagos = vals.tmft - vals.exi;
         const atTotal = vals.tmft > 0 ? (((vals.exi + vals.extra) / vals.tmft) * 100).toFixed(1) : "0.0";
-        omRows.push([om, vals.tmft.toString(), vals.exi.toString(), vagos.toString(), vals.extra.toString(), `${atTotal}%`]);
+        const dif = vals.exi - vals.tmft;
+        omRows.push([om, vals.tmft.toString(), vals.exi.toString(), dif.toString(), vagos.toString(), vals.extra.toString(), `${atTotal}%`]);
         totalRowTmft += vals.tmft;
         totalRowExi += vals.exi;
         totalRowExtra += vals.extra;
