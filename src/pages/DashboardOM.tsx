@@ -1784,7 +1784,7 @@ const DashboardOM = () => {
           yPosition += 6;
 
           const trrmTableData = omTrrm.map((item) => [
-            item.nome,
+            formatMilitarNameFull(item),
             `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
             item.opcao || "-",
             item.cargo,
