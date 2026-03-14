@@ -2368,7 +2368,7 @@ const DashboardOM = () => {
             trrmRows.push(
               new TableRow({
                 children: [
-                  createCell(t.nome || "-"),
+                  createCell(formatMilitarNameFull(t)),
                   createCell(`${t.posto}, ${t.corpo || "-"}, ${t.quadro || "-"}`),
                   createCell(t.opcao || "-"),
                   createCell(t.cargo || "-"),
