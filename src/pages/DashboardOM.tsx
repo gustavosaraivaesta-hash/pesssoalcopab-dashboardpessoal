@@ -1753,7 +1753,7 @@ const DashboardOM = () => {
           yPosition += 6;
 
           const desembarqueTableData = omDesembarque.map((item) => [
-            item.nome,
+            formatMilitarNameFull(item),
             `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
             item.cargo,
             item.destino,
