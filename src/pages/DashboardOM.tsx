@@ -3762,7 +3762,7 @@ const DashboardOM = () => {
                       <div key={index} className="border-l-4 border-l-cyan-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <h4 className="text-base font-bold text-foreground">{formatMilitarNameFull(item)}</h4>
                             <p className="text-sm text-muted-foreground">{item.cargo}</p>
                             <div className="flex items-center gap-4 mt-2 text-sm">
                               {item.emOutraOm && <span className="text-cyan-600">Em: {item.emOutraOm}</span>}
