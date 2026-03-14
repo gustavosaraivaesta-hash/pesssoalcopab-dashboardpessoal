@@ -1874,7 +1874,7 @@ const DashboardOM = () => {
           yPosition += 6;
 
           const concursoTableData = omConcurso.map((item) => [
-            item.nome,
+            formatMilitarNameFull(item),
             `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
             item.cargo || "-",
             item.anoPrevisto || "-",
