@@ -1363,7 +1363,11 @@ const DashboardPracas = () => {
             item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo,
             item.postoTmft,
             item.quadroTmft,
-            item.nome || "-",
+            (() => {
+              const opcao = (item.ocupado ? item.opcaoEfe : item.opcaoTmft || "").trim().toUpperCase();
+              const opcaoSuffix = opcao && opcao !== "-" ? ` (${opcao})` : "";
+              return (item.nome || "-") + opcaoSuffix;
+            })(),
             item.postoEfe || "-",
             item.quadroEfe || "-",
             status,

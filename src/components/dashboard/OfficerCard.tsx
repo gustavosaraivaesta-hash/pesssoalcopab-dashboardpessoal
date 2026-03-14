@@ -54,8 +54,11 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
     // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
     const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "CATP", "PRM", "CPRM", "QFN", "CFN", "PL"].includes(esp);
 
-    if (!grad) return nomeCompleto;
-    return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}`;
+    const opcao = (item.ocupado ? item.opcaoEfe : item.opcaoTmft) || item.opcaoEfe || item.opcaoTmft || "";
+    const opcaoStr = opcao.trim().toUpperCase();
+    const opcaoSuffix = opcaoStr && opcaoStr !== "-" ? ` (${opcaoStr})` : "";
+    if (!grad) return `${nomeCompleto}${opcaoSuffix}`;
+    return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}${opcaoSuffix}`;
   };
 
   const getCardBackground = () => {
