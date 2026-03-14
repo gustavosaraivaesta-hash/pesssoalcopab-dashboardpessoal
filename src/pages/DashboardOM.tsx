@@ -2490,7 +2490,7 @@ const DashboardOM = () => {
             concursoRows.push(
               new TableRow({
                 children: [
-                  createCell(c.nome || "-"),
+                  createCell(formatMilitarNameFull(c)),
                   createCell(`${c.posto}, ${c.corpo || "-"}, ${c.quadro || "-"}`),
                   createCell(c.cargo || "-"),
                   createCell(c.anoPrevisto || "-"),
