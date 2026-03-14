@@ -1843,7 +1843,7 @@ const DashboardOM = () => {
           yPosition += 6;
 
           const destaquesTableData = omDestaques.map((item) => [
-            item.nome,
+            formatMilitarNameFull(item),
             `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
             item.cargo,
             item.emOutraOm || "-",
