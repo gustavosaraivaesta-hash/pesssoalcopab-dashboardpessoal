@@ -2449,7 +2449,7 @@ const DashboardOM = () => {
             destaquesRows.push(
               new TableRow({
                 children: [
-                  createCell(d.nome || "-"),
+                  createCell(formatMilitarNameFull(d)),
                   createCell(`${d.posto}, ${d.corpo || "-"}, ${d.quadro || "-"}`),
                   createCell(d.cargo || "-"),
                   createCell(d.emOutraOm || "-"),
