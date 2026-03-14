@@ -1814,7 +1814,7 @@ const DashboardOM = () => {
           yPosition += 6;
 
           const licencasTableData = omLicencas.map((item) => [
-            item.nome,
+            formatMilitarNameFull(item),
             `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
             item.cargo,
             item.periodo || "-",
