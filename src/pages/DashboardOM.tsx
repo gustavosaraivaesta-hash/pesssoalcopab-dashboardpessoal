@@ -2408,7 +2408,7 @@ const DashboardOM = () => {
             licencasRows.push(
               new TableRow({
                 children: [
-                  createCell(l.nome || "-"),
+                  createCell(formatMilitarNameFull(l)),
                   createCell(`${l.posto}, ${l.corpo || "-"}, ${l.quadro || "-"}`),
                   createCell(l.cargo || "-"),
                   createCell(l.periodo || "-"),
