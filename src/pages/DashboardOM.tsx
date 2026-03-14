@@ -158,6 +158,19 @@ interface CachedOMData {
   lastUpdate: string;
 }
 
+const EXCLUDED_QUADROS = ["QPA", "CPA", "QAP", "CAP", "CATP", "PRM", "CPRM", "QFN", "CFN", "PL"];
+
+const formatMilitarNameFull = (item: { posto: string; quadro: string; nome: string; opcao?: string }) => {
+  const posto = (item.posto || "").trim().toUpperCase();
+  const quadro = (item.quadro || "").trim().toUpperCase();
+  const nome = item.nome || "-";
+  const isValidQuadro = quadro && quadro !== "-" && !EXCLUDED_QUADROS.includes(quadro);
+  const opcao = (item.opcao || "").trim().toUpperCase();
+  const opcaoSuffix = opcao && opcao !== "-" ? ` (${opcao})` : "";
+  if (!posto) return `${nome}${opcaoSuffix}`;
+  return `${posto}${isValidQuadro ? `-${quadro}` : ""} ${nome}${opcaoSuffix}`;
+};
+
 const DashboardOM = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
