@@ -3137,8 +3137,10 @@ const DashboardPracas = () => {
                       esp !== "-" &&
                       !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN", "PL"].includes(esp);
 
-                    if (!grad) return nomeCompleto;
-                    return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}`;
+                    const opcao = (item.ocupado ? item.opcaoEfe : item.opcaoTmft || "").trim().toUpperCase();
+                    const opcaoSuffix = opcao && opcao !== "-" ? ` (${opcao})` : "";
+                    if (!grad) return `${nomeCompleto}${opcaoSuffix}`;
+                    return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}${opcaoSuffix}`;
                   };
 
                   return (
