@@ -158,6 +158,19 @@ interface CachedOMData {
   lastUpdate: string;
 }
 
+const EXCLUDED_QUADROS = ["QPA", "CPA", "QAP", "CAP", "CATP", "PRM", "CPRM", "QFN", "CFN", "PL"];
+
+const formatMilitarNameFull = (item: { posto: string; quadro: string; nome: string; opcao?: string }) => {
+  const posto = (item.posto || "").trim().toUpperCase();
+  const quadro = (item.quadro || "").trim().toUpperCase();
+  const nome = item.nome || "-";
+  const isValidQuadro = quadro && quadro !== "-" && !EXCLUDED_QUADROS.includes(quadro);
+  const opcao = (item.opcao || "").trim().toUpperCase();
+  const opcaoSuffix = opcao && opcao !== "-" ? ` (${opcao})` : "";
+  if (!posto) return `${nome}${opcaoSuffix}`;
+  return `${posto}${isValidQuadro ? `-${quadro}` : ""} ${nome}${opcaoSuffix}`;
+};
+
 const DashboardOM = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
@@ -1740,7 +1753,7 @@ const DashboardOM = () => {
           yPosition += 6;
 
           const desembarqueTableData = omDesembarque.map((item) => [
-            item.nome,
+            formatMilitarNameFull(item),
             `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
             item.cargo,
             item.destino,
@@ -1771,7 +1784,7 @@ const DashboardOM = () => {
           yPosition += 6;
 
           const trrmTableData = omTrrm.map((item) => [
-            item.nome,
+            formatMilitarNameFull(item),
             `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
             item.opcao || "-",
             item.cargo,
@@ -1801,7 +1814,7 @@ const DashboardOM = () => {
           yPosition += 6;
 
           const licencasTableData = omLicencas.map((item) => [
-            item.nome,
+            formatMilitarNameFull(item),
             `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
             item.cargo,
             item.periodo || "-",
@@ -1830,7 +1843,7 @@ const DashboardOM = () => {
           yPosition += 6;
 
           const destaquesTableData = omDestaques.map((item) => [
-            item.nome,
+            formatMilitarNameFull(item),
             `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
             item.cargo,
             item.emOutraOm || "-",
@@ -1861,7 +1874,7 @@ const DashboardOM = () => {
           yPosition += 6;
 
           const concursoTableData = omConcurso.map((item) => [
-            item.nome,
+            formatMilitarNameFull(item),
             `${item.posto}, ${item.corpo || "-"}, ${item.quadro || "-"}`,
             item.cargo || "-",
             item.anoPrevisto || "-",
@@ -2313,7 +2326,7 @@ const DashboardOM = () => {
             desembarqueRows.push(
               new TableRow({
                 children: [
-                  createCell(d.nome || "-"),
+                  createCell(formatMilitarNameFull(d)),
                   createCell(`${d.posto}, ${d.corpo || "-"}, ${d.quadro || "-"}`),
                   createCell(d.cargo || "-"),
                   createCell(d.destino || "-"),
@@ -2355,7 +2368,7 @@ const DashboardOM = () => {
             trrmRows.push(
               new TableRow({
                 children: [
-                  createCell(t.nome || "-"),
+                  createCell(formatMilitarNameFull(t)),
                   createCell(`${t.posto}, ${t.corpo || "-"}, ${t.quadro || "-"}`),
                   createCell(t.opcao || "-"),
                   createCell(t.cargo || "-"),
@@ -2395,7 +2408,7 @@ const DashboardOM = () => {
             licencasRows.push(
               new TableRow({
                 children: [
-                  createCell(l.nome || "-"),
+                  createCell(formatMilitarNameFull(l)),
                   createCell(`${l.posto}, ${l.corpo || "-"}, ${l.quadro || "-"}`),
                   createCell(l.cargo || "-"),
                   createCell(l.periodo || "-"),
@@ -2436,7 +2449,7 @@ const DashboardOM = () => {
             destaquesRows.push(
               new TableRow({
                 children: [
-                  createCell(d.nome || "-"),
+                  createCell(formatMilitarNameFull(d)),
                   createCell(`${d.posto}, ${d.corpo || "-"}, ${d.quadro || "-"}`),
                   createCell(d.cargo || "-"),
                   createCell(d.emOutraOm || "-"),
@@ -2477,7 +2490,7 @@ const DashboardOM = () => {
             concursoRows.push(
               new TableRow({
                 children: [
-                  createCell(c.nome || "-"),
+                  createCell(formatMilitarNameFull(c)),
                   createCell(`${c.posto}, ${c.corpo || "-"}, ${c.quadro || "-"}`),
                   createCell(c.cargo || "-"),
                   createCell(c.anoPrevisto || "-"),
@@ -3614,7 +3627,7 @@ const DashboardOM = () => {
                     <div key={index} className="border-l-4 border-l-amber-500 bg-card rounded-lg p-4 shadow-sm">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                          <h4 className="text-base font-bold text-foreground">{formatMilitarNameFull(item)}</h4>
                           <p className="text-sm text-muted-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-amber-600">Destino: {item.destino || "-"}</span>
@@ -3646,7 +3659,7 @@ const DashboardOM = () => {
                     <div key={index} className="border-l-4 border-l-green-500 bg-card rounded-lg p-4 shadow-sm">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                          <h4 className="text-base font-bold text-foreground">{formatMilitarNameFull(item)}</h4>
                           <p className="text-sm text-muted-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-green-600">Destino: {item.destino || "-"}</span>
@@ -3678,7 +3691,7 @@ const DashboardOM = () => {
                       <div key={index} className="border-l-4 border-l-purple-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <h4 className="text-base font-bold text-foreground">{formatMilitarNameFull(item)}</h4>
                             <p className="text-sm text-muted-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
                             <div className="flex items-center gap-4 mt-2 text-sm">
                               <span className="text-purple-600">
@@ -3714,7 +3727,7 @@ const DashboardOM = () => {
                       <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <h4 className="text-base font-bold text-foreground">{formatMilitarNameFull(item)}</h4>
                             <p className="text-sm text-muted-foreground">{item.cargo}</p>
                             <div className="flex items-center gap-4 mt-2 text-sm">
                               <span className="text-orange-600">Período: {item.periodo || "Não informado"}</span>
@@ -3749,7 +3762,7 @@ const DashboardOM = () => {
                       <div key={index} className="border-l-4 border-l-cyan-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                            <h4 className="text-base font-bold text-foreground">{formatMilitarNameFull(item)}</h4>
                             <p className="text-sm text-muted-foreground">{item.cargo}</p>
                             <div className="flex items-center gap-4 mt-2 text-sm">
                               {item.emOutraOm && <span className="text-cyan-600">Em: {item.emOutraOm}</span>}
@@ -3785,8 +3798,7 @@ const DashboardOM = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <h4 className="text-base font-bold text-foreground">
-                              {[item.posto, item.quadro].filter(Boolean).join(" ")}{" "}
-                              {item.nome}
+                              {formatMilitarNameFull(item)}
                             </h4>
                             <p className="text-sm text-muted-foreground">{item.cargo}</p>
                             <div className="flex items-center gap-4 mt-2 text-sm">
