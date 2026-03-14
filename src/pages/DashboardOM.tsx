@@ -3798,8 +3798,7 @@ const DashboardOM = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <h4 className="text-base font-bold text-foreground">
-                              {[item.posto, item.quadro].filter(Boolean).join(" ")}{" "}
-                              {item.nome}
+                              {formatMilitarNameFull(item)}
                             </h4>
                             <p className="text-sm text-muted-foreground">{item.cargo}</p>
                             <div className="flex items-center gap-4 mt-2 text-sm">
