@@ -836,7 +836,7 @@ const DashboardOM = () => {
     }
 
     if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
+      filtered = filtered.filter((item) => matchesOpcaoFilter(item.opcaoTmft, selectedOpcoes));
     }
 
     // Filtro de posto (postoEfe) para oficiais
