@@ -749,7 +749,7 @@ const DashboardOM = () => {
     }
 
     if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcao));
+      filtered = filtered.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
     }
 
     return filtered;
