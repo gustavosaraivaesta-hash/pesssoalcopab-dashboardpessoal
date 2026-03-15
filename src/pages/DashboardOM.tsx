@@ -2703,7 +2703,7 @@ const DashboardOM = () => {
         const trrmRows: any[][] = [trrmHeaders];
 
         for (const item of trrmData) {
-          if (selectedOMs.length > 0 && !selectedOMs.includes(item.om)) continue;
+          if ((selectedOMs.length > 0 && !selectedOMs.includes(item.om)) || !matchesOpcaoFilter(item.opcao, selectedOpcoes)) continue;
           trrmRows.push([
             item.om,
             item.nome,
