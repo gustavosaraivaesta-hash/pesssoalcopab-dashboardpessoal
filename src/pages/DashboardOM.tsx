@@ -1625,8 +1625,7 @@ const DashboardOM = () => {
             item.corpoTmft || "-",
             (() => {
               const opcao = (item.ocupado ? item.opcaoEfe : item.opcaoTmft || "").trim().toUpperCase();
-              const opcaoSuffix = opcao && opcao !== "-" ? ` (${opcao})` : "";
-              return (item.nome || "-") + opcaoSuffix;
+              return formatMilitarNameWithOpcao(item.postoEfe || item.postoTmft || "", item.quadroEfe || item.quadroTmft || "", item.nome || "-", opcao);
             })(),
             item.postoEfe || "-",
             item.quadroEfe || "-",
