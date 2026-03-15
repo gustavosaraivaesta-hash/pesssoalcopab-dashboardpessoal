@@ -1588,8 +1588,8 @@ const DashboardOM = () => {
               matchesTmftFilters = matchesTmftFilters && selectedPostoFilter.includes(item.postoTmft);
             }
             if (selectedOpcoes.length > 0) {
-              matchesEfeFilters = matchesEfeFilters && selectedOpcoes.includes(item.opcaoEfe);
-              matchesTmftFilters = matchesTmftFilters && selectedOpcoes.includes(item.opcaoTmft);
+              matchesEfeFilters = matchesEfeFilters && matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes);
+              matchesTmftFilters = matchesTmftFilters && matchesOpcaoFilter(item.opcaoTmft, selectedOpcoes);
             }
 
             // Incluir se atende aos filtros EFE mas NÃO aos filtros TMFT (linha extra)
