@@ -1782,7 +1782,7 @@ const DashboardOM = () => {
         }
 
         // ====== PREVISÃO DE TRRM (per OM) ======
-        const omTrrm = trrmData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omTrrm = trrmData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omTrrm.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
