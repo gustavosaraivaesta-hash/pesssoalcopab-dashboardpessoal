@@ -2655,7 +2655,7 @@ const DashboardOM = () => {
         const desembarqueRows: any[][] = [desembarqueHeaders];
 
         for (const item of desembarqueData) {
-          if (selectedOMs.length > 0 && !selectedOMs.includes(item.om)) continue;
+          if ((selectedOMs.length > 0 && !selectedOMs.includes(item.om)) || !matchesOpcaoFilter(item.opcao, selectedOpcoes)) continue;
           desembarqueRows.push([
             item.om,
             item.nome,
