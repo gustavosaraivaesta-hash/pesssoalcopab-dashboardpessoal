@@ -1812,7 +1812,7 @@ const DashboardOM = () => {
         }
 
         // ====== LICENÇAS (per OM) ======
-        const omLicencas = licencasData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omLicencas = licencasData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omLicencas.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
