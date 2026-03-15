@@ -622,7 +622,7 @@ const DashboardOM = () => {
       let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
       const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
       if (hasNonOpcaoFiltersEfe && !selectedOpcoes.includes("TTC")) {
-        efetivoData = efetivoData.filter((item) => item.opcaoEfe !== "TTC");
+        efetivoData = efetivoData.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
       }
       if (selectedOMs.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedOMs.includes(item.om));
