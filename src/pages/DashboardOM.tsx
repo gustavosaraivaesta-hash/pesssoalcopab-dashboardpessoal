@@ -581,7 +581,7 @@ const DashboardOM = () => {
         efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
       }
       if (selectedOpcoes.length > 0) {
-        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
+        efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
       }
 
       totalEXI = efetivoData.length;
