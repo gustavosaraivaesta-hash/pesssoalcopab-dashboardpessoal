@@ -158,6 +158,24 @@ interface CachedOMData {
   lastUpdate: string;
 }
 
+/**
+ * Normalizes opcao value: empty, "-", or missing → "CARREIRA"
+ */
+const normalizeOpcao = (opcao: string | undefined | null): string => {
+  const val = (opcao || "").trim().toUpperCase();
+  if (!val || val === "-") return "CARREIRA";
+  return val;
+};
+
+/**
+ * Checks if an opcao value matches the selected opcoes filter.
+ * When no filter is selected, everything matches.
+ */
+const matchesOpcaoFilter = (opcao: string | undefined | null, selectedOpcoes: string[]): boolean => {
+  if (selectedOpcoes.length === 0) return true;
+  return selectedOpcoes.includes(normalizeOpcao(opcao));
+};
+
 const formatMilitarNameFull = (item: { posto: string; quadro: string; nome: string; opcao?: string }) => {
   return formatMilitarNameWithOpcao(item.posto, item.quadro, item.nome, item.opcao || "");
 };
@@ -425,7 +443,7 @@ const DashboardOM = () => {
     }
 
     if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
+      filtered = filtered.filter((item) => matchesOpcaoFilter(item.opcaoTmft, selectedOpcoes));
     }
 
     // Filtro de posto - filtra pela TMFT para que as métricas sejam baseadas nas posições do posto selecionado
@@ -457,7 +475,7 @@ const DashboardOM = () => {
     // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
     const hasNonOpcaoFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
     if (hasNonOpcaoFilters && !selectedOpcoes.includes("TTC")) {
-      filtered = filtered.filter((item) => item.opcaoTmft !== "TTC");
+      filtered = filtered.filter((item) => normalizeOpcao(item.opcaoTmft) !== "TTC");
     }
 
     return filtered;
@@ -526,7 +544,7 @@ const DashboardOM = () => {
       // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
       const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
       if (hasNonOpcaoFiltersEfe && !selectedOpcoes.includes("TTC")) {
-        efetivoData = efetivoData.filter((item) => item.opcaoEfe !== "TTC");
+        efetivoData = efetivoData.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
       }
 
       // Aplicar filtro de OM
@@ -535,7 +553,7 @@ const DashboardOM = () => {
       }
       // Aplicar filtro de Opção (usa opcaoEfe para filtragem independente)
       if (selectedOpcoes.length > 0) {
-        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
+        efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
       }
       // Aplicar filtro de busca
       if (searchQuery.trim()) {
@@ -563,7 +581,7 @@ const DashboardOM = () => {
         efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
       }
       if (selectedOpcoes.length > 0) {
-        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
+        efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
       }
 
       totalEXI = efetivoData.length;
@@ -604,13 +622,13 @@ const DashboardOM = () => {
       let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
       const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
       if (hasNonOpcaoFiltersEfe && !selectedOpcoes.includes("TTC")) {
-        efetivoData = efetivoData.filter((item) => item.opcaoEfe !== "TTC");
+        efetivoData = efetivoData.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
       }
       if (selectedOMs.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedOMs.includes(item.om));
       }
       if (selectedOpcoes.length > 0) {
-        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
+        efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
       }
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
@@ -635,7 +653,7 @@ const DashboardOM = () => {
         efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
       }
       if (selectedOpcoes.length > 0) {
-        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
+        efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
       }
       return efetivoData;
     } else {
@@ -731,7 +749,7 @@ const DashboardOM = () => {
     }
 
     if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcao));
+      filtered = filtered.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
     }
 
     return filtered;
@@ -749,7 +767,7 @@ const DashboardOM = () => {
     }
 
     if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcao));
+      filtered = filtered.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
     }
 
     return filtered;
@@ -818,7 +836,7 @@ const DashboardOM = () => {
     }
 
     if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
+      filtered = filtered.filter((item) => matchesOpcaoFilter(item.opcaoTmft, selectedOpcoes));
     }
 
     // Filtro de posto (postoEfe) para oficiais
@@ -836,7 +854,7 @@ const DashboardOM = () => {
     // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
     const hasNonOpcaoFiltersVagas = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
     if (hasNonOpcaoFiltersVagas && !selectedOpcoes.includes("TTC")) {
-      filtered = filtered.filter((item) => item.opcaoTmft !== "TTC");
+      filtered = filtered.filter((item) => normalizeOpcao(item.opcaoTmft) !== "TTC");
     }
 
     // Apply search filter
@@ -1134,12 +1152,12 @@ const DashboardOM = () => {
             // Excluir TTC quando filtros específicos estão ativos
             const hasNonOpcaoFiltersPdf = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
             if (hasNonOpcaoFiltersPdf && !selectedOpcoes.includes("TTC")) {
-              ef = ef.filter((item) => item.opcaoEfe !== "TTC");
+              ef = ef.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
             }
             if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
-            if (selectedOpcoes.length > 0) ef = ef.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
+            if (selectedOpcoes.length > 0) ef = ef.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
             omEfetivo = ef.length;
           } else {
             omEfetivo = omRegularData.filter((item) => item.ocupado).length;
@@ -1505,12 +1523,12 @@ const DashboardOM = () => {
             // Excluir TTC quando filtros específicos estão ativos
             const hasNonOpcaoFiltersPdf2 = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
             if (hasNonOpcaoFiltersPdf2 && !selectedOpcoes.includes("TTC")) {
-              ef = ef.filter((item) => item.opcaoEfe !== "TTC");
+              ef = ef.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
             }
             if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
-            if (selectedOpcoes.length > 0) ef = ef.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
+            if (selectedOpcoes.length > 0) ef = ef.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
             filtEfetivo = ef.length;
           } else {
             filtTmft = omRegularData.length;
@@ -1570,8 +1588,8 @@ const DashboardOM = () => {
               matchesTmftFilters = matchesTmftFilters && selectedPostoFilter.includes(item.postoTmft);
             }
             if (selectedOpcoes.length > 0) {
-              matchesEfeFilters = matchesEfeFilters && selectedOpcoes.includes(item.opcaoEfe);
-              matchesTmftFilters = matchesTmftFilters && selectedOpcoes.includes(item.opcaoTmft);
+              matchesEfeFilters = matchesEfeFilters && matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes);
+              matchesTmftFilters = matchesTmftFilters && matchesOpcaoFilter(item.opcaoTmft, selectedOpcoes);
             }
 
             // Incluir se atende aos filtros EFE mas NÃO aos filtros TMFT (linha extra)
@@ -1604,8 +1622,8 @@ const DashboardOM = () => {
               matchesTmft = matchesTmft && selectedPostoFilter.includes(item.postoTmft);
             }
             if (selectedOpcoes.length > 0) {
-              matchesEfe = matchesEfe && selectedOpcoes.includes(item.opcaoEfe);
-              matchesTmft = matchesTmft && selectedOpcoes.includes(item.opcaoTmft);
+              matchesEfe = matchesEfe && matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes);
+              matchesTmft = matchesTmft && matchesOpcaoFilter(item.opcaoTmft, selectedOpcoes);
             }
 
             isExtraRow = item.ocupado && matchesEfe && !matchesTmft;
@@ -1732,7 +1750,7 @@ const DashboardOM = () => {
 
         // ====== PREVISÃO DE DESEMBARQUE (per OM) ======
         const omDesembarque = desembarqueData.filter(
-          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)) && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)),
+          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)) && matchesOpcaoFilter(item.opcao, selectedOpcoes),
         );
         if (omDesembarque.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
@@ -1764,7 +1782,7 @@ const DashboardOM = () => {
         }
 
         // ====== PREVISÃO DE TRRM (per OM) ======
-        const omTrrm = trrmData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omTrrm = trrmData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omTrrm.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -1794,7 +1812,7 @@ const DashboardOM = () => {
         }
 
         // ====== LICENÇAS (per OM) ======
-        const omLicencas = licencasData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omLicencas = licencasData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omLicencas.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -1823,7 +1841,7 @@ const DashboardOM = () => {
         }
 
         // ====== DESTAQUES (per OM) ======
-        const omDestaques = destaquesData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omDestaques = destaquesData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omDestaques.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -1854,7 +1872,7 @@ const DashboardOM = () => {
         }
 
         // ====== CONCURSO C-EMOS (per OM) ======
-        const omConcurso = concursoData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omConcurso = concursoData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omConcurso.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -2288,7 +2306,7 @@ const DashboardOM = () => {
 
         // PREVISÃO DE DESEMBARQUE
         const omDesembarque = desembarqueData.filter(
-          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)),
+          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)) && matchesOpcaoFilter(item.opcao, selectedOpcoes),
         );
         if (omDesembarque.length > 0) {
           omChildren.push(
@@ -2332,7 +2350,7 @@ const DashboardOM = () => {
         }
 
         // PREVISÃO DE TRRM
-        const omTrrm = trrmData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omTrrm = trrmData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omTrrm.length > 0) {
           omChildren.push(
             new Paragraph({
@@ -2373,7 +2391,7 @@ const DashboardOM = () => {
         }
 
         // LICENÇAS
-        const omLicencas = licencasData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omLicencas = licencasData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omLicencas.length > 0) {
           omChildren.push(
             new Paragraph({
@@ -2412,7 +2430,7 @@ const DashboardOM = () => {
         }
 
         // DESTAQUES
-        const omDestaques = destaquesData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omDestaques = destaquesData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omDestaques.length > 0) {
           omChildren.push(
             new Paragraph({
@@ -2455,7 +2473,7 @@ const DashboardOM = () => {
         }
 
         // CONCURSO C-EMOS
-        const omConcurso = concursoData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omConcurso = concursoData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omConcurso.length > 0) {
           omChildren.push(
             new Paragraph({
@@ -2637,7 +2655,7 @@ const DashboardOM = () => {
         const desembarqueRows: any[][] = [desembarqueHeaders];
 
         for (const item of desembarqueData) {
-          if (selectedOMs.length > 0 && !selectedOMs.includes(item.om)) continue;
+          if ((selectedOMs.length > 0 && !selectedOMs.includes(item.om)) || !matchesOpcaoFilter(item.opcao, selectedOpcoes)) continue;
           desembarqueRows.push([
             item.om,
             item.nome,
@@ -2661,7 +2679,7 @@ const DashboardOM = () => {
         const embarqueRows: any[][] = [embarqueHeaders];
 
         for (const item of embarqueData) {
-          if (selectedOMs.length > 0 && !selectedOMs.includes(item.om)) continue;
+          if ((selectedOMs.length > 0 && !selectedOMs.includes(item.om)) || !matchesOpcaoFilter(item.opcao, selectedOpcoes)) continue;
           embarqueRows.push([
             item.om,
             item.nome,
@@ -2685,7 +2703,7 @@ const DashboardOM = () => {
         const trrmRows: any[][] = [trrmHeaders];
 
         for (const item of trrmData) {
-          if (selectedOMs.length > 0 && !selectedOMs.includes(item.om)) continue;
+          if ((selectedOMs.length > 0 && !selectedOMs.includes(item.om)) || !matchesOpcaoFilter(item.opcao, selectedOpcoes)) continue;
           trrmRows.push([
             item.om,
             item.nome,
@@ -3674,9 +3692,9 @@ const DashboardOM = () => {
 
             {activeTab === "trrm" && (
               <div className="space-y-4">
-                {trrmData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                {trrmData.filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes)).length > 0 ? (
                   trrmData
-                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes))
                     .map((item, index) => (
                       <div key={index} className="border-l-4 border-l-purple-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
@@ -3710,9 +3728,9 @@ const DashboardOM = () => {
 
             {activeTab === "licencas" && (
               <div className="space-y-4">
-                {licencasData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                {licencasData.filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes)).length > 0 ? (
                   licencasData
-                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes))
                     .map((item, index) => (
                       <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
@@ -3744,10 +3762,9 @@ const DashboardOM = () => {
 
             {activeTab === "destaques" && (
               <div className="space-y-4">
-                {destaquesData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length >
-                0 ? (
+                {destaquesData.filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes)).length > 0 ? (
                   destaquesData
-                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes))
                     .map((item, index) => (
                       <div key={index} className="border-l-4 border-l-cyan-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
@@ -3780,9 +3797,9 @@ const DashboardOM = () => {
 
             {activeTab === "concurso" && (
               <div className="space-y-4">
-                {concursoData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                {concursoData.filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes)).length > 0 ? (
                   concursoData
-                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes))
                     .map((item, index) => (
                       <div key={index} className="border-l-4 border-l-emerald-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
