@@ -3728,9 +3728,9 @@ const DashboardOM = () => {
 
             {activeTab === "licencas" && (
               <div className="space-y-4">
-                {licencasData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length > 0 ? (
+                {licencasData.filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes)).length > 0 ? (
                   licencasData
-                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes))
                     .map((item, index) => (
                       <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
