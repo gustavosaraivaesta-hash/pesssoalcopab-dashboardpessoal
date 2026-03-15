@@ -2430,7 +2430,7 @@ const DashboardOM = () => {
         }
 
         // DESTAQUES
-        const omDestaques = destaquesData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omDestaques = destaquesData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omDestaques.length > 0) {
           omChildren.push(
             new Paragraph({
