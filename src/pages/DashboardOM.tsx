@@ -1622,8 +1622,8 @@ const DashboardOM = () => {
               matchesTmft = matchesTmft && selectedPostoFilter.includes(item.postoTmft);
             }
             if (selectedOpcoes.length > 0) {
-              matchesEfe = matchesEfe && selectedOpcoes.includes(item.opcaoEfe);
-              matchesTmft = matchesTmft && selectedOpcoes.includes(item.opcaoTmft);
+              matchesEfe = matchesEfe && matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes);
+              matchesTmft = matchesTmft && matchesOpcaoFilter(item.opcaoTmft, selectedOpcoes);
             }
 
             isExtraRow = item.ocupado && matchesEfe && !matchesTmft;
