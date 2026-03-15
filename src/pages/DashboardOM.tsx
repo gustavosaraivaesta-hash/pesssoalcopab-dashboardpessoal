@@ -553,7 +553,7 @@ const DashboardOM = () => {
       }
       // Aplicar filtro de Opção (usa opcaoEfe para filtragem independente)
       if (selectedOpcoes.length > 0) {
-        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
+        efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
       }
       // Aplicar filtro de busca
       if (searchQuery.trim()) {
