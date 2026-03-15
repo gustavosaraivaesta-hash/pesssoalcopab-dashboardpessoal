@@ -1750,7 +1750,7 @@ const DashboardOM = () => {
 
         // ====== PREVISÃO DE DESEMBARQUE (per OM) ======
         const omDesembarque = desembarqueData.filter(
-          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)) && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)),
+          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)) && matchesOpcaoFilter(item.opcao, selectedOpcoes),
         );
         if (omDesembarque.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
