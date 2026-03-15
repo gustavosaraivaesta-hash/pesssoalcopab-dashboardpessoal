@@ -628,7 +628,7 @@ const DashboardOM = () => {
         efetivoData = efetivoData.filter((item) => selectedOMs.includes(item.om));
       }
       if (selectedOpcoes.length > 0) {
-        efetivoData = efetivoData.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
+        efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
       }
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
