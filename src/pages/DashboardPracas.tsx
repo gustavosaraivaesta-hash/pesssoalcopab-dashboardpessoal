@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { isForaDaNeo, expandSpecialtyEquivalents } from "@/lib/utils";
+import { isForaDaNeo, expandSpecialtyEquivalents, formatMilitarNameWithOpcao } from "@/lib/utils";
 
 import {
   BarChart,
@@ -1365,8 +1365,7 @@ const DashboardPracas = () => {
             item.quadroTmft,
             (() => {
               const opcao = (item.ocupado ? item.opcaoEfe : item.opcaoTmft || "").trim().toUpperCase();
-              const opcaoSuffix = opcao && opcao !== "-" ? ` (${opcao})` : "";
-              return (item.nome || "-") + opcaoSuffix;
+              return formatMilitarNameWithOpcao(item.postoEfe || item.postoTmft || "", item.quadroEfe || item.quadroTmft || "", item.nome || "-", opcao);
             })(),
             item.postoEfe || "-",
             item.quadroEfe || "-",
@@ -2818,9 +2817,8 @@ const DashboardPracas = () => {
                       esp !== "-" &&
                       !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN", "PL"].includes(esp);
                     const opcao = (item.opcaoEfe || item.opcaoTmft || "").trim().toUpperCase();
-                    const opcaoSuffix = opcao && opcao !== "-" ? ` (${opcao})` : "";
-                    if (!grad) return `${nomeCompleto}${opcaoSuffix}`;
-                    return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}${opcaoSuffix}`;
+                    if (!grad) return nomeCompleto;
+                    return formatMilitarNameWithOpcao(grad, esp, nomeCompleto, opcao, { excludeMNQuadro: true });
                   };
 
                   return (
@@ -3142,9 +3140,8 @@ const DashboardPracas = () => {
                       !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN", "PL"].includes(esp);
 
                     const opcao = (item.ocupado ? item.opcaoEfe : item.opcaoTmft || "").trim().toUpperCase();
-                    const opcaoSuffix = opcao && opcao !== "-" ? ` (${opcao})` : "";
-                    if (!grad) return `${nomeCompleto}${opcaoSuffix}`;
-                    return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}${opcaoSuffix}`;
+                    if (!grad) return nomeCompleto;
+                    return formatMilitarNameWithOpcao(grad, esp, nomeCompleto, opcao, { excludeMNQuadro: true });
                   };
 
                   return (
@@ -3334,9 +3331,8 @@ const DashboardPracas = () => {
                             !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN", "PL"].includes(esp);
 
                           const opcao = (item.ocupado ? item.opcaoEfe : item.opcaoTmft || "").trim().toUpperCase();
-                          const opcaoSuffix = opcao && opcao !== "-" ? ` (${opcao})` : "";
-                          if (!grad) return `${nomeCompleto}${opcaoSuffix}`;
-                          return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}${opcaoSuffix}`;
+                          if (!grad) return nomeCompleto;
+                          return formatMilitarNameWithOpcao(grad, esp, nomeCompleto, opcao, { excludeMNQuadro: true });
                         };
 
                         return (

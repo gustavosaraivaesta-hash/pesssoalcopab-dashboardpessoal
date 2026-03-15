@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle } from "lucide-react";
+import { formatMilitarNameWithOpcao } from "@/lib/utils";
 
 interface PersonnelRecord {
   id: string;
@@ -40,25 +41,13 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
   // Highlight if quadro is different OR TTC/career mismatch
   const isDifferentNeoEfe = isDifferentQuadro || isTTCDivergent;
 
-  // Format military name: graduação-especialidade nome
+  // Format military name: graduação-opcao-especialidade nome
   const formatMilitarName = () => {
     if (!item.nome || item.nome.toUpperCase() === 'VAGO') return "VAGO";
-
-    const gradRaw = (item.ocupado ? item.postoEfe : item.postoTmft) || item.postoEfe || item.postoTmft || "";
-    const espRaw = (item.ocupado ? item.quadroEfe : item.quadroTmft) || item.quadroEfe || item.quadroTmft || "";
-
-    const grad = String(gradRaw).trim().toUpperCase();
-    const esp = String(espRaw).trim().toUpperCase();
-    const nomeCompleto = item.nome;
-    
-    // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
-    const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "CATP", "PRM", "CPRM", "QFN", "CFN", "PL"].includes(esp);
-
+    const grad = (item.ocupado ? item.postoEfe : item.postoTmft) || item.postoEfe || item.postoTmft || "";
+    const esp = (item.ocupado ? item.quadroEfe : item.quadroTmft) || item.quadroEfe || item.quadroTmft || "";
     const opcao = (item.ocupado ? item.opcaoEfe : item.opcaoTmft) || item.opcaoEfe || item.opcaoTmft || "";
-    const opcaoStr = opcao.trim().toUpperCase();
-    const opcaoSuffix = opcaoStr && opcaoStr !== "-" ? ` (${opcaoStr})` : "";
-    if (!grad) return `${nomeCompleto}${opcaoSuffix}`;
-    return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}${opcaoSuffix}`;
+    return formatMilitarNameWithOpcao(grad, esp, item.nome, opcao);
   };
 
   const getCardBackground = () => {

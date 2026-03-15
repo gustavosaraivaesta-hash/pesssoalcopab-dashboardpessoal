@@ -5,6 +5,46 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const EXCLUDED_QUADROS_LIST = ["QPA", "CPA", "QAP", "CAP", "CATP", "PRM", "CPRM", "QFN", "CFN", "PL"];
+
+/**
+ * Formats a military name with the correct posto-opcao-quadro pattern.
+ * - CARREIRA: POSTO-QUADRO NOME (no suffix)
+ * - TTC: POSTO-RM-1-QUADRO NOME
+ * - RM-2: POSTO-RM-2-QUADRO NOME
+ */
+export function formatMilitarNameWithOpcao(
+  posto: string,
+  quadro: string,
+  nome: string,
+  opcao: string,
+  opts?: { excludeMNQuadro?: boolean }
+): string {
+  const p = (posto || "").trim().toUpperCase();
+  const q = (quadro || "").trim().toUpperCase();
+  const n = (nome || "").trim().toUpperCase() || "-";
+  const o = (opcao || "").trim().toUpperCase();
+  
+  const isValidQuadro = q && q !== "-" && !EXCLUDED_QUADROS_LIST.includes(q) && !(opts?.excludeMNQuadro && p === "MN");
+  
+  if (!p) return n;
+  
+  // Determine insert between posto and quadro
+  let insert = "";
+  if (o === "TTC") {
+    insert = "RM-1";
+  } else if (o && o !== "-" && o !== "CARREIRA") {
+    // RM-2, or any other non-standard option
+    insert = o;
+  }
+  // CARREIRA or empty = no insert
+  
+  if (insert) {
+    return `${p}-${insert}${isValidQuadro ? `-${q}` : ""} ${n}`;
+  }
+  return `${p}${isValidQuadro ? `-${q}` : ""} ${n}`;
+}
+
 /**
  * Specialty equivalence mapping for NEO comparison.
  * TIC (TMFT) = PD (EFE)
