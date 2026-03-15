@@ -2306,7 +2306,7 @@ const DashboardOM = () => {
 
         // PREVISÃO DE DESEMBARQUE
         const omDesembarque = desembarqueData.filter(
-          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)),
+          (item) => item.om === om && (selectedQuadros.length === 0 || selectedQuadros.includes(item.quadro)) && matchesOpcaoFilter(item.opcao, selectedOpcoes),
         );
         if (omDesembarque.length > 0) {
           omChildren.push(
