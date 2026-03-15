@@ -1528,7 +1528,7 @@ const DashboardOM = () => {
             if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
-            if (selectedOpcoes.length > 0) ef = ef.filter((item) => selectedOpcoes.includes(item.opcaoEfe));
+            if (selectedOpcoes.length > 0) ef = ef.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
             filtEfetivo = ef.length;
           } else {
             filtTmft = omRegularData.length;
