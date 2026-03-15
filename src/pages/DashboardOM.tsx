@@ -1872,7 +1872,7 @@ const DashboardOM = () => {
         }
 
         // ====== CONCURSO C-EMOS (per OM) ======
-        const omConcurso = concursoData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omConcurso = concursoData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omConcurso.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
