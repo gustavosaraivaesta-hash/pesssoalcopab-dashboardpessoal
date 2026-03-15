@@ -158,6 +158,24 @@ interface CachedOMData {
   lastUpdate: string;
 }
 
+/**
+ * Normalizes opcao value: empty, "-", or missing → "CARREIRA"
+ */
+const normalizeOpcao = (opcao: string | undefined | null): string => {
+  const val = (opcao || "").trim().toUpperCase();
+  if (!val || val === "-") return "CARREIRA";
+  return val;
+};
+
+/**
+ * Checks if an opcao value matches the selected opcoes filter.
+ * When no filter is selected, everything matches.
+ */
+const matchesOpcaoFilter = (opcao: string | undefined | null, selectedOpcoes: string[]): boolean => {
+  if (selectedOpcoes.length === 0) return true;
+  return selectedOpcoes.includes(normalizeOpcao(opcao));
+};
+
 const formatMilitarNameFull = (item: { posto: string; quadro: string; nome: string; opcao?: string }) => {
   return formatMilitarNameWithOpcao(item.posto, item.quadro, item.nome, item.opcao || "");
 };
