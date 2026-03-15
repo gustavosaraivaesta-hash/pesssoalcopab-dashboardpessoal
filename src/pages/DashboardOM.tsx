@@ -1523,7 +1523,7 @@ const DashboardOM = () => {
             // Excluir TTC quando filtros específicos estão ativos
             const hasNonOpcaoFiltersPdf2 = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
             if (hasNonOpcaoFiltersPdf2 && !selectedOpcoes.includes("TTC")) {
-              ef = ef.filter((item) => item.opcaoEfe !== "TTC");
+              ef = ef.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
             }
             if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
