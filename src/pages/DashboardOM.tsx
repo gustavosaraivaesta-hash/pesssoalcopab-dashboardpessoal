@@ -2391,7 +2391,7 @@ const DashboardOM = () => {
         }
 
         // LICENÇAS
-        const omLicencas = licencasData.filter((item) => item.om === om && (selectedOpcoes.length === 0 || selectedOpcoes.includes(item.opcao)));
+        const omLicencas = licencasData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
         if (omLicencas.length > 0) {
           omChildren.push(
             new Paragraph({
