@@ -3762,10 +3762,9 @@ const DashboardOM = () => {
 
             {activeTab === "destaques" && (
               <div className="space-y-4">
-                {destaquesData.filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om)).length >
-                0 ? (
+                {destaquesData.filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes)).length > 0 ? (
                   destaquesData
-                    .filter((item) => selectedOMs.length === 0 || selectedOMs.includes(item.om))
+                    .filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes))
                     .map((item, index) => (
                       <div key={index} className="border-l-4 border-l-cyan-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
