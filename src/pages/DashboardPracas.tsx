@@ -2817,9 +2817,8 @@ const DashboardPracas = () => {
                       esp !== "-" &&
                       !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN", "PL"].includes(esp);
                     const opcao = (item.opcaoEfe || item.opcaoTmft || "").trim().toUpperCase();
-                    const opcaoSuffix = opcao && opcao !== "-" ? ` (${opcao})` : "";
-                    if (!grad) return `${nomeCompleto}${opcaoSuffix}`;
-                    return `${grad}${isValidEsp ? `-${esp}` : ""} ${nomeCompleto}${opcaoSuffix}`;
+                    if (!grad) return nomeCompleto;
+                    return formatMilitarNameWithOpcao(grad, esp, nomeCompleto, opcao, { excludeMNQuadro: true });
                   };
 
                   return (
