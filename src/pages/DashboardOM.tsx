@@ -443,7 +443,7 @@ const DashboardOM = () => {
     }
 
     if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => selectedOpcoes.includes(item.opcaoTmft));
+      filtered = filtered.filter((item) => matchesOpcaoFilter(item.opcaoTmft, selectedOpcoes));
     }
 
     // Filtro de posto - filtra pela TMFT para que as métricas sejam baseadas nas posições do posto selecionado
