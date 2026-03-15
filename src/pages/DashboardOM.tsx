@@ -2679,7 +2679,7 @@ const DashboardOM = () => {
         const embarqueRows: any[][] = [embarqueHeaders];
 
         for (const item of embarqueData) {
-          if (selectedOMs.length > 0 && !selectedOMs.includes(item.om)) continue;
+          if ((selectedOMs.length > 0 && !selectedOMs.includes(item.om)) || !matchesOpcaoFilter(item.opcao, selectedOpcoes)) continue;
           embarqueRows.push([
             item.om,
             item.nome,
