@@ -475,7 +475,7 @@ const DashboardOM = () => {
     // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
     const hasNonOpcaoFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
     if (hasNonOpcaoFilters && !selectedOpcoes.includes("TTC")) {
-      filtered = filtered.filter((item) => item.opcaoTmft !== "TTC");
+      filtered = filtered.filter((item) => normalizeOpcao(item.opcaoTmft) !== "TTC");
     }
 
     return filtered;
