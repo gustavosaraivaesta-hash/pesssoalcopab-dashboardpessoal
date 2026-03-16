@@ -907,11 +907,16 @@ const DashboardOM = () => {
     return result.sort((a, b) => b.vagos - a.vagos);
   }, [baseFilteredForVagos, efetivoPopulation]);
 
+  // Get all vacant positions (for always-visible table)
+  const allVagos = useMemo(() => {
+    return baseFilteredForVagos.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && !item.ocupado);
+  }, [baseFilteredForVagos]);
+
   // Get vacant positions for selected OMs
   const vagosForSelectedOMs = useMemo(() => {
-    if (selectedOMsForVagos.length === 0) return [];
-    return baseFilteredForVagos.filter((item) => selectedOMsForVagos.includes(item.om) && !item.ocupado);
-  }, [baseFilteredForVagos, selectedOMsForVagos]);
+    if (selectedOMsForVagos.length === 0) return allVagos;
+    return allVagos.filter((item) => selectedOMsForVagos.includes(item.om));
+  }, [allVagos, selectedOMsForVagos]);
 
   const handleVagosBarClick = (data: any) => {
     if (data && data.om) {
