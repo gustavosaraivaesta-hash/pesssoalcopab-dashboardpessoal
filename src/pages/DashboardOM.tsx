@@ -3367,32 +3367,32 @@ const DashboardOM = () => {
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[320px] rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>NEO</TableHead>
-                      <TableHead>OM</TableHead>
-                      <TableHead>Setor</TableHead>
-                      <TableHead>Cargo</TableHead>
-                      <TableHead>Posto</TableHead>
-                      <TableHead>Quadro</TableHead>
-                      <TableHead>Opção</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                <UITable>
+                  <UITableHeader>
+                    <UITableRow>
+                      <UITableHead>NEO</UITableHead>
+                      <UITableHead>OM</UITableHead>
+                      <UITableHead>Setor</UITableHead>
+                      <UITableHead>Cargo</UITableHead>
+                      <UITableHead>Posto</UITableHead>
+                      <UITableHead>Quadro</UITableHead>
+                      <UITableHead>Opção</UITableHead>
+                    </UITableRow>
+                  </UITableHeader>
+                  <UITableBody>
                     {vagosForSelectedOMs.map((item, index) => (
-                      <TableRow key={`vago-${index}`}>
-                        <TableCell className="font-bold text-red-600">{item.neo || "-"}</TableCell>
-                        <TableCell>{item.om || "-"}</TableCell>
-                        <TableCell>{item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.setor || "-")}</TableCell>
-                        <TableCell>{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.cargo || "-")}</TableCell>
-                        <TableCell>{item.postoTmft || "-"}</TableCell>
-                        <TableCell>{item.quadroTmft || "-"}</TableCell>
-                        <TableCell>{item.opcaoTmft || "-"}</TableCell>
-                      </TableRow>
+                      <UITableRow key={`vago-${index}`}>
+                        <UITableCell className="font-bold text-destructive">{item.neo || "-"}</UITableCell>
+                        <UITableCell>{item.om || "-"}</UITableCell>
+                        <UITableCell>{item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.setor || "-")}</UITableCell>
+                        <UITableCell>{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.cargo || "-")}</UITableCell>
+                        <UITableCell>{item.postoTmft || "-"}</UITableCell>
+                        <UITableCell>{item.quadroTmft || "-"}</UITableCell>
+                        <UITableCell>{item.opcaoTmft || "-"}</UITableCell>
+                      </UITableRow>
                     ))}
-                  </TableBody>
-                </Table>
+                  </UITableBody>
+                </UITable>
               </ScrollArea>
             </CardContent>
           </Card>
