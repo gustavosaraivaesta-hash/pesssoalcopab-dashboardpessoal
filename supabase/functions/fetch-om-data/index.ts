@@ -499,7 +499,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           
           const extraRecord: PersonnelRecord = {
             id: `${omName}-EXTRA-${extraLotacaoCounter}`,
-            neo: 0,
+            neo: '',
             tipoSetor: tipoSetor || 'EXTRA LOTAÇÃO',
             setor: setor || 'EXTRA LOTAÇÃO',
             cargo: cargo || 'SEM NEO',
