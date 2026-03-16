@@ -3346,48 +3346,54 @@ const DashboardOM = () => {
           </CardContent>
         </Card>
 
-        {/* Detalhes dos NEOs Vagos */}
-        {selectedOMsForVagos.length > 0 && vagosForSelectedOMs.length > 0 && (
+        {/* Detalhes dos NEOs Vagos - always visible when there are vacancies */}
+        {vagosForSelectedOMs.length > 0 && (
           <Card className="border-red-300 bg-gradient-to-br from-red-50 to-background">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-red-700">
                   <UserX className="h-5 w-5" />
-                  NEOs Vagos - {selectedOMsForVagos.join(", ")}
+                  NEOs Vagos {selectedOMsForVagos.length > 0 ? `- ${selectedOMsForVagos.join(", ")}` : ""}
                   <Badge variant="outline" className="ml-2">
                     {vagosForSelectedOMs.length} vagas
                   </Badge>
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedOMsForVagos([])}>
-                  Limpar seleção
-                </Button>
+                {selectedOMsForVagos.length > 0 && (
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedOMsForVagos([])}>
+                    Limpar seleção
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {vagosForSelectedOMs.map((item, index) => (
-                  <div key={`vago-${index}`} className="p-3 bg-red-100/50 border border-red-200 rounded-lg">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="outline" className="bg-red-500 text-white border-red-500 text-xs">
-                        NEO {item.neo}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {item.postoTmft}
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        {item.om}
-                      </Badge>
-                    </div>
-                    <p className="font-medium text-sm text-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
-                    <p className="text-xs text-muted-foreground">{item.tipoSetor === "EXTRA LOTAÇÃO" || item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor}</p>
-                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
-                      <span>Quadro: {item.quadroTmft || "-"}</span>
-                      <span>•</span>
-                      <span>Opção: {item.opcaoTmft || "-"}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ScrollArea className="h-[320px] rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>NEO</TableHead>
+                      <TableHead>OM</TableHead>
+                      <TableHead>Setor</TableHead>
+                      <TableHead>Cargo</TableHead>
+                      <TableHead>Posto</TableHead>
+                      <TableHead>Quadro</TableHead>
+                      <TableHead>Opção</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {vagosForSelectedOMs.map((item, index) => (
+                      <TableRow key={`vago-${index}`}>
+                        <TableCell className="font-bold text-red-600">{item.neo || "-"}</TableCell>
+                        <TableCell>{item.om || "-"}</TableCell>
+                        <TableCell>{item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.setor || "-")}</TableCell>
+                        <TableCell>{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.cargo || "-")}</TableCell>
+                        <TableCell>{item.postoTmft || "-"}</TableCell>
+                        <TableCell>{item.quadroTmft || "-"}</TableCell>
+                        <TableCell>{item.opcaoTmft || "-"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
             </CardContent>
           </Card>
         )}
