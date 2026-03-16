@@ -52,7 +52,7 @@ async function authenticateRequest(req: Request): Promise<{ userId: string; role
 
 interface PersonnelRecord {
   id: string;
-  neo: number;
+  neo: string;
   tipoSetor: string;
   setor: string;
   cargo: string;
@@ -306,7 +306,8 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     }
 
     // Check if NEO contains a dot (like 01.01, 02.01.2001) or is a valid number
-    const neoString = String(cells[0]?.v || '').trim();
+    // Prefer formatted value (.f) to preserve leading zeros (e.g., "01.01" instead of 1.01)
+    const neoString = String(cells[0]?.f || cells[0]?.v || '').trim();
     const isValidNeo = neoString && (!isNaN(Number(neoString)) || /^\d+(\.\d+)*$/.test(neoString));
 
     const validPostos = [
@@ -462,7 +463,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           extraLotacaoCounter++;
           const extraRecord: PersonnelRecord = {
             id: `${omName}-EXTRA-${extraLotacaoCounter}`,
-            neo: 0,
+            neo: '',
             tipoSetor: 'EXTRA LOTAÇÃO',
             setor: 'EXTRA LOTAÇÃO',
             cargo: 'SEM NEO',
@@ -499,7 +500,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
           
           const extraRecord: PersonnelRecord = {
             id: `${omName}-EXTRA-${extraLotacaoCounter}`,
-            neo: 0,
+            neo: '',
             tipoSetor: tipoSetor || 'EXTRA LOTAÇÃO',
             setor: setor || 'EXTRA LOTAÇÃO',
             cargo: cargo || 'SEM NEO',
@@ -555,7 +556,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
 
     const record: PersonnelRecord = {
       id: `${omName}-${neoString}`,
-      neo: parseFloat(neoString) || 0,
+      neo: neoString,
       tipoSetor,
       setor,
       cargo,
