@@ -306,7 +306,8 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
     }
 
     // Check if NEO contains a dot (like 01.01, 02.01.2001) or is a valid number
-    const neoString = String(cells[0]?.v || '').trim();
+    // Prefer formatted value (.f) to preserve leading zeros (e.g., "01.01" instead of 1.01)
+    const neoString = String(cells[0]?.f || cells[0]?.v || '').trim();
     const isValidNeo = neoString && (!isNaN(Number(neoString)) || /^\d+(\.\d+)*$/.test(neoString));
 
     const validPostos = [
