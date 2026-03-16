@@ -875,28 +875,37 @@ const DashboardOM = () => {
     return filtered;
   }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedCorpos, searchQuery]);
 
-  // Chart data showing vacancies by OM
+  // Chart data showing vacancies by OM (aligned with metrics: VAGOS = TMFT - EFETIVO per OM)
   const chartDataVagosByOM = useMemo(() => {
-    const grouped = baseFilteredForVagos.reduce(
-      (acc, item) => {
-        if (!acc[item.om]) {
-          acc[item.om] = { om: item.om, vagos: 0, ocupados: 0, total: 0 };
-        }
-        acc[item.om].total += 1;
-        if (item.ocupado) {
-          acc[item.om].ocupados += 1;
-        } else {
-          acc[item.om].vagos += 1;
-        }
-        return acc;
-      },
-      {} as Record<string, { om: string; vagos: number; ocupados: number; total: number }>,
-    );
+    // TMFT per OM: count from baseFilteredForVagos (filtered by TMFT fields), excluding EXTRA LOTAÇÃO
+    const tmftByOM: Record<string, number> = {};
+    baseFilteredForVagos
+      .filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO")
+      .forEach((item) => {
+        tmftByOM[item.om] = (tmftByOM[item.om] || 0) + 1;
+      });
 
-    return Object.values(grouped)
-      .filter((item) => item.vagos > 0)
-      .sort((a, b) => b.vagos - a.vagos);
-  }, [baseFilteredForVagos]);
+    // EFETIVO per OM: use same logic as efetivoPopulation, grouped by OM
+    const efeByOM: Record<string, number> = {};
+    efetivoPopulation.forEach((item) => {
+      efeByOM[item.om] = (efeByOM[item.om] || 0) + 1;
+    });
+
+    // Combine all OMs from both sets
+    const allOMs = new Set([...Object.keys(tmftByOM), ...Object.keys(efeByOM)]);
+    const result: { om: string; vagos: number; ocupados: number; total: number }[] = [];
+
+    allOMs.forEach((om) => {
+      const tmft = tmftByOM[om] || 0;
+      const efe = efeByOM[om] || 0;
+      const vagos = tmft - efe;
+      if (vagos > 0) {
+        result.push({ om, vagos, ocupados: efe, total: tmft });
+      }
+    });
+
+    return result.sort((a, b) => b.vagos - a.vagos);
+  }, [baseFilteredForVagos, efetivoPopulation]);
 
   // Get vacant positions for selected OMs
   const vagosForSelectedOMs = useMemo(() => {
