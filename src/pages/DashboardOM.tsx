@@ -907,11 +907,16 @@ const DashboardOM = () => {
     return result.sort((a, b) => b.vagos - a.vagos);
   }, [baseFilteredForVagos, efetivoPopulation]);
 
+  // Get all vacant positions (for always-visible table)
+  const allVagos = useMemo(() => {
+    return baseFilteredForVagos.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && !item.ocupado);
+  }, [baseFilteredForVagos]);
+
   // Get vacant positions for selected OMs
   const vagosForSelectedOMs = useMemo(() => {
-    if (selectedOMsForVagos.length === 0) return [];
-    return baseFilteredForVagos.filter((item) => selectedOMsForVagos.includes(item.om) && !item.ocupado);
-  }, [baseFilteredForVagos, selectedOMsForVagos]);
+    if (selectedOMsForVagos.length === 0) return allVagos;
+    return allVagos.filter((item) => selectedOMsForVagos.includes(item.om));
+  }, [allVagos, selectedOMsForVagos]);
 
   const handleVagosBarClick = (data: any) => {
     if (data && data.om) {
@@ -3341,48 +3346,54 @@ const DashboardOM = () => {
           </CardContent>
         </Card>
 
-        {/* Detalhes dos NEOs Vagos */}
-        {selectedOMsForVagos.length > 0 && vagosForSelectedOMs.length > 0 && (
+        {/* Detalhes dos NEOs Vagos - always visible when there are vacancies */}
+        {vagosForSelectedOMs.length > 0 && (
           <Card className="border-red-300 bg-gradient-to-br from-red-50 to-background">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-red-700">
                   <UserX className="h-5 w-5" />
-                  NEOs Vagos - {selectedOMsForVagos.join(", ")}
+                  NEOs Vagos {selectedOMsForVagos.length > 0 ? `- ${selectedOMsForVagos.join(", ")}` : ""}
                   <Badge variant="outline" className="ml-2">
                     {vagosForSelectedOMs.length} vagas
                   </Badge>
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedOMsForVagos([])}>
-                  Limpar seleção
-                </Button>
+                {selectedOMsForVagos.length > 0 && (
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedOMsForVagos([])}>
+                    Limpar seleção
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {vagosForSelectedOMs.map((item, index) => (
-                  <div key={`vago-${index}`} className="p-3 bg-red-100/50 border border-red-200 rounded-lg">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="outline" className="bg-red-500 text-white border-red-500 text-xs">
-                        NEO {item.neo}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {item.postoTmft}
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        {item.om}
-                      </Badge>
-                    </div>
-                    <p className="font-medium text-sm text-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
-                    <p className="text-xs text-muted-foreground">{item.tipoSetor === "EXTRA LOTAÇÃO" || item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor}</p>
-                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
-                      <span>Quadro: {item.quadroTmft || "-"}</span>
-                      <span>•</span>
-                      <span>Opção: {item.opcaoTmft || "-"}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ScrollArea className="h-[320px] rounded-md border">
+                <UITable>
+                  <UITableHeader>
+                    <UITableRow>
+                      <UITableHead>NEO</UITableHead>
+                      <UITableHead>OM</UITableHead>
+                      <UITableHead>Setor</UITableHead>
+                      <UITableHead>Cargo</UITableHead>
+                      <UITableHead>Posto</UITableHead>
+                      <UITableHead>Quadro</UITableHead>
+                      <UITableHead>Opção</UITableHead>
+                    </UITableRow>
+                  </UITableHeader>
+                  <UITableBody>
+                    {vagosForSelectedOMs.map((item, index) => (
+                      <UITableRow key={`vago-${index}`}>
+                        <UITableCell className="font-bold text-destructive">{item.neo || "-"}</UITableCell>
+                        <UITableCell>{item.om || "-"}</UITableCell>
+                        <UITableCell>{item.setor === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.setor || "-")}</UITableCell>
+                        <UITableCell>{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.cargo || "-")}</UITableCell>
+                        <UITableCell>{item.postoTmft || "-"}</UITableCell>
+                        <UITableCell>{item.quadroTmft || "-"}</UITableCell>
+                        <UITableCell>{item.opcaoTmft || "-"}</UITableCell>
+                      </UITableRow>
+                    ))}
+                  </UITableBody>
+                </UITable>
+              </ScrollArea>
             </CardContent>
           </Card>
         )}
