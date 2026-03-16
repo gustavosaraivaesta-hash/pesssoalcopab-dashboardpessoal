@@ -52,7 +52,7 @@ async function authenticateRequest(req: Request): Promise<{ userId: string; role
 
 interface PersonnelRecord {
   id: string;
-  neo: number;
+  neo: string;
   tipoSetor: string;
   setor: string;
   cargo: string;
