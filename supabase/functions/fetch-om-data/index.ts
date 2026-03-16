@@ -555,7 +555,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
 
     const record: PersonnelRecord = {
       id: `${omName}-${neoString}`,
-      neo: parseFloat(neoString) || 0,
+      neo: neoString,
       tipoSetor,
       setor,
       cargo,
