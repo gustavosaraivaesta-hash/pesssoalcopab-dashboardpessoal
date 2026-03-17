@@ -3693,9 +3693,6 @@ const DashboardOM = () => {
                           {item.documento && <p className="text-xs text-muted-foreground mt-1">{item.documento}</p>}
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
-                            {item.posto}, {item.corpo || "-"}, {item.quadro || "-"}, {item.opcao || "-"}
-                          </Badge>
                           <Badge variant="secondary">{item.om}</Badge>
                         </div>
                       </div>
