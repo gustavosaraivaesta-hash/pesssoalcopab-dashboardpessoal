@@ -34,8 +34,8 @@ export function formatMilitarNameWithOpcao(
   if (o === "TTC") {
     insert = "RM1";
   } else if (o && o !== "-" && o !== "CARREIRA") {
-    // RM-2, or any other non-standard option
-    insert = o;
+    // RM-2 -> RM2, or any other non-standard option
+    insert = o.replace(/^RM-(\d)$/, "RM$1");
   }
   // CARREIRA or empty = no insert
   
