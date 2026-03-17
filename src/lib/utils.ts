@@ -32,7 +32,7 @@ export function formatMilitarNameWithOpcao(
   // Determine insert between posto and quadro
   let insert = "";
   if (o === "TTC") {
-    insert = "RM-1";
+    insert = "RM1";
   } else if (o && o !== "-" && o !== "CARREIRA") {
     // RM-2, or any other non-standard option
     insert = o;
