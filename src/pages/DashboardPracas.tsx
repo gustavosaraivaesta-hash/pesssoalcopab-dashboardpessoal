@@ -3502,9 +3502,6 @@ const DashboardPracas = () => {
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
-                            {item.posto}, {item.quadro || "-"}, {item.especialidade || "-"}, {item.opcao || "-"}
-                          </Badge>
                           <Badge variant="secondary">{item.om}</Badge>
                         </div>
                       </div>
