@@ -3773,15 +3773,6 @@ const DashboardOM = () => {
                               <Badge variant="secondary">{item.om}</Badge>
                             </div>
                           </div>
-                          <div className="flex gap-2">
-                            <Badge variant="outline">{item.posto}</Badge>
-                            <Badge variant="outline">{item.quadro}</Badge>
-                            {item.opcao && (
-                              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                                {item.opcao}
-                              </Badge>
-                            )}
-                          </div>
                         </div>
                       </div>
                     ))
