@@ -3722,15 +3722,6 @@ const DashboardOM = () => {
                               <Badge variant="secondary">{item.om}</Badge>
                             </div>
                           </div>
-                          <div className="flex gap-2">
-                            <Badge variant="outline">{item.posto}</Badge>
-                            <Badge variant="outline">{item.quadro}</Badge>
-                            {item.opcao && (
-                              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                                {item.opcao}
-                              </Badge>
-                            )}
-                          </div>
                         </div>
                       </div>
                     ))
@@ -3755,15 +3746,6 @@ const DashboardOM = () => {
                               <span className="text-orange-600">Período: {item.periodo || "Não informado"}</span>
                               <Badge variant="secondary">{item.om}</Badge>
                             </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Badge variant="outline">{item.posto}</Badge>
-                            <Badge variant="outline">{item.quadro}</Badge>
-                            {item.opcao && (
-                              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                                {item.opcao}
-                              </Badge>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -3790,15 +3772,6 @@ const DashboardOM = () => {
                               {item.deOutraOm && <span className="text-cyan-600">De: {item.deOutraOm}</span>}
                               <Badge variant="secondary">{item.om}</Badge>
                             </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Badge variant="outline">{item.posto}</Badge>
-                            <Badge variant="outline">{item.quadro}</Badge>
-                            {item.opcao && (
-                              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                                {item.opcao}
-                              </Badge>
-                            )}
                           </div>
                         </div>
                       </div>
