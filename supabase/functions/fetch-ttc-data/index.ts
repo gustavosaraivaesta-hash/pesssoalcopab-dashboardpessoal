@@ -323,37 +323,54 @@ serve(async (req) => {
             qtdRenovacoes, isVaga, tipo, numero, sheet
           });
         } else if (inContractSection && !hasValidNumero) {
-          // This is a contract data row: col1=name, col2-col11=dates (5 contracts × INICIAL+FINAL)
+          // This is a contract data row: col0=graduação, col1=name, col2+=date pairs (INICIAL/FINAL)
+          // Dynamically detect how many contract periods exist (up to 10)
           const nome = String(cells[1]?.v || '').trim().toUpperCase();
           if (!nome) continue;
           
           const iniciais: string[] = [];
           const finais: string[] = [];
           
-          for (let c = 0; c < 5; c++) {
+          // Read pairs starting at col 2, up to 10 contracts (cols 2-21)
+          const maxContracts = 10;
+          for (let c = 0; c < maxContracts; c++) {
             const inicialCol = 2 + (c * 2);
             const finalCol = 3 + (c * 2);
-            const inicial = String(cells[inicialCol]?.f || cells[inicialCol]?.v || '').trim();
-            const final_ = String(cells[finalCol]?.f || cells[finalCol]?.v || '').trim();
+            if (inicialCol >= cells.length && finalCol >= cells.length) break;
+            const inicialCell = cells[inicialCol];
+            const finalCell = cells[finalCol];
+            const inicial = String(inicialCell?.f || inicialCell?.v || '').trim();
+            const final_ = String(finalCell?.f || finalCell?.v || '').trim();
+            // Only add if at least one date looks valid
+            if (!inicial && !final_) break;
             iniciais.push(inicial);
             finais.push(final_);
           }
           
           contractRows.set(nome, { iniciais, finais });
-          console.log(`${sheet.om}: Contract row for "${nome}": ${iniciais.length} periods`);
+          const validPeriods = iniciais.filter((v, idx) => v && finais[idx]).length;
+          console.log(`${sheet.om}: Contract row for "${nome}": ${validPeriods} valid periods out of ${iniciais.length} slots`);
         }
       }
       
-      // Helper: parse date string (d/m/yyyy or dd/mm/yyyy)
+      // Helper: parse date string (d/m/yyyy or dd/mm/yyyy) or Google Date(y,m,d) format
       function parseDate(dateStr: string): Date | null {
         if (!dateStr) return null;
+        // Try Google Sheets Date(year,month,day) format
+        const googleDateMatch = dateStr.match(/Date\((\d+),(\d+),(\d+)\)/);
+        if (googleDateMatch) {
+          const year = parseInt(googleDateMatch[1]);
+          const month = parseInt(googleDateMatch[2]);
+          const day = parseInt(googleDateMatch[3]);
+          return new Date(year, month, day);
+        }
         // Try d/m/yyyy format
         const parts = dateStr.split('/');
         if (parts.length === 3) {
           const day = parseInt(parts[0], 10);
           const month = parseInt(parts[1], 10) - 1;
           const year = parseInt(parts[2], 10);
-          if (year > 2005 && !isNaN(day) && !isNaN(month) && !isNaN(year)) {
+          if (year > 2000 && !isNaN(day) && !isNaN(month) && !isNaN(year)) {
             return new Date(year, month, day);
           }
         }
