@@ -490,7 +490,7 @@ serve(async (req) => {
           let primeiroInicio: Date | null = null;
           const contractData = contractRows.get(p.nomeCompleto.toUpperCase());
           if (contractData) {
-            for (let c = 0; c < 5; c++) {
+            for (let c = 0; c < contractData.iniciais.length; c++) {
               const inicio = parseDate(contractData.iniciais[c]);
               if (inicio && (!primeiroInicio || inicio < primeiroInicio)) {
                 primeiroInicio = inicio;
