@@ -599,44 +599,8 @@ const DashboardTTC = () => {
     { name: "Vagas Abertas", value: filteredSummary.vagasAbertas, fill: "#93c5fd" },
   ], [filteredSummary]);
 
-  const areaChartData = useMemo(() => {
-    const byArea = new Map<string, { contratados: number; vagas: number }>();
-    
-    filteredData.forEach(d => {
-      const area = d.area || "Sem Área";
-      if (!byArea.has(area)) {
-        byArea.set(area, { contratados: 0, vagas: 0 });
-      }
-      const entry = byArea.get(area)!;
-      if (d.isVaga) {
-        entry.vagas++;
-      } else {
-        entry.contratados++;
-      }
-    });
-    
-    return Array.from(byArea.entries()).map(([area, data]) => ({
-      area,
-      contratados: data.contratados,
-      vagas: data.vagas,
-    }));
-  }, [filteredData]);
 
-  const renovacoesChartData = useMemo(() => {
-    const byRenovacoes = new Map<number, number>();
-    
-    filteredData.filter(d => !d.isVaga).forEach(d => {
-      const renovacoes = d.qtdRenovacoes;
-      byRenovacoes.set(renovacoes, (byRenovacoes.get(renovacoes) || 0) + 1);
-    });
-    
-    return Array.from(byRenovacoes.entries())
-      .sort((a, b) => a[0] - b[0])
-      .map(([renovacoes, count]) => ({
-        renovacoes: `${renovacoes}x`,
-        quantidade: count,
-      }));
-  }, [filteredData]);
+
 
   const chartConfig = {
     contratados: { label: "Contratados", color: "#3b82f6" },
