@@ -438,7 +438,7 @@ serve(async (req) => {
           today.setHours(0, 0, 0, 0);
           
           if (contract) {
-            for (let c = 0; c < 5; c++) {
+            for (let c = 0; c < contract.iniciais.length; c++) {
               const inicio = parseDate(contract.iniciais[c]);
               const fim = parseDate(contract.finais[c]);
               
