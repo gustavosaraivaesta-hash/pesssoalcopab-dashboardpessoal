@@ -467,9 +467,6 @@ serve(async (req) => {
             
             tempoServido = formatTempo(anos, meses, dias);
             
-            const LIMITE_10_ANOS = 3600;
-            excedeu10Anos = totalDias > LIMITE_10_ANOS;
-            
             console.log(`${p.sheet.om}: ${p.nomeCompleto} -> ${totalDias} dias servidos, tempo=${tempoServido}`);
             
             // Calculate tempoFaltante based on actual accumulated service time
