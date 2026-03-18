@@ -219,18 +219,6 @@ serve(async (req) => {
       
       console.log(`Processing ${rows.length} ${sheet.om} rows`);
       
-      // DEBUG: dump all rows for DepSMRJ to understand structure
-      if (sheet.om === 'DepSMRJ') {
-        for (let i = 0; i < rows.length; i++) {
-          const cells = rows[i].c || [];
-          const cellDump = Array.from({ length: Math.min(cells.length, 15) }, (_, ci) => {
-            const c = cells[ci];
-            return c ? `${ci}:"${c.f || c.v || ''}"` : `${ci}:null`;
-          }).join(' | ');
-          console.log(`DepSMRJ ROW[${i}]: ${cellDump}`);
-        }
-      }
-      
       // Track current section (OFICIAL or PRAÇA) based on section headers
       let currentSection: 'OFICIAL' | 'PRAÇA' | null = null;
       
