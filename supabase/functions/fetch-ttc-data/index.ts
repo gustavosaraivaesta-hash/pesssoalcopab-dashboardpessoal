@@ -353,17 +353,9 @@ serve(async (req) => {
         }
       }
       
-      // Helper: parse date string (d/m/yyyy or dd/mm/yyyy) or Google Date(y,m,d) format
+      // Helper: parse date string (d/m/yyyy or dd/mm/yyyy)
       function parseDate(dateStr: string): Date | null {
         if (!dateStr) return null;
-        // Try Google Sheets Date(year,month,day) format
-        const googleDateMatch = dateStr.match(/Date\((\d+),(\d+),(\d+)\)/);
-        if (googleDateMatch) {
-          const year = parseInt(googleDateMatch[1]);
-          const month = parseInt(googleDateMatch[2]);
-          const day = parseInt(googleDateMatch[3]);
-          return new Date(year, month, day);
-        }
         // Try d/m/yyyy format
         const parts = dateStr.split('/');
         if (parts.length === 3) {
