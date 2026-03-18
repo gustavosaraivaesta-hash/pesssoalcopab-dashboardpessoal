@@ -1060,7 +1060,14 @@ const DashboardTTC = () => {
                         </TableCell>
                         <TableCell className="text-sm">
                           {!row.isVaga && row.tempoServido && row.tempoServido !== '-' && (
-                            <Badge variant="secondary">{row.tempoServido}</Badge>
+                            <Badge 
+                              variant="secondary"
+                              className={cn(
+                                row.excedeu10Anos && "bg-red-100 text-red-700 border-red-300 font-bold"
+                              )}
+                            >
+                              {row.tempoServido}
+                            </Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-sm">
