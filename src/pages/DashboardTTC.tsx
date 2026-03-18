@@ -599,44 +599,8 @@ const DashboardTTC = () => {
     { name: "Vagas Abertas", value: filteredSummary.vagasAbertas, fill: "#93c5fd" },
   ], [filteredSummary]);
 
-  const areaChartData = useMemo(() => {
-    const byArea = new Map<string, { contratados: number; vagas: number }>();
-    
-    filteredData.forEach(d => {
-      const area = d.area || "Sem Área";
-      if (!byArea.has(area)) {
-        byArea.set(area, { contratados: 0, vagas: 0 });
-      }
-      const entry = byArea.get(area)!;
-      if (d.isVaga) {
-        entry.vagas++;
-      } else {
-        entry.contratados++;
-      }
-    });
-    
-    return Array.from(byArea.entries()).map(([area, data]) => ({
-      area,
-      contratados: data.contratados,
-      vagas: data.vagas,
-    }));
-  }, [filteredData]);
 
-  const renovacoesChartData = useMemo(() => {
-    const byRenovacoes = new Map<number, number>();
-    
-    filteredData.filter(d => !d.isVaga).forEach(d => {
-      const renovacoes = d.qtdRenovacoes;
-      byRenovacoes.set(renovacoes, (byRenovacoes.get(renovacoes) || 0) + 1);
-    });
-    
-    return Array.from(byRenovacoes.entries())
-      .sort((a, b) => a[0] - b[0])
-      .map(([renovacoes, count]) => ({
-        renovacoes: `${renovacoes}x`,
-        quantidade: count,
-      }));
-  }, [filteredData]);
+
 
   const chartConfig = {
     contratados: { label: "Contratados", color: "#3b82f6" },
@@ -782,44 +746,6 @@ const DashboardTTC = () => {
                     </Pie>
                     <ChartTooltip content={<ChartTooltipContent />} />
                   </PieChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
-            {/* Area Bar Chart */}
-            <Card className="bg-card/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-base">Por Área</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig} className="h-[200px]">
-                  <BarChart data={areaChartData}>
-                    <XAxis dataKey="area" fontSize={12} />
-                    <YAxis fontSize={12} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="contratados" fill="#3b82f6" name="Contratados" />
-                    <Bar dataKey="vagas" fill="#93c5fd" name="Vagas" />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
-            {/* Renovations Bar Chart */}
-            <Card className="bg-card/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Award className="h-4 w-4" />
-                  Renovações
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig} className="h-[200px]">
-                  <BarChart data={renovacoesChartData}>
-                    <XAxis dataKey="renovacoes" fontSize={12} />
-                    <YAxis fontSize={12} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="quantidade" fill="#2563eb" name="Quantidade" />
-                  </BarChart>
                 </ChartContainer>
               </CardContent>
             </Card>
