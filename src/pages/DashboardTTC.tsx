@@ -749,44 +749,6 @@ const DashboardTTC = () => {
                 </ChartContainer>
               </CardContent>
             </Card>
-
-            {/* Area Bar Chart */}
-            <Card className="bg-card/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-base">Por Área</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig} className="h-[200px]">
-                  <BarChart data={areaChartData}>
-                    <XAxis dataKey="area" fontSize={12} />
-                    <YAxis fontSize={12} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="contratados" fill="#3b82f6" name="Contratados" />
-                    <Bar dataKey="vagas" fill="#93c5fd" name="Vagas" />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
-            {/* Renovations Bar Chart */}
-            <Card className="bg-card/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Award className="h-4 w-4" />
-                  Renovações
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfig} className="h-[200px]">
-                  <BarChart data={renovacoesChartData}>
-                    <XAxis dataKey="renovacoes" fontSize={12} />
-                    <YAxis fontSize={12} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="quantidade" fill="#2563eb" name="Quantidade" />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Filters */}
