@@ -471,13 +471,31 @@ serve(async (req) => {
             excedeu10Anos = totalDias > LIMITE_10_ANOS;
             
             console.log(`${p.sheet.om}: ${p.nomeCompleto} -> ${totalDias} dias servidos, tempo=${tempoServido}`);
+            
+            // Calculate tempoFaltante based on actual accumulated service time
+            const LIMITE_10_ANOS = 3600; // 10 years in 30/360 convention
+            if (totalDias > LIMITE_10_ANOS) {
+              excedeu10Anos = true;
+              const excedidoDias = totalDias - LIMITE_10_ANOS;
+              const eTotalMeses = Math.floor(excedidoDias / 30);
+              const eDias = excedidoDias % 30;
+              const eAnos = Math.floor(eTotalMeses / 12);
+              const eMeses = eTotalMeses % 12;
+              tempoFaltante = `Excedido ${formatTempo(eAnos, eMeses, eDias)}`;
+            } else {
+              const faltanteDias = LIMITE_10_ANOS - totalDias;
+              const fTotalMeses = Math.floor(faltanteDias / 30);
+              const fDias = faltanteDias % 30;
+              const fAnos = Math.floor(fTotalMeses / 12);
+              const fMeses = fTotalMeses % 12;
+              tempoFaltante = formatTempo(fAnos, fMeses, fDias);
+            }
           }
           
           // Calculate dataLimite: the earlier of (10-year service limit) and (70-year age limit)
           let dataLimite10Anos: Date | null = null;
           let dataLimite70Anos: Date | null = null;
           
-          // 10-year TTC limit: first contract start date + 3600 days (10 years in 30/360 convention)
           // Find the earliest contract start date
           let primeiroInicio: Date | null = null;
           const contractData = contractRows.get(p.nomeCompleto.toUpperCase());
@@ -489,13 +507,11 @@ serve(async (req) => {
               }
             }
           }
-          // Fallback to periodoInicio from main row
           if (!primeiroInicio && p.periodoInicio) {
             primeiroInicio = parseDate(p.periodoInicio);
           }
           
           if (primeiroInicio) {
-            // Add 10 years minus 1 day (using calendar: +10 years from start, -1 day)
             dataLimite10Anos = new Date(primeiroInicio.getFullYear() + 10, primeiroInicio.getMonth(), primeiroInicio.getDate() - 1);
           }
           
@@ -520,27 +536,9 @@ serve(async (req) => {
           
           if (limiteDate) {
             dataLimite = formatDateBR(limiteDate);
-            
-            // Calculate tempoFaltante using diffDays360(today, limiteDate) for consistency with frontend
-            const faltanteDias = diffDays360(today, limiteDate);
-            if (faltanteDias < 0) {
-              excedeu10Anos = true;
-              const absDias = Math.abs(faltanteDias);
-              const fTotalMeses = Math.floor(absDias / 30);
-              const fDias = absDias % 30;
-              const fAnos = Math.floor(fTotalMeses / 12);
-              const fMeses = fTotalMeses % 12;
-              tempoFaltante = `Excedido ${formatTempo(fAnos, fMeses, fDias)}`;
-            } else {
-              const fTotalMeses = Math.floor(faltanteDias / 30);
-              const fDias = faltanteDias % 30;
-              const fAnos = Math.floor(fTotalMeses / 12);
-              const fMeses = fTotalMeses % 12;
-              tempoFaltante = formatTempo(fAnos, fMeses, fDias);
-            }
-            
-            console.log(`${p.sheet.om}: ${p.nomeCompleto} -> dataLimite=${dataLimite} (${dataLimiteTipo}), faltante=${tempoFaltante}`);
           }
+          
+          console.log(`${p.sheet.om}: ${p.nomeCompleto} -> dataLimite=${dataLimite} (${dataLimiteTipo}), faltante=${tempoFaltante}`);
         }
         
         transformedData.push({
