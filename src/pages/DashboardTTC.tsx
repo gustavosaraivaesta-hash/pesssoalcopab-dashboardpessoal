@@ -913,7 +913,16 @@ const DashboardTTC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredData.map((row) => {
+                    {[...filteredData].sort((a, b) => {
+                      const gradOrder = ["CMG", "CF", "CC", "CT", "1T", "1TEN", "2T", "2TEN", "SO", "1SG", "2SG", "3SG", "CB", "MN"];
+                      const getGradIndex = (grad: string) => {
+                        const idx = gradOrder.indexOf(grad?.trim().toUpperCase() || '');
+                        return idx === -1 ? 999 : idx;
+                      };
+                      const omCmp = (a.om || '').localeCompare(b.om || '');
+                      if (omCmp !== 0) return omCmp;
+                      return getGradIndex(a.graduacao) - getGradIndex(b.graduacao);
+                    }).map((row) => {
                       // Check if NEO and EspQuadro are different
                       const neoNormalized = row.neo?.trim().toUpperCase() || '';
                       const efeNormalized = row.espQuadro?.trim().toUpperCase() || '';
