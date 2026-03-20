@@ -599,6 +599,35 @@ const DashboardTTC = () => {
     { name: "Vagas Abertas", value: filteredSummary.vagasAbertas, fill: "#93c5fd" },
   ], [filteredSummary]);
 
+  // Previsão mensal de término de contrato
+  const previsaoMensalData = useMemo(() => {
+    const today = new Date();
+    const contratados = filteredData.filter(d => !d.isVaga && d.termino);
+    const monthCounts = new Map<string, number>();
+
+    contratados.forEach(d => {
+      const dt = parseDataFlexivel(d.termino);
+      if (!dt) return;
+      // Only future or current month
+      const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+      const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      if (key >= todayKey) {
+        monthCounts.set(key, (monthCounts.get(key) || 0) + 1);
+      }
+    });
+
+    // Sort by date and take next 12 months
+    return Array.from(monthCounts.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(0, 12)
+      .map(([key, count]) => {
+        const [year, month] = key.split('-');
+        const dt = new Date(parseInt(year), parseInt(month) - 1);
+        const label = format(dt, "MMM/yy", { locale: ptBR });
+        return { mes: label, quantidade: count };
+      });
+  }, [filteredData]);
+
 
 
 
