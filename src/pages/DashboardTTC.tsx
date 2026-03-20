@@ -758,7 +758,7 @@ const DashboardTTC = () => {
                 <CardTitle className="text-base">Situação Geral</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartContainer config={chartConfig} className="h-[200px]">
+                <ChartContainer config={chartConfig} className="h-[280px]">
                   <PieChart>
                     <Pie
                       data={statusChartData}
