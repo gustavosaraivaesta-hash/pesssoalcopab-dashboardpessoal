@@ -599,6 +599,35 @@ const DashboardTTC = () => {
     { name: "Vagas Abertas", value: filteredSummary.vagasAbertas, fill: "#93c5fd" },
   ], [filteredSummary]);
 
+  // Previsão mensal de término de contrato
+  const previsaoMensalData = useMemo(() => {
+    const today = new Date();
+    const contratados = filteredData.filter(d => !d.isVaga && d.termino);
+    const monthCounts = new Map<string, number>();
+
+    contratados.forEach(d => {
+      const dt = parseDataFlexivel(d.termino);
+      if (!dt) return;
+      // Only future or current month
+      const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+      const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      if (key >= todayKey) {
+        monthCounts.set(key, (monthCounts.get(key) || 0) + 1);
+      }
+    });
+
+    // Sort by date and take next 12 months
+    return Array.from(monthCounts.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(0, 12)
+      .map(([key, count]) => {
+        const [year, month] = key.split('-');
+        const dt = new Date(parseInt(year), parseInt(month) - 1);
+        const label = format(dt, "MMM/yy", { locale: ptBR });
+        return { mes: label, quantidade: count };
+      });
+  }, [filteredData]);
+
 
 
 
@@ -747,6 +776,27 @@ const DashboardTTC = () => {
                     <ChartTooltip content={<ChartTooltipContent />} />
                   </PieChart>
                 </ChartContainer>
+              </CardContent>
+            </Card>
+
+            {/* Previsão Mensal de Término */}
+            <Card className="bg-card/80 backdrop-blur-sm lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-base">Previsão Mensal de Término de Contrato</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {previsaoMensalData.length > 0 ? (
+                  <ChartContainer config={chartConfig} className="h-[200px]">
+                    <BarChart data={previsaoMensalData}>
+                      <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="quantidade" fill="#2563eb" radius={[4, 4, 0, 0]} name="Militares" />
+                    </BarChart>
+                  </ChartContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">Nenhum término futuro encontrado</p>
+                )}
               </CardContent>
             </Card>
           </div>
