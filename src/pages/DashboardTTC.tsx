@@ -766,7 +766,7 @@ const DashboardTTC = () => {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={70}
+                      outerRadius={90}
                       label={({ name, value }) => `${name}: ${value}`}
                     >
                       {statusChartData.map((entry, index) => (
