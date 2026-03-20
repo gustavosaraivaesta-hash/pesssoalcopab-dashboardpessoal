@@ -1033,7 +1033,6 @@ const DashboardTTC = () => {
                       </TableRow>
                     );
                     })}
-                    )()
                     
                     {filteredData.length === 0 && (
                       <TableRow>
