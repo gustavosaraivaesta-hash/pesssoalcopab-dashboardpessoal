@@ -785,7 +785,7 @@ const DashboardTTC = () => {
               </CardHeader>
               <CardContent>
                 {previsaoMensalData.length > 0 ? (
-                  <ChartContainer config={chartConfig} className="h-[200px]">
+                  <ChartContainer config={chartConfig} className="h-[300px]">
                     <BarChart data={previsaoMensalData}>
                       <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                       <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
