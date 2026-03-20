@@ -616,10 +616,9 @@ const DashboardTTC = () => {
       }
     });
 
-    // Sort by date and take next 12 months
+    // Sort by date
     return Array.from(monthCounts.entries())
       .sort(([a], [b]) => a.localeCompare(b))
-      .slice(0, 12)
       .map(([key, count]) => {
         const [year, month] = key.split('-');
         const dt = new Date(parseInt(year), parseInt(month) - 1);
