@@ -616,9 +616,10 @@ const DashboardTTC = () => {
       }
     });
 
-    // Sort by date
+    // Sort by date and take next 12 months
     return Array.from(monthCounts.entries())
       .sort(([a], [b]) => a.localeCompare(b))
+      .slice(0, 12)
       .map(([key, count]) => {
         const [year, month] = key.split('-');
         const dt = new Date(parseInt(year), parseInt(month) - 1);
@@ -757,7 +758,7 @@ const DashboardTTC = () => {
                 <CardTitle className="text-base">Situação Geral</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartContainer config={chartConfig} className="h-[200px]">
+                <ChartContainer config={chartConfig} className="h-[280px]">
                   <PieChart>
                     <Pie
                       data={statusChartData}
@@ -765,7 +766,7 @@ const DashboardTTC = () => {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={70}
+                      outerRadius={90}
                       label={({ name, value }) => `${name}: ${value}`}
                     >
                       {statusChartData.map((entry, index) => (
@@ -785,12 +786,12 @@ const DashboardTTC = () => {
               </CardHeader>
               <CardContent>
                 {previsaoMensalData.length > 0 ? (
-                  <ChartContainer config={chartConfig} className="h-[300px]">
+                  <ChartContainer config={chartConfig} className="h-[280px]">
                     <BarChart data={previsaoMensalData}>
-                      <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                      <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                      <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="quantidade" fill="#2563eb" radius={[4, 4, 0, 0]} name="Militares" />
+                      <Bar dataKey="quantidade" fill="#2563eb" radius={[4, 4, 0, 0]} name="Militares" label={{ position: 'top', fontSize: 11 }} />
                     </BarChart>
                   </ChartContainer>
                 ) : (
