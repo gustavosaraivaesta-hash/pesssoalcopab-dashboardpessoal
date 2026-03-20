@@ -616,10 +616,9 @@ const DashboardTTC = () => {
       }
     });
 
-    // Sort by date and take next 12 months
+    // Sort by date
     return Array.from(monthCounts.entries())
       .sort(([a], [b]) => a.localeCompare(b))
-      .slice(0, 12)
       .map(([key, count]) => {
         const [year, month] = key.split('-');
         const dt = new Date(parseInt(year), parseInt(month) - 1);
@@ -786,7 +785,7 @@ const DashboardTTC = () => {
               </CardHeader>
               <CardContent>
                 {previsaoMensalData.length > 0 ? (
-                  <ChartContainer config={chartConfig} className="h-[200px]">
+                  <ChartContainer config={chartConfig} className="h-[300px]">
                     <BarChart data={previsaoMensalData}>
                       <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                       <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
