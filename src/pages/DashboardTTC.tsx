@@ -786,12 +786,12 @@ const DashboardTTC = () => {
               </CardHeader>
               <CardContent>
                 {previsaoMensalData.length > 0 ? (
-                  <ChartContainer config={chartConfig} className="h-[300px]">
+                  <ChartContainer config={chartConfig} className="h-[280px]">
                     <BarChart data={previsaoMensalData}>
-                      <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                      <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                      <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="quantidade" fill="#2563eb" radius={[4, 4, 0, 0]} name="Militares" />
+                      <Bar dataKey="quantidade" fill="#2563eb" radius={[4, 4, 0, 0]} name="Militares" label={{ position: 'top', fontSize: 11 }} />
                     </BarChart>
                   </ChartContainer>
                 ) : (
