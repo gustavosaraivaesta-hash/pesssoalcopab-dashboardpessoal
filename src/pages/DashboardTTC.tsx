@@ -778,6 +778,27 @@ const DashboardTTC = () => {
                 </ChartContainer>
               </CardContent>
             </Card>
+
+            {/* Previsão Mensal de Término */}
+            <Card className="bg-card/80 backdrop-blur-sm lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-base">Previsão Mensal de Término de Contrato</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {previsaoMensalData.length > 0 ? (
+                  <ChartContainer config={chartConfig} className="h-[200px]">
+                    <BarChart data={previsaoMensalData}>
+                      <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="quantidade" fill="#2563eb" radius={[4, 4, 0, 0]} name="Militares" />
+                    </BarChart>
+                  </ChartContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">Nenhum término futuro encontrado</p>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Filters */}
