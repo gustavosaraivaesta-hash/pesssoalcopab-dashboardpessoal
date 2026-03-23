@@ -164,6 +164,7 @@ interface CachedOMData {
 const normalizeOpcao = (opcao: string | undefined | null): string => {
   const val = (opcao || "").trim().toUpperCase();
   if (!val || val === "-") return "CARREIRA";
+  if (val === "RM1" || val === "RM-1") return "TTC";
   return val;
 };
 

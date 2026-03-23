@@ -101,8 +101,8 @@ export function isForaDaNeo(quadroTmft: string, quadroEfe: string, opcaoTmft?: s
   // Check opcao TTC divergence FIRST (before any guard clause)
   const oTmft = (opcaoTmft || "").trim().toUpperCase();
   const oEfe = (opcaoEfe || "").trim().toUpperCase();
-  const tmftIsTTC = oTmft === "TTC";
-  const efeIsTTC = oEfe === "TTC";
+  const tmftIsTTC = oTmft === "TTC" || oTmft === "RM1" || oTmft === "RM-1";
+  const efeIsTTC = oEfe === "TTC" || oEfe === "RM1" || oEfe === "RM-1";
   // If one is TTC and the other is not (including when opcao is empty = carreira), it's divergent
   if (tmftIsTTC !== efeIsTTC) return true;
 
