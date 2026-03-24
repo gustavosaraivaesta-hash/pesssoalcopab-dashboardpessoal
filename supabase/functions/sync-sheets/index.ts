@@ -15,12 +15,20 @@ const PRACAS_SPREADSHEET_ID = '13YC7pfsERAJxdwzWPN12tTdNOVhlT_bbZXZigDZvalA';
 const OFICIAIS_SPREADSHEET_ID = '1-k4hLJdPTvVl7NGl9FEw1WPhaPD5tWtAhc7BGSZ8lvk';
 
 // Google Apps Script Web App URLs for writing to sheets
-function getAppsScriptUrl(isPracas: boolean): string {
-  const envKey = isPracas ? 'GOOGLE_APPS_SCRIPT_URL' : 'GOOGLE_APPS_SCRIPT_URL_OFICIAIS';
-  const raw = Deno.env.get(envKey) ?? '';
-  const url = normalizeAppsScriptUrl(raw);
-  console.log(`[${envKey}] raw length=${raw.length}, normalized="${url}"`);
-  return url;
+function getAppsScriptUrls(isPracas: boolean): { urls: string[]; primarySecret: string } {
+  const primarySecret = isPracas ? 'GOOGLE_APPS_SCRIPT_URL' : 'GOOGLE_APPS_SCRIPT_URL_OFICIAIS';
+  const secondarySecret = isPracas ? 'GOOGLE_APPS_SCRIPT_URL_OFICIAIS' : 'GOOGLE_APPS_SCRIPT_URL';
+
+  const primaryRaw = Deno.env.get(primarySecret) ?? '';
+  const secondaryRaw = Deno.env.get(secondarySecret) ?? '';
+  const primaryUrl = normalizeAppsScriptUrl(primaryRaw);
+  const secondaryUrl = normalizeAppsScriptUrl(secondaryRaw);
+
+  console.log(`[${primarySecret}] raw length=${primaryRaw.length}, normalized="${primaryUrl}"`);
+  console.log(`[${secondarySecret}] raw length=${secondaryRaw.length}, normalized="${secondaryUrl}"`);
+
+  const urls = Array.from(new Set([primaryUrl, secondaryUrl].filter(Boolean)));
+  return { urls, primarySecret };
 }
 
 function normalizeAppsScriptUrl(raw: string): string {
@@ -407,15 +415,9 @@ async function syncToSheet(
   console.log('='.repeat(60));
   console.log(`OM: ${om} | Planilha: ${sheetName} | Spreadsheet: ${tipo}`);
 
-  const appsScriptUrl = getAppsScriptUrl(!oficiais);
-  if (appsScriptUrl) {
-    if (!isAppsScriptWebAppUrl(appsScriptUrl)) {
-      return {
-        success: false,
-        message: 'URL do Apps Script inválida. Reconfigure GOOGLE_APPS_SCRIPT_URL com a URL do Aplicativo Web (terminando em /exec).',
-      };
-    }
-
+  const isPracas = !oficiais;
+  const { urls: appsScriptUrls, primarySecret } = getAppsScriptUrls(isPracas);
+  if (appsScriptUrls.length > 0) {
     try {
       let rowNumber: number | null = null;
       let valuesToWrite: string[] | null = null;
@@ -467,69 +469,87 @@ async function syncToSheet(
 
       let lastErrorMessage = 'Erro desconhecido';
 
-      for (const candidateSheetName of sheetNameCandidates) {
-        const payload = {
-          action,
-          spreadsheetId,
-          sheetName: candidateSheetName,
-          rowNumber,
-          values: action !== 'EXCLUSAO' ? valuesToWrite : null,
-          neo: personnelData.neo,
-        };
+      for (let i = 0; i < appsScriptUrls.length; i++) {
+        const appsScriptUrl = appsScriptUrls[i];
 
-        console.log('Enviando para Apps Script:', JSON.stringify(payload, null, 2));
-
-        const response = await fetchWithPostRedirect(appsScriptUrl, JSON.stringify(payload));
-
-        const contentType = response.headers.get('content-type') || '';
-        const bodyText = await response.text().catch(() => '');
-
-        if (!response.ok) {
-          console.error('Erro Apps Script:', { status: response.status, contentType, bodyPreview: bodyText.slice(0, 300) });
-          if (looksLikeHtml(bodyText)) {
-            const isPracas = !oficiais;
-            const secretName = isPracas ? 'GOOGLE_APPS_SCRIPT_URL' : 'GOOGLE_APPS_SCRIPT_URL_OFICIAIS';
-            return {
-              success: false,
-              message: `Falha ao chamar o Apps Script. Verifique:\n1. ${secretName} está configurada corretamente\n2. Apps Script foi implantado como "Aplicativo Web"\n3. Permissões: "Executar como: Eu" e "Quem pode acessar: Qualquer pessoa"\n4. URL termina em /exec (não /dev)`,
-            };
-          }
-          lastErrorMessage = `Erro ao atualizar planilha (Apps Script HTTP ${response.status}).`;
+        if (!isAppsScriptWebAppUrl(appsScriptUrl)) {
+          lastErrorMessage = `URL inválida em ${primarySecret}. Use a URL do Aplicativo Web terminando em /exec.`;
           continue;
         }
 
-        let result: any = null;
-        try {
-          result = JSON.parse(bodyText);
-        } catch (_e) {
-          console.error('Resposta Apps Script não-JSON:', { contentType, bodyPreview: bodyText.slice(0, 300) });
-          const isPracas = !oficiais;
-          const secretName = isPracas ? 'GOOGLE_APPS_SCRIPT_URL' : 'GOOGLE_APPS_SCRIPT_URL_OFICIAIS';
-          return { 
-            success: false, 
-            message: `Apps Script respondeu em formato inesperado (não-JSON).\n\nVerifique:\n1. ${secretName} é a URL do "Aplicativo Web" (termina em /exec)\n2. Apps Script tem permissão para acessar a planilha\n3. Código do Apps Script está correto\n\nURL atual: ${appsScriptUrl.slice(0, 50)}...` 
+        console.log(`Tentando Apps Script [${i + 1}/${appsScriptUrls.length}]: ${appsScriptUrl.slice(0, 80)}...`);
+        let shouldTryNextUrl = false;
+
+        for (const candidateSheetName of sheetNameCandidates) {
+          const payload = {
+            action,
+            spreadsheetId,
+            sheetName: candidateSheetName,
+            rowNumber,
+            values: action !== 'EXCLUSAO' ? valuesToWrite : null,
+            neo: personnelData.neo,
           };
+
+          console.log('Enviando para Apps Script:', JSON.stringify(payload, null, 2));
+
+          const response = await fetchWithPostRedirect(appsScriptUrl, JSON.stringify(payload));
+
+          const contentType = response.headers.get('content-type') || '';
+          const bodyText = await response.text().catch(() => '');
+
+          if (!response.ok) {
+            console.error('Erro Apps Script:', { status: response.status, contentType, bodyPreview: bodyText.slice(0, 300) });
+            if (looksLikeHtml(bodyText)) {
+              lastErrorMessage = `Falha ao chamar o Apps Script (${appsScriptUrl.slice(0, 50)}...). Verifique publicação Web App e permissões.`;
+              shouldTryNextUrl = true;
+              break;
+            }
+            lastErrorMessage = `Erro ao atualizar planilha (Apps Script HTTP ${response.status}).`;
+            continue;
+          }
+
+          let result: any = null;
+          try {
+            result = JSON.parse(bodyText);
+          } catch (_e) {
+            console.error('Resposta Apps Script não-JSON:', { contentType, bodyPreview: bodyText.slice(0, 300) });
+            if (/script function not found:\s*dopost/i.test(bodyText)) {
+              lastErrorMessage = `O Apps Script em ${appsScriptUrl.slice(0, 50)}... não possui função doPost publicada.`;
+            } else {
+              lastErrorMessage = `Apps Script respondeu em formato inesperado (não-JSON) em ${appsScriptUrl.slice(0, 50)}...`;
+            }
+            shouldTryNextUrl = true;
+            break;
+          }
+
+          console.log('Resultado Apps Script:', result);
+
+          if (result.success) {
+            return { success: true, message: `Planilha ${candidateSheetName} (${tipo}) atualizada com sucesso - ${action}` };
+          }
+
+          const resultMessage = String(result.message || 'Erro desconhecido');
+          lastErrorMessage = resultMessage;
+
+          const abaNaoEncontrada = /aba\s+.*nao\s+encontrada|aba\s+.*não\s+encontrada/i.test(resultMessage);
+          if (abaNaoEncontrada) {
+            console.warn(`Aba '${candidateSheetName}' não encontrada, tentando próximo nome...`);
+            continue;
+          }
+
+          shouldTryNextUrl = true;
+          break;
         }
 
-        console.log('Resultado Apps Script:', result);
-
-        if (result.success) {
-          return { success: true, message: `Planilha ${candidateSheetName} (${tipo}) atualizada com sucesso - ${action}` };
+        if (!shouldTryNextUrl) {
+          return { success: false, message: lastErrorMessage };
         }
-
-        const resultMessage = String(result.message || 'Erro desconhecido');
-        lastErrorMessage = resultMessage;
-
-        const abaNaoEncontrada = /aba\s+.*nao\s+encontrada|aba\s+.*não\s+encontrada/i.test(resultMessage);
-        if (abaNaoEncontrada) {
-          console.warn(`Aba '${candidateSheetName}' não encontrada, tentando próximo nome...`);
-          continue;
-        }
-
-        return { success: false, message: resultMessage };
       }
 
-      return { success: false, message: lastErrorMessage };
+      return {
+        success: false,
+        message: `${lastErrorMessage}\n\nVerifique os secrets GOOGLE_APPS_SCRIPT_URL e GOOGLE_APPS_SCRIPT_URL_OFICIAIS (ambos devem ser /exec com doPost).`,
+      };
     } catch (error) {
       console.error('Erro ao sincronizar:', error);
       return { success: false, message: `Erro de sincronização: ${error}` };
@@ -579,7 +599,7 @@ async function syncToSheet(
 
   return {
     success: true,
-    message: appsScriptUrl
+    message: appsScriptUrls.length > 0
       ? `Planilha ${sheetName} (${tipo}) atualizada automaticamente`
       : `Alteração ${action} registrada. Configure GOOGLE_APPS_SCRIPT_URL para sincronização automática.`
   };
