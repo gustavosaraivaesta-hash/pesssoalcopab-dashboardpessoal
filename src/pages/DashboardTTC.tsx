@@ -788,7 +788,7 @@ const DashboardTTC = () => {
               <CardContent>
                 {previsaoMensalData.length > 0 ? (
                   <ChartContainer config={chartConfig} className="h-[280px]">
-                    <BarChart data={previsaoMensalData} onClick={(e) => {
+                    <BarChart data={previsaoMensalData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }} onClick={(e) => {
                       if (e && e.activePayload && e.activePayload.length > 0) {
                         const payload = e.activePayload[0].payload;
                         setSelectedMonth({ mes: payload.mes, militares: payload.militares });
