@@ -603,30 +603,31 @@ const DashboardTTC = () => {
   const previsaoMensalData = useMemo(() => {
     const today = new Date();
     const contratados = filteredData.filter(d => !d.isVaga && d.termino);
-    const monthCounts = new Map<string, number>();
+    const monthGroups = new Map<string, TTCData[]>();
 
     contratados.forEach(d => {
       const dt = parseDataFlexivel(d.termino);
       if (!dt) return;
-      // Only future or current month
       const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
       const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
       if (key >= todayKey) {
-        monthCounts.set(key, (monthCounts.get(key) || 0) + 1);
+        if (!monthGroups.has(key)) monthGroups.set(key, []);
+        monthGroups.get(key)!.push(d);
       }
     });
 
-    // Sort by date and take next 12 months
-    return Array.from(monthCounts.entries())
+    return Array.from(monthGroups.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .slice(0, 12)
-      .map(([key, count]) => {
+      .map(([key, militares]) => {
         const [year, month] = key.split('-');
         const dt = new Date(parseInt(year), parseInt(month) - 1);
         const label = format(dt, "MMM/yy", { locale: ptBR });
-        return { mes: label, quantidade: count };
+        return { mes: label, quantidade: militares.length, militares };
       });
   }, [filteredData]);
+
+  const [selectedMonth, setSelectedMonth] = useState<{ mes: string; militares: TTCData[] } | null>(null);
 
 
 
