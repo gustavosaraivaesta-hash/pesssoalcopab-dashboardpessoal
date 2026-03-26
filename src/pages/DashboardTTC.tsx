@@ -603,30 +603,31 @@ const DashboardTTC = () => {
   const previsaoMensalData = useMemo(() => {
     const today = new Date();
     const contratados = filteredData.filter(d => !d.isVaga && d.termino);
-    const monthCounts = new Map<string, number>();
+    const monthGroups = new Map<string, TTCData[]>();
 
     contratados.forEach(d => {
       const dt = parseDataFlexivel(d.termino);
       if (!dt) return;
-      // Only future or current month
       const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
       const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
       if (key >= todayKey) {
-        monthCounts.set(key, (monthCounts.get(key) || 0) + 1);
+        if (!monthGroups.has(key)) monthGroups.set(key, []);
+        monthGroups.get(key)!.push(d);
       }
     });
 
-    // Sort by date and take next 12 months
-    return Array.from(monthCounts.entries())
+    return Array.from(monthGroups.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .slice(0, 12)
-      .map(([key, count]) => {
+      .map(([key, militares]) => {
         const [year, month] = key.split('-');
         const dt = new Date(parseInt(year), parseInt(month) - 1);
         const label = format(dt, "MMM/yy", { locale: ptBR });
-        return { mes: label, quantidade: count };
+        return { mes: label, quantidade: militares.length, militares };
       });
   }, [filteredData]);
+
+  const [selectedMonth, setSelectedMonth] = useState<{ mes: string; militares: TTCData[] } | null>(null);
 
 
 
@@ -787,7 +788,12 @@ const DashboardTTC = () => {
               <CardContent>
                 {previsaoMensalData.length > 0 ? (
                   <ChartContainer config={chartConfig} className="h-[280px]">
-                    <BarChart data={previsaoMensalData}>
+                    <BarChart data={previsaoMensalData} onClick={(e) => {
+                      if (e && e.activePayload && e.activePayload.length > 0) {
+                        const payload = e.activePayload[0].payload;
+                        setSelectedMonth({ mes: payload.mes, militares: payload.militares });
+                      }
+                    }} style={{ cursor: 'pointer' }}>
                       <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
                       <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                       <ChartTooltip content={<ChartTooltipContent />} />
@@ -796,6 +802,44 @@ const DashboardTTC = () => {
                   </ChartContainer>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-8">Nenhum término futuro encontrado</p>
+                )}
+
+                {/* Dialog de militares do mês selecionado */}
+                {selectedMonth && (
+                  <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setSelectedMonth(null)}>
+                    <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-between p-4 border-b">
+                        <h3 className="text-lg font-semibold">Término em {selectedMonth.mes} ({selectedMonth.militares.length} militares)</h3>
+                        <Button variant="ghost" size="icon" onClick={() => setSelectedMonth(null)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <ScrollArea className="max-h-[60vh]">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Graduação</TableHead>
+                              <TableHead>Nome</TableHead>
+                              <TableHead>OM</TableHead>
+                              <TableHead>Área</TableHead>
+                              <TableHead>Término</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {selectedMonth.militares.map((mil) => (
+                              <TableRow key={mil.id}>
+                                <TableCell className="font-medium">{mil.graduacao}</TableCell>
+                                <TableCell>{mil.nomeCompleto}</TableCell>
+                                <TableCell>{mil.om}</TableCell>
+                                <TableCell>{mil.area}</TableCell>
+                                <TableCell>{mil.termino}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </ScrollArea>
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
