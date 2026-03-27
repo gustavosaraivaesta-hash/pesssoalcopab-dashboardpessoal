@@ -904,12 +904,6 @@ const DashboardTTC = () => {
                   onToggle={(value) => toggleFilter(filterEspQuadro, setFilterEspQuadro, value)}
                 />
                 
-                <MultiSelectFilter
-                  label="Renovações"
-                  options={filterOptions.renovacoes.map(ren => ({ value: String(ren), label: `${ren}x renovações` }))}
-                  selectedValues={filterRenovacoes}
-                  onToggle={(value) => toggleFilter(filterRenovacoes, setFilterRenovacoes, value)}
-                />
                 
                 <MultiSelectFilter
                   label="Categoria"
