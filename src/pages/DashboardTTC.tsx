@@ -752,7 +752,7 @@ const DashboardTTC = () => {
           </div>
 
           {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {/* Status Pie Chart */}
             <Card className="bg-card/80 backdrop-blur-sm">
               <CardHeader>
@@ -781,7 +781,7 @@ const DashboardTTC = () => {
             </Card>
 
             {/* Previsão Mensal de Término */}
-            <Card className="bg-card/80 backdrop-blur-sm lg:col-span-3">
+            <Card className="bg-card/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-base">Previsão Mensal de Término de Contrato</CardTitle>
               </CardHeader>
