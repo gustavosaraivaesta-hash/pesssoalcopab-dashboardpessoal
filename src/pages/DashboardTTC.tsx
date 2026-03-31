@@ -1,16 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, Award, FileDown, X, ChevronDown, ArrowLeft } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, FileDown, X, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DatePickerWithSelectors } from "@/components/ui/date-picker-with-selectors";
 import { TTCData, TTCSummary } from "@/types/ttc";
@@ -20,161 +15,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOnlineStatus } from "@/hooks/useOfflineCache";
 import { useAuth } from "@/hooks/useAuth";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend } from "recharts";
-import { differenceInYears, differenceInMonths, differenceInDays, parse, isValid, addYears, addMonths, isBefore, isAfter, format } from "date-fns";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis } from "recharts";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
-
-// Calculates current age from birth date string with years, months, and days
-const calcularIdadeAtual = (idadeOuData: string): string => {
-  if (!idadeOuData) return "-";
-  
-  let birthDate: Date | null = null;
-  
-  // Handle Google Sheets Date format: Date(year, month, day) - month is 0-indexed
-  const googleDateMatch = idadeOuData.match(/Date\((\d+),(\d+),(\d+)\)/);
-  if (googleDateMatch) {
-    const year = parseInt(googleDateMatch[1]);
-    const month = parseInt(googleDateMatch[2]); // 0-indexed in Google Sheets
-    const day = parseInt(googleDateMatch[3]);
-    birthDate = new Date(year, month, day);
-  }
-  
-  // Try to parse as date (DD/MM/YYYY)
-  if (!birthDate || !isValid(birthDate)) {
-    birthDate = parse(idadeOuData, "dd/MM/yyyy", new Date());
-  }
-  
-  // Try alternate format if first fails
-  if (!isValid(birthDate)) {
-    birthDate = parse(idadeOuData, "MM/dd/yyyy", new Date());
-  }
-  
-  if (birthDate && isValid(birthDate)) {
-    const today = new Date();
-    const anos = differenceInYears(today, birthDate);
-    const afterYears = addYears(birthDate, anos);
-    const meses = differenceInMonths(today, afterYears);
-    const afterMonths = addMonths(afterYears, meses);
-    const dias = differenceInDays(today, afterMonths);
-    
-    return `${anos}a ${meses}m ${dias}d`;
-  }
-  
-  // If it's already a number (age), return as is
-  const numericAge = parseInt(idadeOuData);
-  if (!isNaN(numericAge) && idadeOuData.length <= 3) {
-    return `${numericAge} anos`;
-  }
-  
-  return idadeOuData;
-};
-
-// Parse date from various formats
-const parseDataFlexivel = (dataStr: string): Date | null => {
-  if (!dataStr) return null;
-  
-  // Handle Google Sheets Date format: Date(year, month, day)
-  const googleDateMatch = dataStr.match(/Date\((\d+),(\d+),(\d+)\)/);
-  if (googleDateMatch) {
-    const year = parseInt(googleDateMatch[1]);
-    const month = parseInt(googleDateMatch[2]);
-    const day = parseInt(googleDateMatch[3]);
-    return new Date(year, month, day);
-  }
-  
-  // Try DD/MM/YYYY format
-  let parsed = parse(dataStr, "dd/MM/yyyy", new Date());
-  if (isValid(parsed)) return parsed;
-  
-  // Try MM/DD/YYYY format
-  parsed = parse(dataStr, "MM/dd/yyyy", new Date());
-  if (isValid(parsed)) return parsed;
-  
-  return null;
-};
-
-// Get status for tempoFaltante badge styling based on data from API
-const getTempoFaltanteStatus = (tempoFaltante: string | undefined, excedeu: boolean | undefined): 'normal' | 'warning' | 'danger' | 'exceeded' => {
-  if (!tempoFaltante || tempoFaltante === '-') return 'normal';
-  if (excedeu) return 'exceeded';
-  const anosMatch = tempoFaltante.match(/(\d+)a/);
-  const mesesMatch = tempoFaltante.match(/(\d+)m/);
-  const anos = anosMatch ? parseInt(anosMatch[1]) : 0;
-  const meses = mesesMatch ? parseInt(mesesMatch[1]) : 0;
-  const totalMeses = anos * 12 + meses;
-  if (totalMeses < 6) return 'danger';
-  if (totalMeses < 24) return 'warning';
-  return 'normal';
-};
-
-// Calculate remaining time until termino date
-const calcularTempoRestante = (terminoStr: string): { texto: string; status: 'normal' | 'warning' | 'danger' | 'expired' } => {
-  if (!terminoStr) return { texto: "-", status: 'normal' };
-  
-  const termino = parseDataFlexivel(terminoStr);
-  if (!termino) return { texto: "-", status: 'normal' };
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  // If already expired
-  if (isBefore(termino, today)) {
-    const d1 = Math.min(termino.getDate(), 30);
-    const d2 = Math.min(today.getDate(), 30);
-    const m1 = termino.getMonth() + 1;
-    const m2 = today.getMonth() + 1;
-    const y1 = termino.getFullYear();
-    const y2 = today.getFullYear();
-    const totalDias360 = (y2 - y1) * 360 + (m2 - m1) * 30 + (d2 - d1);
-    const totalMesesPassados = Math.floor(totalDias360 / 30);
-    const anosPassados = Math.floor(totalMesesPassados / 12);
-    const mesesPassados = totalMesesPassados % 12;
-    const diasPassados = totalDias360 % 30;
-    
-    const partes = [];
-    if (anosPassados > 0) partes.push(`${anosPassados}a`);
-    if (mesesPassados > 0) partes.push(`${mesesPassados}m`);
-    if (diasPassados > 0 || partes.length === 0) partes.push(`${diasPassados}d`);
-    
-    return { 
-      texto: `Vencido há ${partes.join(' ')}`, 
-      status: 'expired' 
-    };
-  }
-  
-// Calculate remaining time using 30/360 convention (same as backend)
-  const d1 = Math.min(today.getDate(), 30);
-  const d2 = Math.min(termino.getDate(), 30);
-  const m1 = today.getMonth() + 1;
-  const m2 = termino.getMonth() + 1;
-  const y1 = today.getFullYear();
-  const y2 = termino.getFullYear();
-  const totalDias360 = (y2 - y1) * 360 + (m2 - m1) * 30 + (d2 - d1);
-  
-  const totalMeses360 = Math.floor(totalDias360 / 30);
-  const dias = totalDias360 % 30;
-  const anos = Math.floor(totalMeses360 / 12);
-  const meses = totalMeses360 % 12;
-  
-  // Determine status based on remaining time
-  let status: 'normal' | 'warning' | 'danger' | 'expired' = 'normal';
-  if (totalMeses360 < 1) {
-    status = 'danger';
-  } else if (totalMeses360 < 3) {
-    status = 'warning';
-  }
-  
-  const partes = [];
-  if (anos > 0) partes.push(`${anos}a`);
-  if (meses > 0) partes.push(`${meses}m`);
-  if (dias > 0 || partes.length === 0) partes.push(`${dias}d`);
-  
-  return { 
-    texto: partes.join(' '), 
-    status 
-  };
-};
+import { parseDataFlexivel, calcularTempoRestante, isOficial, getGradIndex } from "@/lib/ttcUtils";
+import { isBefore, isAfter } from "date-fns";
+import MultiSelectFilter from "@/components/dashboard/ttc/MultiSelectFilter";
+import TTCTableRow from "@/components/dashboard/ttc/TTCTableRow";
 
 const DashboardTTC = () => {
   const navigate = useNavigate();
@@ -195,37 +42,11 @@ const DashboardTTC = () => {
   const [filterDataInicioTo, setFilterDataInicioTo] = useState<Date | undefined>(undefined);
   const [filterDataTerminoFrom, setFilterDataTerminoFrom] = useState<Date | undefined>(undefined);
   const [filterDataTerminoTo, setFilterDataTerminoTo] = useState<Date | undefined>(undefined);
-  
-  // Lista de graduações de oficiais (todos os postos de oficiais da Marinha)
-  const graduacoesOficiais = [
-    "AE", "VA", "CA", "CMG", "CF", "CC", "CT", "1T", "2T", "GM", "ASP",
-    // Oficiais RM2 e outros quadros
-    "1T-RM2", "2T-RM2", "CT-RM2", "CC-RM2", "CF-RM2", "CMG-RM2"
-  ];
-  
-  const isOficial = (graduacao: string): boolean => {
-    if (!graduacao) return false;
-    const grad = graduacao.toUpperCase().trim();
-    // Verifica se começa com algum posto de oficial
-    return graduacoesOficiais.some(posto => 
-      grad === posto || 
-      grad.startsWith(posto + "-") || 
-      grad.startsWith(posto + " ")
-    );
-  };
-  
+  const [selectedMonth, setSelectedMonth] = useState<{ mes: string; militares: TTCData[] } | null>(null);
+
   const isOnline = useOnlineStatus();
 
-  const invokeFunction = async <T,>(name: string, ms = 25000) => {
-    return await Promise.race([
-      supabase.functions.invoke<T>(name),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(`Timeout ao chamar ${name}`)), ms),
-      ),
-    ]);
-  };
-
-  const fetchData = async (showToast = false, isBackground = false) => {
+  const fetchData = useCallback(async (showToast = false, isBackground = false) => {
     if (showToast) setIsRefreshing(true);
 
     if (!navigator.onLine) {
@@ -236,62 +57,44 @@ const DashboardTTC = () => {
     }
 
     try {
-      // Only show loading if no data displayed yet
-      if (!isBackground && ttcData.length === 0) {
-        setIsLoading(true);
-      }
-      console.log("Fetching TTC data...");
+      if (!isBackground && ttcData.length === 0) setIsLoading(true);
 
-      const response = await invokeFunction<any>("fetch-ttc-data");
+      const response = await Promise.race([
+        supabase.functions.invoke<any>("fetch-ttc-data"),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 25000)),
+      ]);
 
       if (response.error) {
-        console.error("Error fetching TTC data:", response.error);
         if (!isBackground) toast.error("Erro ao carregar dados TTC");
         return;
       }
 
       const data = response.data?.data || [];
       const summaryData = response.data?.summary || { total: 0, contratados: 0, vagasAbertas: 0 };
-      
-      console.log(`Loaded ${data.length} TTC records`);
-      
+
       setTtcData(data);
       setSummary(summaryData);
-      
-      if (showToast) {
-        toast.success(`Dados TTC atualizados! ${data.length} registros.`);
-      }
-    } catch (error) {
-      console.error("Error:", error);
+
+      if (showToast) toast.success(`Dados TTC atualizados! ${data.length} registros.`);
+    } catch {
       if (!isBackground) toast.error("Erro ao conectar com o servidor");
     }
-    
+
     setIsLoading(false);
     if (showToast) setIsRefreshing(false);
-  };
+  }, [ttcData.length]);
 
   useEffect(() => {
     fetchData();
 
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(() => {
-      console.log("Auto-refreshing TTC data...");
-      fetchData(false, true);
-    }, 300000);
+    const interval = setInterval(() => fetchData(false, true), 300000);
 
-    // Auto-refresh when user returns to the tab/app
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        console.log("Tab visible - refreshing TTC data...");
-        fetchData(false, true);
-      }
+      if (document.visibilityState === 'visible') fetchData(false, true);
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
-    const handleDataRefresh = () => {
-      console.log("Data refresh triggered - reloading TTC data...");
-      fetchData(false, true);
-    };
+    const handleDataRefresh = () => fetchData(false, true);
     window.addEventListener('data-refresh', handleDataRefresh);
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'data_refresh_requested') handleDataRefresh();
@@ -306,59 +109,46 @@ const DashboardTTC = () => {
     };
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await signOut();
       toast.success("Logout realizado com sucesso!");
       navigate("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
+    } catch {
       toast.error("Erro ao realizar logout");
     }
-  };
+  }, [signOut, navigate]);
 
-  const handleExportPDF = () => {
+  const handleExportPDF = useCallback(async () => {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
+
     const doc = new jsPDF({ orientation: "landscape" });
-    
-    // Header
     doc.setFontSize(18);
     doc.text("Dashboard TTC - Tempo de Trabalho Complementar", 14, 22);
-    
     doc.setFontSize(10);
     doc.text(`Data de exportação: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 14, 30);
     doc.text(`Total: ${filteredSummary.total} | Contratados: ${filteredSummary.contratados} | Vagas Abertas: ${filteredSummary.vagasAbertas}`, 14, 36);
-    
-    // Group data by OM
-    const groupedByOM: { [key: string]: typeof filteredData } = {};
+
+    const groupedByOM: Record<string, typeof filteredData> = {};
     filteredData.forEach(item => {
       const om = item.om || "Sem OM";
-      if (!groupedByOM[om]) {
-        groupedByOM[om] = [];
-      }
-      groupedByOM[om].push(item);
+      (groupedByOM[om] ??= []).push(item);
     });
-    
-    // Sort OMs alphabetically
-    const sortedOMs = Object.keys(groupedByOM).sort();
-    
+
     let currentY = 42;
-    
-    sortedOMs.forEach((om, omIndex) => {
+
+    Object.keys(groupedByOM).sort().forEach(om => {
       const omData = groupedByOM[om];
-      
-      // Check if we need a new page
-      if (currentY > 180) {
-        doc.addPage();
-        currentY = 20;
-      }
-      
-      // OM Section Header
+      if (currentY > 180) { doc.addPage(); currentY = 20; }
+
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(37, 99, 235);
-      doc.text(`${om}`, 14, currentY);
-      
-      // OM Summary
+      doc.text(om, 14, currentY);
+
       const omContratados = omData.filter(d => !d.isVaga).length;
       const omVagas = omData.filter(d => d.isVaga).length;
       doc.setFontSize(9);
@@ -366,30 +156,19 @@ const DashboardTTC = () => {
       doc.setTextColor(100, 100, 100);
       doc.text(`Total: ${omData.length} | Contratados: ${omContratados} | Vagas: ${omVagas}`, 14, currentY + 5);
       doc.setTextColor(0, 0, 0);
-      
       currentY += 8;
-      
-      // Table data for this OM
+
       const tableData = omData.map(item => [
-        item.graduacao,
-        item.nomeCompleto || "VAGO",
-        item.neo || "-",
-        item.espQuadro || "-",
-        item.idade || "-",
-        item.area || "-",
-        item.tarefaDesignada || "-",
-        item.isVaga ? "-" : (item.periodoInicio || "-"),
-        item.isVaga ? "-" : (item.termino || "-"),
+        item.graduacao, item.nomeCompleto || "VAGO", item.neo || "-", item.espQuadro || "-",
+        item.idade || "-", item.area || "-", item.tarefaDesignada || "-",
+        item.isVaga ? "-" : (item.periodoInicio || "-"), item.isVaga ? "-" : (item.termino || "-"),
         calcularTempoRestante(item.termino).texto,
-        item.isVaga ? "-" : (item.tempoServido || "-"),
-        item.isVaga ? "-" : (item.tempoFaltante || "-"),
-        item.isVaga ? "-" : (item.dataLimite || "-"),
-        item.isVaga ? "-" : (item.portariaAtual || "-"),
+        item.isVaga ? "-" : (item.tempoServido || "-"), item.isVaga ? "-" : (item.tempoFaltante || "-"),
+        item.isVaga ? "-" : (item.dataLimite || "-"), item.isVaga ? "-" : (item.portariaAtual || "-"),
       ]);
-      
-      // Track which rows are "VAGO" for styling
-      const vagaRowIndexes = omData.map((item, index) => item.isVaga ? index : -1).filter(i => i !== -1);
-      
+
+      const vagaRowIndexes = omData.map((item, i) => item.isVaga ? i : -1).filter(i => i !== -1);
+
       autoTable(doc, {
         head: [["Grad", "Nome", "NEO", "EFE", "Idade", "Área", "Tarefa", "Início", "Término", "Tempo Rest. Contrato", "Tempo Total TTC", "Faltante (10a)", "Data Limite", "Portaria Atual"]],
         body: tableData,
@@ -398,120 +177,103 @@ const DashboardTTC = () => {
         headStyles: { fillColor: [37, 99, 235], textColor: 255 },
         alternateRowStyles: { fillColor: [240, 240, 240] },
         didParseCell: (data) => {
-          // Highlight VAGO rows in red
           if (data.section === 'body' && vagaRowIndexes.includes(data.row.index)) {
-            data.cell.styles.fillColor = [254, 202, 202]; // Light red background
-            data.cell.styles.textColor = [153, 27, 27]; // Dark red text
+            data.cell.styles.fillColor = [254, 202, 202];
+            data.cell.styles.textColor = [153, 27, 27];
             data.cell.styles.fontStyle = 'bold';
           }
         },
       });
-      
-      // Get the final Y position after the table
+
       currentY = (doc as any).lastAutoTable.finalY + 10;
     });
-    
+
     doc.save(`dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
     toast.success("PDF exportado com sucesso!");
-  };
+  }, []);
 
   // Filter options
-  const filterOptions = useMemo(() => {
-    const oms = Array.from(new Set(ttcData.map(d => d.om).filter(Boolean))).sort();
-    const areas = Array.from(new Set(ttcData.map(d => d.area).filter(Boolean))).sort();
-    const graduacoes = Array.from(new Set(ttcData.map(d => d.graduacao).filter(Boolean))).sort();
-    const espQuadros = Array.from(new Set(ttcData.map(d => d.espQuadro).filter(Boolean))).sort();
-    const renovacoes = Array.from(new Set(ttcData.filter(d => !d.isVaga).map(d => d.qtdRenovacoes))).sort((a, b) => a - b);
-    return { oms, areas, graduacoes, espQuadros, renovacoes };
-  }, [ttcData]);
+  const filterOptions = useMemo(() => ({
+    oms: Array.from(new Set(ttcData.map(d => d.om).filter(Boolean))).sort(),
+    areas: Array.from(new Set(ttcData.map(d => d.area).filter(Boolean))).sort(),
+    graduacoes: Array.from(new Set(ttcData.map(d => d.graduacao).filter(Boolean))).sort(),
+    espQuadros: Array.from(new Set(ttcData.map(d => d.espQuadro).filter(Boolean))).sort(),
+  }), [ttcData]);
 
   // Filtered data
   const filteredData = useMemo(() => {
     let data = ttcData;
-    
+
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      data = data.filter(d => 
+      data = data.filter(d =>
         d.nomeCompleto.toLowerCase().includes(term) ||
         d.tarefaDesignada.toLowerCase().includes(term) ||
         d.neo.toLowerCase().includes(term) ||
         d.espQuadro.toLowerCase().includes(term)
       );
     }
-    
-    if (filterOM.length > 0) {
-      data = data.filter(d => filterOM.includes(d.om));
-    }
-    
-    if (filterArea.length > 0) {
-      data = data.filter(d => filterArea.includes(d.area));
-    }
-    
-    if (filterGraduacao.length > 0) {
-      data = data.filter(d => filterGraduacao.includes(d.graduacao));
-    }
-    
+
+    if (filterOM.length > 0) data = data.filter(d => filterOM.includes(d.om));
+    if (filterArea.length > 0) data = data.filter(d => filterArea.includes(d.area));
+    if (filterGraduacao.length > 0) data = data.filter(d => filterGraduacao.includes(d.graduacao));
+
     if (filterStatus.length > 0) {
-      data = data.filter(d => {
-        if (filterStatus.includes("contratado") && !d.isVaga) return true;
-        if (filterStatus.includes("vaga") && d.isVaga) return true;
-        return false;
-      });
+      data = data.filter(d =>
+        (filterStatus.includes("contratado") && !d.isVaga) ||
+        (filterStatus.includes("vaga") && d.isVaga)
+      );
     }
-    
-    if (filterEspQuadro.length > 0) {
-      data = data.filter(d => filterEspQuadro.includes(d.espQuadro));
-    }
-    
-    if (filterRenovacoes.length > 0) {
-      data = data.filter(d => filterRenovacoes.includes(String(d.qtdRenovacoes)));
-    }
-    
+
+    if (filterEspQuadro.length > 0) data = data.filter(d => filterEspQuadro.includes(d.espQuadro));
+    if (filterRenovacoes.length > 0) data = data.filter(d => filterRenovacoes.includes(String(d.qtdRenovacoes)));
+
     if (filterCategoria.length > 0) {
-      data = data.filter(d => {
-        if (filterCategoria.includes("oficial") && isOficial(d.graduacao)) return true;
-        if (filterCategoria.includes("praca") && !isOficial(d.graduacao)) return true;
-        return false;
-      });
+      data = data.filter(d =>
+        (filterCategoria.includes("oficial") && isOficial(d.graduacao)) ||
+        (filterCategoria.includes("praca") && !isOficial(d.graduacao))
+      );
     }
-    
-    // Filtro de data de início
+
     if (filterDataInicioFrom || filterDataInicioTo) {
       data = data.filter(d => {
-        const dataInicio = parseDataFlexivel(d.periodoInicio);
-        if (!dataInicio) return false;
-        
-        if (filterDataInicioFrom && isBefore(dataInicio, filterDataInicioFrom)) return false;
-        if (filterDataInicioTo && isAfter(dataInicio, filterDataInicioTo)) return false;
+        const dt = parseDataFlexivel(d.periodoInicio);
+        if (!dt) return false;
+        if (filterDataInicioFrom && isBefore(dt, filterDataInicioFrom)) return false;
+        if (filterDataInicioTo && isAfter(dt, filterDataInicioTo)) return false;
         return true;
       });
     }
-    
-    // Filtro de data de término
+
     if (filterDataTerminoFrom || filterDataTerminoTo) {
       data = data.filter(d => {
-        const dataTermino = parseDataFlexivel(d.termino);
-        if (!dataTermino) return false;
-        
-        if (filterDataTerminoFrom && isBefore(dataTermino, filterDataTerminoFrom)) return false;
-        if (filterDataTerminoTo && isAfter(dataTermino, filterDataTerminoTo)) return false;
+        const dt = parseDataFlexivel(d.termino);
+        if (!dt) return false;
+        if (filterDataTerminoFrom && isBefore(dt, filterDataTerminoFrom)) return false;
+        if (filterDataTerminoTo && isAfter(dt, filterDataTerminoTo)) return false;
         return true;
       });
     }
-    
+
     return data;
   }, [ttcData, searchTerm, filterOM, filterArea, filterGraduacao, filterStatus, filterEspQuadro, filterRenovacoes, filterCategoria, filterDataInicioFrom, filterDataInicioTo, filterDataTerminoFrom, filterDataTerminoTo]);
 
-  // Filtered summary
   const filteredSummary = useMemo(() => {
     const total = filteredData.length;
     const contratados = filteredData.filter(d => !d.isVaga).length;
-    const vagasAbertas = filteredData.filter(d => d.isVaga).length;
-    return { total, contratados, vagasAbertas };
+    return { total, contratados, vagasAbertas: total - contratados };
   }, [filteredData]);
 
-  // Clear all filters
-  const clearFilters = () => {
+  // Sorted data for the table
+  const sortedData = useMemo(() =>
+    [...filteredData].sort((a, b) => {
+      const omCmp = (a.om || '').localeCompare(b.om || '');
+      return omCmp !== 0 ? omCmp : getGradIndex(a.graduacao) - getGradIndex(b.graduacao);
+    }),
+    [filteredData]
+  );
+
+  const clearFilters = useCallback(() => {
     setSearchTerm("");
     setFilterOM([]);
     setFilterArea([]);
@@ -524,119 +286,61 @@ const DashboardTTC = () => {
     setFilterDataInicioTo(undefined);
     setFilterDataTerminoFrom(undefined);
     setFilterDataTerminoTo(undefined);
-  };
+  }, []);
 
-  const hasActiveFilters = searchTerm || filterOM.length > 0 || filterArea.length > 0 || filterGraduacao.length > 0 || 
+  const hasActiveFilters = searchTerm || filterOM.length > 0 || filterArea.length > 0 || filterGraduacao.length > 0 ||
     filterStatus.length > 0 || filterEspQuadro.length > 0 || filterRenovacoes.length > 0 || filterCategoria.length > 0 ||
     filterDataInicioFrom || filterDataInicioTo || filterDataTerminoFrom || filterDataTerminoTo;
 
-  // Toggle filter value helper
-  const toggleFilter = (
-    currentValues: string[], 
-    setValue: React.Dispatch<React.SetStateAction<string[]>>, 
-    value: string
-  ) => {
-    if (currentValues.includes(value)) {
-      setValue(currentValues.filter(v => v !== value));
-    } else {
-      setValue([...currentValues, value]);
-    }
-  };
+  const toggleFilter = useCallback((currentValues: string[], setValue: React.Dispatch<React.SetStateAction<string[]>>, value: string) => {
+    setValue(currentValues.includes(value) ? currentValues.filter(v => v !== value) : [...currentValues, value]);
+  }, []);
 
-  // Multi-select filter component
-  const MultiSelectFilter = ({ 
-    label, 
-    options, 
-    selectedValues, 
-    onToggle 
-  }: { 
-    label: string; 
-    options: { value: string; label: string }[]; 
-    selectedValues: string[]; 
-    onToggle: (value: string) => void;
-  }) => (
-    <div>
-      <label className="text-sm font-medium text-muted-foreground mb-2 block">{label}</label>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full justify-between">
-            <span className="truncate">
-              {selectedValues.length === 0 
-                ? `Todos` 
-                : selectedValues.length === 1 
-                  ? options.find(o => o.value === selectedValues[0])?.label || selectedValues[0]
-                  : `${selectedValues.length} selecionados`}
-            </span>
-            <ChevronDown className="h-4 w-4 ml-2 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-56 p-0 bg-popover" align="start">
-          <ScrollArea className="h-[200px]">
-            <div className="p-2 space-y-1">
-              {options.map(option => (
-                <div 
-                  key={option.value} 
-                  className="flex items-center space-x-2 p-2 hover:bg-accent rounded cursor-pointer"
-                  onClick={() => onToggle(option.value)}
-                >
-                  <Checkbox 
-                    checked={selectedValues.includes(option.value)} 
-                    onCheckedChange={() => onToggle(option.value)}
-                  />
-                  <span className="text-sm">{option.label}</span>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-
-  // Chart data - using FILTERED data (blue colors)
+  // Chart data
   const statusChartData = useMemo(() => [
     { name: "Contratados", value: filteredSummary.contratados, fill: "#3b82f6" },
     { name: "Vagas Abertas", value: filteredSummary.vagasAbertas, fill: "#93c5fd" },
   ], [filteredSummary]);
 
-  // Previsão mensal de término de contrato
   const previsaoMensalData = useMemo(() => {
     const today = new Date();
-    const contratados = filteredData.filter(d => !d.isVaga && d.termino);
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
     const monthGroups = new Map<string, TTCData[]>();
 
-    contratados.forEach(d => {
+    for (const d of filteredData) {
+      if (d.isVaga || !d.termino) continue;
       const dt = parseDataFlexivel(d.termino);
-      if (!dt) return;
+      if (!dt) continue;
       const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
-      const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
       if (key >= todayKey) {
-        if (!monthGroups.has(key)) monthGroups.set(key, []);
-        monthGroups.get(key)!.push(d);
+        let arr = monthGroups.get(key);
+        if (!arr) { arr = []; monthGroups.set(key, arr); }
+        arr.push(d);
       }
-    });
+    }
 
     return Array.from(monthGroups.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .slice(0, 12)
       .map(([key, militares]) => {
         const [year, month] = key.split('-');
-        const dt = new Date(parseInt(year), parseInt(month) - 1);
-        const label = format(dt, "MMM/yy", { locale: ptBR });
+        const label = format(new Date(parseInt(year), parseInt(month) - 1), "MMM/yy", { locale: ptBR });
         return { mes: label, quantidade: militares.length, militares };
       });
   }, [filteredData]);
 
-  const [selectedMonth, setSelectedMonth] = useState<{ mes: string; militares: TTCData[] } | null>(null);
-
-
-
-
-  const chartConfig = {
+  const chartConfig = useMemo(() => ({
     contratados: { label: "Contratados", color: "#3b82f6" },
     vagas: { label: "Vagas", color: "#93c5fd" },
     quantidade: { label: "Quantidade", color: "#2563eb" },
-  };
+  }), []);
+
+  const handleBarClick = useCallback((e: any) => {
+    if (e?.activePayload?.[0]?.payload) {
+      const p = e.activePayload[0].payload;
+      setSelectedMonth({ mes: p.mes, militares: p.militares });
+    }
+  }, []);
 
   if (isLoading) {
     return (
@@ -650,21 +354,14 @@ const DashboardTTC = () => {
   }
 
   return (
-    <div 
-      className="min-h-screen bg-cover bg-center bg-fixed"
-      style={{ backgroundImage: `url(${militaryBg})` }}
-    >
+    <div className="min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: `url(${militaryBg})` }}>
       <div className="min-h-screen bg-background/95 backdrop-blur-sm">
         {/* Header */}
         <header className="bg-card/80 backdrop-blur-md border-b sticky top-0 z-50">
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate("/")}
-                >
+                <Button variant="outline" size="sm" onClick={() => navigate("/")}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Voltar
                 </Button>
@@ -673,32 +370,20 @@ const DashboardTTC = () => {
                   <p className="text-sm text-muted-foreground">Praças em Tempo de Trabalho Complementar</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3">
                 <Badge variant={isOnline ? "default" : "secondary"} className="flex items-center gap-1">
                   {isOnline ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
                   {isOnline ? "Online" : "Offline"}
                 </Badge>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fetchData(true)}
-                  disabled={isRefreshing}
-                >
+                <Button variant="outline" size="sm" onClick={() => fetchData(true)} disabled={isRefreshing}>
                   <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
                   Atualizar
                 </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExportPDF}
-                >
+                <Button variant="outline" size="sm" onClick={handleExportPDF}>
                   <FileDown className="h-4 w-4 mr-2" />
                   PDF
                 </Button>
-                
                 <Button variant="destructive" size="sm" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Sair
@@ -718,12 +403,10 @@ const DashboardTTC = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{filteredSummary.total}</div>
-                {hasActiveFilters && (
-                  <p className="text-xs text-muted-foreground mt-1">de {summary.total} total</p>
-                )}
+                {hasActiveFilters && <p className="text-xs text-muted-foreground mt-1">de {summary.total} total</p>}
               </CardContent>
             </Card>
-            
+
             <Card className="bg-card/80 backdrop-blur-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Contratados</CardTitle>
@@ -736,7 +419,7 @@ const DashboardTTC = () => {
                 </p>
               </CardContent>
             </Card>
-            
+
             <Card className="bg-card/80 backdrop-blur-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Vagas Abertas</CardTitle>
@@ -744,16 +427,13 @@ const DashboardTTC = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-red-600">{filteredSummary.vagasAbertas}</div>
-                {hasActiveFilters && (
-                  <p className="text-xs text-muted-foreground mt-1">de {summary.vagasAbertas} total</p>
-                )}
+                {hasActiveFilters && <p className="text-xs text-muted-foreground mt-1">de {summary.vagasAbertas} total</p>}
               </CardContent>
             </Card>
           </div>
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Status Pie Chart */}
             <Card className="bg-card/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-base">Situação Geral</CardTitle>
@@ -761,18 +441,8 @@ const DashboardTTC = () => {
               <CardContent>
                 <ChartContainer config={chartConfig} className="h-[280px]">
                   <PieChart>
-                    <Pie
-                      data={statusChartData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={90}
-                      label={({ name, value }) => `${name}: ${value}`}
-                    >
-                      {statusChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
+                    <Pie data={statusChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, value }) => `${name}: ${value}`}>
+                      {statusChartData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                     </Pie>
                     <ChartTooltip content={<ChartTooltipContent />} />
                   </PieChart>
@@ -780,7 +450,6 @@ const DashboardTTC = () => {
               </CardContent>
             </Card>
 
-            {/* Previsão Mensal de Término */}
             <Card className="bg-card/80 backdrop-blur-sm lg:col-span-2">
               <CardHeader>
                 <CardTitle className="text-base">Previsão Mensal de Término de Contrato</CardTitle>
@@ -788,12 +457,7 @@ const DashboardTTC = () => {
               <CardContent>
                 {previsaoMensalData.length > 0 ? (
                   <ChartContainer config={chartConfig} className="h-[280px]">
-                    <BarChart data={previsaoMensalData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }} onClick={(e) => {
-                      if (e && e.activePayload && e.activePayload.length > 0) {
-                        const payload = e.activePayload[0].payload;
-                        setSelectedMonth({ mes: payload.mes, militares: payload.militares });
-                      }
-                    }} style={{ cursor: 'pointer' }}>
+                    <BarChart data={previsaoMensalData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }} onClick={handleBarClick} style={{ cursor: 'pointer' }}>
                       <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
                       <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                       <ChartTooltip content={<ChartTooltipContent />} />
@@ -804,10 +468,9 @@ const DashboardTTC = () => {
                   <p className="text-sm text-muted-foreground text-center py-8">Nenhum término futuro encontrado</p>
                 )}
 
-                {/* Dialog de militares do mês selecionado */}
                 {selectedMonth && (
                   <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setSelectedMonth(null)}>
-                    <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center justify-between p-4 border-b">
                         <h3 className="text-lg font-semibold">Término em {selectedMonth.mes} ({selectedMonth.militares.length} militares)</h3>
                         <Button variant="ghost" size="icon" onClick={() => setSelectedMonth(null)}>
@@ -826,7 +489,7 @@ const DashboardTTC = () => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {selectedMonth.militares.map((mil) => (
+                            {selectedMonth.militares.map(mil => (
                               <TableRow key={mil.id}>
                                 <TableCell className="font-medium">{mil.graduacao}</TableCell>
                                 <TableCell>{mil.nomeCompleto}</TableCell>
@@ -850,119 +513,47 @@ const DashboardTTC = () => {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base">Filtros</CardTitle>
               {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  Limpar Filtros
-                </Button>
+                <Button variant="ghost" size="sm" onClick={clearFilters}>Limpar Filtros</Button>
               )}
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Buscar</label>
-                  <Input
-                    placeholder="Nome, tarefa, NEO..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+                  <Input placeholder="Nome, tarefa, NEO..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                 </div>
-                
-                <MultiSelectFilter
-                  label="OM"
-                  options={filterOptions.oms.map(om => ({ value: om, label: om }))}
-                  selectedValues={filterOM}
-                  onToggle={(value) => toggleFilter(filterOM, setFilterOM, value)}
-                />
-                
-                <MultiSelectFilter
-                  label="Status"
-                  options={[
-                    { value: "contratado", label: "Contratados" },
-                    { value: "vaga", label: "Vagas Abertas" }
-                  ]}
-                  selectedValues={filterStatus}
-                  onToggle={(value) => toggleFilter(filterStatus, setFilterStatus, value)}
-                />
-                
-                <MultiSelectFilter
-                  label="Área"
-                  options={filterOptions.areas.map(area => ({ value: area, label: area }))}
-                  selectedValues={filterArea}
-                  onToggle={(value) => toggleFilter(filterArea, setFilterArea, value)}
-                />
-                
-                <MultiSelectFilter
-                  label="Graduação"
-                  options={filterOptions.graduacoes.map(grad => ({ value: grad, label: grad }))}
-                  selectedValues={filterGraduacao}
-                  onToggle={(value) => toggleFilter(filterGraduacao, setFilterGraduacao, value)}
-                />
-                
-                <MultiSelectFilter
-                  label="ESP/Quadro"
-                  options={filterOptions.espQuadros.map(esp => ({ value: esp, label: esp }))}
-                  selectedValues={filterEspQuadro}
-                  onToggle={(value) => toggleFilter(filterEspQuadro, setFilterEspQuadro, value)}
-                />
-                
-                
-                <MultiSelectFilter
-                  label="Categoria"
-                  options={[
-                    { value: "oficial", label: "Oficiais" },
-                    { value: "praca", label: "Praças" }
-                  ]}
-                  selectedValues={filterCategoria}
-                  onToggle={(value) => toggleFilter(filterCategoria, setFilterCategoria, value)}
-                />
+                <MultiSelectFilter label="OM" options={filterOptions.oms.map(om => ({ value: om, label: om }))} selectedValues={filterOM} onToggle={v => toggleFilter(filterOM, setFilterOM, v)} />
+                <MultiSelectFilter label="Status" options={[{ value: "contratado", label: "Contratados" }, { value: "vaga", label: "Vagas Abertas" }]} selectedValues={filterStatus} onToggle={v => toggleFilter(filterStatus, setFilterStatus, v)} />
+                <MultiSelectFilter label="Área" options={filterOptions.areas.map(a => ({ value: a, label: a }))} selectedValues={filterArea} onToggle={v => toggleFilter(filterArea, setFilterArea, v)} />
+                <MultiSelectFilter label="Graduação" options={filterOptions.graduacoes.map(g => ({ value: g, label: g }))} selectedValues={filterGraduacao} onToggle={v => toggleFilter(filterGraduacao, setFilterGraduacao, v)} />
+                <MultiSelectFilter label="ESP/Quadro" options={filterOptions.espQuadros.map(e => ({ value: e, label: e }))} selectedValues={filterEspQuadro} onToggle={v => toggleFilter(filterEspQuadro, setFilterEspQuadro, v)} />
+                <MultiSelectFilter label="Categoria" options={[{ value: "oficial", label: "Oficiais" }, { value: "praca", label: "Praças" }]} selectedValues={filterCategoria} onToggle={v => toggleFilter(filterCategoria, setFilterCategoria, v)} />
               </div>
-              
+
               {/* Date Filters */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 pt-4 border-t border-border">
-                {/* Data Início - De */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Início (De)</label>
-                  <DatePickerWithSelectors
-                    date={filterDataInicioFrom}
-                    onDateChange={setFilterDataInicioFrom}
-                    placeholder="Selecione..."
-                  />
+                  <DatePickerWithSelectors date={filterDataInicioFrom} onDateChange={setFilterDataInicioFrom} placeholder="Selecione..." />
                 </div>
-                
-                {/* Data Início - Até */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Início (Até)</label>
-                  <DatePickerWithSelectors
-                    date={filterDataInicioTo}
-                    onDateChange={setFilterDataInicioTo}
-                    placeholder="Selecione..."
-                  />
+                  <DatePickerWithSelectors date={filterDataInicioTo} onDateChange={setFilterDataInicioTo} placeholder="Selecione..." />
                 </div>
-                
-                {/* Data Término - De */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Término (De)</label>
-                  <DatePickerWithSelectors
-                    date={filterDataTerminoFrom}
-                    onDateChange={setFilterDataTerminoFrom}
-                    placeholder="Selecione..."
-                  />
+                  <DatePickerWithSelectors date={filterDataTerminoFrom} onDateChange={setFilterDataTerminoFrom} placeholder="Selecione..." />
                 </div>
-                
-                {/* Data Término - Até */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Término (Até)</label>
-                  <DatePickerWithSelectors
-                    date={filterDataTerminoTo}
-                    onDateChange={setFilterDataTerminoTo}
-                    placeholder="Selecione..."
-                  />
+                  <DatePickerWithSelectors date={filterDataTerminoTo} onDateChange={setFilterDataTerminoTo} placeholder="Selecione..." />
                 </div>
               </div>
-              
+
               {hasActiveFilters && (
                 <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground">
-                    Exibindo <span className="font-medium text-foreground">{filteredSummary.total}</span> registros 
+                    Exibindo <span className="font-medium text-foreground">{filteredSummary.total}</span> registros
                     ({filteredSummary.contratados} contratados, {filteredSummary.vagasAbertas} vagas)
                   </p>
                 </div>
@@ -1001,127 +592,9 @@ const DashboardTTC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {[...filteredData].sort((a, b) => {
-                      const gradOrder = ["CMG", "CF", "CC", "CT", "1T", "1TEN", "2T", "2TEN", "SO", "1SG", "2SG", "3SG", "CB", "MN"];
-                      const getGradIndex = (grad: string) => {
-                        const idx = gradOrder.indexOf(grad?.trim().toUpperCase() || '');
-                        return idx === -1 ? 999 : idx;
-                      };
-                      const omCmp = (a.om || '').localeCompare(b.om || '');
-                      if (omCmp !== 0) return omCmp;
-                      return getGradIndex(a.graduacao) - getGradIndex(b.graduacao);
-                    }).map((row) => {
-                      // Check if NEO and EspQuadro are different
-                      const neoNormalized = row.neo?.trim().toUpperCase() || '';
-                      const efeNormalized = row.espQuadro?.trim().toUpperCase() || '';
-                      const isDifferentNeoEfe = !row.isVaga && neoNormalized && efeNormalized && neoNormalized !== efeNormalized;
-                      
-                      // Format military name: graduação-especialidade nome
-                      const formatMilitarName = () => {
-                        if (row.isVaga) return null;
-
-                        const grad = (row.graduacao || '').trim().toUpperCase();
-                        const esp = (row.espQuadro || '').trim().toUpperCase();
-                        const nome = row.nomeCompleto || '';
-                        
-                        // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
-                        const isValidEsp = esp && esp !== "-" && !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN", "PL"].includes(esp);
-
-                        if (!grad) return nome;
-                        return `${grad}${isValidEsp ? `-${esp}` : ""} ${nome}`;
-                      };
-                      
-                      return (
-                      <TableRow 
-                        key={row.id}
-                        className={`${row.isVaga ? "bg-red-100 dark:bg-red-950/40 border-l-4 border-l-red-500" : ""} ${isDifferentNeoEfe ? "bg-amber-50/80 dark:bg-amber-950/30" : ""}`}
-                      >
-                        <TableCell className={`font-medium ${row.isVaga ? "text-red-600 font-bold" : ""}`}>{row.numero}</TableCell>
-                        <TableCell>
-                          <Badge variant={row.isVaga ? "destructive" : "outline"} className={row.isVaga ? "bg-red-500" : ""}>
-                            {row.om}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {row.isVaga ? (
-                            <span className="text-red-600 font-bold italic">VAGO</span>
-                          ) : (
-                            <span className={isDifferentNeoEfe ? "text-amber-700 dark:text-amber-400 font-semibold" : ""}>
-                              {formatMilitarName()}
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500" : ""}>
-                            {row.neo}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          <Badge variant={isDifferentNeoEfe ? "default" : "outline"}>
-                            {row.espQuadro || "-"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">{calcularIdadeAtual(row.idade)}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{row.area}</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">{row.tarefaDesignada}</TableCell>
-                        <TableCell className="text-sm">{row.periodoInicio}</TableCell>
-                        <TableCell className="text-sm">{row.termino}</TableCell>
-                        <TableCell className="text-sm">
-                          {!row.isVaga && (() => {
-                            const { texto, status } = calcularTempoRestante(row.termino);
-                            return (
-                              <Badge 
-                                variant={status === 'expired' ? 'destructive' : status === 'danger' ? 'destructive' : status === 'warning' ? 'default' : 'secondary'}
-                                className={status === 'warning' ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}
-                              >
-                                {texto}
-                              </Badge>
-                            );
-                          })()}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {!row.isVaga && row.tempoServido && row.tempoServido !== '-' && (
-                            <Badge 
-                              variant="secondary"
-                              className={cn(
-                                row.excedeu10Anos && "bg-red-100 text-red-700 border-red-300 font-bold"
-                              )}
-                            >
-                              {row.tempoServido}
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {!row.isVaga && row.tempoFaltante && row.tempoFaltante !== '-' && (() => {
-                            const status = getTempoFaltanteStatus(row.tempoFaltante, row.excedeu10Anos);
-                            return (
-                              <Badge 
-                                variant={status === 'exceeded' ? 'destructive' : status === 'danger' ? 'destructive' : status === 'warning' ? 'default' : 'secondary'}
-                                className={status === 'warning' ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}
-                              >
-                                {row.tempoFaltante}
-                              </Badge>
-                            );
-                          })()}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {!row.isVaga && row.dataLimite && row.dataLimite !== '-' && (
-                            <Badge 
-                              variant={row.dataLimiteTipo === '70a' ? 'destructive' : 'secondary'}
-                              title={row.dataLimiteTipo === '70a' ? 'Limite por idade (70 anos)' : 'Limite por tempo de serviço (10 anos)'}
-                            >
-                              {row.dataLimite}
-                              {row.dataLimiteTipo === '70a' && ' (70a)'}
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm">{row.portariaAtual || '-'}</TableCell>
-                      </TableRow>
-                    );
-                    })}
-                    
+                    {sortedData.map(row => (
+                      <TTCTableRow key={row.id} row={row} />
+                    ))}
                     {filteredData.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={16} className="text-center py-8 text-muted-foreground">
