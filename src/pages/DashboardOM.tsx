@@ -45,7 +45,24 @@ import {
   Cell,
   LabelList,
 } from "recharts";
-// Heavy libraries loaded dynamically in export functions
+// Heavy libraries - dynamically imported in exportToExcel
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import html2canvas from "html2canvas";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  Table,
+  TableCell,
+  TableRow,
+  WidthType,
+  TextRun,
+  AlignmentType,
+  HeadingLevel,
+  BorderStyle,
+  ShadingType,
+} from "docx";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 import OfficerCard from "@/components/dashboard/OfficerCard";
 
