@@ -2553,8 +2553,9 @@ const DashboardOM = () => {
     }
   };
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     try {
+      const XLSX = await import("xlsx");
       const workbook = XLSX.utils.book_new();
 
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
