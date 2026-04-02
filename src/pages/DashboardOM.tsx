@@ -1921,6 +1921,7 @@ const DashboardOM = () => {
 
   const exportToWord = async () => {
     try {
+      const { Document, Packer, Paragraph, Table, TableCell, TableRow: DocTableRow, WidthType, TextRun, AlignmentType, HeadingLevel, BorderStyle, ShadingType } = await import("docx");
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
       const sections: any[] = [];
