@@ -1659,10 +1659,7 @@ const DashboardOM = () => {
             item.postoTmft,
             item.quadroTmft,
             item.corpoTmft || "-",
-            (() => {
-              const opcao = (item.ocupado ? item.opcaoEfe : item.opcaoTmft || "").trim().toUpperCase();
-              return formatMilitarNameWithOpcao(item.postoEfe || item.postoTmft || "", item.quadroEfe || item.quadroTmft || "", item.nome || "-", opcao);
-            })(),
+            item.nome || "-",
             item.postoEfe || "-",
             item.quadroEfe || "-",
             item.corpoEfe || "-",
