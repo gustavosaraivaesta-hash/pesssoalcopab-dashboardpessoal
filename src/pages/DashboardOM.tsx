@@ -45,24 +45,7 @@ import {
   Cell,
   LabelList,
 } from "recharts";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import html2canvas from "html2canvas";
-import * as XLSX from "xlsx";
-import {
-  Document,
-  Packer,
-  Paragraph,
-  Table,
-  TableCell,
-  TableRow,
-  WidthType,
-  TextRun,
-  AlignmentType,
-  HeadingLevel,
-  BorderStyle,
-  ShadingType,
-} from "docx";
+// Heavy libraries loaded dynamically in export functions
 import brasaoRepublica from "@/assets/brasao-republica.png";
 import OfficerCard from "@/components/dashboard/OfficerCard";
 

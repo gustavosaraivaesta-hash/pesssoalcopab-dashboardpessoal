@@ -42,21 +42,7 @@ import {
   Legend,
   Brush,
 } from "recharts";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
-import {
-  Document,
-  Packer,
-  Paragraph,
-  Table,
-  TableCell,
-  TableRow,
-  WidthType,
-  TextRun,
-  AlignmentType,
-  ShadingType,
-} from "docx";
+// Heavy libraries loaded dynamically in export functions
 
 import brasaoRepublica from "@/assets/brasao-republica.png";
 
