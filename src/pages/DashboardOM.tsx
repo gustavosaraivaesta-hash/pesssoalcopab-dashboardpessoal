@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
@@ -45,10 +45,10 @@ import {
   Cell,
   LabelList,
 } from "recharts";
+// Heavy libraries - dynamically imported in exportToExcel
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
-import * as XLSX from "xlsx";
 import {
   Document,
   Packer,
@@ -484,27 +484,27 @@ const DashboardOM = () => {
 
   
 
-  const toggleOM = (om: string) => {
+  const toggleOM = useCallback((om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
-  };
+  }, []);
 
-  const toggleQuadro = (quadro: string) => {
+  const toggleQuadro = useCallback((quadro: string) => {
     setSelectedQuadros((prev) => (prev.includes(quadro) ? prev.filter((q) => q !== quadro) : [...prev, quadro]));
-  };
+  }, []);
 
-  const toggleOpcao = (opcao: string) => {
+  const toggleOpcao = useCallback((opcao: string) => {
     setSelectedOpcoes((prev) => (prev.includes(opcao) ? prev.filter((o) => o !== opcao) : [...prev, opcao]));
-  };
+  }, []);
 
-  const togglePosto = (posto: string) => {
+  const togglePosto = useCallback((posto: string) => {
     setSelectedPostoFilter((prev) => (prev.includes(posto) ? prev.filter((p) => p !== posto) : [...prev, posto]));
-  };
+  }, []);
 
-  const toggleCorpo = (corpo: string) => {
+  const toggleCorpo = useCallback((corpo: string) => {
     setSelectedCorpos((prev) => (prev.includes(corpo) ? prev.filter((c) => c !== corpo) : [...prev, corpo]));
-  };
+  }, []);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setSelectedOMs([]);
     setSelectedQuadros([]);
     setSelectedOpcoes([]);
@@ -512,12 +512,11 @@ const DashboardOM = () => {
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
     setSelectedCorpos([]);
-    
     setSearchQuery("");
     setEfetivoSubFilter("all");
-  };
+  }, []);
 
-  const handleStatusCardClick = (status: "all" | "ocupados" | "vagos") => {
+  const handleStatusCardClick = useCallback((status: "all" | "ocupados" | "vagos") => {
     setStatusFilter((prev) => {
       const newStatus = prev === status ? "all" : status;
       if (newStatus !== "ocupados") {
@@ -525,7 +524,7 @@ const DashboardOM = () => {
       }
       return newStatus;
     });
-  };
+  }, []);
 
   const OPCOES_FIXAS = ["CARREIRA", "RM-2", "TTC"];
 
@@ -1018,6 +1017,10 @@ const DashboardOM = () => {
 
   const exportToPDF = async () => {
     try {
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+        import("jspdf"),
+        import("jspdf-autotable"),
+      ]);
       const pdf = new jsPDF("l", "mm", "a4");
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
@@ -1934,6 +1937,7 @@ const DashboardOM = () => {
 
   const exportToWord = async () => {
     try {
+      const { Document, Packer, Paragraph, Table, TableCell, TableRow: DocTableRow, WidthType, TextRun, AlignmentType, HeadingLevel, BorderStyle, ShadingType } = await import("docx");
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
       const sections: any[] = [];
@@ -2548,8 +2552,9 @@ const DashboardOM = () => {
     }
   };
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     try {
+      const XLSX = await import("xlsx");
       const workbook = XLSX.utils.book_new();
 
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;

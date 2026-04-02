@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
@@ -42,9 +42,9 @@ import {
   Legend,
   Brush,
 } from "recharts";
+// Heavy libraries - dynamically imported in exportToExcel
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import {
   Document,
   Packer,
@@ -508,48 +508,45 @@ const DashboardPracas = () => {
     return filtered;
   }, [displayFilteredData, statusFilter, showOnlyExtraLotacao]);
 
-  const toggleOM = (om: string) => {
+  const toggleOM = useCallback((om: string) => {
     setSelectedOMs((prev) => (prev.includes(om) ? prev.filter((o) => o !== om) : [...prev, om]));
-  };
+  }, []);
 
-  const toggleQuadro = (quadro: string) => {
+  const toggleQuadro = useCallback((quadro: string) => {
     setSelectedQuadros((prev) => (prev.includes(quadro) ? prev.filter((q) => q !== quadro) : [...prev, quadro]));
-  };
+  }, []);
 
-  const toggleOpcao = (opcao: string) => {
+  const toggleOpcao = useCallback((opcao: string) => {
     setSelectedOpcoes((prev) => (prev.includes(opcao) ? prev.filter((o) => o !== opcao) : [...prev, opcao]));
-  };
+  }, []);
 
-  const toggleGraduacao = (graduacao: string) => {
+  const toggleGraduacao = useCallback((graduacao: string) => {
     setSelectedGraduacoes((prev) =>
       prev.includes(graduacao) ? prev.filter((g) => g !== graduacao) : [...prev, graduacao],
     );
-  };
+  }, []);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setSelectedOMs([]);
     setSelectedQuadros([]);
-
     setSelectedOpcoes([]);
     setSelectedGraduacoes([]);
-    
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
     setSearchQuery("");
     setShowNeoComparison(false);
     setNeoComparisonFilter("all");
     setShowNeoPersonnel(null);
-  };
+  }, []);
 
-  const handleStatusCardClick = (status: "all" | "ocupados" | "vagos") => {
+  const handleStatusCardClick = useCallback((status: "all" | "ocupados" | "vagos") => {
     setStatusFilter((prev) => (prev === status ? "all" : status));
-    // Reset NEO comparison when clicking on other status cards
     if (status !== "ocupados") {
       setShowNeoComparison(false);
       setNeoComparisonFilter("all");
       setShowNeoPersonnel(null);
     }
-  };
+  }, []);
 
   const handleEfetivoCardClick = () => {
     // Toggle efetivo filter
@@ -2130,8 +2127,9 @@ const DashboardPracas = () => {
     }
   };
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     try {
+      const XLSX = await import("xlsx");
       const workbook = XLSX.utils.book_new();
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
