@@ -3089,18 +3089,8 @@ const DashboardPracas = () => {
                 {personnelForSelectedPostos.map((item, index) => {
                   const itemGraduacao = selectedPostoType === "efe" ? item.postoEfe || item.postoTmft : item.postoTmft;
                   const isDifferentGraduacao = itemGraduacao && !selectedPostos.includes(itemGraduacao);
-                  // Check if NEO (postoTmft/quadroTmft) and EFE (postoEfe/quadroEfe) are different
-                  const neoQuadroNormalized = (item.quadroTmft || "").trim().toUpperCase().replace(/^-+$/, "");
-                  const efeQuadroNormalized = (item.quadroEfe || "").trim().toUpperCase().replace(/^-+$/, "");
-                  const neoPostoNormalized = (item.postoTmft || "").trim().toUpperCase().replace(/^-+$/, "");
-                  const efePostoNormalized = (item.postoEfe || "").trim().toUpperCase().replace(/^-+$/, "");
-
-                  // Divergência se posto OU quadro forem diferentes (ignorando vazios)
-                  const isDifferentQuadro =
-                    neoQuadroNormalized && efeQuadroNormalized && neoQuadroNormalized !== efeQuadroNormalized;
-                  const isDifferentPosto =
-                    neoPostoNormalized && efePostoNormalized && neoPostoNormalized !== efePostoNormalized;
-                  const isDifferentNeoEfe = item.ocupado && (isDifferentQuadro || isDifferentPosto);
+                  // Use the centralized isForaDaNeo function for consistency
+                  const isDifferentNeoEfe = item.ocupado && isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
 
                   // Format military name: graduação-especialidade nome
                   const formatMilitarName = () => {
