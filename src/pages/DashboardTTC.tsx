@@ -263,7 +263,8 @@ const DashboardTTC = () => {
         calcularTempoRestante(item.termino).texto,
         item.isVaga ? "-" : (item.tempoServido || "-"), item.isVaga ? "-" : (item.tempoFaltante || "-"),
         item.isVaga ? "-" : (item.dataLimite || "-"), item.isVaga ? "-" : (item.portariaAtual || "-"),
-      ]);
+      ];
+      });
 
       const vagaRowIndexes = omData.map((item, i) => item.isVaga ? i : -1).filter(i => i !== -1);
 
