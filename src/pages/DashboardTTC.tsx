@@ -195,6 +195,79 @@ const DashboardTTC = () => {
     return { total, contratados, vagasAbertas: total - contratados };
   }, [filteredData]);
 
+  const handleExportPDF = useCallback(async () => {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
+
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.setFontSize(18);
+    doc.text("Dashboard TTC - Tempo de Trabalho Complementar", 14, 22);
+    doc.setFontSize(10);
+    doc.text(`Data de exportação: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 14, 30);
+    doc.text(`Total: ${filteredSummary.total} | Contratados: ${filteredSummary.contratados} | Vagas Abertas: ${filteredSummary.vagasAbertas}`, 14, 36);
+
+    const groupedByOM: Record<string, typeof filteredData> = {};
+    filteredData.forEach(item => {
+      const om = item.om || "Sem OM";
+      (groupedByOM[om] ??= []).push(item);
+    });
+
+    let currentY = 42;
+
+    Object.keys(groupedByOM).sort().forEach(om => {
+      const omData = groupedByOM[om];
+      if (currentY > 180) { doc.addPage(); currentY = 20; }
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(37, 99, 235);
+      doc.text(om, 14, currentY);
+
+      const omContratados = omData.filter(d => !d.isVaga).length;
+      const omVagas = omData.filter(d => d.isVaga).length;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Total: ${omData.length} | Contratados: ${omContratados} | Vagas: ${omVagas}`, 14, currentY + 5);
+      doc.setTextColor(0, 0, 0);
+      currentY += 8;
+
+      const tableData = omData.map(item => [
+        item.graduacao, item.nomeCompleto || "VAGO", item.neo || "-", item.espQuadro || "-",
+        item.idade || "-", item.area || "-", item.tarefaDesignada || "-",
+        item.isVaga ? "-" : (item.periodoInicio || "-"), item.isVaga ? "-" : (item.termino || "-"),
+        calcularTempoRestante(item.termino).texto,
+        item.isVaga ? "-" : (item.tempoServido || "-"), item.isVaga ? "-" : (item.tempoFaltante || "-"),
+        item.isVaga ? "-" : (item.dataLimite || "-"), item.isVaga ? "-" : (item.portariaAtual || "-"),
+      ]);
+
+      const vagaRowIndexes = omData.map((item, i) => item.isVaga ? i : -1).filter(i => i !== -1);
+
+      autoTable(doc, {
+        head: [["Grad", "Nome", "NEO", "EFE", "Idade", "Área", "Tarefa", "Início", "Término", "Tempo Rest. Contrato", "Tempo Total TTC", "Faltante (10a)", "Data Limite", "Portaria Atual"]],
+        body: tableData,
+        startY: currentY,
+        styles: { fontSize: 5.5, cellPadding: 1 },
+        headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+        alternateRowStyles: { fillColor: [240, 240, 240] },
+        didParseCell: (data) => {
+          if (data.section === 'body' && vagaRowIndexes.includes(data.row.index)) {
+            data.cell.styles.fillColor = [254, 202, 202];
+            data.cell.styles.textColor = [153, 27, 27];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        },
+      });
+
+      currentY = (doc as any).lastAutoTable.finalY + 10;
+    });
+
+    doc.save(`dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
+    toast.success("PDF exportado com sucesso!");
+  }, [filteredData, filteredSummary]);
+
   // Sorted data for the table
   const sortedData = useMemo(() =>
     [...filteredData].sort((a, b) => {
