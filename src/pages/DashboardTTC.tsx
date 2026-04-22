@@ -132,8 +132,8 @@ const DashboardTTC = () => {
   }), [ttcData]);
 
   // Filtered data
-  const filteredData = useMemo(() => {
-    let data = ttcData;
+  const applyTtcFilters = useCallback((sourceData: TTCData[]) => {
+    let data = sourceData;
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -187,7 +187,9 @@ const DashboardTTC = () => {
     }
 
     return data;
-  }, [ttcData, searchTerm, filterOM, filterArea, filterGraduacao, filterStatus, filterEspQuadro, filterRenovacoes, filterCategoria, filterDataInicioFrom, filterDataInicioTo, filterDataTerminoFrom, filterDataTerminoTo]);
+  }, [searchTerm, filterOM, filterArea, filterGraduacao, filterStatus, filterEspQuadro, filterRenovacoes, filterCategoria, filterDataInicioFrom, filterDataInicioTo, filterDataTerminoFrom, filterDataTerminoTo]);
+
+  const filteredData = useMemo(() => applyTtcFilters(ttcData), [ttcData, applyTtcFilters]);
 
   const filteredSummary = useMemo(() => {
     const total = filteredData.length;
@@ -196,6 +198,13 @@ const DashboardTTC = () => {
   }, [filteredData]);
 
   const handleExportPDF = useCallback(async () => {
+    const exportData = applyTtcFilters(ttcData);
+    const exportSummary = {
+      total: exportData.length,
+      contratados: exportData.filter(d => !d.isVaga).length,
+      vagasAbertas: exportData.filter(d => d.isVaga).length,
+    };
+
     const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
       import("jspdf"),
       import("jspdf-autotable"),
@@ -206,10 +215,18 @@ const DashboardTTC = () => {
     doc.text("Dashboard TTC - Tempo de Trabalho Complementar", 14, 22);
     doc.setFontSize(10);
     doc.text(`Data de exportação: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 14, 30);
-    doc.text(`Total: ${filteredSummary.total} | Contratados: ${filteredSummary.contratados} | Vagas Abertas: ${filteredSummary.vagasAbertas}`, 14, 36);
+    doc.text(`Total: ${exportSummary.total} | Contratados: ${exportSummary.contratados} | Vagas Abertas: ${exportSummary.vagasAbertas}`, 14, 36);
 
-    const groupedByOM: Record<string, typeof filteredData> = {};
-    filteredData.forEach(item => {
+    if (exportData.length === 0) {
+      doc.setFontSize(12);
+      doc.text("Nenhum registro encontrado para os filtros selecionados.", 14, 48);
+      doc.save(`dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
+      toast.success("PDF exportado com sucesso!");
+      return;
+    }
+
+    const groupedByOM: Record<string, TTCData[]> = {};
+    exportData.forEach(item => {
       const om = item.om || "Sem OM";
       (groupedByOM[om] ??= []).push(item);
     });
@@ -253,10 +270,10 @@ const DashboardTTC = () => {
         headStyles: { fillColor: [37, 99, 235], textColor: 255 },
         alternateRowStyles: { fillColor: [240, 240, 240] },
         didParseCell: (data) => {
-          if (data.section === 'body' && vagaRowIndexes.includes(data.row.index)) {
+          if (data.section === "body" && vagaRowIndexes.includes(data.row.index)) {
             data.cell.styles.fillColor = [254, 202, 202];
             data.cell.styles.textColor = [153, 27, 27];
-            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fontStyle = "bold";
           }
         },
       });
@@ -266,7 +283,7 @@ const DashboardTTC = () => {
 
     doc.save(`dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
     toast.success("PDF exportado com sucesso!");
-  }, [filteredData, filteredSummary]);
+  }, [applyTtcFilters, ttcData]);
 
   // Sorted data for the table
   const sortedData = useMemo(() =>
