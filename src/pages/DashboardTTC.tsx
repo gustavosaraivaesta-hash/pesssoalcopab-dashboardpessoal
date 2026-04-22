@@ -18,7 +18,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis } from "recharts";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { parseDataFlexivel, calcularTempoRestante, isOficial, getGradIndex } from "@/lib/ttcUtils";
+import { parseDataFlexivel, calcularTempoRestante, isOficial, getGradIndex, calcularIdadeAtual } from "@/lib/ttcUtils";
 import { isBefore, isAfter } from "date-fns";
 import MultiSelectFilter from "@/components/dashboard/ttc/MultiSelectFilter";
 import TTCTableRow from "@/components/dashboard/ttc/TTCTableRow";
