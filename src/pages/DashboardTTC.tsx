@@ -251,9 +251,14 @@ const DashboardTTC = () => {
       doc.setTextColor(0, 0, 0);
       currentY += 8;
 
-      const tableData = omData.map(item => [
+      const tableData = omData.map(item => {
+        const idadeCalculada = item.isVaga ? "-" : calcularIdadeAtual(item.idade);
+        // Extract just the years portion for compact PDF display (e.g. "39a 2m 5d" -> "39 anos")
+        const anosMatch = idadeCalculada.match(/^(\d+)a/);
+        const idadeCompacta = anosMatch ? `${anosMatch[1]} anos` : idadeCalculada;
+        return [
         item.graduacao, item.nomeCompleto || "VAGO", item.neo || "-", item.espQuadro || "-",
-        item.isVaga ? "-" : calcularIdadeAtual(item.idade), item.area || "-", item.tarefaDesignada || "-",
+        idadeCompacta, item.area || "-", item.tarefaDesignada || "-",
         item.isVaga ? "-" : (item.periodoInicio || "-"), item.isVaga ? "-" : (item.termino || "-"),
         calcularTempoRestante(item.termino).texto,
         item.isVaga ? "-" : (item.tempoServido || "-"), item.isVaga ? "-" : (item.tempoFaltante || "-"),
