@@ -190,7 +190,7 @@ const DashboardTTC = () => {
 
     doc.save(`dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
     toast.success("PDF exportado com sucesso!");
-  }, []);
+  }, [filteredData, filteredSummary]);
 
   // Filter options
   const filterOptions = useMemo(() => ({
