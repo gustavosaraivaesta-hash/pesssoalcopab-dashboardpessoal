@@ -16,7 +16,7 @@ import { useOnlineStatus } from "@/hooks/useOfflineCache";
 import { useAuth } from "@/hooks/useAuth";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis } from "recharts";
-import { format } from "date-fns";
+import { differenceInYears, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseDataFlexivel, calcularTempoRestante, isOficial, getGradIndex, calcularIdadeAtual } from "@/lib/ttcUtils";
 import { isBefore, isAfter } from "date-fns";
@@ -206,6 +206,26 @@ const DashboardTTC = () => {
     return { total, contratados, vagasAbertas: total - contratados };
   }, [filteredData]);
 
+  const formatPdfAge = useCallback((idade: string, isVaga: boolean) => {
+    if (isVaga) return "-";
+
+    const idadeCalculada = calcularIdadeAtual(idade);
+    const anosMatch = idadeCalculada.match(/^(\d+)a/);
+    if (anosMatch) return `${anosMatch[1]} anos`;
+
+    const birthDate = parseDataFlexivel(idade);
+    if (birthDate) {
+      return `${differenceInYears(new Date(), birthDate)} anos`;
+    }
+
+    const idadeNumerica = parseInt(String(idade || "").replace(/\D/g, ""), 10);
+    if (!Number.isNaN(idadeNumerica) && idadeNumerica > 0 && idadeNumerica < 120) {
+      return `${idadeNumerica} anos`;
+    }
+
+    return idadeCalculada !== idade ? idadeCalculada : "-";
+  }, []);
+
   const handleExportPDF = useCallback(async () => {
     const exportData = applyTtcFilters(ttcData);
     const exportSummary = {
@@ -261,10 +281,7 @@ const DashboardTTC = () => {
       currentY += 8;
 
       const tableData = omData.map(item => {
-        const idadeCalculada = item.isVaga ? "-" : calcularIdadeAtual(item.idade);
-        // Extract just the years portion for compact PDF display (e.g. "39a 2m 5d" -> "39 anos")
-        const anosMatch = idadeCalculada.match(/^(\d+)a/);
-        const idadeCompacta = anosMatch ? `${anosMatch[1]} anos` : idadeCalculada;
+        const idadeCompacta = formatPdfAge(item.idade, item.isVaga);
         return [
         item.graduacao, item.nomeCompleto || "VAGO", item.neo || "-", item.espQuadro || "-",
         idadeCompacta, item.area || "-", item.tarefaDesignada || "-",
@@ -298,7 +315,7 @@ const DashboardTTC = () => {
 
     doc.save(`dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
     toast.success("PDF exportado com sucesso!");
-  }, [applyTtcFilters, ttcData]);
+  }, [applyTtcFilters, formatPdfAge, ttcData]);
 
   // Sorted data for the table
   const sortedData = useMemo(() =>
