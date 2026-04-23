@@ -155,7 +155,7 @@ const DashboardTTC = () => {
 
     if (filterOM.length > 0) data = data.filter(d => filterOM.includes(d.om));
     if (filterArea.length > 0) data = data.filter(d => filterArea.includes(d.area));
-    if (filterGraduacao.length > 0) data = data.filter(d => filterGraduacao.includes(d.graduacao));
+    if (filterGraduacao.length > 0) data = data.filter(d => filterGraduacao.includes(normalizeGraduacao(d.graduacao)));
 
     if (filterStatus.length > 0) {
       data = data.filter(d =>
