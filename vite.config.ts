@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    VitePWA({
+    mode !== "development" && VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "robots.txt", "brasao-republica.png", "marinha-header.png", "apple-touch-icon.png"],
       manifest: {
