@@ -1903,7 +1903,12 @@ const DashboardOM = () => {
         }
 
         // ====== CONCURSO C-EMOS (per OM) ======
-        const omConcurso = concursoData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
+        const omConcurso = concursoData.filter(
+          (item) =>
+            item.om === om &&
+            matchesOpcaoFilter(item.opcao, selectedOpcoes) &&
+            matchesStructuralFilters(item, selectedQuadros, selectedCorpos, selectedPostoFilter),
+        );
         if (omConcurso.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -2505,7 +2510,12 @@ const DashboardOM = () => {
         }
 
         // CONCURSO C-EMOS
-        const omConcurso = concursoData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
+        const omConcurso = concursoData.filter(
+          (item) =>
+            item.om === om &&
+            matchesOpcaoFilter(item.opcao, selectedOpcoes) &&
+            matchesStructuralFilters(item, selectedQuadros, selectedCorpos, selectedPostoFilter),
+        );
         if (omConcurso.length > 0) {
           omChildren.push(
             new Paragraph({
