@@ -177,6 +177,22 @@ const matchesOpcaoFilter = (opcao: string | undefined | null, selectedOpcoes: st
   return selectedOpcoes.includes(normalizeOpcao(opcao));
 };
 
+/**
+ * Matches a record (concurso/desembarque/trrm/licencas/destaques) against
+ * the active structural filters: quadro, corpo, posto.
+ */
+const matchesStructuralFilters = (
+  item: { posto?: string; corpo?: string; quadro?: string },
+  selectedQuadros: string[],
+  selectedCorpos: string[],
+  selectedPostoFilter: string[],
+): boolean => {
+  if (selectedQuadros.length > 0 && !selectedQuadros.includes(item.quadro || "")) return false;
+  if (selectedCorpos.length > 0 && !selectedCorpos.includes(item.corpo || "")) return false;
+  if (selectedPostoFilter.length > 0 && !selectedPostoFilter.includes(item.posto || "")) return false;
+  return true;
+};
+
 const formatMilitarNameFull = (item: { posto: string; quadro: string; nome: string; opcao?: string }) => {
   return formatMilitarNameWithOpcao(item.posto, item.quadro, item.nome, item.opcao || "");
 };
@@ -1887,7 +1903,12 @@ const DashboardOM = () => {
         }
 
         // ====== CONCURSO C-EMOS (per OM) ======
-        const omConcurso = concursoData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
+        const omConcurso = concursoData.filter(
+          (item) =>
+            item.om === om &&
+            matchesOpcaoFilter(item.opcao, selectedOpcoes) &&
+            matchesStructuralFilters(item, selectedQuadros, selectedCorpos, selectedPostoFilter),
+        );
         if (omConcurso.length > 0) {
           yPosition = checkNewPage(yPosition, 30);
 
@@ -2489,7 +2510,12 @@ const DashboardOM = () => {
         }
 
         // CONCURSO C-EMOS
-        const omConcurso = concursoData.filter((item) => item.om === om && matchesOpcaoFilter(item.opcao, selectedOpcoes));
+        const omConcurso = concursoData.filter(
+          (item) =>
+            item.om === om &&
+            matchesOpcaoFilter(item.opcao, selectedOpcoes) &&
+            matchesStructuralFilters(item, selectedQuadros, selectedCorpos, selectedPostoFilter),
+        );
         if (omConcurso.length > 0) {
           omChildren.push(
             new Paragraph({
@@ -3787,9 +3813,9 @@ const DashboardOM = () => {
 
             {activeTab === "concurso" && (
               <div className="space-y-4">
-                {concursoData.filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes)).length > 0 ? (
+                {concursoData.filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes) && matchesStructuralFilters(item, selectedQuadros, selectedCorpos, selectedPostoFilter)).length > 0 ? (
                   concursoData
-                    .filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes))
+                    .filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes) && matchesStructuralFilters(item, selectedQuadros, selectedCorpos, selectedPostoFilter))
                     .map((item, index) => (
                       <div key={index} className="border-l-4 border-l-emerald-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
