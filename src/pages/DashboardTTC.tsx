@@ -447,44 +447,6 @@ const DashboardTTC = () => {
         </header>
 
         <main className="container mx-auto px-4 py-6 space-y-6">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="bg-card/80 backdrop-blur-sm">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total de Vagas</CardTitle>
-                <Users className="h-5 w-5 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{filteredSummary.total}</div>
-                {hasActiveFilters && <p className="text-xs text-muted-foreground mt-1">de {summary.total} total</p>}
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/80 backdrop-blur-sm">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Contratados</CardTitle>
-                <UserCheck className="h-5 w-5 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-green-600">{filteredSummary.contratados}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {filteredSummary.total > 0 ? ((filteredSummary.contratados / filteredSummary.total) * 100).toFixed(1) : 0}% preenchido
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/80 backdrop-blur-sm">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Vagas Abertas</CardTitle>
-                <UserX className="h-5 w-5 text-red-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-red-600">{filteredSummary.vagasAbertas}</div>
-                {hasActiveFilters && <p className="text-xs text-muted-foreground mt-1">de {summary.vagasAbertas} total</p>}
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Filters */}
           <Card className="bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -537,6 +499,44 @@ const DashboardTTC = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="bg-card/80 backdrop-blur-sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total de Vagas</CardTitle>
+                <Users className="h-5 w-5 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{filteredSummary.total}</div>
+                {hasActiveFilters && <p className="text-xs text-muted-foreground mt-1">de {summary.total} total</p>}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/80 backdrop-blur-sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Contratados</CardTitle>
+                <UserCheck className="h-5 w-5 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600">{filteredSummary.contratados}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {filteredSummary.total > 0 ? ((filteredSummary.contratados / filteredSummary.total) * 100).toFixed(1) : 0}% preenchido
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/80 backdrop-blur-sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Vagas Abertas</CardTitle>
+                <UserX className="h-5 w-5 text-red-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-red-600">{filteredSummary.vagasAbertas}</div>
+                {hasActiveFilters && <p className="text-xs text-muted-foreground mt-1">de {summary.vagasAbertas} total</p>}
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
