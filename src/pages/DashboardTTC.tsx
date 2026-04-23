@@ -123,11 +123,19 @@ const DashboardTTC = () => {
 
 
 
+  // Normalize graduation: 1TEN -> 1T, 2TEN -> 2T
+  const normalizeGraduacao = (g: string) => {
+    const c = (g || "").trim().toUpperCase();
+    if (c === "1TEN" || c === "1 TEN" || c === "1TENENTE") return "1T";
+    if (c === "2TEN" || c === "2 TEN" || c === "2TENENTE") return "2T";
+    return c;
+  };
+
   // Filter options
   const filterOptions = useMemo(() => ({
     oms: Array.from(new Set(ttcData.map(d => d.om).filter(Boolean))).sort(),
     areas: Array.from(new Set(ttcData.map(d => d.area).filter(Boolean))).sort(),
-    graduacoes: Array.from(new Set(ttcData.map(d => d.graduacao).filter(Boolean))).sort(),
+    graduacoes: Array.from(new Set(ttcData.map(d => normalizeGraduacao(d.graduacao)).filter(Boolean))).sort(),
     espQuadros: Array.from(new Set(ttcData.map(d => d.espQuadro).filter(Boolean))).sort(),
   }), [ttcData]);
 
