@@ -123,11 +123,12 @@ const DashboardTTC = () => {
 
 
 
-  // Normalize graduation: 1TEN -> 1T, 2TEN -> 2T
+  // Normalize graduation: any 1TEN/1 TEN/1°TEN/1TENENTE -> 1T, similar for 2T
   const normalizeGraduacao = (g: string) => {
-    const c = (g || "").trim().toUpperCase();
-    if (c === "1TEN" || c === "1 TEN" || c === "1TENENTE") return "1T";
-    if (c === "2TEN" || c === "2 TEN" || c === "2TENENTE") return "2T";
+    const c = (g || "").trim().toUpperCase().replace(/[°º]/g, "");
+    const compact = c.replace(/\s+/g, "");
+    if (/^1T(EN(ENTE)?)?$/.test(compact)) return "1T";
+    if (/^2T(EN(ENTE)?)?$/.test(compact)) return "2T";
     return c;
   };
 
