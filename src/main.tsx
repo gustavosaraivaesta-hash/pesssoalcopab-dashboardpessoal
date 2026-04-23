@@ -2,10 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-const shouldClearPreviewCache =
-  import.meta.env.DEV || window.location.hostname.includes("id-preview--");
-
-if (shouldClearPreviewCache && "serviceWorker" in navigator) {
+if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     void navigator.serviceWorker.getRegistrations().then((registrations) => {
       registrations.forEach((registration) => {
