@@ -485,6 +485,59 @@ const DashboardTTC = () => {
             </Card>
           </div>
 
+          {/* Filters */}
+          <Card className="bg-card/80 backdrop-blur-sm">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Filtros</CardTitle>
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" onClick={clearFilters}>Limpar Filtros</Button>
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Buscar</label>
+                  <Input placeholder="Nome, tarefa, NEO..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                </div>
+                <MultiSelectFilter label="OM" options={filterOptions.oms.map(om => ({ value: om, label: om }))} selectedValues={filterOM} onToggle={v => toggleFilter(filterOM, setFilterOM, v)} />
+                <MultiSelectFilter label="Status" options={[{ value: "contratado", label: "Contratados" }, { value: "vaga", label: "Vagas Abertas" }]} selectedValues={filterStatus} onToggle={v => toggleFilter(filterStatus, setFilterStatus, v)} />
+                <MultiSelectFilter label="Área" options={filterOptions.areas.map(a => ({ value: a, label: a }))} selectedValues={filterArea} onToggle={v => toggleFilter(filterArea, setFilterArea, v)} />
+                <MultiSelectFilter label="Graduação" options={filterOptions.graduacoes.map(g => ({ value: g, label: g }))} selectedValues={filterGraduacao} onToggle={v => toggleFilter(filterGraduacao, setFilterGraduacao, v)} />
+                <MultiSelectFilter label="ESP/Quadro" options={filterOptions.espQuadros.map(e => ({ value: e, label: e }))} selectedValues={filterEspQuadro} onToggle={v => toggleFilter(filterEspQuadro, setFilterEspQuadro, v)} />
+                <MultiSelectFilter label="Categoria" options={[{ value: "oficial", label: "Oficiais" }, { value: "praca", label: "Praças" }]} selectedValues={filterCategoria} onToggle={v => toggleFilter(filterCategoria, setFilterCategoria, v)} />
+              </div>
+
+              {/* Date Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 pt-4 border-t border-border">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Início (De)</label>
+                  <DatePickerWithSelectors date={filterDataInicioFrom} onDateChange={setFilterDataInicioFrom} placeholder="Selecione..." />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Início (Até)</label>
+                  <DatePickerWithSelectors date={filterDataInicioTo} onDateChange={setFilterDataInicioTo} placeholder="Selecione..." />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Término (De)</label>
+                  <DatePickerWithSelectors date={filterDataTerminoFrom} onDateChange={setFilterDataTerminoFrom} placeholder="Selecione..." />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Término (Até)</label>
+                  <DatePickerWithSelectors date={filterDataTerminoTo} onDateChange={setFilterDataTerminoTo} placeholder="Selecione..." />
+                </div>
+              </div>
+
+              {hasActiveFilters && (
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Exibindo <span className="font-medium text-foreground">{filteredSummary.total}</span> registros
+                    ({filteredSummary.contratados} contratados, {filteredSummary.vagasAbertas} vagas)
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="bg-card/80 backdrop-blur-sm">
@@ -560,59 +613,6 @@ const DashboardTTC = () => {
               </CardContent>
             </Card>
           </div>
-
-          {/* Filters */}
-          <Card className="bg-card/80 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Filtros</CardTitle>
-              {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>Limpar Filtros</Button>
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Buscar</label>
-                  <Input placeholder="Nome, tarefa, NEO..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                </div>
-                <MultiSelectFilter label="OM" options={filterOptions.oms.map(om => ({ value: om, label: om }))} selectedValues={filterOM} onToggle={v => toggleFilter(filterOM, setFilterOM, v)} />
-                <MultiSelectFilter label="Status" options={[{ value: "contratado", label: "Contratados" }, { value: "vaga", label: "Vagas Abertas" }]} selectedValues={filterStatus} onToggle={v => toggleFilter(filterStatus, setFilterStatus, v)} />
-                <MultiSelectFilter label="Área" options={filterOptions.areas.map(a => ({ value: a, label: a }))} selectedValues={filterArea} onToggle={v => toggleFilter(filterArea, setFilterArea, v)} />
-                <MultiSelectFilter label="Graduação" options={filterOptions.graduacoes.map(g => ({ value: g, label: g }))} selectedValues={filterGraduacao} onToggle={v => toggleFilter(filterGraduacao, setFilterGraduacao, v)} />
-                <MultiSelectFilter label="ESP/Quadro" options={filterOptions.espQuadros.map(e => ({ value: e, label: e }))} selectedValues={filterEspQuadro} onToggle={v => toggleFilter(filterEspQuadro, setFilterEspQuadro, v)} />
-                <MultiSelectFilter label="Categoria" options={[{ value: "oficial", label: "Oficiais" }, { value: "praca", label: "Praças" }]} selectedValues={filterCategoria} onToggle={v => toggleFilter(filterCategoria, setFilterCategoria, v)} />
-              </div>
-
-              {/* Date Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 pt-4 border-t border-border">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Início (De)</label>
-                  <DatePickerWithSelectors date={filterDataInicioFrom} onDateChange={setFilterDataInicioFrom} placeholder="Selecione..." />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Início (Até)</label>
-                  <DatePickerWithSelectors date={filterDataInicioTo} onDateChange={setFilterDataInicioTo} placeholder="Selecione..." />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Término (De)</label>
-                  <DatePickerWithSelectors date={filterDataTerminoFrom} onDateChange={setFilterDataTerminoFrom} placeholder="Selecione..." />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Término (Até)</label>
-                  <DatePickerWithSelectors date={filterDataTerminoTo} onDateChange={setFilterDataTerminoTo} placeholder="Selecione..." />
-                </div>
-              </div>
-
-              {hasActiveFilters && (
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    Exibindo <span className="font-medium text-foreground">{filteredSummary.total}</span> registros
-                    ({filteredSummary.contratados} contratados, {filteredSummary.vagasAbertas} vagas)
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
           {/* Data Table */}
           <Card className="bg-card/80 backdrop-blur-sm">
