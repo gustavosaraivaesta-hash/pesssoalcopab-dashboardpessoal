@@ -177,6 +177,22 @@ const matchesOpcaoFilter = (opcao: string | undefined | null, selectedOpcoes: st
   return selectedOpcoes.includes(normalizeOpcao(opcao));
 };
 
+/**
+ * Matches a record (concurso/desembarque/trrm/licencas/destaques) against
+ * the active structural filters: quadro, corpo, posto.
+ */
+const matchesStructuralFilters = (
+  item: { posto?: string; corpo?: string; quadro?: string },
+  selectedQuadros: string[],
+  selectedCorpos: string[],
+  selectedPostoFilter: string[],
+): boolean => {
+  if (selectedQuadros.length > 0 && !selectedQuadros.includes(item.quadro || "")) return false;
+  if (selectedCorpos.length > 0 && !selectedCorpos.includes(item.corpo || "")) return false;
+  if (selectedPostoFilter.length > 0 && !selectedPostoFilter.includes(item.posto || "")) return false;
+  return true;
+};
+
 const formatMilitarNameFull = (item: { posto: string; quadro: string; nome: string; opcao?: string }) => {
   return formatMilitarNameWithOpcao(item.posto, item.quadro, item.nome, item.opcao || "");
 };
