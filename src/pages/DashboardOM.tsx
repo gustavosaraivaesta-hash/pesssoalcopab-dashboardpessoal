@@ -3813,9 +3813,9 @@ const DashboardOM = () => {
 
             {activeTab === "concurso" && (
               <div className="space-y-4">
-                {concursoData.filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes)).length > 0 ? (
+                {concursoData.filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes) && matchesStructuralFilters(item, selectedQuadros, selectedCorpos, selectedPostoFilter)).length > 0 ? (
                   concursoData
-                    .filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes))
+                    .filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes) && matchesStructuralFilters(item, selectedQuadros, selectedCorpos, selectedPostoFilter))
                     .map((item, index) => (
                       <div key={index} className="border-l-4 border-l-emerald-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
