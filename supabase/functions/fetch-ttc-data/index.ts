@@ -288,7 +288,13 @@ serve(async (req) => {
           const idade = String(cells[4]?.f || cells[4]?.v || '').trim();
           const omFromCell = String(cells[5]?.v || '').trim();
           const area = String(cells[6]?.v || '').trim();
-          const neo = String(cells[7]?.v || '').trim();
+          // NEO: prefer formatted value (.f) over raw (.v) because Google Sheets
+          // sometimes returns dates like "Date(2026,1,1)" in .v when the cell is
+          // formatted as a date but actually holds a NEO code (ex: "01.05.0001").
+          const neoRaw = cells[7]?.f ?? cells[7]?.v ?? '';
+          let neo = String(neoRaw).trim();
+          // Defensive: discard raw Date(...) literal if it slipped through
+          if (/^Date\s*\(/i.test(neo)) neo = '';
           const tarefaDesignada = String(cells[8]?.v || '').trim();
           
           // Debug: dump ALL cells for first row of COPAB only
