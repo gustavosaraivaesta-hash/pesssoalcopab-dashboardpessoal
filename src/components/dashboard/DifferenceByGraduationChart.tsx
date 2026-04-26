@@ -81,10 +81,11 @@ export const DifferenceByGraduationChart = ({ data, categoria }: DifferenceByGra
             layout="vertical"
             margin={{ top: 5, right: 70, left: 30, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis 
               type="number" 
-              tick={{ fontSize: 14, fontWeight: 500 }}
+              stroke="hsl(var(--foreground))"
+              tick={{ fill: "hsl(var(--foreground))", fontSize: 14, fontWeight: 500 }}
               tickFormatter={(value) => value.toLocaleString('pt-BR')}
               domain={['dataMin - 50', 'dataMax + 50']}
             />
@@ -92,9 +93,16 @@ export const DifferenceByGraduationChart = ({ data, categoria }: DifferenceByGra
               type="category" 
               dataKey="name" 
               width={140}
-              tick={{ fontSize: 14, fontWeight: 500 }}
+              stroke="hsl(var(--foreground))"
+              tick={{ fill: "hsl(var(--foreground))", fontSize: 14, fontWeight: 500 }}
             />
-            <Tooltip />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: "hsl(var(--card))", 
+                border: "1px solid hsl(var(--border))", 
+                color: "hsl(var(--foreground))" 
+              }}
+            />
             <Bar dataKey="value" radius={[0, 4, 4, 0]}>
               {chartData.map((entry, index) => (
                 <Cell 
@@ -108,7 +116,7 @@ export const DifferenceByGraduationChart = ({ data, categoria }: DifferenceByGra
                 style={{ 
                   fontWeight: 'bold', 
                   fontSize: '14px',
-                  fill: '#000'
+                  fill: 'hsl(var(--foreground))'
                 }}
                 formatter={(value: number) => value > 0 ? `+${value}` : value}
               />
