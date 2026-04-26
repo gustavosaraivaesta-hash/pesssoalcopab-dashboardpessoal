@@ -168,14 +168,17 @@ export const GraduationDistributionChart = ({
               data={chartData}
               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis 
                 dataKey="graduacao"
-                style={{ fontSize: '14px', fontWeight: 'bold' }}
+                stroke="hsl(var(--foreground))"
+                tick={{ fill: "hsl(var(--foreground))", fontSize: 14, fontWeight: "bold" }}
               />
               <YAxis 
                 domain={[yAxisMin, yAxisMax]}
-                label={{ value: 'Quantidade', angle: -90, position: 'insideLeft' }}
+                stroke="hsl(var(--foreground))"
+                tick={{ fill: "hsl(var(--foreground))" }}
+                label={{ value: 'Quantidade', angle: -90, position: 'insideLeft', fill: "hsl(var(--foreground))" }}
               />
               <Tooltip 
                 formatter={(value: number, name: string) => [
@@ -185,7 +188,8 @@ export const GraduationDistributionChart = ({
                 contentStyle={{ 
                   backgroundColor: 'hsl(var(--card))',
                   border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px'
+                  borderRadius: '8px',
+                  color: 'hsl(var(--foreground))'
                 }}
               />
               <Legend 
@@ -196,7 +200,7 @@ export const GraduationDistributionChart = ({
                   return value;
                 }}
               />
-              <ReferenceLine y={0} stroke="#000" strokeWidth={1} />
+              <ReferenceLine y={0} stroke="hsl(var(--foreground))" strokeWidth={1} />
               <Bar 
                 dataKey="tmft" 
                 name="tmft"
