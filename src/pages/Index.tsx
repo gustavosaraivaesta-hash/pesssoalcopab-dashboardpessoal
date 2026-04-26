@@ -24,6 +24,9 @@ import { getAllowedOMs, getAvailableOMsForUser, filterDataForCurrentUser } from 
 import { useOfflineCache, useOnlineStatus } from "@/hooks/useOfflineCache";
 import { useAuth } from "@/hooks/useAuth";
 
+const normalizeOMName = (om: unknown): string => String(om || "").trim().toUpperCase();
+const normalizeOMRecord = (item: any) => ({ ...item, om: normalizeOMName(item?.om) });
+
 // Função para detectar mudanças nos dados
 const detectChanges = (oldData: MilitaryData[], newData: MilitaryData[]): string[] => {
   const changes: string[] = [];
@@ -171,7 +174,7 @@ const Index = () => {
       const isExtraLotacao = tipoSetor.toUpperCase() === "EXTRA LOTAÇÃO" || Boolean(person.isExtraLotacao);
       if (isExtraLotacao) continue;
 
-      const om = String(person.om || "").trim();
+      const om = normalizeOMName(person.om);
       if (!om) continue;
 
       // Determina ocupado
@@ -258,7 +261,7 @@ const Index = () => {
       const cachedData = getFromCache();
       if (cachedData && cachedData.length > 0) {
         console.log("Loading COpAb data from cache:", cachedData.length, "records");
-        const filteredByAccess = filterDataForCurrentUser(cachedData);
+        const filteredByAccess = filterDataForCurrentUser(cachedData.map((item) => ({ ...item, om: normalizeOMName(item.om) })));
         setMilitaryData(filteredByAccess);
         setRawPersonnel({ pracas: [], oficiais: [] });
         setIsUsingCache(true);
@@ -308,7 +311,7 @@ const Index = () => {
         console.error("Error fetching PRAÇAS data:", pracasResponse.error);
       } else {
         const pracasRaw = pracasResponse.data?.data || pracasResponse.data?.personnel || [];
-        const pracasFiltered = filterRawForCurrentUser(pracasRaw);
+        const pracasFiltered = filterRawForCurrentUser(pracasRaw).map(normalizeOMRecord);
         nextRawPracas.push(...pracasFiltered);
 
         if (pracasFiltered.length > 0) {
@@ -323,7 +326,7 @@ const Index = () => {
         console.error("Error fetching OFICIAIS data:", oficiaisResponse.error);
       } else {
         const oficiaisRaw = oficiaisResponse.data?.data || oficiaisResponse.data?.personnel || [];
-        const oficiaisFiltered = filterRawForCurrentUser(oficiaisRaw);
+        const oficiaisFiltered = filterRawForCurrentUser(oficiaisRaw).map(normalizeOMRecord);
         nextRawOficiais.push(...oficiaisFiltered);
 
         if (oficiaisFiltered.length > 0) {
