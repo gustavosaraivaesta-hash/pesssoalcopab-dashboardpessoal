@@ -55,17 +55,24 @@ export const DistributionChart = ({ data, selectedSpecialties }: DistributionCha
       <CardContent>
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis 
               dataKey="om" 
               angle={-45}
               textAnchor="end"
               height={100}
               interval={0}
-              style={{ fontSize: '12px' }}
+              stroke="hsl(var(--foreground))"
+              tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
             />
-            <YAxis />
-            <Tooltip />
+            <YAxis stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: "hsl(var(--card))", 
+                border: "1px solid hsl(var(--border))", 
+                color: "hsl(var(--foreground))" 
+              }}
+            />
             <Legend />
             {selectedSpecialties.map((esp, index) => (
               <Bar 

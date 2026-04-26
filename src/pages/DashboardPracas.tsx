@@ -2884,11 +2884,13 @@ const DashboardPracas = () => {
                     type="number"
                     className="text-xs"
                     domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]}
+                    stroke="hsl(var(--foreground))"
+                    tick={{ fill: "hsl(var(--foreground))" }}
                   />
-                  <YAxis dataKey="om" type="category" className="text-xs" width={120} />
+                  <YAxis dataKey="om" type="category" className="text-xs" width={120} stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
                   <Tooltip
                     formatter={(value: number, name: string) => [value, name === "vagos" ? "Vagos" : name]}
-                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
                   />
                   <Bar dataKey="vagos" name="Vagos" fill="#ef4444" radius={[0, 4, 4, 0]} style={{ cursor: "pointer" }}>
                     {chartDataVagosByOM.map((entry, index) => (
@@ -2976,11 +2978,11 @@ const DashboardPracas = () => {
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={topEspecialidadesVagos} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis type="number" domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]} />
-                  <YAxis dataKey="especialidade" type="category" className="text-xs" width={120} />
+                  <XAxis type="number" domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]} stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
+                  <YAxis dataKey="especialidade" type="category" className="text-xs" width={120} stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
                   <Tooltip
                     formatter={(value: number) => [value, "NEO Vagos"]}
-                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
                   />
                   <Bar dataKey="vagos" name="NEO Vagos" fill="#f97316" radius={[0, 4, 4, 0]}>
                     <LabelList
@@ -3005,12 +3007,13 @@ const DashboardPracas = () => {
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={chartDataByPosto} barCategoryGap="15%" barGap={4}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="name" className="text-xs" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="name" className="text-xs" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} />
                 <YAxis
                   className="text-xs"
                   domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.15)]}
                   allowDecimals={false}
-                  tick={{ fontSize: 11 }}
+                  stroke="hsl(var(--foreground))"
+                  tick={{ fill: "hsl(var(--foreground))", fontSize: 11 }}
                 />
                 <Tooltip
                   formatter={(value: number, name: string) => [value, name === "tmft" ? "TMFT" : "Efetivo"]}
@@ -3019,8 +3022,9 @@ const DashboardPracas = () => {
                     border: "1px solid hsl(var(--border))",
                     borderRadius: "8px",
                     boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+                    color: "hsl(var(--foreground))",
                   }}
-                  labelStyle={{ fontWeight: "bold", marginBottom: "4px" }}
+                  labelStyle={{ fontWeight: "bold", marginBottom: "4px", color: "hsl(var(--foreground))" }}
                 />
                 <Legend wrapperStyle={{ paddingTop: "10px" }} />
                 <Bar

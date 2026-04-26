@@ -3352,11 +3352,13 @@ const DashboardOM = () => {
                     type="number"
                     className="text-xs"
                     domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]}
+                    stroke="hsl(var(--foreground))"
+                    tick={{ fill: "hsl(var(--foreground))" }}
                   />
-                  <YAxis dataKey="om" type="category" className="text-xs" width={120} />
+                  <YAxis dataKey="om" type="category" className="text-xs" width={120} stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
                   <Tooltip
                     formatter={(value: number, name: string) => [value, name === "vagos" ? "Vagos" : name]}
-                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
                   />
                   <Bar dataKey="vagos" name="Vagos" fill="#ef4444" radius={[0, 4, 4, 0]} style={{ cursor: "pointer" }}>
                     {chartDataVagosByOM.map((entry, index) => (
@@ -3439,13 +3441,15 @@ const DashboardOM = () => {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartDataByPosto}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="name" className="text-xs" />
+                <XAxis dataKey="name" className="text-xs" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
                 <YAxis
                   className="text-xs"
                   domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.2)]}
                   allowDecimals={false}
+                  stroke="hsl(var(--foreground))"
+                  tick={{ fill: "hsl(var(--foreground))" }}
                 />
-                <Tooltip />
+                <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }} />
                 <Legend
                   formatter={(value) => (
                     <span style={{ color: value === "TMFT" ? "#3b82f6" : "#10b981" }}>{value}</span>
@@ -3560,13 +3564,15 @@ const DashboardOM = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartDataByCorpo}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" />
+                  <XAxis dataKey="name" className="text-xs" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
                   <YAxis
                     className="text-xs"
                     domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.2)]}
                     allowDecimals={false}
+                    stroke="hsl(var(--foreground))"
+                    tick={{ fill: "hsl(var(--foreground))" }}
                   />
-                  <Tooltip />
+                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }} />
                   <Bar dataKey="value" name="Quantidade" cursor="pointer" onClick={handleCorpoBarClick}>
                     {chartDataByCorpo.map((entry, index) => (
                       <Cell

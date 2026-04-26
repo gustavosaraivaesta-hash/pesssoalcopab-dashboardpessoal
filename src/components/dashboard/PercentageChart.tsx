@@ -59,9 +59,9 @@ export const PercentageChart = ({ data }: PercentageChartProps) => {
         <ChartContainer config={chartConfig} className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="graduacao" />
-              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="graduacao" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
+              <YAxis stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Legend />
               <Bar dataKey="% N/A Praças Ativa" fill="var(--color-% N/A Praças Ativa)" />

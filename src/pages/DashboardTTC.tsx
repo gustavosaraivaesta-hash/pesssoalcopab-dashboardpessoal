@@ -566,8 +566,8 @@ const DashboardTTC = () => {
                 {previsaoMensalData.length > 0 ? (
                   <ChartContainer config={chartConfig} className="h-[280px]">
                     <BarChart data={previsaoMensalData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }} onClick={handleBarClick} style={{ cursor: 'pointer' }}>
-                      <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
-                      <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                      <XAxis dataKey="mes" tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} stroke="hsl(var(--foreground))" />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} stroke="hsl(var(--foreground))" />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Bar dataKey="quantidade" fill="#2563eb" radius={[4, 4, 0, 0]} name="Militares" label={{ position: 'top', fontSize: 11 }} />
                     </BarChart>

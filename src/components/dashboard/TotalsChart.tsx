@@ -22,7 +22,7 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
     {
       name: "DIF",
       valor: totalDIF,
-      color: totalDIF >= 0 ? "#000000" : "#ef4444"
+      color: totalDIF >= 0 ? "hsl(var(--foreground))" : "#ef4444"
     }
   ];
 
@@ -39,11 +39,11 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis domain={[yAxisMin, yAxisMax]} />
-            <Tooltip />
-            <ReferenceLine y={0} stroke="#000" strokeWidth={2} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="name" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
+            <YAxis domain={[yAxisMin, yAxisMax]} stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
+            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }} />
+            <ReferenceLine y={0} stroke="hsl(var(--foreground))" strokeWidth={2} />
             <Legend formatter={(value) => value === "valor" ? "Valor" : value} />
             <Bar dataKey="valor" radius={[8, 8, 0, 0]}>
               {data.map((entry, index) => (
@@ -60,7 +60,7 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
                   const numHeight = Number(height);
                   const yPos = numValue >= 0 ? numY - 5 : numY + numHeight + 15;
                   return (
-                    <text x={numX + numWidth / 2} y={yPos} fill="#000" fontWeight="bold" textAnchor="middle">
+                    <text x={numX + numWidth / 2} y={yPos} fill="hsl(var(--foreground))" fontWeight="bold" textAnchor="middle">
                       {numValue}
                     </text>
                   );
