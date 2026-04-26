@@ -39,11 +39,11 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis domain={[yAxisMin, yAxisMax]} />
-            <Tooltip />
-            <ReferenceLine y={0} stroke="#000" strokeWidth={2} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="name" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
+            <YAxis domain={[yAxisMin, yAxisMax]} stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
+            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }} />
+            <ReferenceLine y={0} stroke="hsl(var(--foreground))" strokeWidth={2} />
             <Legend formatter={(value) => value === "valor" ? "Valor" : value} />
             <Bar dataKey="valor" radius={[8, 8, 0, 0]}>
               {data.map((entry, index) => (
