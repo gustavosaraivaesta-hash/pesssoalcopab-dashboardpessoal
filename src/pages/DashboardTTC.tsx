@@ -438,6 +438,7 @@ const DashboardTTC = () => {
                   <FileDown className="h-4 w-4 mr-2" />
                   PDF
                 </Button>
+                <ThemeToggle />
                 <Button variant="destructive" size="sm" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Sair
