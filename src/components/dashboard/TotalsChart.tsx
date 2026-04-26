@@ -60,7 +60,7 @@ export const TotalsChart = ({ totalTMFT, totalEXI, totalDIF }: TotalsChartProps)
                   const numHeight = Number(height);
                   const yPos = numValue >= 0 ? numY - 5 : numY + numHeight + 15;
                   return (
-                    <text x={numX + numWidth / 2} y={yPos} fill="#000" fontWeight="bold" textAnchor="middle">
+                    <text x={numX + numWidth / 2} y={yPos} fill="hsl(var(--foreground))" fontWeight="bold" textAnchor="middle">
                       {numValue}
                     </text>
                   );
