@@ -3562,13 +3562,15 @@ const DashboardOM = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartDataByCorpo}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" />
+                  <XAxis dataKey="name" className="text-xs" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
                   <YAxis
                     className="text-xs"
                     domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.2)]}
                     allowDecimals={false}
+                    stroke="hsl(var(--foreground))"
+                    tick={{ fill: "hsl(var(--foreground))" }}
                   />
-                  <Tooltip />
+                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }} />
                   <Bar dataKey="value" name="Quantidade" cursor="pointer" onClick={handleCorpoBarClick}>
                     {chartDataByCorpo.map((entry, index) => (
                       <Cell
