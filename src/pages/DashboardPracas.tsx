@@ -2978,11 +2978,11 @@ const DashboardPracas = () => {
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={topEspecialidadesVagos} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis type="number" domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]} />
-                  <YAxis dataKey="especialidade" type="category" className="text-xs" width={120} />
+                  <XAxis type="number" domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]} stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
+                  <YAxis dataKey="especialidade" type="category" className="text-xs" width={120} stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
                   <Tooltip
                     formatter={(value: number) => [value, "NEO Vagos"]}
-                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
                   />
                   <Bar dataKey="vagos" name="NEO Vagos" fill="#f97316" radius={[0, 4, 4, 0]}>
                     <LabelList
