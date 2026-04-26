@@ -3007,12 +3007,13 @@ const DashboardPracas = () => {
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={chartDataByPosto} barCategoryGap="15%" barGap={4}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="name" className="text-xs" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="name" className="text-xs" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} />
                 <YAxis
                   className="text-xs"
                   domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.15)]}
                   allowDecimals={false}
-                  tick={{ fontSize: 11 }}
+                  stroke="hsl(var(--foreground))"
+                  tick={{ fill: "hsl(var(--foreground))", fontSize: 11 }}
                 />
                 <Tooltip
                   formatter={(value: number, name: string) => [value, name === "tmft" ? "TMFT" : "Efetivo"]}
@@ -3021,8 +3022,9 @@ const DashboardPracas = () => {
                     border: "1px solid hsl(var(--border))",
                     borderRadius: "8px",
                     boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+                    color: "hsl(var(--foreground))",
                   }}
-                  labelStyle={{ fontWeight: "bold", marginBottom: "4px" }}
+                  labelStyle={{ fontWeight: "bold", marginBottom: "4px", color: "hsl(var(--foreground))" }}
                 />
                 <Legend wrapperStyle={{ paddingTop: "10px" }} />
                 <Bar
