@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAllowedOMs, getAvailableOMsForUser, filterDataForCurrentUser } from "@/lib/auth";
 import { useOfflineCache, useOnlineStatus } from "@/hooks/useOfflineCache";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const normalizeOMName = (om: unknown): string => String(om || "").trim().toUpperCase();
 const normalizeOMRecord = (item: any) => ({ ...item, om: normalizeOMName(item?.om) });
@@ -930,6 +931,8 @@ const Index = () => {
                 </DropdownMenu>
               )}
 
+
+              <ThemeToggle />
 
               <Button variant="destructive" onClick={handleLogout}>
                 <LogOut size={18} className="mr-2" />

@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useOnlineStatus } from "@/hooks/useOfflineCache";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis } from "recharts";
 import { differenceInYears, format } from "date-fns";
@@ -437,6 +438,7 @@ const DashboardTTC = () => {
                   <FileDown className="h-4 w-4 mr-2" />
                   PDF
                 </Button>
+                <ThemeToggle />
                 <Button variant="destructive" size="sm" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Sair

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
 import { useOfflineCache, useOnlineStatus } from "@/hooks/useOfflineCache";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -2825,7 +2826,8 @@ const DashboardOM = () => {
               <p className="text-muted-foreground">Centro de Operações do Abastecimento</p>
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
+            <ThemeToggle />
             <Button onClick={handleLogout} variant="destructive">
               Sair
             </Button>
