@@ -932,6 +932,8 @@ const Index = () => {
               )}
 
 
+              <ThemeToggle />
+
               <Button variant="destructive" onClick={handleLogout}>
                 <LogOut size={18} className="mr-2" />
                 Sair
