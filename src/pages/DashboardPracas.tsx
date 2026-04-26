@@ -2378,7 +2378,8 @@ const DashboardPracas = () => {
               <p className="text-muted-foreground">Centro de Operações do Abastecimento - Praças</p>
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
+            <ThemeToggle />
             <Button onClick={handleLogout} variant="destructive">
               Sair
             </Button>
