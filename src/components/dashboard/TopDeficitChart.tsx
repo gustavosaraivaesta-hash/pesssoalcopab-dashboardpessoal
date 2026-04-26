@@ -56,20 +56,22 @@ const TopDeficitChart = ({ data, title }: TopDeficitChartProps) => {
             layout="vertical"
             margin={{ top: 5, right: 80, left: 20, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis type="number" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
             <YAxis 
               dataKey="name" 
               type="category" 
               width={200}
-              style={{ fontSize: '12px' }}
+              stroke="hsl(var(--foreground))"
+              tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
             />
             <Tooltip 
               formatter={(value: number) => [`-${value}`, 'Deficit']}
               contentStyle={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                border: '1px solid #ccc',
-                borderRadius: '4px'
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '4px',
+                color: 'hsl(var(--foreground))'
               }}
             />
             <Legend />
@@ -80,7 +82,7 @@ const TopDeficitChart = ({ data, title }: TopDeficitChartProps) => {
               <LabelList 
                 dataKey="deficit" 
                 position="right" 
-                style={{ fill: '#000', fontWeight: 'bold', fontSize: '14px' }}
+                style={{ fill: 'hsl(var(--foreground))', fontWeight: 'bold', fontSize: '14px' }}
                 formatter={(value: number) => `-${value}`}
               />
             </Bar>
