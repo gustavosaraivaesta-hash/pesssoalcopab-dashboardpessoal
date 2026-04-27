@@ -398,7 +398,7 @@ const DashboardTTC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundImage: `url(${militaryBg})`, backgroundSize: "cover" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundImage: `url(${militaryBg})`, backgroundSize: "contain", backgroundRepeat: "no-repeat", backgroundPosition: "center", backgroundColor: "hsl(var(--background))" }}>
         <div className="text-center">
           <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
           <p className="text-lg text-muted-foreground">Carregando dados TTC...</p>
@@ -408,7 +408,7 @@ const DashboardTTC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed" style={{ backgroundImage: `url(${militaryBg})` }}>
+    <div className="min-h-screen bg-center bg-no-repeat bg-fixed" style={{ backgroundImage: `url(${militaryBg})`, backgroundSize: "contain", backgroundColor: "hsl(var(--background))" }}>
       <div className="min-h-screen bg-background/95 backdrop-blur-sm">
         {/* Header */}
         <header className="bg-card/80 backdrop-blur-md border-b sticky top-0 z-50">
