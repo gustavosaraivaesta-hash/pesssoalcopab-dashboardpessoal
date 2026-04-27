@@ -6,6 +6,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const ACCOUNTS = [
+  { username: "copab1", password: "COPAB01" },
+  { username: "copab2", password: "COPAB02" },
+  { username: "copab3", password: "COPAB03" },
+];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -16,51 +22,54 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    const email = "copab@copab.marinha.mil.br";
-    const password = "COPAB01";
-
-    // Check if exists
     const { data: existingUsers } = await adminClient.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find((u) => u.email === email);
+    const results: any[] = [];
 
-    let userId: string;
-    let status: string;
+    for (const acc of ACCOUNTS) {
+      const email = `${acc.username}@copab.marinha.mil.br`;
+      const existingUser = existingUsers?.users?.find((u) => u.email === email);
 
-    if (existingUser) {
-      const { error: updateError } = await adminClient.auth.admin.updateUserById(
-        existingUser.id,
-        { password, email_confirm: true }
-      );
-      if (updateError) throw updateError;
-      userId = existingUser.id;
-      status = "updated";
-    } else {
-      const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-      });
-      if (createError) throw createError;
-      userId = newUser.user!.id;
-      status = "created";
-    }
+      let userId: string;
+      let status: string;
 
-    // Ensure COPAB role
-    const { data: roleData } = await adminClient
-      .from('user_roles')
-      .select('id')
-      .eq('user_id', userId)
-      .maybeSingle();
+      if (existingUser) {
+        const { error: updateError } = await adminClient.auth.admin.updateUserById(
+          existingUser.id,
+          { password: acc.password, email_confirm: true }
+        );
+        if (updateError) throw updateError;
+        userId = existingUser.id;
+        status = "updated";
+      } else {
+        const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
+          email,
+          password: acc.password,
+          email_confirm: true,
+        });
+        if (createError) throw createError;
+        userId = newUser.user!.id;
+        status = "created";
+      }
 
-    if (!roleData) {
-      const { error: roleError } = await adminClient
+      // Ensure COPAB role
+      const { data: roleData } = await adminClient
         .from('user_roles')
-        .insert({ user_id: userId, role: 'COPAB' });
-      if (roleError) throw roleError;
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!roleData) {
+        const { error: roleError } = await adminClient
+          .from('user_roles')
+          .insert({ user_id: userId, role: 'COPAB' });
+        if (roleError) throw roleError;
+      }
+
+      results.push({ email, status, userId });
     }
 
     return new Response(
-      JSON.stringify({ success: true, status, email, userId }),
+      JSON.stringify({ success: true, results }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
   } catch (error) {
