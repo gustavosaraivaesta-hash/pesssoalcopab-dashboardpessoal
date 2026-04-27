@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DatePickerWithSelectors } from "@/components/ui/date-picker-with-selectors";
 import { TTCData, TTCSummary } from "@/types/ttc";
-import militaryBg from "@/assets/military-background.png";
+import militaryBg from "@/assets/ttc-background.jpg";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useOnlineStatus } from "@/hooks/useOfflineCache";
