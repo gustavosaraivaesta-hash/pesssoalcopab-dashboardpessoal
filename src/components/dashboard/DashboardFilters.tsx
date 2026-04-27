@@ -75,7 +75,7 @@ const ESPECIALIDADES = [
   "MOTORES (MS)",
   "ELETRÔNICA (EO)",
   "METALURGIA (ML)",
-  "ESTATÍSTICA (AE)"
+  "ESTATÍSTICA (AE)",
 ];
 
 interface DashboardFiltersProps {
@@ -102,9 +102,9 @@ interface DashboardFiltersProps {
   extraLotacaoTotal?: number;
 }
 
-export const DashboardFilters = ({ 
-  filterOptions, 
-  selectedFilters, 
+export const DashboardFilters = ({
+  filterOptions,
+  selectedFilters,
   onFilterChange,
   filteredData,
   metrics,
@@ -119,29 +119,32 @@ export const DashboardFilters = ({
 
   const handleCheckboxChange = (filterType: string, value: string, checked: boolean) => {
     const currentFilter = selectedFilters[filterType as keyof typeof selectedFilters];
-    
+
     // Skip categoria as it's handled separately
-    if (filterType === 'categoria' || !Array.isArray(currentFilter)) return;
-    
+    if (filterType === "categoria" || !Array.isArray(currentFilter)) return;
+
     if (checked) {
       onFilterChange(filterType, [...currentFilter, value]);
     } else {
-      onFilterChange(filterType, currentFilter.filter(v => v !== value));
+      onFilterChange(
+        filterType,
+        currentFilter.filter((v) => v !== value),
+      );
     }
   };
 
   const hasSelectedFilters = selectedFilters.om.length > 0 || selectedFilters.pessoal.length > 0;
 
-  const handleRemoveFilter = (filterType: 'om' | 'especialidade' | 'pessoal', value: string) => {
-    const newValues = selectedFilters[filterType].filter(v => v !== value);
+  const handleRemoveFilter = (filterType: "om" | "especialidade" | "pessoal", value: string) => {
+    const newValues = selectedFilters[filterType].filter((v) => v !== value);
     onFilterChange(filterType, newValues);
   };
 
   const handleGeneratePDF = async () => {
-    const { jsPDF } = await import('jspdf');
-    const autoTable = (await import('jspdf-autotable')).default;
-    const html2canvas = (await import('html2canvas')).default;
-    
+    const { jsPDF } = await import("jspdf");
+    const autoTable = (await import("jspdf-autotable")).default;
+    const html2canvas = (await import("html2canvas")).default;
+
     try {
       const pdf = new jsPDF("l", "mm", "a4");
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -151,7 +154,9 @@ export const DashboardFilters = ({
       // Load brasão
       const brasaoImg = new Image();
       brasaoImg.src = brasaoRepublica;
-      await new Promise((resolve) => { brasaoImg.onload = resolve; });
+      await new Promise((resolve) => {
+        brasaoImg.onload = resolve;
+      });
 
       // Helper to check and add new page
       const checkNewPage = (currentY: number, neededHeight: number) => {
@@ -171,9 +176,7 @@ export const DashboardFilters = ({
       pdf.text("CENTRO DE OPERAÇÕES DO ABASTECIMENTO", pageWidth / 2, yPos, { align: "center" });
       yPos += 10;
 
-      const categoriaLabel = selectedFilters.categoria === "TODOS" 
-        ? "PRAÇAS E OFICIAIS" 
-        : selectedFilters.categoria;
+      const categoriaLabel = selectedFilters.categoria === "TODOS" ? "PRAÇAS E OFICIAIS" : selectedFilters.categoria;
       pdf.setFontSize(14);
       pdf.text(`Tabela Mestra de Força de Trabalho - ${categoriaLabel}`, pageWidth / 2, yPos, { align: "center" });
       yPos += 8;
@@ -182,11 +185,17 @@ export const DashboardFilters = ({
       pdf.setFontSize(9);
       pdf.setFont("helvetica", "normal");
       const now = new Date();
-      pdf.text(`Gerado em: ${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString("pt-BR")}`, pageWidth / 2, yPos, { align: "center" });
+      pdf.text(
+        `Gerado em: ${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString("pt-BR")}`,
+        pageWidth / 2,
+        yPos,
+        { align: "center" },
+      );
       yPos += 10;
 
       // Filtros aplicados
-      const hasFilters = selectedFilters.om.length > 0 || selectedFilters.pessoal.length > 0 || selectedFilters.especialidade.length > 0;
+      const hasFilters =
+        selectedFilters.om.length > 0 || selectedFilters.pessoal.length > 0 || selectedFilters.especialidade.length > 0;
       if (hasFilters) {
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
@@ -213,7 +222,8 @@ export const DashboardFilters = ({
       const totalTMFT = metrics.totalTMFT;
       const totalEXI = metrics.totalEXI;
       const totalDIF = metrics.totalDIF;
-      const atendimento = metrics.occupancyPercent || (totalTMFT > 0 ? ((totalEXI / totalTMFT) * 100).toFixed(1) : "0.0");
+      const atendimento =
+        metrics.occupancyPercent || (totalTMFT > 0 ? ((totalEXI / totalTMFT) * 100).toFixed(1) : "0.0");
       const semNeo = extraLotacaoTotal;
       const atendTotal = totalTMFT > 0 ? (((totalEXI + semNeo) / totalTMFT) * 100).toFixed(1) : "0.0";
 
@@ -225,14 +235,16 @@ export const DashboardFilters = ({
       autoTable(pdf, {
         startY: yPos,
         head: [["TMFT", "EFETIVO", "VAGOS", "SEM NEO", "ATENDIMENTO", "AT. TOTAL"]],
-        body: [[
-          totalTMFT.toString(),
-          totalEXI.toString(),
-          (totalTMFT - totalEXI).toString(),
-          semNeo.toString(),
-          `${atendimento}%`,
-          `${atendTotal}%`,
-        ]],
+        body: [
+          [
+            totalTMFT.toString(),
+            totalEXI.toString(),
+            (totalTMFT - totalEXI).toString(),
+            semNeo.toString(),
+            `${atendimento}%`,
+            `${atendTotal}%`,
+          ],
+        ],
         theme: "grid",
         styles: { fontSize: 9, cellPadding: 3, halign: "center" },
         headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: "bold" },
@@ -267,13 +279,22 @@ export const DashboardFilters = ({
       });
 
       const omRows: string[][] = [];
-      let totalRowTmft = 0, totalRowExi = 0, totalRowExtra = 0;
+      let totalRowTmft = 0,
+        totalRowExi = 0,
+        totalRowExtra = 0;
       const sortedOMs = Array.from(omGroups.entries()).sort(([a], [b]) => a.localeCompare(b));
-      
+
       for (const [om, vals] of sortedOMs) {
         const vagos = vals.tmft - vals.exi;
         const atTotal = vals.tmft > 0 ? (((vals.exi + vals.extra) / vals.tmft) * 100).toFixed(1) : "0.0";
-        omRows.push([om, vals.tmft.toString(), vals.exi.toString(), vagos.toString(), vals.extra.toString(), `${atTotal}%`]);
+        omRows.push([
+          om,
+          vals.tmft.toString(),
+          vals.exi.toString(),
+          vagos.toString(),
+          vals.extra.toString(),
+          `${atTotal}%`,
+        ]);
         totalRowTmft += vals.tmft;
         totalRowExi += vals.exi;
         totalRowExtra += vals.extra;
@@ -281,7 +302,14 @@ export const DashboardFilters = ({
 
       const totalVagos = totalRowTmft - totalRowExi;
       const totalAtTotal = totalRowTmft > 0 ? (((totalRowExi + totalRowExtra) / totalRowTmft) * 100).toFixed(1) : "0.0";
-      omRows.push(["TOTAL GERAL", totalRowTmft.toString(), totalRowExi.toString(), totalVagos.toString(), totalRowExtra.toString(), `${totalAtTotal}%`]);
+      omRows.push([
+        "TOTAL GERAL",
+        totalRowTmft.toString(),
+        totalRowExi.toString(),
+        totalVagos.toString(),
+        totalRowExtra.toString(),
+        `${totalAtTotal}%`,
+      ]);
 
       autoTable(pdf, {
         startY: yPos,
@@ -309,20 +337,20 @@ export const DashboardFilters = ({
           yPos = checkNewPage(yPos, 100);
           const canvas = await html2canvas(chartRef.current, {
             scale: 2,
-            backgroundColor: '#ffffff'
+            backgroundColor: "#ffffff",
           });
-          const imgData = canvas.toDataURL('image/png');
+          const imgData = canvas.toDataURL("image/png");
           const imgWidth = 200;
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
-          
+
           pdf.setFontSize(11);
           pdf.setFont("helvetica", "bold");
           pdf.text("GRÁFICO DE TOTAIS", pageWidth / 2, yPos, { align: "center" });
           yPos += 6;
-          pdf.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, yPos, imgWidth, imgHeight);
+          pdf.addImage(imgData, "PNG", (pageWidth - imgWidth) / 2, yPos, imgWidth, imgHeight);
           yPos += imgHeight + 10;
         } catch (error) {
-          console.error('Erro ao capturar gráfico:', error);
+          console.error("Erro ao capturar gráfico:", error);
         }
       }
 
@@ -357,8 +385,24 @@ export const DashboardFilters = ({
         yPos += 5;
 
         const rows: string[][] = [];
-        let omTmft = 0, omExi = 0;
-        const gradHierarchy = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM", "SO", "1SG", "2SG", "3SG", "CB", "MN"];
+        let omTmft = 0,
+          omExi = 0;
+        const gradHierarchy = [
+          "C ALTE",
+          "CMG",
+          "CF",
+          "CC",
+          "CT",
+          "1T",
+          "2T",
+          "GM",
+          "SO",
+          "1SG",
+          "2SG",
+          "3SG",
+          "CB",
+          "MN",
+        ];
         const sortedGrads = Array.from(gradMap.entries()).sort(([a], [b]) => {
           const idxA = gradHierarchy.indexOf(a);
           const idxB = gradHierarchy.indexOf(b);
@@ -437,7 +481,9 @@ export const DashboardFilters = ({
 
         pdf.setFontSize(11);
         pdf.setFont("helvetica", "bold");
-        pdf.text(`SEM NEO - EFETIVO EXTRA (${extraLotacaoRows.length} militar(es))`, pageWidth / 2, yPos, { align: "center" });
+        pdf.text(`SEM NEO - EFETIVO EXTRA (${extraLotacaoRows.length} militar(es))`, pageWidth / 2, yPos, {
+          align: "center",
+        });
         yPos += 6;
 
         const extraRows = extraLotacaoRows.map((row, idx) => [
@@ -478,13 +524,13 @@ export const DashboardFilters = ({
 
       // Save
       const categoriaFile = selectedFilters.categoria === "TODOS" ? "geral" : selectedFilters.categoria.toLowerCase();
-      pdf.save(`relatorio-copab-${categoriaFile}-${new Date().toISOString().split('T')[0]}.pdf`);
+      pdf.save(`relatorio-copab-${categoriaFile}-${new Date().toISOString().split("T")[0]}.pdf`);
 
-      const { toast } = await import('sonner');
+      const { toast } = await import("sonner");
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      const { toast } = await import('sonner');
+      console.error("Erro ao gerar PDF:", error);
+      const { toast } = await import("sonner");
       toast.error("Erro ao gerar PDF");
     }
   };
@@ -554,104 +600,86 @@ export const DashboardFilters = ({
                   <Filter className="h-4 w-4" />
                   Filtros
                   {hasSelectedFilters && (
-                  <Badge variant="secondary" className="ml-2">
-                    {selectedFilters.om.length + selectedFilters.pessoal.length}
-                  </Badge>
+                    <Badge variant="secondary" className="ml-2">
+                      {selectedFilters.om.length + selectedFilters.pessoal.length}
+                    </Badge>
                   )}
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[400px] sm:w-[540px]">
                 <SheetHeader>
                   <SheetTitle>Filtros</SheetTitle>
-                  <SheetDescription>
-                    Selecione os filtros para visualizar os dados
-                  </SheetDescription>
+                  <SheetDescription>Selecione os filtros para visualizar os dados</SheetDescription>
                 </SheetHeader>
-                
+
                 <div className="mt-6">
                   <Tabs defaultValue="om" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="om">OM</TabsTrigger>
-              <TabsTrigger value="pessoal">Pessoal</TabsTrigger>
-            </TabsList>
+                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                      <TabsTrigger value="om">OM</TabsTrigger>
+                      <TabsTrigger value="pessoal">Pessoal</TabsTrigger>
+                    </TabsList>
 
-            {/* Aba OM */}
-            <TabsContent value="om">
-              <ScrollArea className="h-[400px] w-full rounded-md border p-4">
-                <div className="space-y-2">
-                  {filterOptions.oms.map((om) => (
-                    <div key={om} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`om-${om}`}
-                        checked={selectedFilters.om.includes(om)}
-                        onCheckedChange={(checked) => 
-                          handleCheckboxChange("om", om, checked as boolean)
-                        }
-                      />
-                      <Label
-                        htmlFor={`om-${om}`}
-                        className="text-sm font-normal cursor-pointer"
-                      >
-                        {om}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
+                    {/* Aba OM */}
+                    <TabsContent value="om">
+                      <ScrollArea className="h-[400px] w-full rounded-md border p-4">
+                        <div className="space-y-2">
+                          {filterOptions.oms.map((om) => (
+                            <div key={om} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`om-${om}`}
+                                checked={selectedFilters.om.includes(om)}
+                                onCheckedChange={(checked) => handleCheckboxChange("om", om, checked as boolean)}
+                              />
+                              <Label htmlFor={`om-${om}`} className="text-sm font-normal cursor-pointer">
+                                {om}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </TabsContent>
 
-            {/* Aba Pessoal */}
-            <TabsContent value="pessoal">
-              <ScrollArea className="h-[400px] w-full rounded-md border p-4">
-                <div className="space-y-2">
-                  <div className="mb-3 pb-2 border-b">
-                    <p className="text-xs text-muted-foreground font-medium">
-                      {selectedFilters.categoria === "OFICIAIS" ? "Pessoal OFI" : selectedFilters.categoria === "PRAÇAS" ? "Pessoal Praças" : "Pessoal (Praças e Oficiais)"}
-                    </p>
-                  </div>
-                  {filterOptions.graduacoes.map((grad) => (
-                    <div key={grad} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`grad-${grad}`}
-                        checked={selectedFilters.pessoal.includes(grad)}
-                        onCheckedChange={(checked) => 
-                          handleCheckboxChange("pessoal", grad, checked as boolean)
-                        }
-                      />
-                      <Label
-                        htmlFor={`grad-${grad}`}
-                        className="text-sm font-normal cursor-pointer"
-                      >
-                        {grad}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-          </Tabs>
+                    {/* Aba Pessoal */}
+                    <TabsContent value="pessoal">
+                      <ScrollArea className="h-[400px] w-full rounded-md border p-4">
+                        <div className="space-y-2">
+                          <div className="mb-3 pb-2 border-b">
+                            <p className="text-xs text-muted-foreground font-medium">
+                              {selectedFilters.categoria === "OFICIAIS"
+                                ? "Pessoal OFI"
+                                : selectedFilters.categoria === "PRAÇAS"
+                                  ? "Pessoal Praças"
+                                  : "Pessoal (Praças e Oficiais)"}
+                            </p>
+                          </div>
+                          {filterOptions.graduacoes.map((grad) => (
+                            <div key={grad} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`grad-${grad}`}
+                                checked={selectedFilters.pessoal.includes(grad)}
+                                onCheckedChange={(checked) => handleCheckboxChange("pessoal", grad, checked as boolean)}
+                              />
+                              <Label htmlFor={`grad-${grad}`} className="text-sm font-normal cursor-pointer">
+                                {grad}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </TabsContent>
+                  </Tabs>
                 </div>
               </SheetContent>
             </Sheet>
 
             <div className="flex items-center gap-2">
               {hasSelectedFilters && (
-                <Button 
-                  onClick={handleClearFilters}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                >
+                <Button onClick={handleClearFilters} variant="outline" size="sm" className="gap-2">
                   <X className="h-4 w-4" />
                   Limpar
                 </Button>
               )}
-              <Button 
-                onClick={handleGeneratePDF}
-                variant="outline"
-                size="sm"
-                className="gap-2"
-              >
+              <Button onClick={handleGeneratePDF} variant="outline" size="sm" className="gap-2">
                 <FileText className="h-4 w-4" />
                 PDF
               </Button>
@@ -671,7 +699,7 @@ export const DashboardFilters = ({
                   <Badge key={`om-${value}`} variant="secondary" className="gap-1">
                     OM: {value}
                     <button
-                      onClick={() => handleRemoveFilter('om', value)}
+                      onClick={() => handleRemoveFilter("om", value)}
                       className="ml-1 hover:bg-background/20 rounded-full"
                     >
                       <X className="h-3 w-3" />
@@ -682,7 +710,7 @@ export const DashboardFilters = ({
                   <Badge key={`pessoal-${value}`} variant="secondary" className="gap-1">
                     Pessoal: {value}
                     <button
-                      onClick={() => handleRemoveFilter('pessoal', value)}
+                      onClick={() => handleRemoveFilter("pessoal", value)}
                       className="ml-1 hover:bg-background/20 rounded-full"
                     >
                       <X className="h-3 w-3" />
