@@ -17,7 +17,7 @@ import { DifferenceByGraduationChart } from "@/components/dashboard/DifferenceBy
 import { ExtraLotacaoTable, type ExtraLotacaoRow } from "@/components/dashboard/ExtraLotacaoTable";
 import { MilitaryData } from "@/types/military";
 import { getUniqueValues, mockMilitaryData } from "@/data/mockData";
-import militaryBg from "@/assets/military-background.png";
+import militaryBg from "@/assets/copab-background.jpg";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getAllowedOMs, getAvailableOMsForUser, filterDataForCurrentUser } from "@/lib/auth";
