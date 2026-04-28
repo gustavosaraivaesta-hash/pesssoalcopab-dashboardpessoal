@@ -850,10 +850,10 @@ const Index = () => {
     <div className="min-h-screen bg-blue-50 relative">
       {/* Background Image with Overlay */}
       <div
-        className="fixed inset-0 bg-cover bg-no-repeat opacity-20 pointer-events-none"
-        style={{ backgroundImage: `url(${militaryBg})`, backgroundPosition: "45% center" }}
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-30 pointer-events-none"
+        style={{ backgroundImage: `url(${militaryBg})` }}
       />
-      <div className="fixed inset-0 bg-blue-50/80 pointer-events-none" />
+      <div className="fixed inset-0 bg-blue-50/75 pointer-events-none" />
 
       {/* Header */}
       <header className="bg-blue-600 text-primary-foreground shadow-elevated relative z-10">
