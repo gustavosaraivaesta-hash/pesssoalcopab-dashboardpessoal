@@ -135,7 +135,7 @@ const Login = () => {
         style={{ backgroundImage: `url(${backgroundImage})` }}
       />
 
-      <Card className="w-full max-w-md relative z-10 bg-blue-600/90 backdrop-blur-sm text-white border-blue-700">
+      <Card className="w-full max-w-md relative z-10 bg-blue-600/30 backdrop-blur-md text-white border-white/30 shadow-2xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <Shield size={48} className="text-white" />
