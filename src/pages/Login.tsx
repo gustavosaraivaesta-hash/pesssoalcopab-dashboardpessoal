@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
+import brasaoCopab from "@/assets/brasao-copab.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -138,7 +139,7 @@ const Login = () => {
       <Card className="w-full max-w-md relative z-10 bg-white/5 backdrop-blur-sm text-white border-white/20 shadow-2xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Shield size={48} className="text-white" />
+            <img src={brasaoCopab} alt="Brasão COpAb" className="h-20 w-auto drop-shadow-lg" />
           </div>
           <CardTitle className="text-2xl text-white">Dashboard COpAb</CardTitle>
           <CardDescription className="text-white/90">
