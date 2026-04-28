@@ -308,6 +308,19 @@ const DashboardTTC = () => {
             data.cell.styles.textColor = [153, 27, 27];
             data.cell.styles.fontStyle = "bold";
           }
+          // Destacar Tempo Total TTC >= 9 anos em vermelho
+          if (data.section === "body" && data.column.index === 10) {
+            const item = omData[data.row.index];
+            if (item && !item.isVaga && item.tempoServido && item.tempoServido !== "-") {
+              const anosMatch = String(item.tempoServido).match(/(\d+)\s*a/i);
+              const anos = anosMatch ? parseInt(anosMatch[1]) : 0;
+              if (anos >= 9) {
+                data.cell.styles.fillColor = [254, 202, 202];
+                data.cell.styles.textColor = [153, 27, 27];
+                data.cell.styles.fontStyle = "bold";
+              }
+            }
+          }
         },
       });
 
