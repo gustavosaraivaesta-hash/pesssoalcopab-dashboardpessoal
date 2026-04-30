@@ -208,14 +208,14 @@ const DashboardPracas = () => {
         return arr.filter((item: any) => allowedOMs.includes(item.om));
       };
 
-      const data = filterByOM(cachedData.data || []) as PersonnelRecord[];
+      const data = normalizeGraduacaoFields(filterByOM(cachedData.data || [])) as PersonnelRecord[];
       setPersonnelData(data);
-      setDesembarqueData(filterByOM(cachedData.desembarque || []) as DesembarqueRecord[]);
-      setEmbarqueData(filterByOM(cachedData.embarque || []) as DesembarqueRecord[]);
-      setTrrmData(filterByOM(cachedData.trrm || []) as TrrmRecord[]);
-      setLicencasData(filterByOM(cachedData.licencas || []) as LicencaRecord[]);
-      setDestaquesData(filterByOM(cachedData.destaques || []) as DestaqueRecord[]);
-      setCursoData(filterByOM(cachedData.concurso || []) as CursoRecord[]);
+      setDesembarqueData(normalizeGraduacaoFields(filterByOM(cachedData.desembarque || [])) as DesembarqueRecord[]);
+      setEmbarqueData(normalizeGraduacaoFields(filterByOM(cachedData.embarque || [])) as DesembarqueRecord[]);
+      setTrrmData(normalizeGraduacaoFields(filterByOM(cachedData.trrm || [])) as TrrmRecord[]);
+      setLicencasData(normalizeGraduacaoFields(filterByOM(cachedData.licencas || [])) as LicencaRecord[]);
+      setDestaquesData(normalizeGraduacaoFields(filterByOM(cachedData.destaques || [])) as DestaqueRecord[]);
+      setCursoData(normalizeGraduacaoFields(filterByOM(cachedData.concurso || [])) as CursoRecord[]);
 
       const oms = [...new Set(data.map((item: any) => item.om).filter(Boolean))];
       const opcoes = [...new Set(data.map((item: any) => item.opcaoTmft).filter(Boolean))];
