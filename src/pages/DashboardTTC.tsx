@@ -273,7 +273,7 @@ const DashboardTTC = () => {
       (groupedByOM[om] ??= []).push(item);
     });
 
-    let currentY = 42;
+    let currentY = 50;
 
     Object.keys(groupedByOM).sort().forEach(om => {
       const omData = groupedByOM[om];
