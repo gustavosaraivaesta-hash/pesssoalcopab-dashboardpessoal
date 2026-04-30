@@ -154,10 +154,15 @@ const SHEET_CONFIGS = [
   { gid: '1610199360', omName: 'DEPSMRJ' },
 ];
 
-// Helper function to convert "-" to empty string
+// Helper function to convert "-" to empty string and normalize graduation variants
 const normalizeValue = (val: string): string => {
   const str = val.trim();
-  return str === '-' ? '' : str;
+  if (str === '-') return '';
+  // Normalize graduation variants: 1°SG/2°SG/3°SG -> 1SG/2SG/3SG (with optional RM suffixes)
+  return str
+    .replace(/^1[º°]SG\b/i, '1SG')
+    .replace(/^2[º°]SG\b/i, '2SG')
+    .replace(/^3[º°]SG\b/i, '3SG');
 };
 
 async function fetchSheetData(spreadsheetId: string, gid: string, omName: string): Promise<{
