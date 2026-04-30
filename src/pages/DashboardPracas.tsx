@@ -328,15 +328,15 @@ const DashboardPracas = () => {
           return arr.filter((item: any) => allowedOMs.includes(item.om));
         };
 
-        const data = filterByOM(rawData) as PersonnelRecord[];
+        const data = normalizeGraduacaoFields(filterByOM(rawData)) as PersonnelRecord[];
         console.log("DashboardPracas - filtered data count:", data.length);
 
-        const desembarque = filterByOM(result.desembarque || []) as DesembarqueRecord[];
-        const embarque = filterByOM(result.embarque || []) as DesembarqueRecord[];
-        const trrm = filterByOM(result.trrm || []) as TrrmRecord[];
-        const licencas = filterByOM(result.licencas || []) as LicencaRecord[];
-        const destaques = filterByOM(result.destaques || []) as DestaqueRecord[];
-        const curso = filterByOM(result.concurso || []) as CursoRecord[];
+        const desembarque = normalizeGraduacaoFields(filterByOM(result.desembarque || [])) as DesembarqueRecord[];
+        const embarque = normalizeGraduacaoFields(filterByOM(result.embarque || [])) as DesembarqueRecord[];
+        const trrm = normalizeGraduacaoFields(filterByOM(result.trrm || [])) as TrrmRecord[];
+        const licencas = normalizeGraduacaoFields(filterByOM(result.licencas || [])) as LicencaRecord[];
+        const destaques = normalizeGraduacaoFields(filterByOM(result.destaques || [])) as DestaqueRecord[];
+        const curso = normalizeGraduacaoFields(filterByOM(result.concurso || [])) as CursoRecord[];
 
         setPersonnelData(data);
         setDesembarqueData(desembarque);
