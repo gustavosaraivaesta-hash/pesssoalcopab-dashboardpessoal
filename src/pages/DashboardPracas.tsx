@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { isForaDaNeo, expandSpecialtyEquivalents, formatMilitarNameWithOpcao } from "@/lib/utils";
+import { isForaDaNeo, expandSpecialtyEquivalents, formatMilitarNameWithOpcao, normalizeGraduacaoFields } from "@/lib/utils";
 
 import {
   BarChart,
