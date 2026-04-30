@@ -251,7 +251,7 @@ const DashboardTTC = () => {
     const legendY = 41;
     doc.setFillColor(254, 202, 202);
     doc.rect(14, legendY - 3, 4, 4, "F");
-    doc.setFontSize(8);
+    doc.setFontSize(6);
     doc.setTextColor(153, 27, 27);
     doc.setFont("helvetica", "bold");
     doc.text("Legenda:", 20, legendY);
