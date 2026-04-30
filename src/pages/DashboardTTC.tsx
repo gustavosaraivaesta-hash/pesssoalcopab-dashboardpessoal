@@ -247,6 +247,18 @@ const DashboardTTC = () => {
     doc.text(`Data de exportação: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 14, 30);
     doc.text(`Total: ${exportSummary.total} | Contratados: ${exportSummary.contratados} | Vagas Abertas: ${exportSummary.vagasAbertas}`, 14, 36);
 
+    // Legenda dos destaques em vermelho
+    const legendY = 41;
+    doc.setFillColor(254, 202, 202);
+    doc.rect(14, legendY - 3, 4, 4, "F");
+    doc.setFontSize(8);
+    doc.setTextColor(153, 27, 27);
+    doc.setFont("helvetica", "bold");
+    doc.text("Legenda:", 20, legendY);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(0, 0, 0);
+    doc.text("Células em vermelho = Tempo Total TTC \u2265 9 anos (próximo do limite de 10 anos) ou Tempo Faltante excedido/crítico. Linhas em vermelho = Vagas em aberto.", 35, legendY);
+
     if (exportData.length === 0) {
       doc.setFontSize(12);
       doc.text("Nenhum registro encontrado para os filtros selecionados.", 14, 48);
