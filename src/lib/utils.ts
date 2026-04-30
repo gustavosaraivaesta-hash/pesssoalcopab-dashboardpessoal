@@ -5,6 +5,41 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Normalize graduation rank variants:
+ * "1°SG"/"1ºSG" -> "1SG", same for 2 and 3. Preserves suffixes.
+ */
+export function normalizeGraduacao(val: string | undefined | null): string {
+  if (!val) return "";
+  return String(val)
+    .replace(/^1[º°]SG\b/i, "1SG")
+    .replace(/^2[º°]SG\b/i, "2SG")
+    .replace(/^3[º°]SG\b/i, "3SG");
+}
+
+/**
+ * Apply normalizeGraduacao to all known graduation fields on a record (non-mutating).
+ */
+export function normalizeGraduacaoFields<T extends Record<string, any>>(items: T[]): T[] {
+  if (!Array.isArray(items)) return items;
+  const fields = ["postoTmft", "postoEfe", "graduacao", "posto"];
+  return items.map((it) => {
+    if (!it) return it;
+    let changed = false;
+    const out: any = { ...it };
+    for (const f of fields) {
+      if (typeof out[f] === "string") {
+        const n = normalizeGraduacao(out[f]);
+        if (n !== out[f]) {
+          out[f] = n;
+          changed = true;
+        }
+      }
+    }
+    return changed ? out : it;
+  });
+}
+
 const EXCLUDED_QUADROS_LIST = ["QPA", "CPA", "QAP", "CAP", "CATP", "PRM", "CPRM", "QFN", "CFN", "PL"];
 
 /**
