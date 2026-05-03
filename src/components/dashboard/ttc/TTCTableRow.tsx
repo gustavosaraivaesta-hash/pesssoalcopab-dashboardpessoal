@@ -12,7 +12,8 @@ interface TTCTableRowProps {
 const TTCTableRow = React.memo(({ row }: TTCTableRowProps) => {
   const neoNormalized = row.neo?.trim().toUpperCase() || '';
   const efeNormalized = row.espQuadro?.trim().toUpperCase() || '';
-  const isDifferentNeoEfe = !row.isVaga && neoNormalized && efeNormalized && neoNormalized !== efeNormalized;
+  // Em TTC, não há divergência de especialidade — a posição é TTC independente do quadro
+  const isDifferentNeoEfe = false;
 
   return (
     <TableRow
