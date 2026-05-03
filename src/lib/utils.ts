@@ -140,12 +140,11 @@ export function isForaDaNeo(quadroTmft: string, quadroEfe: string, opcaoTmft?: s
   const efeIsTTC = oEfe === "TTC" || oEfe === "RM1" || oEfe === "RM-1";
   // If one is TTC and the other is not (including when opcao is empty = carreira), it's divergent
   if (tmftIsTTC !== efeIsTTC) return true;
+  // Quando AMBOS são TTC, não há divergência de especialidade (independente do quadro)
+  if (tmftIsTTC && efeIsTTC) return false;
 
   const tmft = (quadroTmft || "").trim().toUpperCase();
   const efe = (quadroEfe || "").trim().toUpperCase();
   if (!tmft || !efe || tmft === "-" || efe === "-") return false;
-
-  // Quando AMBOS são TTC, está NA NEO
-  if (tmft === "TTC" && efe === "TTC") return false;
   return !areSpecialtiesEquivalent(tmft, efe);
 }
