@@ -1361,7 +1361,7 @@ const DashboardPracas = () => {
             item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo,
             item.postoTmft,
             item.quadroTmft,
-            item.nome || "-",
+            stripRankPrefixFromName(item.nome) || "-",
             item.postoEfe || "-",
             item.quadroEfe || "-",
             status,
