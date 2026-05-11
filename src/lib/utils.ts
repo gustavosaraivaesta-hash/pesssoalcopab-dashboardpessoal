@@ -59,10 +59,10 @@ const EXCLUDED_QUADROS_LIST = ["QPA", "CPA", "QAP", "CAP", "CATP", "PRM", "CPRM"
 export function stripRankPrefixFromName(nome: string): string {
   if (!nome) return "";
   let n = String(nome).trim().toUpperCase();
-  // Remove patterns like "1°SG", "1° SG", "1º SG", "1SG" optionally followed by "-XX" or " XX" specialty
-  n = n.replace(/^[1-3]\s*[º°]?\s*SG(?:\s*[-\s]\s*[A-Z]{1,4})?\s+/i, "");
-  // Remove other common ranks (CB, MN, SO, etc.) optionally with specialty suffix
-  n = n.replace(/^(C\s*ALTE|V\s*ALTE|CMG|CF|CC|CT|1T|2T|GM|SO|CB|MN)(?:\s*[-\s]\s*[A-Z]{1,4})?\s+/i, "");
+  // Remove patterns like "1°SG", "1° SG", "1º SG", "1SG" optionally followed by option (RM1/RM2/RM-1/RM-2) and/or specialty suffix
+  n = n.replace(/^[1-3]\s*[º°]?\s*SG(?:\s*[-\s]\s*RM-?\d)?(?:\s*[-\s]\s*[A-Z]{1,4})?\s+/i, "");
+  // Remove other common ranks (CB, MN, SO, etc.) optionally with option and specialty suffix
+  n = n.replace(/^(C\s*ALTE|V\s*ALTE|CMG|CF|CC|CT|1T|2T|GM|SO|CB|MN)(?:\s*[-\s]\s*RM-?\d)?(?:\s*[-\s]\s*[A-Z]{1,4})?\s+/i, "");
   return n.trim();
 }
 
