@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { isForaDaNeo, formatMilitarNameWithOpcao, normalizeGraduacaoFields } from "@/lib/utils";
+import { isForaDaNeo, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName } from "@/lib/utils";
 
 import {
   BarChart,
@@ -1676,7 +1676,7 @@ const DashboardOM = () => {
             item.postoTmft,
             item.quadroTmft,
             item.corpoTmft || "-",
-            item.nome || "-",
+            stripRankPrefixFromName(item.nome) || "-",
             item.postoEfe || "-",
             item.quadroEfe || "-",
             item.corpoEfe || "-",
@@ -2329,7 +2329,7 @@ const DashboardOM = () => {
                 createCell(item.postoTmft || "-", false, bgColor, textColor),
                 createCell(item.quadroTmft || "-", false, bgColor, textColor),
                 createCell(item.corpoTmft || "-", false, bgColor, textColor),
-                createCell(item.nome || "-", false, bgColor, textColor),
+                createCell(stripRankPrefixFromName(item.nome) || "-", false, bgColor, textColor),
                 createCell(item.postoEfe || "-", false, bgColor, textColor),
                 createCell(item.quadroEfe || "-", false, bgColor, textColor),
                 createCell(item.corpoEfe || "-", false, bgColor, textColor),
@@ -2680,7 +2680,7 @@ const DashboardOM = () => {
           item.corpoTmft,
           item.quadroTmft,
           item.opcaoTmft,
-          item.nome || "-",
+          stripRankPrefixFromName(item.nome) || "-",
           item.postoEfe || "-",
           item.corpoEfe || "-",
           item.quadroEfe || "-",

@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { isForaDaNeo, expandSpecialtyEquivalents, formatMilitarNameWithOpcao, normalizeGraduacaoFields } from "@/lib/utils";
+import { isForaDaNeo, expandSpecialtyEquivalents, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName } from "@/lib/utils";
 
 import {
   BarChart,
@@ -1361,7 +1361,7 @@ const DashboardPracas = () => {
             item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo,
             item.postoTmft,
             item.quadroTmft,
-            item.nome || "-",
+            stripRankPrefixFromName(item.nome) || "-",
             item.postoEfe || "-",
             item.quadroEfe || "-",
             status,
@@ -1912,7 +1912,7 @@ const DashboardPracas = () => {
                 createCell(item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.cargo || "-"), false, bgColor, txtColor),
                 createCell(item.postoTmft || "-", false, bgColor, txtColor),
                 createCell(item.quadroTmft || "-", false, bgColor, txtColor),
-                createCell(item.nome || "-", false, bgColor, txtColor),
+                createCell(stripRankPrefixFromName(item.nome) || "-", false, bgColor, txtColor),
                 createCell(item.postoEfe || "-", false, bgColor, txtColor),
                 createCell(item.quadroEfe || "-", false, bgColor, txtColor),
                 createCell(status, false, bgColor, txtColor),
@@ -2210,7 +2210,7 @@ const DashboardPracas = () => {
           item.postoTmft,
           item.quadroTmft,
           item.opcaoTmft,
-          item.nome || "-",
+          stripRankPrefixFromName(item.nome) || "-",
           item.postoEfe || "-",
           item.quadroEfe || "-",
           item.opcaoEfe || "-",
