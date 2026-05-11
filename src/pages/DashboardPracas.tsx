@@ -1912,7 +1912,7 @@ const DashboardPracas = () => {
                 createCell(item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : (item.cargo || "-"), false, bgColor, txtColor),
                 createCell(item.postoTmft || "-", false, bgColor, txtColor),
                 createCell(item.quadroTmft || "-", false, bgColor, txtColor),
-                createCell(item.nome || "-", false, bgColor, txtColor),
+                createCell(stripRankPrefixFromName(item.nome) || "-", false, bgColor, txtColor),
                 createCell(item.postoEfe || "-", false, bgColor, txtColor),
                 createCell(item.quadroEfe || "-", false, bgColor, txtColor),
                 createCell(status, false, bgColor, txtColor),
