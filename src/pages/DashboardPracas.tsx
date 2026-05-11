@@ -2210,7 +2210,7 @@ const DashboardPracas = () => {
           item.postoTmft,
           item.quadroTmft,
           item.opcaoTmft,
-          item.nome || "-",
+          stripRankPrefixFromName(item.nome) || "-",
           item.postoEfe || "-",
           item.quadroEfe || "-",
           item.opcaoEfe || "-",
