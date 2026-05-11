@@ -1676,7 +1676,7 @@ const DashboardOM = () => {
             item.postoTmft,
             item.quadroTmft,
             item.corpoTmft || "-",
-            item.nome || "-",
+            stripRankPrefixFromName(item.nome) || "-",
             item.postoEfe || "-",
             item.quadroEfe || "-",
             item.corpoEfe || "-",
