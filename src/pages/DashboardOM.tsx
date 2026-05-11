@@ -2329,7 +2329,7 @@ const DashboardOM = () => {
                 createCell(item.postoTmft || "-", false, bgColor, textColor),
                 createCell(item.quadroTmft || "-", false, bgColor, textColor),
                 createCell(item.corpoTmft || "-", false, bgColor, textColor),
-                createCell(item.nome || "-", false, bgColor, textColor),
+                createCell(stripRankPrefixFromName(item.nome) || "-", false, bgColor, textColor),
                 createCell(item.postoEfe || "-", false, bgColor, textColor),
                 createCell(item.quadroEfe || "-", false, bgColor, textColor),
                 createCell(item.corpoEfe || "-", false, bgColor, textColor),
