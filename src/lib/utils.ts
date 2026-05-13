@@ -154,15 +154,12 @@ export function expandSpecialtyEquivalents(selected: string[]): string[] {
  * Also checks opcao: if one is TTC and the other is not, it's divergent (TTC x Carreira).
  */
 export function isForaDaNeo(quadroTmft: string, quadroEfe: string, opcaoTmft?: string, opcaoEfe?: string): boolean {
-  // Check opcao TTC divergence FIRST (before any guard clause)
   const oTmft = (opcaoTmft || "").trim().toUpperCase();
   const oEfe = (opcaoEfe || "").trim().toUpperCase();
   const tmftIsTTC = oTmft === "TTC" || oTmft === "RM1" || oTmft === "RM-1";
   const efeIsTTC = oEfe === "TTC" || oEfe === "RM1" || oEfe === "RM-1";
-  // If one is TTC and the other is not (including when opcao is empty = carreira), it's divergent
-  if (tmftIsTTC !== efeIsTTC) return true;
-  // Quando AMBOS são TTC, não há divergência de especialidade (independente do quadro)
-  if (tmftIsTTC && efeIsTTC) return false;
+  // Se qualquer um (TMFT ou EFE) for TTC, considera-se conforme em qualquer especialidade
+  if (tmftIsTTC || efeIsTTC) return false;
 
   const tmft = (quadroTmft || "").trim().toUpperCase();
   const efe = (quadroEfe || "").trim().toUpperCase();
