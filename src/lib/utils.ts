@@ -109,6 +109,7 @@ const SPECIALTY_EQUIVALENCE: Record<string, string[]> = {
   QUI: ["QI"],
   SAU: ["EF", "PC", "HD", "ND"],
   ADM: ["AD"],
+  IF: ["IF-FN", "IFFN"],
 };
 
 // Reverse mapping: EFE code -> TMFT codes it's equivalent to
@@ -120,6 +121,8 @@ const REVERSE_EQUIVALENCE: Record<string, string[]> = {
   HD: ["SAU"],
   ND: ["SAU"],
   AD: ["ADM"],
+  "IF-FN": ["IF"],
+  IFFN: ["IF"],
 };
 
 export function areSpecialtiesEquivalent(tmft: string, efe: string): boolean {
