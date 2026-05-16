@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, ComponentType } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,19 +6,44 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AuthGuard from "./components/AuthGuard";
 
+// Retry dynamic imports once and force a hard reload if a stale chunk (post-deploy) fails.
+function lazyWithRetry<T extends ComponentType<any>>(factory: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    const reloadedKey = `lazy-retry-${factory.toString()}`;
+    try {
+      const mod = await factory();
+      window.sessionStorage.removeItem(reloadedKey);
+      return mod;
+    } catch (err: any) {
+      const msg = String(err?.message || "");
+      const isChunkErr =
+        msg.includes("Importing a module script failed") ||
+        msg.includes("Failed to fetch dynamically imported module") ||
+        msg.includes("Loading chunk") ||
+        msg.includes("error loading dynamically imported module");
+      if (isChunkErr && !window.sessionStorage.getItem(reloadedKey)) {
+        window.sessionStorage.setItem(reloadedKey, "1");
+        window.location.reload();
+        return new Promise<{ default: T }>(() => {});
+      }
+      throw err;
+    }
+  });
+}
+
 // Lazy load all pages for code splitting
-const Index = lazy(() => import("./pages/Index"));
-const Login = lazy(() => import("./pages/Login"));
-const DashboardOM = lazy(() => import("./pages/DashboardOM"));
-const DashboardPracas = lazy(() => import("./pages/DashboardPracas"));
-const DashboardTTC = lazy(() => import("./pages/DashboardTTC"));
-const AdminUsers = lazy(() => import("./pages/AdminUsers"));
-const Solicitacoes = lazy(() => import("./pages/Solicitacoes"));
-const AdminSolicitacoes = lazy(() => import("./pages/AdminSolicitacoes"));
-const AdminHistorico = lazy(() => import("./pages/AdminHistorico"));
-const Install = lazy(() => import("./pages/Install"));
-const Manual = lazy(() => import("./pages/Manual"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const Index = lazyWithRetry(() => import("./pages/Index"));
+const Login = lazyWithRetry(() => import("./pages/Login"));
+const DashboardOM = lazyWithRetry(() => import("./pages/DashboardOM"));
+const DashboardPracas = lazyWithRetry(() => import("./pages/DashboardPracas"));
+const DashboardTTC = lazyWithRetry(() => import("./pages/DashboardTTC"));
+const AdminUsers = lazyWithRetry(() => import("./pages/AdminUsers"));
+const Solicitacoes = lazyWithRetry(() => import("./pages/Solicitacoes"));
+const AdminSolicitacoes = lazyWithRetry(() => import("./pages/AdminSolicitacoes"));
+const AdminHistorico = lazyWithRetry(() => import("./pages/AdminHistorico"));
+const Install = lazyWithRetry(() => import("./pages/Install"));
+const Manual = lazyWithRetry(() => import("./pages/Manual"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
