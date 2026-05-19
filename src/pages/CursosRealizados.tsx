@@ -253,6 +253,42 @@ const CursosRealizados = () => {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              {selected?.posto && (
+                <Badge variant="secondary" className="font-semibold">{selected.posto}</Badge>
+              )}
+              {selected?.especialidade && (
+                <Badge variant="outline" className="font-semibold">{selected.especialidade}</Badge>
+              )}
+              <span>{selected?.nome}</span>
+            </DialogTitle>
+            <DialogDescription>
+              {selected?.cursos.length ?? 0} curso(s) realizado(s)
+            </DialogDescription>
+          </DialogHeader>
+          {selected && (
+            selected.cursos.length === 0 ? (
+              <p className="text-muted-foreground italic text-sm">Sem cursos registrados</p>
+            ) : (
+              <ul className="space-y-2 max-h-[60vh] overflow-auto">
+                {selected.cursos.map((c, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 rounded-md border bg-muted/30 px-3 py-2"
+                  >
+                    <Badge variant="default" className="shrink-0">{i + 1}</Badge>
+                    <span className="text-sm font-medium">{c}</span>
+                  </li>
+                ))}
+              </ul>
+            )
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
