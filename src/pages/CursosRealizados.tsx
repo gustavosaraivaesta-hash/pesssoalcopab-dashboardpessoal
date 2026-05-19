@@ -6,9 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cursosRealizados } from "@/data/cursosRealizados";
 import { supabase } from "@/integrations/supabase/client";
+
+type EnrichedMilitar = {
+  nome: string;
+  cursos: string[];
+  posto: string;
+  especialidade: string;
+};
 
 const normalizeName = (s: string) =>
   (s || "")
@@ -32,6 +40,7 @@ const CursosRealizados = () => {
   const [search, setSearch] = useState("");
   const [postoMap, setPostoMap] = useState<Record<string, string>>({});
   const [espMap, setEspMap] = useState<Record<string, string>>({});
+  const [selected, setSelected] = useState<EnrichedMilitar | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -184,7 +193,11 @@ const CursosRealizados = () => {
               </TableHeader>
               <TableBody>
                 {filtered.map((m) => (
-                  <TableRow key={m.nome}>
+                  <TableRow
+                    key={m.nome}
+                    className="cursor-pointer"
+                    onClick={() => setSelected(m)}
+                  >
                     <TableCell className="align-top">
                       {m.posto ? (
                         <Badge variant="secondary" className="font-semibold">
@@ -203,7 +216,9 @@ const CursosRealizados = () => {
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="font-medium align-top">{m.nome}</TableCell>
+                    <TableCell className="font-medium align-top text-primary hover:underline">
+                      {m.nome}
+                    </TableCell>
                     <TableCell className="text-center align-top">
                       <Badge variant={m.cursos.length > 0 ? "default" : "secondary"}>
                         {m.cursos.length}
@@ -238,6 +253,42 @@ const CursosRealizados = () => {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              {selected?.posto && (
+                <Badge variant="secondary" className="font-semibold">{selected.posto}</Badge>
+              )}
+              {selected?.especialidade && (
+                <Badge variant="outline" className="font-semibold">{selected.especialidade}</Badge>
+              )}
+              <span>{selected?.nome}</span>
+            </DialogTitle>
+            <DialogDescription>
+              {selected?.cursos.length ?? 0} curso(s) realizado(s)
+            </DialogDescription>
+          </DialogHeader>
+          {selected && (
+            selected.cursos.length === 0 ? (
+              <p className="text-muted-foreground italic text-sm">Sem cursos registrados</p>
+            ) : (
+              <ul className="space-y-2 max-h-[60vh] overflow-auto">
+                {selected.cursos.map((c, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 rounded-md border bg-muted/30 px-3 py-2"
+                  >
+                    <Badge variant="default" className="shrink-0">{i + 1}</Badge>
+                    <span className="text-sm font-medium">{c}</span>
+                  </li>
+                ))}
+              </ul>
+            )
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
