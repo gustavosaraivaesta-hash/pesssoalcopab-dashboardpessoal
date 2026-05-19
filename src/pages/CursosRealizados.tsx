@@ -96,6 +96,7 @@ const CursosRealizados = () => {
       (m) =>
         m.nome.toUpperCase().includes(q) ||
         m.posto.toUpperCase().includes(q) ||
+        m.especialidade.toUpperCase().includes(q) ||
         m.cursos.some((c) => c.toUpperCase().includes(q)),
     );
   }, [search, enriched]);
