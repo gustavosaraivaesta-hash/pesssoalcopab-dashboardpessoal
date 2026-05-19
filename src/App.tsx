@@ -37,6 +37,7 @@ const Login = lazyWithRetry(() => import("./pages/Login"));
 const DashboardOM = lazyWithRetry(() => import("./pages/DashboardOM"));
 const DashboardPracas = lazyWithRetry(() => import("./pages/DashboardPracas"));
 const DashboardTTC = lazyWithRetry(() => import("./pages/DashboardTTC"));
+const CursosRealizados = lazyWithRetry(() => import("./pages/CursosRealizados"));
 const AdminUsers = lazyWithRetry(() => import("./pages/AdminUsers"));
 const Solicitacoes = lazyWithRetry(() => import("./pages/Solicitacoes"));
 const AdminSolicitacoes = lazyWithRetry(() => import("./pages/AdminSolicitacoes"));
@@ -75,6 +76,7 @@ const App = () => (
             <Route path="/dashboard-om" element={<AuthGuard><DashboardOM /></AuthGuard>} />
             <Route path="/dashboard-pracas" element={<AuthGuard><DashboardPracas /></AuthGuard>} />
             <Route path="/dashboard-ttc" element={<AuthGuard><DashboardTTC /></AuthGuard>} />
+            <Route path="/cursos-realizados" element={<AuthGuard><CursosRealizados /></AuthGuard>} />
             <Route path="/admin/users" element={<AuthGuard><AdminUsers /></AuthGuard>} />
             <Route path="/solicitacoes" element={<AuthGuard><Solicitacoes /></AuthGuard>} />
             <Route path="/admin/solicitacoes" element={<AuthGuard><AdminSolicitacoes /></AuthGuard>} />

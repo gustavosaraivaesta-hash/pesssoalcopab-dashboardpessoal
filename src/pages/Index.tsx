@@ -891,6 +891,10 @@ const Index = () => {
                 <FileText size={18} className="mr-2" />
                 Dashboard de TTC
               </Button>
+              <Button variant="secondary" onClick={() => navigate("/cursos-realizados")}>
+                <BookOpen size={18} className="mr-2" />
+                Cursos Realizados
+              </Button>
               
               {/* Solicitações button for non-COPAB users */}
               {role && role !== "COPAB" && (
