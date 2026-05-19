@@ -40,6 +40,7 @@ const CursosRealizados = () => {
   const [search, setSearch] = useState("");
   const [postoMap, setPostoMap] = useState<Record<string, string>>({});
   const [espMap, setEspMap] = useState<Record<string, string>>({});
+  const [selected, setSelected] = useState<EnrichedMilitar | null>(null);
 
   useEffect(() => {
     let cancelled = false;
