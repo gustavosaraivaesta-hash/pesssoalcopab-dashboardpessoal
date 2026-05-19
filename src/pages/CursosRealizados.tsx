@@ -31,6 +31,7 @@ const CursosRealizados = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [postoMap, setPostoMap] = useState<Record<string, string>>({});
+  const [espMap, setEspMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -42,24 +43,33 @@ const CursosRealizados = () => {
         ]);
         if (cancelled) return;
 
-        const map: Record<string, string> = {};
-        const add = (nome: string, posto: string) => {
+        const pMap: Record<string, string> = {};
+        const eMap: Record<string, string> = {};
+        const addPosto = (nome: string, posto: string) => {
           const key = normalizeName(nome);
           const p = (posto || "").trim();
-          if (key && p && p !== "-" && !map[key]) map[key] = p;
+          if (key && p && p !== "-" && !pMap[key]) pMap[key] = p;
+        };
+        const addEsp = (nome: string, esp: string) => {
+          const key = normalizeName(nome);
+          const e = (esp || "").trim();
+          if (key && e && e !== "-" && !eMap[key]) eMap[key] = e;
         };
 
         const omData = (omRes as any)?.data?.data || [];
-        omData.forEach((it: any) =>
-          add(it?.nome, it?.postoEfe || it?.postoTmft || it?.posto || it?.graduacao),
-        );
+        omData.forEach((it: any) => {
+          addPosto(it?.nome, it?.postoEfe || it?.postoTmft || it?.posto || it?.graduacao);
+          addEsp(it?.nome, it?.corpoEfe || it?.corpoTmft || it?.corpo);
+        });
 
         const pracasData = (pracasRes as any)?.data?.data || [];
-        pracasData.forEach((it: any) =>
-          add(it?.nome, it?.postoEfe || it?.postoTmft || it?.posto || it?.graduacao),
-        );
+        pracasData.forEach((it: any) => {
+          addPosto(it?.nome, it?.postoEfe || it?.postoTmft || it?.posto || it?.graduacao);
+          addEsp(it?.nome, it?.especialidadeEfe || it?.especialidadeTmft || it?.especialidade);
+        });
 
-        setPostoMap(map);
+        setPostoMap(pMap);
+        setEspMap(eMap);
       } catch (e) {
         console.error("Erro ao carregar postos:", e);
       }
@@ -74,8 +84,9 @@ const CursosRealizados = () => {
       cursosRealizados.map((m) => ({
         ...m,
         posto: postoMap[normalizeName(m.nome)] || "",
+        especialidade: espMap[normalizeName(m.nome)] || "",
       })),
-    [postoMap],
+    [postoMap, espMap],
   );
 
   const filtered = useMemo(() => {
