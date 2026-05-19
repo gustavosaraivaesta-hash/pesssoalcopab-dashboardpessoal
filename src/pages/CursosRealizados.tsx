@@ -176,8 +176,9 @@ const CursosRealizados = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[10%]">Posto/Grad.</TableHead>
-                  <TableHead className="w-[26%]">Nome</TableHead>
-                  <TableHead className="w-[8%] text-center">Qtd.</TableHead>
+                  <TableHead className="w-[10%]">Especialidade</TableHead>
+                  <TableHead className="w-[22%]">Nome</TableHead>
+                  <TableHead className="w-[7%] text-center">Qtd.</TableHead>
                   <TableHead>Cursos Realizados</TableHead>
                 </TableRow>
               </TableHeader>
@@ -188,6 +189,15 @@ const CursosRealizados = () => {
                       {m.posto ? (
                         <Badge variant="secondary" className="font-semibold">
                           {m.posto}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="align-top">
+                      {m.especialidade ? (
+                        <Badge variant="outline" className="font-semibold">
+                          {m.especialidade}
                         </Badge>
                       ) : (
                         <span className="text-muted-foreground text-xs">—</span>
