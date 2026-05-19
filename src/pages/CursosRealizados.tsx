@@ -59,7 +59,7 @@ const CursosRealizados = () => {
         const omData = (omRes as any)?.data?.data || [];
         omData.forEach((it: any) => {
           addPosto(it?.nome, it?.postoEfe || it?.postoTmft || it?.posto || it?.graduacao);
-          addEsp(it?.nome, it?.corpoEfe || it?.corpoTmft || it?.corpo);
+          addEsp(it?.nome, it?.quadroEfe || it?.quadroTmft || it?.quadro);
         });
 
         const pracasData = (pracasRes as any)?.data?.data || [];
