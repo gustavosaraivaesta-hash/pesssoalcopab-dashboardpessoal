@@ -193,7 +193,11 @@ const CursosRealizados = () => {
               </TableHeader>
               <TableBody>
                 {filtered.map((m) => (
-                  <TableRow key={m.nome}>
+                  <TableRow
+                    key={m.nome}
+                    className="cursor-pointer"
+                    onClick={() => setSelected(m)}
+                  >
                     <TableCell className="align-top">
                       {m.posto ? (
                         <Badge variant="secondary" className="font-semibold">
@@ -212,7 +216,9 @@ const CursosRealizados = () => {
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="font-medium align-top">{m.nome}</TableCell>
+                    <TableCell className="font-medium align-top text-primary hover:underline">
+                      {m.nome}
+                    </TableCell>
                     <TableCell className="text-center align-top">
                       <Badge variant={m.cursos.length > 0 ? "default" : "secondary"}>
                         {m.cursos.length}
