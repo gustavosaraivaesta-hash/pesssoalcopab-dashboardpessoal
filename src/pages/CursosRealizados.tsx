@@ -58,23 +58,16 @@ const loadMaps = async () => {
 
   const omData = (omRes as any)?.data?.data || [];
   omData.forEach((it: any) => {
-    addPosto(it?.nome, it?.postoEfe || it?.postoTmft || it?.posto || it?.graduacao);
-    addEsp(it?.nome, it?.quadroEfe || it?.quadroTmft || it?.quadro);
+    addPosto(it?.nome, it?.postoEfe);
+    addEsp(it?.nome, it?.quadroEfe);
   });
 
   const pracasData = (pracasRes as any)?.data?.data || [];
   pracasData.forEach((it: any) => {
-    addPosto(it?.nome, it?.postoEfe || it?.postoTmft || it?.posto || it?.graduacao);
-    addEsp(
-      it?.nome,
-      it?.especialidadeEfe ||
-        it?.especialidadeTmft ||
-        it?.especialidade ||
-        it?.quadroEfe ||
-        it?.quadroTmft ||
-        it?.quadro,
-    );
+    addPosto(it?.nome, it?.postoEfe);
+    addEsp(it?.nome, it?.especialidadeEfe);
   });
+
 
   return { pMap, eMap };
 };
