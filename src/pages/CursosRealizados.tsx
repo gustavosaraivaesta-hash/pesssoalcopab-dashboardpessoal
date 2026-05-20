@@ -24,6 +24,7 @@ type PersonnelMapRecord = {
   nome?: string | null;
   postoEfe?: string | null;
   quadroEfe?: string | null;
+  especialidadeEfe?: string | null;
 };
 
 type PersonnelMapResponse = {
@@ -37,6 +38,41 @@ const normalizeName = (s: string) =>
     .replace(/\s+/g, " ")
     .trim()
     .toUpperCase();
+
+// Distância de Levenshtein para tolerar pequenos erros de digitação (ex: OLIVIERA vs OLIVEIRA)
+const levenshtein = (a: string, b: string): number => {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => i);
+  for (let j = 1; j <= b.length; j++) {
+    let prev = dp[0];
+    dp[0] = j;
+    for (let i = 1; i <= a.length; i++) {
+      const tmp = dp[i];
+      dp[i] = Math.min(dp[i] + 1, dp[i - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = tmp;
+    }
+  }
+  return dp[a.length];
+};
+
+const findFuzzyKey = (target: string, keys: string[]): string | null => {
+  if (!target || target.length < 6) return null;
+  const maxAllowed = target.length >= 14 ? 3 : target.length >= 10 ? 2 : 1;
+  let best: string | null = null;
+  let bestDist = Infinity;
+  for (const k of keys) {
+    if (Math.abs(k.length - target.length) > maxAllowed) continue;
+    const d = levenshtein(target, k);
+    if (d < bestDist) {
+      bestDist = d;
+      best = k;
+      if (d === 0) break;
+    }
+  }
+  return bestDist <= maxAllowed ? best : null;
+};
 
 const invokeFunction = async <T,>(name: string, ms = 25000) => {
   return await Promise.race([
