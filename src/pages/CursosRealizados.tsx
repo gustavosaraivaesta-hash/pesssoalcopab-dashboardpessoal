@@ -24,6 +24,7 @@ type PersonnelMapRecord = {
   nome?: string | null;
   postoEfe?: string | null;
   quadroEfe?: string | null;
+  especialidadeEfe?: string | null;
 };
 
 type PersonnelMapResponse = {
@@ -37,6 +38,41 @@ const normalizeName = (s: string) =>
     .replace(/\s+/g, " ")
     .trim()
     .toUpperCase();
+
+// Distância de Levenshtein para tolerar pequenos erros de digitação (ex: OLIVIERA vs OLIVEIRA)
+const levenshtein = (a: string, b: string): number => {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => i);
+  for (let j = 1; j <= b.length; j++) {
+    let prev = dp[0];
+    dp[0] = j;
+    for (let i = 1; i <= a.length; i++) {
+      const tmp = dp[i];
+      dp[i] = Math.min(dp[i] + 1, dp[i - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = tmp;
+    }
+  }
+  return dp[a.length];
+};
+
+const findFuzzyKey = (target: string, keys: string[]): string | null => {
+  if (!target || target.length < 6) return null;
+  const maxAllowed = target.length >= 14 ? 3 : target.length >= 10 ? 2 : 1;
+  let best: string | null = null;
+  let bestDist = Infinity;
+  for (const k of keys) {
+    if (Math.abs(k.length - target.length) > maxAllowed) continue;
+    const d = levenshtein(target, k);
+    if (d < bestDist) {
+      bestDist = d;
+      best = k;
+      if (d === 0) break;
+    }
+  }
+  return bestDist <= maxAllowed ? best : null;
+};
 
 const invokeFunction = async <T,>(name: string, ms = 25000) => {
   return await Promise.race([
@@ -78,12 +114,32 @@ const loadMaps = async () => {
   const pracasData = getRecords(pracasRes);
   pracasData.forEach((it) => {
     addPosto(it?.nome, it?.postoEfe);
-    // Em fetch-pracas-data, o campo efetivo de especialidade é retornado como quadroEfe.
-    addEsp(it?.nome, it?.quadroEfe);
+    // Especialidade EFE para praças; fallback para quadroEfe quando vazia.
+    addEsp(it?.nome, it?.especialidadeEfe || it?.quadroEfe);
   });
 
-
   return { pMap, eMap };
+};
+
+// Resolve posto/especialidade com fallback fuzzy para tolerar pequenos erros de digitação no nome.
+const resolve = (
+  nome: string,
+  pMap: Record<string, string>,
+  eMap: Record<string, string>,
+  cachedKeys?: string[],
+) => {
+  const key = normalizeName(nome);
+  let posto = pMap[key] || "";
+  let especialidade = eMap[key] || "";
+  if (!posto || !especialidade) {
+    const keys = cachedKeys || Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap)]));
+    const alt = findFuzzyKey(key, keys);
+    if (alt) {
+      if (!posto) posto = pMap[alt] || "";
+      if (!especialidade) especialidade = eMap[alt] || "";
+    }
+  }
+  return { posto, especialidade };
 };
 
 const CursosRealizados = () => {
@@ -111,15 +167,13 @@ const CursosRealizados = () => {
     };
   }, []);
 
-  const enriched = useMemo(
-    () =>
-      cursosRealizados.map((m) => ({
-        ...m,
-        posto: postoMap[normalizeName(m.nome)] || "",
-        especialidade: espMap[normalizeName(m.nome)] || "",
-      })),
-    [postoMap, espMap],
-  );
+  const enriched = useMemo(() => {
+    const keys = Array.from(new Set([...Object.keys(postoMap), ...Object.keys(espMap)]));
+    return cursosRealizados.map((m) => {
+      const { posto, especialidade } = resolve(m.nome, postoMap, espMap, keys);
+      return { ...m, posto, especialidade };
+    });
+  }, [postoMap, espMap]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toUpperCase();
@@ -155,11 +209,11 @@ const CursosRealizados = () => {
       }
 
       const q = search.trim().toUpperCase();
-      const list = cursosRealizados.map((m) => ({
-        ...m,
-        posto: pMap[normalizeName(m.nome)] || "",
-        especialidade: eMap[normalizeName(m.nome)] || "",
-      }));
+      const keys = Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap)]));
+      const list = cursosRealizados.map((m) => {
+        const { posto, especialidade } = resolve(m.nome, pMap, eMap, keys);
+        return { ...m, posto, especialidade };
+      });
       const rows = q
         ? list.filter(
             (m) =>
