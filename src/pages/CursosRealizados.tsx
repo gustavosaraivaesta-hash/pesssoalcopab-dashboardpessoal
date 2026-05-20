@@ -20,6 +20,16 @@ type EnrichedMilitar = {
   especialidade: string;
 };
 
+type PersonnelMapRecord = {
+  nome?: string | null;
+  postoEfe?: string | null;
+  quadroEfe?: string | null;
+};
+
+type PersonnelMapResponse = {
+  data?: PersonnelMapRecord[];
+};
+
 const normalizeName = (s: string) =>
   (s || "")
     .normalize("NFD")
@@ -51,21 +61,25 @@ const loadMaps = async () => {
     if (key && e && e !== "-" && !eMap[key]) eMap[key] = e;
   };
 
+  const emptyResponse = { data: null };
+  const getRecords = (res: { data: PersonnelMapResponse | null }) => res.data?.data || [];
+
   const [omRes, pracasRes] = await Promise.all([
-    invokeFunction<any>("fetch-om-data").catch(() => ({ data: null })),
-    invokeFunction<any>("fetch-pracas-data").catch(() => ({ data: null })),
+    invokeFunction<PersonnelMapResponse>("fetch-om-data").catch(() => emptyResponse),
+    invokeFunction<PersonnelMapResponse>("fetch-pracas-data").catch(() => emptyResponse),
   ]);
 
-  const omData = (omRes as any)?.data?.data || [];
-  omData.forEach((it: any) => {
+  const omData = getRecords(omRes);
+  omData.forEach((it) => {
     addPosto(it?.nome, it?.postoEfe);
     addEsp(it?.nome, it?.quadroEfe);
   });
 
-  const pracasData = (pracasRes as any)?.data?.data || [];
-  pracasData.forEach((it: any) => {
+  const pracasData = getRecords(pracasRes);
+  pracasData.forEach((it) => {
     addPosto(it?.nome, it?.postoEfe);
-    addEsp(it?.nome, it?.especialidadeEfe);
+    // Em fetch-pracas-data, o campo efetivo de especialidade é retornado como quadroEfe.
+    addEsp(it?.nome, it?.quadroEfe);
   });
 
 
