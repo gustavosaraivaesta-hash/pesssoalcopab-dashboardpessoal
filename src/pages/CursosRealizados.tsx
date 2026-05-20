@@ -209,11 +209,11 @@ const CursosRealizados = () => {
       }
 
       const q = search.trim().toUpperCase();
-      const list = cursosRealizados.map((m) => ({
-        ...m,
-        posto: pMap[normalizeName(m.nome)] || "",
-        especialidade: eMap[normalizeName(m.nome)] || "",
-      }));
+      const keys = Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap)]));
+      const list = cursosRealizados.map((m) => {
+        const { posto, especialidade } = resolve(m.nome, pMap, eMap, keys);
+        return { ...m, posto, especialidade };
+      });
       const rows = q
         ? list.filter(
             (m) =>
