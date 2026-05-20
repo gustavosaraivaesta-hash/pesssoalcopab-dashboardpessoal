@@ -65,7 +65,15 @@ const loadMaps = async () => {
   const pracasData = (pracasRes as any)?.data?.data || [];
   pracasData.forEach((it: any) => {
     addPosto(it?.nome, it?.postoEfe || it?.postoTmft || it?.posto || it?.graduacao);
-    addEsp(it?.nome, it?.especialidadeEfe || it?.especialidadeTmft || it?.especialidade);
+    addEsp(
+      it?.nome,
+      it?.especialidadeEfe ||
+        it?.especialidadeTmft ||
+        it?.especialidade ||
+        it?.quadroEfe ||
+        it?.quadroTmft ||
+        it?.quadro,
+    );
   });
 
   return { pMap, eMap };
@@ -261,7 +269,7 @@ const CursosRealizados = () => {
             <div className="flex items-center gap-2">
               <Search size={18} className="text-muted-foreground" />
               <Input
-                placeholder="Buscar por nome, posto ou curso..."
+                placeholder="Buscar por nome, posto/grad., especialidade/quadro ou curso..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="max-w-md"
@@ -276,7 +284,7 @@ const CursosRealizados = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[10%]">Posto/Grad.</TableHead>
-                  <TableHead className="w-[10%]">Especialidade</TableHead>
+                  <TableHead className="w-[10%]">Especialidade/Quadro</TableHead>
                   <TableHead className="w-[22%]">Nome</TableHead>
                   <TableHead className="w-[7%] text-center">Qtd.</TableHead>
                   <TableHead>Cursos Realizados</TableHead>
