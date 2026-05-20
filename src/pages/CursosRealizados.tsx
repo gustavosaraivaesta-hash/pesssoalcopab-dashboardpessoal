@@ -65,7 +65,8 @@ const loadMaps = async () => {
   const pracasData = (pracasRes as any)?.data?.data || [];
   pracasData.forEach((it: any) => {
     addPosto(it?.nome, it?.postoEfe);
-    addEsp(it?.nome, it?.especialidadeEfe);
+    // Em fetch-pracas-data, o campo efetivo de especialidade é retornado como quadroEfe.
+    addEsp(it?.nome, it?.quadroEfe);
   });
 
 
