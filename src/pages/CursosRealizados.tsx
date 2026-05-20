@@ -114,12 +114,32 @@ const loadMaps = async () => {
   const pracasData = getRecords(pracasRes);
   pracasData.forEach((it) => {
     addPosto(it?.nome, it?.postoEfe);
-    // Em fetch-pracas-data, o campo efetivo de especialidade é retornado como quadroEfe.
-    addEsp(it?.nome, it?.quadroEfe);
+    // Especialidade EFE para praças; fallback para quadroEfe quando vazia.
+    addEsp(it?.nome, it?.especialidadeEfe || it?.quadroEfe);
   });
 
-
   return { pMap, eMap };
+};
+
+// Resolve posto/especialidade com fallback fuzzy para tolerar pequenos erros de digitação no nome.
+const resolve = (
+  nome: string,
+  pMap: Record<string, string>,
+  eMap: Record<string, string>,
+  cachedKeys?: string[],
+) => {
+  const key = normalizeName(nome);
+  let posto = pMap[key] || "";
+  let especialidade = eMap[key] || "";
+  if (!posto || !especialidade) {
+    const keys = cachedKeys || Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap)]));
+    const alt = findFuzzyKey(key, keys);
+    if (alt) {
+      if (!posto) posto = pMap[alt] || "";
+      if (!especialidade) especialidade = eMap[alt] || "";
+    }
+  }
+  return { posto, especialidade };
 };
 
 const CursosRealizados = () => {
