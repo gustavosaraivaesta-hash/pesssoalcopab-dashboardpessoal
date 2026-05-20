@@ -119,6 +119,48 @@ const CursosRealizados = () => {
     return { totalMilitares, totalCursos, semCursos };
   }, []);
 
+  const exportPDF = () => {
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    doc.setFontSize(14);
+    doc.text("Cursos Realizados — COPAB", pageWidth / 2, 12, { align: "center" });
+    doc.setFontSize(9);
+    doc.text(
+      `Militares: ${totals.totalMilitares}   |   Total de Cursos: ${totals.totalCursos}   |   Sem cursos: ${totals.semCursos}`,
+      pageWidth / 2,
+      18,
+      { align: "center" },
+    );
+
+    autoTable(doc, {
+      startY: 24,
+      head: [["Posto/Grad.", "Especialidade", "Nome", "Qtd.", "Cursos Realizados"]],
+      body: filtered.map((m) => [
+        m.posto || "—",
+        m.especialidade || "—",
+        m.nome,
+        String(m.cursos.length),
+        m.cursos.length ? m.cursos.join(" • ") : "Sem cursos registrados",
+      ]),
+      styles: { fontSize: 8, cellPadding: 2, valign: "top", overflow: "linebreak" },
+      headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: "bold" },
+      columnStyles: {
+        0: { cellWidth: 22 },
+        1: { cellWidth: 26 },
+        2: { cellWidth: 60 },
+        3: { cellWidth: 12, halign: "center" },
+        4: { cellWidth: "auto" },
+      },
+      didDrawPage: () => {
+        const str = `Página ${doc.getNumberOfPages()}`;
+        doc.setFontSize(8);
+        doc.text(str, pageWidth - 14, doc.internal.pageSize.getHeight() - 6, { align: "right" });
+      },
+    });
+
+    doc.save("cursos-realizados-copab.pdf");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
