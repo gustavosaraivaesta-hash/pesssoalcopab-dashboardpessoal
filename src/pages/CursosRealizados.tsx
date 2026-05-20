@@ -167,15 +167,13 @@ const CursosRealizados = () => {
     };
   }, []);
 
-  const enriched = useMemo(
-    () =>
-      cursosRealizados.map((m) => ({
-        ...m,
-        posto: postoMap[normalizeName(m.nome)] || "",
-        especialidade: espMap[normalizeName(m.nome)] || "",
-      })),
-    [postoMap, espMap],
-  );
+  const enriched = useMemo(() => {
+    const keys = Array.from(new Set([...Object.keys(postoMap), ...Object.keys(espMap)]));
+    return cursosRealizados.map((m) => {
+      const { posto, especialidade } = resolve(m.nome, postoMap, espMap, keys);
+      return { ...m, posto, especialidade };
+    });
+  }, [postoMap, espMap]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toUpperCase();
