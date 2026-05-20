@@ -37,48 +37,54 @@ const invokeFunction = async <T,>(name: string, ms = 25000) => {
   ]);
 };
 
+const loadMaps = async () => {
+  const pMap: Record<string, string> = {};
+  const eMap: Record<string, string> = {};
+  const addPosto = (nome: string, posto: string) => {
+    const key = normalizeName(nome);
+    const p = (posto || "").trim();
+    if (key && p && p !== "-" && !pMap[key]) pMap[key] = p;
+  };
+  const addEsp = (nome: string, esp: string) => {
+    const key = normalizeName(nome);
+    const e = (esp || "").trim();
+    if (key && e && e !== "-" && !eMap[key]) eMap[key] = e;
+  };
+
+  const [omRes, pracasRes] = await Promise.all([
+    invokeFunction<any>("fetch-om-data").catch(() => ({ data: null })),
+    invokeFunction<any>("fetch-pracas-data").catch(() => ({ data: null })),
+  ]);
+
+  const omData = (omRes as any)?.data?.data || [];
+  omData.forEach((it: any) => {
+    addPosto(it?.nome, it?.postoEfe || it?.postoTmft || it?.posto || it?.graduacao);
+    addEsp(it?.nome, it?.quadroEfe || it?.quadroTmft || it?.quadro);
+  });
+
+  const pracasData = (pracasRes as any)?.data?.data || [];
+  pracasData.forEach((it: any) => {
+    addPosto(it?.nome, it?.postoEfe || it?.postoTmft || it?.posto || it?.graduacao);
+    addEsp(it?.nome, it?.especialidadeEfe || it?.especialidadeTmft || it?.especialidade);
+  });
+
+  return { pMap, eMap };
+};
+
 const CursosRealizados = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [postoMap, setPostoMap] = useState<Record<string, string>>({});
   const [espMap, setEspMap] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<EnrichedMilitar | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [omRes, pracasRes] = await Promise.all([
-          invokeFunction<any>("fetch-om-data").catch(() => ({ data: null })),
-          invokeFunction<any>("fetch-pracas-data").catch(() => ({ data: null })),
-        ]);
+        const { pMap, eMap } = await loadMaps();
         if (cancelled) return;
-
-        const pMap: Record<string, string> = {};
-        const eMap: Record<string, string> = {};
-        const addPosto = (nome: string, posto: string) => {
-          const key = normalizeName(nome);
-          const p = (posto || "").trim();
-          if (key && p && p !== "-" && !pMap[key]) pMap[key] = p;
-        };
-        const addEsp = (nome: string, esp: string) => {
-          const key = normalizeName(nome);
-          const e = (esp || "").trim();
-          if (key && e && e !== "-" && !eMap[key]) eMap[key] = e;
-        };
-
-        const omData = (omRes as any)?.data?.data || [];
-        omData.forEach((it: any) => {
-          addPosto(it?.nome, it?.postoEfe || it?.postoTmft || it?.posto || it?.graduacao);
-          addEsp(it?.nome, it?.quadroEfe || it?.quadroTmft || it?.quadro);
-        });
-
-        const pracasData = (pracasRes as any)?.data?.data || [];
-        pracasData.forEach((it: any) => {
-          addPosto(it?.nome, it?.postoEfe || it?.postoTmft || it?.posto || it?.graduacao);
-          addEsp(it?.nome, it?.especialidadeEfe || it?.especialidadeTmft || it?.especialidade);
-        });
-
         setPostoMap(pMap);
         setEspMap(eMap);
       } catch (e) {
@@ -119,46 +125,80 @@ const CursosRealizados = () => {
     return { totalMilitares, totalCursos, semCursos };
   }, []);
 
-  const exportPDF = () => {
-    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    doc.setFontSize(14);
-    doc.text("Cursos Realizados — COPAB", pageWidth / 2, 12, { align: "center" });
-    doc.setFontSize(9);
-    doc.text(
-      `Militares: ${totals.totalMilitares}   |   Total de Cursos: ${totals.totalCursos}   |   Sem cursos: ${totals.semCursos}`,
-      pageWidth / 2,
-      18,
-      { align: "center" },
-    );
+  const exportPDF = async () => {
+    setExporting(true);
+    try {
+      let pMap = postoMap;
+      let eMap = espMap;
+      // Sempre recarrega para garantir dados atualizados no PDF
+      if (Object.keys(pMap).length === 0 || Object.keys(eMap).length === 0) {
+        const fresh = await loadMaps();
+        pMap = fresh.pMap;
+        eMap = fresh.eMap;
+        setPostoMap(pMap);
+        setEspMap(eMap);
+      }
 
-    autoTable(doc, {
-      startY: 24,
-      head: [["Posto/Grad.", "Especialidade", "Nome", "Qtd.", "Cursos Realizados"]],
-      body: filtered.map((m) => [
-        m.posto || "—",
-        m.especialidade || "—",
-        m.nome,
-        String(m.cursos.length),
-        m.cursos.length ? m.cursos.join(" • ") : "Sem cursos registrados",
-      ]),
-      styles: { fontSize: 8, cellPadding: 2, valign: "top", overflow: "linebreak" },
-      headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: "bold" },
-      columnStyles: {
-        0: { cellWidth: 22 },
-        1: { cellWidth: 26 },
-        2: { cellWidth: 60 },
-        3: { cellWidth: 12, halign: "center" },
-        4: { cellWidth: "auto" },
-      },
-      didDrawPage: () => {
-        const str = `Página ${doc.getNumberOfPages()}`;
-        doc.setFontSize(8);
-        doc.text(str, pageWidth - 14, doc.internal.pageSize.getHeight() - 6, { align: "right" });
-      },
-    });
+      const q = search.trim().toUpperCase();
+      const list = cursosRealizados.map((m) => ({
+        ...m,
+        posto: pMap[normalizeName(m.nome)] || "",
+        especialidade: eMap[normalizeName(m.nome)] || "",
+      }));
+      const rows = q
+        ? list.filter(
+            (m) =>
+              m.nome.toUpperCase().includes(q) ||
+              m.posto.toUpperCase().includes(q) ||
+              m.especialidade.toUpperCase().includes(q) ||
+              m.cursos.some((c) => c.toUpperCase().includes(q)),
+          )
+        : list;
 
-    doc.save("cursos-realizados-copab.pdf");
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      doc.setFontSize(14);
+      doc.text("Cursos Realizados — COPAB", pageWidth / 2, 12, { align: "center" });
+      doc.setFontSize(9);
+      doc.text(
+        `Militares: ${totals.totalMilitares}   |   Total de Cursos: ${totals.totalCursos}   |   Sem cursos: ${totals.semCursos}`,
+        pageWidth / 2,
+        18,
+        { align: "center" },
+      );
+
+      autoTable(doc, {
+        startY: 24,
+        head: [["Posto/Grad.", "Especialidade/Quadro", "Nome", "Qtd.", "Cursos Realizados"]],
+        body: rows.map((m) => [
+          m.posto || "—",
+          m.especialidade || "—",
+          m.nome,
+          String(m.cursos.length),
+          m.cursos.length ? m.cursos.join(" • ") : "Sem cursos registrados",
+        ]),
+        styles: { fontSize: 8, cellPadding: 2, valign: "top", overflow: "linebreak" },
+        headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: "bold" },
+        columnStyles: {
+          0: { cellWidth: 28 },
+          1: { cellWidth: 34 },
+          2: { cellWidth: 65 },
+          3: { cellWidth: 12, halign: "center" },
+          4: { cellWidth: "auto" },
+        },
+        didDrawPage: () => {
+          const str = `Página ${doc.getNumberOfPages()}`;
+          doc.setFontSize(8);
+          doc.text(str, pageWidth - 14, doc.internal.pageSize.getHeight() - 6, { align: "right" });
+        },
+      });
+
+      doc.save("cursos-realizados-copab.pdf");
+    } catch (e) {
+      console.error("Erro ao exportar PDF:", e);
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
