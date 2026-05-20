@@ -220,8 +220,8 @@ const CursosRealizados = () => {
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         <div className="flex justify-end">
-          <Button onClick={exportPDF} size="sm">
-            <FileDown size={16} className="mr-1" /> Exportar PDF
+          <Button onClick={exportPDF} size="sm" disabled={exporting}>
+            <FileDown size={16} className="mr-1" /> {exporting ? "Gerando..." : "Exportar PDF"}
           </Button>
         </div>
 
