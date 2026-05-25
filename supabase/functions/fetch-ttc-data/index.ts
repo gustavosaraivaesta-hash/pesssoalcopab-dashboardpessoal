@@ -544,6 +544,34 @@ serve(async (req) => {
           console.log(`${p.sheet.om}: ${p.nomeCompleto} -> dataLimite=${dataLimite} (${dataLimiteTipo}), faltante=${tempoFaltante}`);
         }
         
+        // Fallback: if main row termino/periodoInicio is empty, derive from contracts
+        let effInicio = p.periodoInicio;
+        let effTermino = p.termino;
+        if (!p.isVaga) {
+          const cData = contractRows.get(p.nomeCompleto.toUpperCase());
+          if (cData) {
+            // Latest valid final
+            let latestFim: Date | null = null;
+            let latestFimStr = '';
+            let earliestIni: Date | null = null;
+            let earliestIniStr = '';
+            for (let c = 0; c < cData.iniciais.length; c++) {
+              const ini = parseDate(cData.iniciais[c]);
+              const fim = parseDate(cData.finais[c]);
+              if (fim && (!latestFim || fim > latestFim)) {
+                latestFim = fim;
+                latestFimStr = cData.finais[c];
+              }
+              if (ini && (!earliestIni || ini < earliestIni)) {
+                earliestIni = ini;
+                earliestIniStr = cData.iniciais[c];
+              }
+            }
+            if (!effTermino && latestFimStr) effTermino = latestFimStr;
+            if (!effInicio && earliestIniStr) effInicio = earliestIniStr;
+          }
+        }
+
         transformedData.push({
           id: `TTC-${p.omFromCell || p.sheet.om}-${p.i + 1}`,
           numero: p.numero,
@@ -554,8 +582,8 @@ serve(async (req) => {
           area: p.area,
           neo: p.neo,
           tarefaDesignada: p.tarefaDesignada,
-          periodoInicio: p.periodoInicio,
-          termino: p.termino,
+          periodoInicio: effInicio,
+          termino: effTermino,
           qtdRenovacoes: p.qtdRenovacoes,
           portariaAtual: p.portariaAtual,
           isVaga: p.isVaga,
