@@ -544,42 +544,32 @@ serve(async (req) => {
           console.log(`${p.sheet.om}: ${p.nomeCompleto} -> dataLimite=${dataLimite} (${dataLimiteTipo}), faltante=${tempoFaltante}`);
         }
         
-        // Derive termino/periodoInicio do CONTRATO VIGENTE (próximo término futuro)
-        // Se não houver contrato futuro, usa o mais recente. Garante que militares
-        // com múltiplos contratos apareçam nos filtros de período corretamente.
+        // Derive termino/periodoInicio do ÚLTIMO contrato programado (maior "fim").
+        // Assim, militares com renovações futuras (ex.: até 2028) não aparecem
+        // indevidamente em filtros com cutoff anterior ao último término.
         let effInicio = p.periodoInicio;
         let effTermino = p.termino;
         if (!p.isVaga) {
           const cData = contractRows.get(p.nomeCompleto.toUpperCase());
           if (cData) {
-            const now = new Date();
-            let currentFimStr = '';
-            let currentIniStr = '';
-            let currentFim: Date | null = null;
             let latestFim: Date | null = null;
             let latestFimStr = '';
-            let latestIniStr = '';
+            let earliestIni: Date | null = null;
+            let earliestIniStr = '';
             for (let c = 0; c < cData.iniciais.length; c++) {
               const ini = parseDate(cData.iniciais[c]);
               const fim = parseDate(cData.finais[c]);
-              if (!fim) continue;
-              // Contrato vigente = menor "fim" que ainda não passou
-              if (fim >= now && (!currentFim || fim < currentFim)) {
-                currentFim = fim;
-                currentFimStr = cData.finais[c];
-                currentIniStr = cData.iniciais[c] || '';
-              }
-              if (!latestFim || fim > latestFim) {
+              if (fim && (!latestFim || fim > latestFim)) {
                 latestFim = fim;
                 latestFimStr = cData.finais[c];
-                latestIniStr = cData.iniciais[c] || '';
+              }
+              if (ini && (!earliestIni || ini < earliestIni)) {
+                earliestIni = ini;
+                earliestIniStr = cData.iniciais[c];
               }
             }
-            const chosenFim = currentFimStr || latestFimStr;
-            const chosenIni = currentIniStr || latestIniStr;
-            // Sempre sobrescreve com o contrato vigente, mesmo que main row tenha valor
-            if (chosenFim) effTermino = chosenFim;
-            if (chosenIni) effInicio = chosenIni;
+            if (latestFimStr) effTermino = latestFimStr;
+            if (earliestIniStr) effInicio = earliestIniStr;
           }
         }
 
