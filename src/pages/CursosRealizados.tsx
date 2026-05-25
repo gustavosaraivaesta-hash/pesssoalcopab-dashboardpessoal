@@ -152,7 +152,7 @@ const CursosRealizados = () => {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const load = async () => {
       try {
         const { pMap, eMap } = await loadMaps();
         if (cancelled) return;
@@ -161,9 +161,26 @@ const CursosRealizados = () => {
       } catch (e) {
         console.error("Erro ao carregar postos:", e);
       }
-    })();
+    };
+    load();
+
+    // Recarrega quando há mudanças (aprovação de solicitação, etc.)
+    const handleRefresh = () => load();
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "data_refresh_requested") load();
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    window.addEventListener("data-refresh", handleRefresh);
+    window.addEventListener("storage", handleStorage);
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
       cancelled = true;
+      window.removeEventListener("data-refresh", handleRefresh);
+      window.removeEventListener("storage", handleStorage);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, []);
 
