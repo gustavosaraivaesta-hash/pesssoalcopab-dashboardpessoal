@@ -149,7 +149,17 @@ const CursosRealizados = () => {
   const [postoMap, setPostoMap] = useState<Record<string, string>>({});
   const [espMap, setEspMap] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<EnrichedMilitar | null>(null);
+  const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
+
+  const toggleName = (nome: string) => {
+    setSelectedNames((prev) => {
+      const next = new Set(prev);
+      if (next.has(nome)) next.delete(nome);
+      else next.add(nome);
+      return next;
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
