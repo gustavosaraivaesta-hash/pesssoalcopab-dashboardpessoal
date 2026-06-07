@@ -242,7 +242,7 @@ const CursosRealizados = () => {
         const { posto, especialidade } = resolve(m.nome, pMap, eMap, keys);
         return { ...m, posto, especialidade };
       });
-      const rows = q
+      const baseRows = q
         ? list.filter(
             (m) =>
               m.nome.toUpperCase().includes(q) ||
@@ -251,6 +251,9 @@ const CursosRealizados = () => {
               m.cursos.some((c) => c.toUpperCase().includes(q)),
           )
         : list;
+      const rows = selectedNames.size > 0
+        ? baseRows.filter((m) => selectedNames.has(m.nome))
+        : baseRows;
 
       const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const pageWidth = doc.internal.pageSize.getWidth();
