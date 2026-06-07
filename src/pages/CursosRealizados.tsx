@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cursosRealizados } from "@/data/cursosRealizados";
@@ -148,7 +149,17 @@ const CursosRealizados = () => {
   const [postoMap, setPostoMap] = useState<Record<string, string>>({});
   const [espMap, setEspMap] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<EnrichedMilitar | null>(null);
+  const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
+
+  const toggleName = (nome: string) => {
+    setSelectedNames((prev) => {
+      const next = new Set(prev);
+      if (next.has(nome)) next.delete(nome);
+      else next.add(nome);
+      return next;
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -231,7 +242,7 @@ const CursosRealizados = () => {
         const { posto, especialidade } = resolve(m.nome, pMap, eMap, keys);
         return { ...m, posto, especialidade };
       });
-      const rows = q
+      const baseRows = q
         ? list.filter(
             (m) =>
               m.nome.toUpperCase().includes(q) ||
@@ -240,6 +251,9 @@ const CursosRealizados = () => {
               m.cursos.some((c) => c.toUpperCase().includes(q)),
           )
         : list;
+      const rows = selectedNames.size > 0
+        ? baseRows.filter((m) => selectedNames.has(m.nome))
+        : baseRows;
 
       const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const pageWidth = doc.internal.pageSize.getWidth();
@@ -305,9 +319,24 @@ const CursosRealizados = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        <div className="flex justify-end">
+        <div className="flex items-center justify-end gap-2 flex-wrap">
+          {selectedNames.size > 0 && (
+            <>
+              <span className="text-sm text-muted-foreground">
+                {selectedNames.size} selecionado(s)
+              </span>
+              <Button variant="outline" size="sm" onClick={() => setSelectedNames(new Set())}>
+                Limpar seleção
+              </Button>
+            </>
+          )}
           <Button onClick={exportPDF} size="sm" disabled={exporting}>
-            <FileDown size={16} className="mr-1" /> {exporting ? "Gerando..." : "Exportar PDF"}
+            <FileDown size={16} className="mr-1" />{" "}
+            {exporting
+              ? "Gerando..."
+              : selectedNames.size > 0
+                ? `Exportar selecionados (${selectedNames.size})`
+                : "Exportar PDF"}
           </Button>
         </div>
 
@@ -361,6 +390,23 @@ const CursosRealizados = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={
+                        filtered.length > 0 &&
+                        filtered.every((m) => selectedNames.has(m.nome))
+                      }
+                      onCheckedChange={(checked) => {
+                        setSelectedNames((prev) => {
+                          const next = new Set(prev);
+                          if (checked) filtered.forEach((m) => next.add(m.nome));
+                          else filtered.forEach((m) => next.delete(m.nome));
+                          return next;
+                        });
+                      }}
+                      aria-label="Selecionar todos visíveis"
+                    />
+                  </TableHead>
                   <TableHead className="w-[10%]">Posto/Grad.</TableHead>
                   <TableHead className="w-[10%]">Especialidade/Quadro</TableHead>
                   <TableHead className="w-[22%]">Nome</TableHead>
@@ -375,6 +421,16 @@ const CursosRealizados = () => {
                     className="cursor-pointer"
                     onClick={() => setSelected(m)}
                   >
+                    <TableCell
+                      className="align-top"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Checkbox
+                        checked={selectedNames.has(m.nome)}
+                        onCheckedChange={() => toggleName(m.nome)}
+                        aria-label={`Selecionar ${m.nome}`}
+                      />
+                    </TableCell>
                     <TableCell className="align-top">
                       {m.posto ? (
                         <Badge variant="secondary" className="font-semibold">
@@ -420,7 +476,7 @@ const CursosRealizados = () => {
                 ))}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       Nenhum resultado encontrado.
                     </TableCell>
                   </TableRow>
