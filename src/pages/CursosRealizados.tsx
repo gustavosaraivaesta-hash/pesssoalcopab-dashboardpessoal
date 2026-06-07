@@ -390,6 +390,23 @@ const CursosRealizados = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={
+                        filtered.length > 0 &&
+                        filtered.every((m) => selectedNames.has(m.nome))
+                      }
+                      onCheckedChange={(checked) => {
+                        setSelectedNames((prev) => {
+                          const next = new Set(prev);
+                          if (checked) filtered.forEach((m) => next.add(m.nome));
+                          else filtered.forEach((m) => next.delete(m.nome));
+                          return next;
+                        });
+                      }}
+                      aria-label="Selecionar todos visíveis"
+                    />
+                  </TableHead>
                   <TableHead className="w-[10%]">Posto/Grad.</TableHead>
                   <TableHead className="w-[10%]">Especialidade/Quadro</TableHead>
                   <TableHead className="w-[22%]">Nome</TableHead>
@@ -404,6 +421,16 @@ const CursosRealizados = () => {
                     className="cursor-pointer"
                     onClick={() => setSelected(m)}
                   >
+                    <TableCell
+                      className="align-top"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Checkbox
+                        checked={selectedNames.has(m.nome)}
+                        onCheckedChange={() => toggleName(m.nome)}
+                        aria-label={`Selecionar ${m.nome}`}
+                      />
+                    </TableCell>
                     <TableCell className="align-top">
                       {m.posto ? (
                         <Badge variant="secondary" className="font-semibold">
@@ -449,7 +476,7 @@ const CursosRealizados = () => {
                 ))}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       Nenhum resultado encontrado.
                     </TableCell>
                   </TableRow>
