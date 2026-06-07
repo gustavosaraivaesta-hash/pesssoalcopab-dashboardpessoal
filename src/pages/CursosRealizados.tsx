@@ -319,9 +319,24 @@ const CursosRealizados = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        <div className="flex justify-end">
+        <div className="flex items-center justify-end gap-2 flex-wrap">
+          {selectedNames.size > 0 && (
+            <>
+              <span className="text-sm text-muted-foreground">
+                {selectedNames.size} selecionado(s)
+              </span>
+              <Button variant="outline" size="sm" onClick={() => setSelectedNames(new Set())}>
+                Limpar seleção
+              </Button>
+            </>
+          )}
           <Button onClick={exportPDF} size="sm" disabled={exporting}>
-            <FileDown size={16} className="mr-1" /> {exporting ? "Gerando..." : "Exportar PDF"}
+            <FileDown size={16} className="mr-1" />{" "}
+            {exporting
+              ? "Gerando..."
+              : selectedNames.size > 0
+                ? `Exportar selecionados (${selectedNames.size})`
+                : "Exportar PDF"}
           </Button>
         </div>
 
