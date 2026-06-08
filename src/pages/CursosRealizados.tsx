@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cursosRealizados } from "@/data/cursosRealizados";
 import { supabase } from "@/integrations/supabase/client";
+import brasaoRepublica from "@/assets/brasao-republica.png";
+
 
 type EnrichedMilitar = {
   nome: string;
@@ -257,18 +259,59 @@ const CursosRealizados = () => {
 
       const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let yPosition = 20;
+
+      const brasaoImg = new Image();
+      brasaoImg.src = brasaoRepublica;
+      await new Promise((resolve) => {
+        brasaoImg.onload = resolve;
+      });
+
+      // Brasão e título padronizado
+      doc.addImage(brasaoImg, "PNG", (pageWidth - 20) / 2, yPosition, 20, 24);
+      yPosition += 28;
+
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("CENTRO DE OPERAÇÕES DO ABASTECIMENTO", pageWidth / 2, yPosition, { align: "center" });
+      yPosition += 10;
+
       doc.setFontSize(14);
-      doc.text("Cursos Realizados — COPAB", pageWidth / 2, 12, { align: "center" });
-      doc.setFontSize(9);
+      doc.text("Cursos Realizados — COPAB", pageWidth / 2, yPosition, { align: "center" });
+      yPosition += 10;
+
+      // Filtros aplicados
+      if (q || selectedNames.size > 0) {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("Filtros Aplicados:", 14, yPosition);
+        yPosition += 6;
+        doc.setFont("helvetica", "normal");
+        if (q) {
+          doc.text(`Busca: ${q}`, 20, yPosition);
+          yPosition += 6;
+        }
+        if (selectedNames.size > 0) {
+          doc.text(`Selecionados: ${selectedNames.size} militar(es)`, 20, yPosition);
+          yPosition += 6;
+        }
+        yPosition += 4;
+      }
+
+      // Resumo
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
       doc.text(
         `Militares: ${totals.totalMilitares}   |   Total de Cursos: ${totals.totalCursos}   |   Sem cursos: ${totals.semCursos}`,
         pageWidth / 2,
-        18,
+        yPosition,
         { align: "center" },
       );
+      yPosition += 10;
 
       autoTable(doc, {
-        startY: 24,
+        startY: yPosition,
         head: [["Posto/Grad.", "Especialidade/Quadro", "Nome", "Qtd.", "Cursos Realizados"]],
         body: rows.map((m) => [
           m.posto || "—",
@@ -277,8 +320,11 @@ const CursosRealizados = () => {
           String(m.cursos.length),
           m.cursos.length ? m.cursos.join(" • ") : "Sem cursos registrados",
         ]),
-        styles: { fontSize: 8, cellPadding: 2, valign: "top", overflow: "linebreak" },
+        theme: "grid",
+        styles: { fontSize: 9, cellPadding: 3, valign: "top", overflow: "linebreak" },
         headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: "bold" },
+        bodyStyles: { fontStyle: "normal" },
+        margin: { left: 14, right: 14 },
         columnStyles: {
           0: { cellWidth: 28 },
           1: { cellWidth: 34 },
@@ -289,7 +335,8 @@ const CursosRealizados = () => {
         didDrawPage: () => {
           const str = `Página ${doc.getNumberOfPages()}`;
           doc.setFontSize(8);
-          doc.text(str, pageWidth - 14, doc.internal.pageSize.getHeight() - 6, { align: "right" });
+          doc.setFont("helvetica", "normal");
+          doc.text(str, pageWidth - 14, pageHeight - 10, { align: "right" });
         },
       });
 
