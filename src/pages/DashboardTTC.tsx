@@ -650,25 +650,25 @@ const DashboardTTC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
+              <div className="w-full overflow-x-auto text-[11px] [&_th]:px-1.5 [&_th]:py-2 [&_th]:text-[10px] [&_th]:leading-tight [&_th]:align-top [&_th]:whitespace-normal [&_td]:px-1.5 [&_td]:py-1.5 [&_td]:text-[11px] [&_td]:leading-tight [&_td]:break-words">
+                <Table className="w-full table-fixed">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-12">#</TableHead>
-                      <TableHead>OM</TableHead>
-                      <TableHead>Militar</TableHead>
-                      <TableHead>NEO</TableHead>
-                      <TableHead>EFE</TableHead>
-                      <TableHead>Idade</TableHead>
-                      <TableHead>Área</TableHead>
-                      <TableHead className="min-w-[200px]">Tarefa Designada</TableHead>
-                      <TableHead>Início</TableHead>
-                      <TableHead>Término</TableHead>
-                      <TableHead>Tempo Restante no Contrato Vigente</TableHead>
-                      <TableHead>Tempo Total de TTC até Hoje</TableHead>
-                      <TableHead>Tempo Faltante (10a)</TableHead>
-                      <TableHead>Data Limite</TableHead>
-                      <TableHead>Portaria Atual</TableHead>
+                      <TableHead className="w-[28px]">#</TableHead>
+                      <TableHead className="w-[60px]">OM</TableHead>
+                      <TableHead className="w-[150px]">Militar</TableHead>
+                      <TableHead className="w-[60px]">NEO</TableHead>
+                      <TableHead className="w-[70px]">EFE</TableHead>
+                      <TableHead className="w-[55px]">Idade</TableHead>
+                      <TableHead className="w-[50px]">Área</TableHead>
+                      <TableHead className="w-[160px]">Tarefa Designada</TableHead>
+                      <TableHead className="w-[70px]">Início</TableHead>
+                      <TableHead className="w-[70px]">Término</TableHead>
+                      <TableHead className="w-[80px]">Tempo Restante Contrato</TableHead>
+                      <TableHead className="w-[75px]">Tempo Total TTC</TableHead>
+                      <TableHead className="w-[75px]">Faltante (10a)</TableHead>
+                      <TableHead className="w-[70px]">Data Limite</TableHead>
+                      <TableHead className="w-[80px]">Portaria</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
