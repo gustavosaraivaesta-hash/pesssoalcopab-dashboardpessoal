@@ -19,7 +19,6 @@ const TTCTableRow = React.memo(({ row }: TTCTableRowProps) => {
     <TableRow
       className={`${row.isVaga ? "bg-red-100 dark:bg-red-950/40 border-l-4 border-l-red-500" : ""} ${isDifferentNeoEfe ? "bg-amber-50/80 dark:bg-amber-950/30" : ""}`}
     >
-      <TableCell className={`font-medium ${row.isVaga ? "text-red-600 font-bold" : ""}`}>{row.numero}</TableCell>
       <TableCell>
         <Badge variant={row.isVaga ? "destructive" : "outline"} className={row.isVaga ? "bg-red-500" : ""}>
           {row.om}

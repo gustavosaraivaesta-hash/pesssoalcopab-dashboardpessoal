@@ -654,21 +654,20 @@ const DashboardTTC = () => {
                 <Table className="w-full table-fixed">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[28px]">#</TableHead>
-                      <TableHead className="w-[60px]">OM</TableHead>
-                      <TableHead className="w-[150px]">Militar</TableHead>
-                      <TableHead className="w-[60px]">NEO</TableHead>
-                      <TableHead className="w-[70px]">EFE</TableHead>
-                      <TableHead className="w-[55px]">Idade</TableHead>
-                      <TableHead className="w-[50px]">Área</TableHead>
-                      <TableHead className="w-[160px]">Tarefa Designada</TableHead>
-                      <TableHead className="w-[70px]">Início</TableHead>
-                      <TableHead className="w-[70px]">Término</TableHead>
-                      <TableHead className="w-[80px]">Tempo Restante Contrato</TableHead>
-                      <TableHead className="w-[75px]">Tempo Total TTC</TableHead>
-                      <TableHead className="w-[75px]">Faltante (10a)</TableHead>
-                      <TableHead className="w-[70px]">Data Limite</TableHead>
-                      <TableHead className="w-[80px]">Portaria</TableHead>
+                      <TableHead className="w-[65px]">OM</TableHead>
+                      <TableHead className="w-[160px]">Militar</TableHead>
+                      <TableHead className="w-[65px]">NEO</TableHead>
+                      <TableHead className="w-[75px]">EFE</TableHead>
+                      <TableHead className="w-[60px]">Idade</TableHead>
+                      <TableHead className="w-[55px]">Área</TableHead>
+                      <TableHead className="w-[170px]">Tarefa Designada</TableHead>
+                      <TableHead className="w-[72px]">Início</TableHead>
+                      <TableHead className="w-[72px]">Término</TableHead>
+                      <TableHead className="w-[85px]">Tempo Restante Contrato</TableHead>
+                      <TableHead className="w-[80px]">Tempo Total TTC</TableHead>
+                      <TableHead className="w-[80px]">Faltante (10a)</TableHead>
+                      <TableHead className="w-[72px]">Data Limite</TableHead>
+                      <TableHead className="w-[85px]">Portaria</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -677,7 +676,7 @@ const DashboardTTC = () => {
                     ))}
                     {filteredData.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={16} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={15} className="text-center py-8 text-muted-foreground">
                           Nenhum registro encontrado
                         </TableCell>
                       </TableRow>
