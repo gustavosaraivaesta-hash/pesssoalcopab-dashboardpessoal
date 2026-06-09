@@ -143,7 +143,7 @@ export const formatMilitarName = (graduacao: string, espQuadro: string, nomeComp
   const grad = (graduacao || '').trim().toUpperCase();
   const esp = (espQuadro || '').trim().toUpperCase();
   const nome = nomeCompleto || '';
-  const invalidEsp = ["", "-", "QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN", "PL"];
+  const invalidEsp = ["", "-", "QPA", "CPA", "QAP", "CAP", "CAM", "PRM", "CPRM", "QFN", "CFN", "PL"];
   const isValidEsp = !invalidEsp.includes(esp);
   if (!grad) return nome;
   return `${grad}${isValidEsp ? `-${esp}` : ""} ${nome}`;
