@@ -11,8 +11,6 @@ interface TTCTableRowProps {
 
 const TTCTableRow = React.memo(({ row }: TTCTableRowProps) => {
   const neoNormalized = row.neo?.trim().toUpperCase() || '';
-  const efeNormalized = row.espQuadro?.trim().toUpperCase() || '';
-  // Em TTC, não há divergência de especialidade — a posição é TTC independente do quadro
   const isDifferentNeoEfe = false;
 
   return (
@@ -36,11 +34,6 @@ const TTCTableRow = React.memo(({ row }: TTCTableRowProps) => {
       <TableCell className="text-sm">
         <Badge variant={isDifferentNeoEfe ? "default" : "outline"} className={isDifferentNeoEfe ? "bg-blue-500" : ""}>
           {row.neo}
-        </Badge>
-      </TableCell>
-      <TableCell className="text-sm">
-        <Badge variant={isDifferentNeoEfe ? "default" : "outline"}>
-          {row.espQuadro || "-"}
         </Badge>
       </TableCell>
       <TableCell className="text-sm">{calcularIdadeAtual(row.idade)}</TableCell>
