@@ -2796,8 +2796,8 @@ const DashboardOM = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b bg-card p-6">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <div className="border-b bg-card px-6 py-6">
+        <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
             <Button onClick={() => navigate("/")} variant="outline" size="sm">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -2835,7 +2835,7 @@ const DashboardOM = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="px-6 py-6 space-y-6">
         {/* Top Filters */}
         <Card className="p-4 bg-card">
           <div className="space-y-4">
