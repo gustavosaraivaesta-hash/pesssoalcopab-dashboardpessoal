@@ -166,6 +166,7 @@ const normalizeOpcao = (opcao: string | undefined | null): string => {
   const val = (opcao || "").trim().toUpperCase();
   if (!val || val === "-") return "CARREIRA";
   if (val === "RM1" || val === "RM-1") return "TTC";
+  if (val === "RM2" || val === "RM-2") return "RM-2";
   return val;
 };
 
