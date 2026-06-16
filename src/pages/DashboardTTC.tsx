@@ -45,6 +45,7 @@ const DashboardTTC = () => {
   const [filterDataTerminoFrom, setFilterDataTerminoFrom] = useState<Date | undefined>(undefined);
   const [filterDataTerminoTo, setFilterDataTerminoTo] = useState<Date | undefined>(undefined);
   const [selectedMonth, setSelectedMonth] = useState<{ mes: string; militares: TTCData[] } | null>(null);
+  const [selectedMilitar, setSelectedMilitar] = useState<TTCData | null>(null);
 
   const isOnline = useOnlineStatus();
 
