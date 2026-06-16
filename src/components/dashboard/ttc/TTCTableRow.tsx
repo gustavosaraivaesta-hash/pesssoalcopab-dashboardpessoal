@@ -7,15 +7,19 @@ import { calcularIdadeAtual, calcularTempoRestante, getTempoFaltanteStatus, form
 
 interface TTCTableRowProps {
   row: TTCData;
+  onSelect?: (row: TTCData) => void;
 }
 
-const TTCTableRow = React.memo(({ row }: TTCTableRowProps) => {
+const TTCTableRow = React.memo(({ row, onSelect }: TTCTableRowProps) => {
   const neoNormalized = row.neo?.trim().toUpperCase() || '';
   const isDifferentNeoEfe = false;
 
+  const handleClick = () => onSelect?.(row);
+
   return (
     <TableRow
-      className={`${row.isVaga ? "bg-red-100 dark:bg-red-950/40 border-l-4 border-l-red-500" : ""} ${isDifferentNeoEfe ? "bg-amber-50/80 dark:bg-amber-950/30" : ""}`}
+      onClick={handleClick}
+      className={`cursor-pointer hover:bg-muted/60 transition-colors ${row.isVaga ? "bg-red-100 dark:bg-red-950/40 border-l-4 border-l-red-500" : ""} ${isDifferentNeoEfe ? "bg-amber-50/80 dark:bg-amber-950/30" : ""}`}
     >
       <TableCell>
         <Badge variant={row.isVaga ? "destructive" : "outline"} className={row.isVaga ? "bg-red-500" : ""}>
@@ -24,9 +28,9 @@ const TTCTableRow = React.memo(({ row }: TTCTableRowProps) => {
       </TableCell>
       <TableCell className="font-medium">
         {row.isVaga ? (
-          <span className="text-red-600 font-bold italic">VAGO</span>
+          <span className="text-red-600 font-bold italic underline-offset-2 hover:underline">VAGO</span>
         ) : (
-          <span className={isDifferentNeoEfe ? "text-amber-700 dark:text-amber-400 font-semibold" : ""}>
+          <span className={`underline-offset-2 hover:underline ${isDifferentNeoEfe ? "text-amber-700 dark:text-amber-400 font-semibold" : "text-primary"}`}>
             {formatMilitarName(row.graduacao, row.espQuadro, row.nomeCompleto)}
           </span>
         )}

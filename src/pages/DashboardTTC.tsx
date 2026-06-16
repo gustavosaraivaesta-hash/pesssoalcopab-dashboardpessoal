@@ -23,6 +23,7 @@ import { parseDataFlexivel, calcularTempoRestante, isOficial, getGradIndex, calc
 import { isBefore, isAfter } from "date-fns";
 import MultiSelectFilter from "@/components/dashboard/ttc/MultiSelectFilter";
 import TTCTableRow from "@/components/dashboard/ttc/TTCTableRow";
+import TTCMilitarDetailDialog from "@/components/dashboard/ttc/TTCMilitarDetailDialog";
 
 const DashboardTTC = () => {
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ const DashboardTTC = () => {
   const [filterDataTerminoFrom, setFilterDataTerminoFrom] = useState<Date | undefined>(undefined);
   const [filterDataTerminoTo, setFilterDataTerminoTo] = useState<Date | undefined>(undefined);
   const [selectedMonth, setSelectedMonth] = useState<{ mes: string; militares: TTCData[] } | null>(null);
+  const [selectedMilitar, setSelectedMilitar] = useState<TTCData | null>(null);
 
   const isOnline = useOnlineStatus();
 
@@ -671,7 +673,7 @@ const DashboardTTC = () => {
                   </TableHeader>
                   <TableBody>
                     {sortedData.map(row => (
-                      <TTCTableRow key={row.id} row={row} />
+                      <TTCTableRow key={row.id} row={row} onSelect={setSelectedMilitar} />
                     ))}
                     {filteredData.length === 0 && (
                       <TableRow>
@@ -685,6 +687,12 @@ const DashboardTTC = () => {
               </div>
             </CardContent>
           </Card>
+
+          <TTCMilitarDetailDialog
+            militar={selectedMilitar}
+            open={!!selectedMilitar}
+            onOpenChange={(o) => !o && setSelectedMilitar(null)}
+          />
         </main>
       </div>
     </div>
