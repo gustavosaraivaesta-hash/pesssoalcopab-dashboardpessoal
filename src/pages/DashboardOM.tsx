@@ -279,8 +279,17 @@ const DashboardOM = () => {
     setAvailableOMs(getAvailableOMsForUser(oms as string[]));
     setAvailableQuadros((rawResult.quadros || []).filter((q: string) => q && q.trim() !== "" && q !== "-"));
     // Extrair postos disponíveis (postoEfe) para oficiais
+    const normalizePostoFilter = (posto: string) => {
+      if (posto === "1TEN") return "1T";
+      if (posto === "2TEN") return "2T";
+      return posto;
+    };
     const postosFromData = [
-      ...new Set(data.map((item: any) => item.postoEfe).filter((p: string) => p && p.trim() !== "" && p !== "-")),
+      ...new Set(
+        data
+          .map((item: any) => normalizePostoFilter(item.postoEfe))
+          .filter((p: string) => p && p.trim() !== "" && p !== "-"),
+      ),
     ].sort((a, b) => {
       const order = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM"];
       const indexA = order.indexOf(a);
