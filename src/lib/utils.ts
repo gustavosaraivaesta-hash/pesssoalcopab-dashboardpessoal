@@ -84,11 +84,12 @@ export function formatMilitarNameWithOpcao(
   
   // Determine insert between posto and quadro
   let insert = "";
-  if (o === "TTC") {
-    insert = "RM1";
+  if (o === "TTC" || o === "RM1" || o === "RM-1") {
+    insert = "RM-1";
+  } else if (o === "RM2" || o === "RM-2") {
+    insert = "RM-2";
   } else if (o && o !== "-" && o !== "CARREIRA") {
-    // RM-2 -> RM2, or any other non-standard option
-    insert = o.replace(/^RM-(\d)$/, "RM$1");
+    insert = o;
   }
   // CARREIRA or empty = no insert
   
