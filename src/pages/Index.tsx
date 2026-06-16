@@ -857,7 +857,7 @@ const Index = () => {
 
       {/* Header */}
       <header className="bg-blue-600 text-primary-foreground shadow-elevated relative z-10">
-        <div className="container mx-auto px-4 py-6">
+        <div className="px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Shield size={36} className="text-primary-foreground" />
@@ -986,7 +986,7 @@ const Index = () => {
       </Dialog>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 space-y-6 relative z-10">
+      <main className="px-6 py-8 space-y-6 relative z-10">
         {/* Filtros */}
         <DashboardFilters
           filterOptions={filterOptions}
