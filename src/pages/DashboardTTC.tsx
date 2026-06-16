@@ -673,7 +673,7 @@ const DashboardTTC = () => {
                   </TableHeader>
                   <TableBody>
                     {sortedData.map(row => (
-                      <TTCTableRow key={row.id} row={row} />
+                      <TTCTableRow key={row.id} row={row} onSelect={setSelectedMilitar} />
                     ))}
                     {filteredData.length === 0 && (
                       <TableRow>
