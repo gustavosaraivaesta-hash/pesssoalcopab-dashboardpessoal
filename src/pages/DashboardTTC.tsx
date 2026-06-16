@@ -439,7 +439,7 @@ const DashboardTTC = () => {
       <div className="min-h-screen bg-background/95 backdrop-blur-sm">
         {/* Header */}
         <header className="bg-card/80 backdrop-blur-md border-b sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-3">
+          <div className="px-6 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Button variant="outline" size="sm" onClick={() => navigate("/")}>
@@ -475,7 +475,7 @@ const DashboardTTC = () => {
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-6 space-y-6">
+        <main className="px-6 py-6 space-y-6">
           {/* Filters */}
           <Card className="bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between">
