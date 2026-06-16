@@ -23,6 +23,7 @@ import { parseDataFlexivel, calcularTempoRestante, isOficial, getGradIndex, calc
 import { isBefore, isAfter } from "date-fns";
 import MultiSelectFilter from "@/components/dashboard/ttc/MultiSelectFilter";
 import TTCTableRow from "@/components/dashboard/ttc/TTCTableRow";
+import TTCMilitarDetailDialog from "@/components/dashboard/ttc/TTCMilitarDetailDialog";
 
 const DashboardTTC = () => {
   const navigate = useNavigate();
