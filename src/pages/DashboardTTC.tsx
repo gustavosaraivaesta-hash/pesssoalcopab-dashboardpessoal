@@ -641,32 +641,32 @@ const DashboardTTC = () => {
             </Card>
           </div>
 
-          {/* Data Table */}
-          <Card className="bg-card/80 backdrop-blur-sm">
-            <CardHeader>
+          {/* Data Table - full width breakout */}
+          <Card className="bg-card/80 backdrop-blur-sm relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen rounded-none border-x-0">
+            <CardHeader className="px-4">
               <CardTitle className="text-base flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 Praças TTC ({filteredData.length} registros)
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3">
               <div className="w-full overflow-x-auto text-[11px] [&_th]:px-1.5 [&_th]:py-2 [&_th]:text-[10px] [&_th]:leading-tight [&_th]:align-top [&_th]:whitespace-normal [&_td]:px-1.5 [&_td]:py-1.5 [&_td]:text-[11px] [&_td]:leading-tight [&_td]:break-words">
                 <Table className="w-full table-fixed">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[75px]">OM</TableHead>
-                      <TableHead className="w-[175px]">Militar</TableHead>
-                      <TableHead className="w-[75px]">NEO</TableHead>
-                      <TableHead className="w-[65px]">Idade</TableHead>
-                      <TableHead className="w-[60px]">Área</TableHead>
-                      <TableHead className="w-[185px]">Tarefa Designada</TableHead>
-                      <TableHead className="w-[80px]">Início</TableHead>
-                      <TableHead className="w-[80px]">Término</TableHead>
-                      <TableHead className="w-[95px]">Tempo Restante Contrato</TableHead>
-                      <TableHead className="w-[90px]">Tempo Total TTC</TableHead>
-                      <TableHead className="w-[90px]">Faltante (10a)</TableHead>
+                      <TableHead className="w-[70px]">OM</TableHead>
+                      <TableHead className="w-[210px]">Militar</TableHead>
+                      <TableHead className="w-[70px]">NEO</TableHead>
+                      <TableHead className="w-[60px]">Idade</TableHead>
+                      <TableHead className="w-[55px]">Área</TableHead>
+                      <TableHead className="w-[220px]">Tarefa Designada</TableHead>
+                      <TableHead className="w-[75px]">Início</TableHead>
+                      <TableHead className="w-[75px]">Término</TableHead>
+                      <TableHead className="w-[90px]">Tempo Restante Contrato</TableHead>
+                      <TableHead className="w-[85px]">Tempo Total TTC</TableHead>
+                      <TableHead className="w-[85px]">Faltante (10a)</TableHead>
                       <TableHead className="w-[80px]">Data Limite</TableHead>
-                      <TableHead className="w-[95px]">Portaria</TableHead>
+                      <TableHead className="w-[115px]">Portaria</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -675,7 +675,7 @@ const DashboardTTC = () => {
                     ))}
                     {filteredData.length === 0 && (
                       <TableRow>
-                      <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
                           Nenhum registro encontrado
                         </TableCell>
                       </TableRow>
