@@ -687,6 +687,12 @@ const DashboardTTC = () => {
               </div>
             </CardContent>
           </Card>
+
+          <TTCMilitarDetailDialog
+            militar={selectedMilitar}
+            open={!!selectedMilitar}
+            onOpenChange={(o) => !o && setSelectedMilitar(null)}
+          />
         </main>
       </div>
     </div>
