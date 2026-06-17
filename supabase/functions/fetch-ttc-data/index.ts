@@ -544,18 +544,23 @@ serve(async (req) => {
           console.log(`${p.sheet.om}: ${p.nomeCompleto} -> dataLimite=${dataLimite} (${dataLimiteTipo}), faltante=${tempoFaltante}`);
         }
         
-        // Derive termino/periodoInicio do ÚLTIMO contrato programado (maior "fim").
-        // Assim, militares com renovações futuras (ex.: até 2028) não aparecem
-        // indevidamente em filtros com cutoff anterior ao último término.
+        // Derive termino do ÚLTIMO contrato programado (maior "fim").
+        // periodoInicio = início do CONTRATO ATUAL (vigente), buscado no contrato
+        // cujo período engloba a data de hoje, ou, na ausência, o último contrato
+        // iniciado. Fallback: coluna "Início" da linha principal (cell 10).
         let effInicio = p.periodoInicio;
         let effTermino = p.termino;
         if (!p.isVaga) {
           const cData = contractRows.get(p.nomeCompleto.toUpperCase());
           if (cData) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
             let latestFim: Date | null = null;
             let latestFimStr = '';
-            let earliestIni: Date | null = null;
-            let earliestIniStr = '';
+            let currentIni: Date | null = null;
+            let currentIniStr = '';
+            let latestIni: Date | null = null;
+            let latestIniStr = '';
             for (let c = 0; c < cData.iniciais.length; c++) {
               const ini = parseDate(cData.iniciais[c]);
               const fim = parseDate(cData.finais[c]);
@@ -563,13 +568,22 @@ serve(async (req) => {
                 latestFim = fim;
                 latestFimStr = cData.finais[c];
               }
-              if (ini && (!earliestIni || ini < earliestIni)) {
-                earliestIni = ini;
-                earliestIniStr = cData.iniciais[c];
+              // Contrato vigente: início <= hoje <= fim
+              if (ini && fim && ini <= today && fim >= today) {
+                if (!currentIni || ini > currentIni) {
+                  currentIni = ini;
+                  currentIniStr = cData.iniciais[c];
+                }
+              }
+              // Mais recente (maior início) como fallback
+              if (ini && (!latestIni || ini > latestIni)) {
+                latestIni = ini;
+                latestIniStr = cData.iniciais[c];
               }
             }
             if (latestFimStr) effTermino = latestFimStr;
-            if (earliestIniStr) effInicio = earliestIniStr;
+            if (currentIniStr) effInicio = currentIniStr;
+            else if (latestIniStr) effInicio = latestIniStr;
           }
         }
 
