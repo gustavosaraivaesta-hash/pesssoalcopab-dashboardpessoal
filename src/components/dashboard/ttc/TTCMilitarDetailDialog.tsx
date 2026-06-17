@@ -1,9 +1,14 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { TTCData } from "@/types/ttc";
 import { calcularIdadeAtual, calcularTempoRestante, getTempoFaltanteStatus, formatMilitarName } from "@/lib/ttcUtils";
 import { cn } from "@/lib/utils";
-import { User, Building2, Calendar, Clock, FileText, AlertCircle, Briefcase, Hash } from "lucide-react";
+import { User, Building2, Calendar, Clock, FileText, AlertCircle, Briefcase, Hash, Download } from "lucide-react";
+import { useRef } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { toast } from "sonner";
 
 interface TTCMilitarDetailDialogProps {
   militar: TTCData | null;
@@ -22,6 +27,8 @@ const Field = ({ label, value, icon: Icon, className }: { label: string; value: 
 );
 
 const TTCMilitarDetailDialog = ({ militar, open, onOpenChange }: TTCMilitarDetailDialogProps) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+
   if (!militar) return null;
 
   const tempoRestante = !militar.isVaga ? calcularTempoRestante(militar.termino) : null;
@@ -29,9 +36,45 @@ const TTCMilitarDetailDialog = ({ militar, open, onOpenChange }: TTCMilitarDetai
     ? getTempoFaltanteStatus(militar.tempoFaltante, militar.excedeu10Anos)
     : null;
 
+  const handleExportPDF = async () => {
+    if (!contentRef.current) return;
+    try {
+      toast.loading("Gerando PDF...", { id: "pdf-export" });
+      const canvas = await html2canvas(contentRef.current, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const imgWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = margin;
+      pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight - margin * 2;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight + margin;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight - margin * 2;
+      }
+      const nome = militar.isVaga ? "VAGA" : (militar.nomeCompleto || "militar").replace(/\s+/g, "_");
+      pdf.save(`TTC_${nome}.pdf`);
+      toast.success("PDF gerado com sucesso!", { id: "pdf-export" });
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao gerar PDF", { id: "pdf-export" });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div ref={contentRef}>
         <DialogHeader>
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
@@ -150,6 +193,13 @@ const TTCMilitarDetailDialog = ({ militar, open, onOpenChange }: TTCMilitarDetai
               />
             </div>
           </section>
+        </div>
+        </div>
+        <div className="flex justify-end pt-4 border-t mt-2">
+          <Button onClick={handleExportPDF} size="sm" className="gap-2">
+            <Download className="h-4 w-4" />
+            Exportar PDF
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
