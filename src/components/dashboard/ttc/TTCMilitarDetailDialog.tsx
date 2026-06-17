@@ -76,11 +76,6 @@ const TTCMilitarDetailDialog = ({ militar, open, onOpenChange }: TTCMilitarDetai
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <div ref={contentRef}>
         <DialogHeader>
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
               <DialogTitle className="text-xl flex items-center gap-2">
