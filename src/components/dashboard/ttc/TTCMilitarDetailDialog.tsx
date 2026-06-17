@@ -106,8 +106,7 @@ const TTCMilitarDetailDialog = ({ militar, open, onOpenChange }: TTCMilitarDetai
                   </Badge>
                 ) : "-"}
               />
-              <Field label="Qtd. Renovações" value={String(militar.qtdRenovacoes ?? "-")} />
-              <Field label="Portaria Atual" value={militar.portariaAtual} icon={FileText} className="col-span-2" />
+              <Field label="Portaria Atual" value={militar.portariaAtual} icon={FileText} className="col-span-2 md:col-span-3" />
             </div>
           </section>
 
