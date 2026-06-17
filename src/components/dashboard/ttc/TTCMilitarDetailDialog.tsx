@@ -199,6 +199,13 @@ const TTCMilitarDetailDialog = ({ militar, open, onOpenChange }: TTCMilitarDetai
             </div>
           </section>
         </div>
+        </div>
+        <div className="flex justify-end pt-4 border-t mt-2">
+          <Button onClick={handleExportPDF} size="sm" className="gap-2">
+            <Download className="h-4 w-4" />
+            Exportar PDF
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
