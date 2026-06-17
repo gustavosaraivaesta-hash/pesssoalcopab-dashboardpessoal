@@ -1,9 +1,14 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { TTCData } from "@/types/ttc";
 import { calcularIdadeAtual, calcularTempoRestante, getTempoFaltanteStatus, formatMilitarName } from "@/lib/ttcUtils";
 import { cn } from "@/lib/utils";
-import { User, Building2, Calendar, Clock, FileText, AlertCircle, Briefcase, Hash } from "lucide-react";
+import { User, Building2, Calendar, Clock, FileText, AlertCircle, Briefcase, Hash, Download } from "lucide-react";
+import { useRef } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { toast } from "sonner";
 
 interface TTCMilitarDetailDialogProps {
   militar: TTCData | null;
