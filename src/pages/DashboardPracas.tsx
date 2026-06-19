@@ -25,6 +25,7 @@ import {
   WifiOff,
   ArrowLeft,
   Search,
+  Award,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -2546,7 +2547,7 @@ const DashboardPracas = () => {
         </Card>
 
         {/* Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
           <Card
             className={`bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 border-blue-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${statusFilter === "all" ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
             onClick={() => handleStatusCardClick("all")}
@@ -2727,6 +2728,23 @@ const DashboardPracas = () => {
                         : "text-amber-500"
                   }`}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 border-purple-200 transition-all hover:scale-[1.02] hover:shadow-lg"
+          >
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">DESTAQUES/LICENÇAS</p>
+                  <p className="text-4xl font-bold text-purple-900 dark:text-purple-100">
+                    {filteredDestaquesData.length + filteredLicencasData.length}
+                  </p>
+                  <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">Destaques e Licenças</p>
+                </div>
+                <Award className="h-8 w-8 text-purple-500" />
               </div>
             </CardContent>
           </Card>
