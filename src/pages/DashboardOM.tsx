@@ -801,6 +801,42 @@ const DashboardOM = () => {
     return filtered;
   }, [embarqueData, selectedOMs, selectedQuadros, selectedOpcoes]);
 
+  const filteredLicencasData = useMemo(() => {
+    let filtered = licencasData;
+
+    if (selectedOMs.length > 0) {
+      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
+    }
+
+    if (selectedQuadros.length > 0) {
+      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro));
+    }
+
+    if (selectedOpcoes.length > 0) {
+      filtered = filtered.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
+    }
+
+    return filtered;
+  }, [licencasData, selectedOMs, selectedQuadros, selectedOpcoes]);
+
+  const filteredDestaquesData = useMemo(() => {
+    let filtered = destaquesData;
+
+    if (selectedOMs.length > 0) {
+      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
+    }
+
+    if (selectedQuadros.length > 0) {
+      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro));
+    }
+
+    if (selectedOpcoes.length > 0) {
+      filtered = filtered.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
+    }
+
+    return filtered;
+  }, [destaquesData, selectedOMs, selectedQuadros, selectedOpcoes]);
+
   const chartDataByPosto = useMemo(() => {
     const POSTO_ORDER = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM"];
 
