@@ -620,8 +620,26 @@ const DashboardOM = () => {
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
     const totalExtraLotacao = baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
-    // ATENDIMENTO TOTAL = (Extra Lotação + Efetivo) / TMFT * 100
-    const atendimentoTotal = totalTMFT > 0 ? ((totalExtraLotacao + totalEXI) / totalTMFT) * 100 : 0;
+
+    // Contar DESTAQUES e LICENÇAS com os mesmos filtros
+    let filteredLicencas = licencasData;
+    let filteredDestaques = destaquesData;
+    if (selectedOMs.length > 0) {
+      filteredLicencas = filteredLicencas.filter((item) => selectedOMs.includes(item.om));
+      filteredDestaques = filteredDestaques.filter((item) => selectedOMs.includes(item.om));
+    }
+    if (selectedQuadros.length > 0) {
+      filteredLicencas = filteredLicencas.filter((item) => selectedQuadros.includes(item.quadro));
+      filteredDestaques = filteredDestaques.filter((item) => selectedQuadros.includes(item.quadro));
+    }
+    if (selectedOpcoes.length > 0) {
+      filteredLicencas = filteredLicencas.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
+      filteredDestaques = filteredDestaques.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
+    }
+    const totalLicencasDestaques = filteredLicencas.length + filteredDestaques.length;
+
+    // ATENDIMENTO TOTAL = (Extra Lotação + Efetivo + Destaques/Licenças) / TMFT * 100
+    const atendimentoTotal = totalTMFT > 0 ? ((totalExtraLotacao + totalEXI + totalLicencasDestaques) / totalTMFT) * 100 : 0;
 
     return {
       totalTMFT,
@@ -640,6 +658,8 @@ const DashboardOM = () => {
     selectedOMs,
     selectedOpcoes,
     searchQuery,
+    licencasData,
+    destaquesData,
   ]);
 
   // Calculate the same EFETIVO population used by metrics to ensure NA NEO + FORA DA NEO = EFETIVO
