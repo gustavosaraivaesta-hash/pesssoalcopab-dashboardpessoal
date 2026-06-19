@@ -607,7 +607,29 @@ const DashboardPracas = () => {
       ? baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && matchesEfeFilters(item)).length
       : baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
 
-    const atendimentoTotal = totalTMFT > 0 ? ((totalExtraLotacao + totalEXI) / totalTMFT) * 100 : 0;
+    // Contar DESTAQUES e LICENÇAS com os mesmos filtros
+    let filteredLicencas = licencasData;
+    let filteredDestaques = destaquesData;
+    if (selectedOMs.length > 0) {
+      filteredLicencas = filteredLicencas.filter((item) => selectedOMs.includes(item.om));
+      filteredDestaques = filteredDestaques.filter((item) => selectedOMs.includes(item.om));
+    }
+    if (selectedQuadros.length > 0) {
+      const eqQuadros = expandSpecialtyEquivalents(selectedQuadros);
+      filteredLicencas = filteredLicencas.filter((item) => eqQuadros.includes(item.quadro || "") || eqQuadros.includes(item.especialidade || ""));
+      filteredDestaques = filteredDestaques.filter((item) => eqQuadros.includes(item.quadro || "") || eqQuadros.includes(item.especialidade || ""));
+    }
+    if (selectedGraduacoes.length > 0) {
+      filteredLicencas = filteredLicencas.filter((item) => selectedGraduacoes.includes(item.posto || ""));
+      filteredDestaques = filteredDestaques.filter((item) => selectedGraduacoes.includes(item.posto || ""));
+    }
+    if (selectedOpcoes.length > 0) {
+      filteredLicencas = filteredLicencas.filter((item) => selectedOpcoes.includes(item.opcao || ""));
+      filteredDestaques = filteredDestaques.filter((item) => selectedOpcoes.includes(item.opcao || ""));
+    }
+    const totalLicencasDestaques = filteredLicencas.length + filteredDestaques.length;
+
+    const atendimentoTotal = totalTMFT > 0 ? ((totalExtraLotacao + totalEXI + totalLicencasDestaques) / totalTMFT) * 100 : 0;
 
     // Calculate "Fora da NEO" and "Na NEO" based on EFETIVO
     // FORA DA NEO: quadro TMFT ≠ quadro EFE (when both exist and are meaningful)
@@ -632,7 +654,7 @@ const DashboardPracas = () => {
       foraDaNeo,
       naNeo,
     };
-  }, [baseFilteredData, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
+  }, [baseFilteredData, selectedQuadros, selectedGraduacoes, selectedOpcoes, licencasData, destaquesData, selectedOMs]);
 
   const groupedBySetor = useMemo(() => {
     const groups: Record<string, PersonnelRecord[]> = {};
