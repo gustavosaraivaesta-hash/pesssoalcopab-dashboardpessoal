@@ -2733,7 +2733,8 @@ const DashboardPracas = () => {
           </Card>
 
           <Card
-            className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 border-purple-200 transition-all hover:scale-[1.02] hover:shadow-lg"
+            className={`bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 border-purple-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${activeTab === "licencas" || activeTab === "destaques" ? "ring-2 ring-purple-500 ring-offset-2" : ""}`}
+            onClick={() => setActiveTab((prev) => (prev === "licencas" ? "destaques" : "licencas"))}
           >
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
@@ -2742,7 +2743,9 @@ const DashboardPracas = () => {
                   <p className="text-4xl font-bold text-purple-900 dark:text-purple-100">
                     {filteredDestaquesData.length + filteredLicencasData.length}
                   </p>
-                  <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">Destaques e Licenças</p>
+                  <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                    Clique para alternar entre Licenças e Destaques
+                  </p>
                 </div>
                 <Award className="h-8 w-8 text-purple-500" />
               </div>
