@@ -12,10 +12,37 @@ export function cn(...inputs: ClassValue[]) {
 export function normalizeGraduacao(val: string | undefined | null): string {
   if (!val) return "";
   return String(val)
-    .replace(/^1[º°]SG\b/i, "1SG")
-    .replace(/^2[º°]SG\b/i, "2SG")
-    .replace(/^3[º°]SG\b/i, "3SG");
+    .trim()
+    .replace(/^1\s*[º°]?\s*SG\b/i, "1SG")
+    .replace(/^2\s*[º°]?\s*SG\b/i, "2SG")
+    .replace(/^3\s*[º°]?\s*SG\b/i, "3SG");
 }
+
+const RANK_PATTERN = String.raw`(?:C\s*ALTE|V\s*ALTE|CONTRA-ALMIRANTE|CMG|CF|CC|CT|1TEN|2TEN|1T|2T|GM|SO|[1-3]\s*[º°]?\s*SG|CB|MN)`;
+const RANK_ONLY_RE = new RegExp(`^${RANK_PATTERN}$`, "i");
+const RANK_QUADRO_NAME_RE = new RegExp(`^(${RANK_PATTERN})\s*[-\s]\s*([A-Z]{1,4})(?:\s+(.+))?$`, "i");
+const QUADRO_RANK_QUADRO_NAME_RE = new RegExp(`^[A-Z]{1,4}\s*[-\s]\s*(${RANK_PATTERN})\s*[-\s]\s*([A-Z]{1,4})(?:\s+(.+))?$`, "i");
+
+const normalizeRankValue = (value: string): string => normalizeGraduacao(value).replace(/\s+/g, " ").trim().toUpperCase();
+
+const isRankValue = (value: string): boolean => RANK_ONLY_RE.test(String(value || "").trim());
+
+const formatRankForDisplay = (value: string): string => {
+  const normalized = normalizeRankValue(value);
+  return normalized.replace(/^([1-3])SG$/, "$1° SG");
+};
+
+const parseRankQuadroName = (value: string): { rank: string; quadro: string; nome?: string } | null => {
+  const match = String(value || "").trim().toUpperCase().match(RANK_QUADRO_NAME_RE);
+  if (!match) return null;
+  return { rank: normalizeRankValue(match[1]), quadro: match[2].toUpperCase(), nome: match[3]?.trim() };
+};
+
+const parseQuadroRankQuadroName = (value: string): { rank: string; quadro: string; nome?: string } | null => {
+  const match = String(value || "").trim().toUpperCase().match(QUADRO_RANK_QUADRO_NAME_RE);
+  if (!match) return null;
+  return { rank: normalizeRankValue(match[1]), quadro: match[2].toUpperCase(), nome: match[3]?.trim() };
+};
 
 /**
  * Apply normalizeGraduacao to all known graduation fields on a record (non-mutating).
@@ -36,6 +63,43 @@ export function normalizeGraduacaoFields<T extends Record<string, any>>(items: T
         }
       }
     }
+
+    const fixPostoQuadroPair = (postoField: string, quadroField: string) => {
+      if (typeof out[postoField] !== "string" || typeof out[quadroField] !== "string") return;
+      const posto = out[postoField].trim().toUpperCase();
+      const quadro = out[quadroField].trim().toUpperCase();
+      if (!posto && !quadro) return;
+
+      const parsedFromPosto = parseQuadroRankQuadroName(posto) || parseRankQuadroName(posto);
+      const parsedFromQuadro = parseRankQuadroName(quadro);
+
+      if (parsedFromPosto && !isRankValue(posto)) {
+        out[postoField] = parsedFromPosto.rank;
+        out[quadroField] = parsedFromPosto.quadro;
+        if (parsedFromPosto.nome && (!out.nome || String(out.nome).trim().toUpperCase() === posto)) out.nome = parsedFromPosto.nome;
+        changed = true;
+        return;
+      }
+
+      if (parsedFromQuadro && (!isRankValue(posto) || posto === parsedFromQuadro.quadro)) {
+        out[postoField] = parsedFromQuadro.rank;
+        out[quadroField] = parsedFromQuadro.quadro;
+        if (parsedFromQuadro.nome && (!out.nome || String(out.nome).trim().toUpperCase() === quadro)) out.nome = parsedFromQuadro.nome;
+        changed = true;
+        return;
+      }
+
+      if (!isRankValue(posto) && isRankValue(quadro)) {
+        out[postoField] = normalizeRankValue(quadro);
+        out[quadroField] = posto;
+        changed = true;
+      }
+    };
+
+    fixPostoQuadroPair("postoTmft", "quadroTmft");
+    fixPostoQuadroPair("postoEfe", "quadroEfe");
+    fixPostoQuadroPair("posto", "quadro");
+
     return changed ? out : it;
   });
 }
@@ -80,17 +144,25 @@ export function formatMilitarNameWithOpcao(
 
   // Defensive: posto field sometimes contains the full "QUADRO-RANK-QUADRO NAME"
   // string (data shift in source). Detect and extract real posto.
-  const contaminatedPostoMatch = p.match(/^[A-Z]{1,4}[-\s]+([1-3]\s*[º°]?\s*(?:SG|CB|MN|SO))\b/i);
-  if (contaminatedPostoMatch) {
-    p = contaminatedPostoMatch[1].replace(/\s+/g, "").toUpperCase();
+  const contaminatedPostoMatch = parseQuadroRankQuadroName(p) || parseRankQuadroName(p);
+  if (contaminatedPostoMatch && !isRankValue(p)) {
+    p = contaminatedPostoMatch.rank;
+    q = contaminatedPostoMatch.quadro;
+    if (contaminatedPostoMatch.nome) rawNome = contaminatedPostoMatch.nome;
   }
 
   // Defensive: quadro field sometimes contains the full "RANK-QUADRO NAME" string.
-  const contaminatedQuadroMatch = q.match(/^[1-3]?\s*[º°]?\s*(?:SG|CB|MN|SO|GM|CT|1T|2T|CC|CF|CMG)\s*[-\s]\s*([A-Z]{1,4})\s+(.+)$/i);
+  const contaminatedQuadroMatch = parseRankQuadroName(q);
   if (contaminatedQuadroMatch) {
-    q = contaminatedQuadroMatch[1].toUpperCase();
-    const extractedName = contaminatedQuadroMatch[2].trim();
-    rawNome = extractedName;
+    if (!isRankValue(p) || p === contaminatedQuadroMatch.quadro) p = contaminatedQuadroMatch.rank;
+    q = contaminatedQuadroMatch.quadro;
+    if (contaminatedQuadroMatch.nome) rawNome = contaminatedQuadroMatch.nome;
+  }
+
+  if (!isRankValue(p) && isRankValue(q)) {
+    const originalPosto = p;
+    p = normalizeRankValue(q);
+    q = originalPosto;
   }
 
   // Dedupe name if it contains itself twice (e.g. "NOME COMPLETO NOME COMPLETO")
@@ -110,6 +182,7 @@ export function formatMilitarNameWithOpcao(
   const isValidQuadro = q && q !== "-" && !EXCLUDED_QUADROS_LIST.includes(q) && !(opts?.excludeMNQuadro && p === "MN");
 
   if (!p) return n;
+  const displayPosto = formatRankForDisplay(p);
 
   // Determine insert between posto and quadro
   let insert = "";
@@ -123,9 +196,9 @@ export function formatMilitarNameWithOpcao(
   // CARREIRA or empty = no insert
 
   if (insert) {
-    return `${p}-${insert}${isValidQuadro ? `-${q}` : ""} ${n}`;
+    return `${displayPosto}-${insert}${isValidQuadro ? `-${q}` : ""} ${n}`;
   }
-  return `${p}${isValidQuadro ? `-${q}` : ""} ${n}`;
+  return `${displayPosto}${isValidQuadro ? `-${q}` : ""} ${n}`;
 }
 
 /**
