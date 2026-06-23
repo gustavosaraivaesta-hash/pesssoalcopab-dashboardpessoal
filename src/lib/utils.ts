@@ -73,15 +73,44 @@ export function formatMilitarNameWithOpcao(
   opcao: string,
   opts?: { excludeMNQuadro?: boolean }
 ): string {
-  const p = (posto || "").trim().toUpperCase();
-  const q = (quadro || "").trim().toUpperCase();
-  const n = stripRankPrefixFromName(nome) || "-";
+  let p = (posto || "").trim().toUpperCase();
+  let q = (quadro || "").trim().toUpperCase();
+  let rawNome = (nome || "").trim();
   const o = (opcao || "").trim().toUpperCase();
-  
+
+  // Defensive: posto field sometimes contains the full "QUADRO-RANK-QUADRO NAME"
+  // string (data shift in source). Detect and extract real posto.
+  const contaminatedPostoMatch = p.match(/^[A-Z]{1,4}[-\s]+([1-3]\s*[º°]?\s*(?:SG|CB|MN|SO))\b/i);
+  if (contaminatedPostoMatch) {
+    p = contaminatedPostoMatch[1].replace(/\s+/g, "").toUpperCase();
+  }
+
+  // Defensive: quadro field sometimes contains the full "RANK-QUADRO NAME" string.
+  const contaminatedQuadroMatch = q.match(/^[1-3]?\s*[º°]?\s*(?:SG|CB|MN|SO|GM|CT|1T|2T|CC|CF|CMG)\s*[-\s]\s*([A-Z]{1,4})\s+(.+)$/i);
+  if (contaminatedQuadroMatch) {
+    q = contaminatedQuadroMatch[1].toUpperCase();
+    const extractedName = contaminatedQuadroMatch[2].trim();
+    rawNome = extractedName;
+  }
+
+  // Dedupe name if it contains itself twice (e.g. "NOME COMPLETO NOME COMPLETO")
+  const cleanedNome = rawNome.replace(/\s+/g, " ").trim();
+  if (cleanedNome.length > 0) {
+    const words = cleanedNome.split(" ");
+    if (words.length % 2 === 0) {
+      const half = words.length / 2;
+      const a = words.slice(0, half).join(" ");
+      const b = words.slice(half).join(" ");
+      if (a.toUpperCase() === b.toUpperCase()) rawNome = a;
+    }
+  }
+
+  const n = stripRankPrefixFromName(rawNome) || "-";
+
   const isValidQuadro = q && q !== "-" && !EXCLUDED_QUADROS_LIST.includes(q) && !(opts?.excludeMNQuadro && p === "MN");
-  
+
   if (!p) return n;
-  
+
   // Determine insert between posto and quadro
   let insert = "";
   if (o === "TTC" || o === "RM1" || o === "RM-1") {
@@ -92,7 +121,7 @@ export function formatMilitarNameWithOpcao(
     insert = o;
   }
   // CARREIRA or empty = no insert
-  
+
   if (insert) {
     return `${p}-${insert}${isValidQuadro ? `-${q}` : ""} ${n}`;
   }
