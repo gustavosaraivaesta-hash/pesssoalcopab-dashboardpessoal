@@ -18,10 +18,10 @@ export function normalizeGraduacao(val: string | undefined | null): string {
     .replace(/^3\s*[º°]?\s*SG\b/i, "3SG");
 }
 
-const RANK_PATTERN = String.raw`(?:C\s*ALTE|V\s*ALTE|CONTRA-ALMIRANTE|CMG|CF|CC|CT|1TEN|2TEN|1T|2T|GM|SO|[1-3]\s*[º°]?\s*SG|CB|MN)`.replace(/\\\\/g, "\\");
+const RANK_PATTERN = String.raw`(?:C\s*ALTE|V\s*ALTE|CONTRA-ALMIRANTE|CMG|CF|CC|CT|1TEN|2TEN|1T|2T|GM|SO|[1-3]\s*[º°]?\s*SG|CB|MN)`;
 const RANK_ONLY_RE = new RegExp(`^${RANK_PATTERN}$`, "i");
-const RANK_QUADRO_NAME_RE = new RegExp(`^(${RANK_PATTERN})\s*[-\s]\s*([A-Z]{1,4})(?:\s+(.+))?$`, "i");
-const QUADRO_RANK_QUADRO_NAME_RE = new RegExp(`^[A-Z]{1,4}\s*[-\s]\s*(${RANK_PATTERN})\s*[-\s]\s*([A-Z]{1,4})(?:\s+(.+))?$`, "i");
+const RANK_QUADRO_NAME_RE = new RegExp(String.raw`^(${RANK_PATTERN})\s*[-\s]\s*([A-Z]{1,4})(?:\s+(.+))?$`, "i");
+const QUADRO_RANK_QUADRO_NAME_RE = new RegExp(String.raw`^[A-Z]{1,4}\s*[-\s]\s*(${RANK_PATTERN})\s*[-\s]\s*([A-Z]{1,4})(?:\s+(.+))?$`, "i");
 
 const normalizeRankValue = (value: string): string => normalizeGraduacao(value).replace(/\s+/g, " ").trim().toUpperCase();
 
