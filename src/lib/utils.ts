@@ -187,9 +187,9 @@ export function formatMilitarNameWithOpcao(
   // Determine insert between posto and quadro
   let insert = "";
   if (o === "TTC" || o === "RM1" || o === "RM-1") {
-    insert = "RM-1";
+    insert = "RM1";
   } else if (o === "RM2" || o === "RM-2") {
-    insert = "RM-2";
+    insert = "RM2";
   } else if (o && o !== "-" && o !== "CARREIRA") {
     insert = o;
   }
