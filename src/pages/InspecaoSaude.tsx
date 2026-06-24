@@ -70,6 +70,7 @@ const InspecaoSaude = () => {
   const [dataFim, setDataFim] = useState<string>("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"TODOS" | "vencida" | "atencao" | "ok">("TODOS");
+  const [mesFilter, setMesFilter] = useState<string | null>(null);
 
   const postos = useMemo(() => {
     const set = new Set(inspecaoSaudeData.map((r) => r.posto));
@@ -133,6 +134,22 @@ const InspecaoSaude = () => {
     return Array.from(byKey.values()).sort((a, b) => a.sort - b.sort);
   }, [filtered]);
 
+  const tableData = useMemo(() => {
+    if (!mesFilter) return filtered;
+    return filtered.filter((r) => {
+      const d = parseDate(r.validade);
+      if (!d) return false;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      return key === mesFilter;
+    });
+  }, [filtered, mesFilter]);
+
+  const mesFilterLabel = useMemo(() => {
+    if (!mesFilter) return null;
+    const [y, m] = mesFilter.split("-").map(Number);
+    return `${MESES_PT[m - 1]}/${String(y).slice(2)}`;
+  }, [mesFilter]);
+
   const stats = useMemo(() => {
     let vencidas = 0, atencao = 0, ok = 0;
     filtered.forEach((r) => {
@@ -151,6 +168,7 @@ const InspecaoSaude = () => {
     setDataFim("");
     setSearch("");
     setStatusFilter("TODOS");
+    setMesFilter(null);
   };
 
   const statusLabel = (s: "vencida" | "atencao" | "ok") =>
@@ -174,6 +192,7 @@ const InspecaoSaude = () => {
     if (dataInicio) filtros.push(`De: ${dataInicio.split("-").reverse().join("/")}`);
     if (dataFim) filtros.push(`Até: ${dataFim.split("-").reverse().join("/")}`);
     if (search) filtros.push(`Busca: ${search}`);
+    if (mesFilterLabel) filtros.push(`Mês: ${mesFilterLabel}`);
     const filtrosText = filtros.length ? filtros.join("  |  ") : "Sem filtros aplicados";
     doc.text(filtrosText, pageWidth / 2, 21, { align: "center" });
     doc.text(`Gerado em ${now}`, pageWidth / 2, 26, { align: "center" });
@@ -189,7 +208,7 @@ const InspecaoSaude = () => {
     autoTable(doc, {
       startY: 38,
       head: [["P/G", "Esp/Quadro", "Nome de Guerra", "Validade", "Status"]],
-      body: filtered.map((r) => {
+      body: tableData.map((r) => {
         const s = statusValidade(parseDate(r.validade));
         return [r.posto, r.quadro, r.nome, r.validade, statusLabel(s)];
       }),
@@ -367,6 +386,16 @@ const InspecaoSaude = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {mesFilter && (
+              <div className="flex items-center justify-between mb-3 text-xs">
+                <span className="text-muted-foreground">
+                  Filtrando tabela por: <strong className="text-foreground">{mesFilterLabel}</strong>
+                </span>
+                <Button variant="ghost" size="sm" className="h-7" onClick={() => setMesFilter(null)}>
+                  <X className="h-3 w-3 mr-1" /> limpar mês
+                </Button>
+              </div>
+            )}
             {chartData.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">
                 Nenhum dado para o filtro atual.
@@ -393,7 +422,16 @@ const InspecaoSaude = () => {
                       }}
                       formatter={(v) => [v, "Inspeções"]}
                     />
-                    <Bar dataKey="total" radius={[6, 6, 0, 0]}>
+                    <Bar
+                      dataKey="total"
+                      radius={[6, 6, 0, 0]}
+                      cursor="pointer"
+                      onClick={(data: any) => {
+                        const k = data?.key ?? data?.payload?.key;
+                        if (!k) return;
+                        setMesFilter((prev) => (prev === k ? null : k));
+                      }}
+                    >
                       {chartData.map((d) => {
                         const [y, m] = d.key.split("-").map(Number);
                         const dt = new Date(y, m - 1, 1);
@@ -406,7 +444,8 @@ const InspecaoSaude = () => {
                         let color = "hsl(var(--primary))";
                         if (diffMonths < 0) color = "hsl(var(--destructive))";
                         else if (diffMonths <= 6) color = "#f59e0b";
-                        return <Cell key={d.key} fill={color} />;
+                        const dimmed = mesFilter && mesFilter !== d.key;
+                        return <Cell key={d.key} fill={color} fillOpacity={dimmed ? 0.25 : 1} />;
                       })}
                     </Bar>
                   </BarChart>
@@ -420,7 +459,7 @@ const InspecaoSaude = () => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
-              Militares ({filtered.length})
+              Militares ({tableData.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -436,14 +475,14 @@ const InspecaoSaude = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.length === 0 ? (
+                  {tableData.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                         Nenhum registro encontrado.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filtered.map((r, i) => {
+                    tableData.map((r, i) => {
                       const d = parseDate(r.validade);
                       const s = statusValidade(d);
                       return (
