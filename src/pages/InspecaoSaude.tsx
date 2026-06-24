@@ -69,6 +69,7 @@ const InspecaoSaude = () => {
   const [dataInicio, setDataInicio] = useState<string>("");
   const [dataFim, setDataFim] = useState<string>("");
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"TODOS" | "vencida" | "atencao" | "ok">("TODOS");
 
   const postos = useMemo(() => {
     const set = new Set(inspecaoSaudeData.map((r) => r.posto));
@@ -103,12 +104,16 @@ const InspecaoSaude = () => {
       .filter((r) =>
         q ? r.nome.toUpperCase().includes(q) || r.quadro.toUpperCase().includes(q) : true,
       )
+      .filter((r) => {
+        if (statusFilter === "TODOS") return true;
+        return statusValidade(parseDate(r.validade)) === statusFilter;
+      })
       .sort((a, b) => {
         const da = parseDate(a.validade)?.getTime() ?? 0;
         const db = parseDate(b.validade)?.getTime() ?? 0;
         return da - db;
       });
-  }, [postoFilter, quadroFilter, dataInicio, dataFim, search]);
+  }, [postoFilter, quadroFilter, dataInicio, dataFim, search, statusFilter]);
 
   // Gráfico mensal (mês de validade)
   const chartData = useMemo(() => {
@@ -145,6 +150,71 @@ const InspecaoSaude = () => {
     setDataInicio("");
     setDataFim("");
     setSearch("");
+    setStatusFilter("TODOS");
+  };
+
+  const statusLabel = (s: "vencida" | "atencao" | "ok") =>
+    s === "vencida" ? "Vencida" : s === "atencao" ? "Vence em ≤ 6 meses" : "Em dia";
+
+  const gerarPDF = () => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const now = new Date().toLocaleString("pt-BR");
+
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Controle de Inspeção de Saúde", pageWidth / 2, 15, { align: "center" });
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    const filtros: string[] = [];
+    if (postoFilter !== "TODOS") filtros.push(`P/G: ${postoFilter}`);
+    if (quadroFilter !== "TODOS") filtros.push(`Esp/Quadro: ${quadroFilter}`);
+    if (statusFilter !== "TODOS") filtros.push(`Status: ${statusLabel(statusFilter)}`);
+    if (dataInicio) filtros.push(`De: ${dataInicio.split("-").reverse().join("/")}`);
+    if (dataFim) filtros.push(`Até: ${dataFim.split("-").reverse().join("/")}`);
+    if (search) filtros.push(`Busca: ${search}`);
+    const filtrosText = filtros.length ? filtros.join("  |  ") : "Sem filtros aplicados";
+    doc.text(filtrosText, pageWidth / 2, 21, { align: "center" });
+    doc.text(`Gerado em ${now}`, pageWidth / 2, 26, { align: "center" });
+
+    doc.setFontSize(9);
+    doc.text(
+      `Total: ${stats.total}   |   Vencidas: ${stats.vencidas}   |   ≤ 6 meses: ${stats.atencao}   |   Em dia: ${stats.ok}`,
+      pageWidth / 2,
+      32,
+      { align: "center" },
+    );
+
+    autoTable(doc, {
+      startY: 38,
+      head: [["P/G", "Esp/Quadro", "Nome de Guerra", "Validade", "Status"]],
+      body: filtered.map((r) => {
+        const s = statusValidade(parseDate(r.validade));
+        return [r.posto, r.quadro, r.nome, r.validade, statusLabel(s)];
+      }),
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [243, 244, 246] },
+      didParseCell: (data) => {
+        if (data.section === "body" && data.column.index === 4) {
+          const v = String(data.cell.raw);
+          if (v === "Vencida") data.cell.styles.textColor = [185, 28, 28];
+          else if (v.startsWith("Vence")) data.cell.styles.textColor = [180, 83, 9];
+          else if (v === "Em dia") data.cell.styles.textColor = [4, 120, 87];
+        }
+      },
+      didDrawPage: () => {
+        const pageNum = doc.getNumberOfPages();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        doc.setFontSize(8);
+        doc.setTextColor(120);
+        doc.text(`Página ${pageNum}`, pageWidth - 15, pageHeight - 8, { align: "right" });
+        doc.setTextColor(0);
+      },
+    });
+
+    doc.save(`inspecao-saude-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   return (
