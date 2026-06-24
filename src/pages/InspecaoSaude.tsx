@@ -134,6 +134,22 @@ const InspecaoSaude = () => {
     return Array.from(byKey.values()).sort((a, b) => a.sort - b.sort);
   }, [filtered]);
 
+  const tableData = useMemo(() => {
+    if (!mesFilter) return filtered;
+    return filtered.filter((r) => {
+      const d = parseDate(r.validade);
+      if (!d) return false;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      return key === mesFilter;
+    });
+  }, [filtered, mesFilter]);
+
+  const mesFilterLabel = useMemo(() => {
+    if (!mesFilter) return null;
+    const [y, m] = mesFilter.split("-").map(Number);
+    return `${MESES_PT[m - 1]}/${String(y).slice(2)}`;
+  }, [mesFilter]);
+
   const stats = useMemo(() => {
     let vencidas = 0, atencao = 0, ok = 0;
     filtered.forEach((r) => {
