@@ -412,7 +412,16 @@ const InspecaoSaude = () => {
                       }}
                       formatter={(v) => [v, "Inspeções"]}
                     />
-                    <Bar dataKey="total" radius={[6, 6, 0, 0]}>
+                    <Bar
+                      dataKey="total"
+                      radius={[6, 6, 0, 0]}
+                      cursor="pointer"
+                      onClick={(data: any) => {
+                        const k = data?.key ?? data?.payload?.key;
+                        if (!k) return;
+                        setMesFilter((prev) => (prev === k ? null : k));
+                      }}
+                    >
                       {chartData.map((d) => {
                         const [y, m] = d.key.split("-").map(Number);
                         const dt = new Date(y, m - 1, 1);
@@ -425,7 +434,8 @@ const InspecaoSaude = () => {
                         let color = "hsl(var(--primary))";
                         if (diffMonths < 0) color = "hsl(var(--destructive))";
                         else if (diffMonths <= 6) color = "#f59e0b";
-                        return <Cell key={d.key} fill={color} />;
+                        const dimmed = mesFilter && mesFilter !== d.key;
+                        return <Cell key={d.key} fill={color} fillOpacity={dimmed ? 0.25 : 1} />;
                       })}
                     </Bar>
                   </BarChart>
