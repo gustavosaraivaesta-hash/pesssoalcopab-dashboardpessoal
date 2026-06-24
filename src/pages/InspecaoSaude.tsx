@@ -386,6 +386,16 @@ const InspecaoSaude = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {mesFilter && (
+              <div className="flex items-center justify-between mb-3 text-xs">
+                <span className="text-muted-foreground">
+                  Filtrando tabela por: <strong className="text-foreground">{mesFilterLabel}</strong>
+                </span>
+                <Button variant="ghost" size="sm" className="h-7" onClick={() => setMesFilter(null)}>
+                  <X className="h-3 w-3 mr-1" /> limpar mês
+                </Button>
+              </div>
+            )}
             {chartData.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">
                 Nenhum dado para o filtro atual.
