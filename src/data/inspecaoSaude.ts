@@ -65,5 +65,5 @@ export const inspecaoSaudeData: InspecaoRecord[] = [
   { posto: "CB", quadro: "AR", nome: "JÔNATAS", validade: "26/01/2027" },
   { posto: "MN", quadro: "RM2", nome: "VIEIRA", validade: "24/02/2028" },
   { posto: "MN", quadro: "RM2", nome: "BARBOSA", validade: "08/01/2029" },
-  { posto: "MN", quadro: "RM", nome: "CISAQUE", validade: "01/07/2026" },
+  { posto: "MN", quadro: "RM", nome: "ISAQUE", validade: "01/07/2026" },
 ];
