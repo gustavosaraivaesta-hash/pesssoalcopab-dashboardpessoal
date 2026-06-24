@@ -70,6 +70,7 @@ const InspecaoSaude = () => {
   const [dataFim, setDataFim] = useState<string>("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"TODOS" | "vencida" | "atencao" | "ok">("TODOS");
+  const [mesFilter, setMesFilter] = useState<string | null>(null);
 
   const postos = useMemo(() => {
     const set = new Set(inspecaoSaudeData.map((r) => r.posto));
