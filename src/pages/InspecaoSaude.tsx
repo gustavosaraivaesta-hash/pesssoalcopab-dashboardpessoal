@@ -192,6 +192,7 @@ const InspecaoSaude = () => {
     if (dataInicio) filtros.push(`De: ${dataInicio.split("-").reverse().join("/")}`);
     if (dataFim) filtros.push(`Até: ${dataFim.split("-").reverse().join("/")}`);
     if (search) filtros.push(`Busca: ${search}`);
+    if (mesFilterLabel) filtros.push(`Mês: ${mesFilterLabel}`);
     const filtrosText = filtros.length ? filtros.join("  |  ") : "Sem filtros aplicados";
     doc.text(filtrosText, pageWidth / 2, 21, { align: "center" });
     doc.text(`Gerado em ${now}`, pageWidth / 2, 26, { align: "center" });
