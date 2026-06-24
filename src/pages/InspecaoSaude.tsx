@@ -20,7 +20,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { ArrowLeft, HeartPulse, Search, X, CalendarClock } from "lucide-react";
+import { ArrowLeft, HeartPulse, Search, X, CalendarClock, FileDown } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
   BarChart,
   Bar,
