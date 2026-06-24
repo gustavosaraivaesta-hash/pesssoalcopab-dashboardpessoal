@@ -208,7 +208,7 @@ const InspecaoSaude = () => {
     autoTable(doc, {
       startY: 38,
       head: [["P/G", "Esp/Quadro", "Nome de Guerra", "Validade", "Status"]],
-      body: filtered.map((r) => {
+      body: tableData.map((r) => {
         const s = statusValidade(parseDate(r.validade));
         return [r.posto, r.quadro, r.nome, r.validade, statusLabel(s)];
       }),
