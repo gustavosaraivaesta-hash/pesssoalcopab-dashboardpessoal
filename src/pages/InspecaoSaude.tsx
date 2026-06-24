@@ -233,7 +233,13 @@ const InspecaoSaude = () => {
               </p>
             </div>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <Button onClick={gerarPDF} variant="default" size="sm">
+              <FileDown className="h-4 w-4 mr-1" />
+              Gerar PDF
+            </Button>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -275,7 +281,7 @@ const InspecaoSaude = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
               <div className="md:col-span-1">
                 <label className="text-xs text-muted-foreground">Posto/Graduação</label>
                 <Select
@@ -303,6 +309,18 @@ const InspecaoSaude = () => {
                     {quadros.map((q) => (
                       <SelectItem key={q} value={q}>{q}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-1">
+                <label className="text-xs text-muted-foreground">Status</label>
+                <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TODOS">Todos</SelectItem>
+                    <SelectItem value="vencida">Vencida</SelectItem>
+                    <SelectItem value="atencao">Vence ≤ 6 meses</SelectItem>
+                    <SelectItem value="ok">Em dia</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
