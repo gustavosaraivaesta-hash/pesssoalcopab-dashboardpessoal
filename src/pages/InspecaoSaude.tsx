@@ -475,14 +475,14 @@ const InspecaoSaude = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.length === 0 ? (
+                  {tableData.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                         Nenhum registro encontrado.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filtered.map((r, i) => {
+                    tableData.map((r, i) => {
                       const d = parseDate(r.validade);
                       const s = statusValidade(d);
                       return (
