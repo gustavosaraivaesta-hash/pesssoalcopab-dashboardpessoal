@@ -459,7 +459,7 @@ const InspecaoSaude = () => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
-              Militares ({filtered.length})
+              Militares ({tableData.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
