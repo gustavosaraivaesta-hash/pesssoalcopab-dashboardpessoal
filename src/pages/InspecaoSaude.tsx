@@ -168,6 +168,7 @@ const InspecaoSaude = () => {
     setDataFim("");
     setSearch("");
     setStatusFilter("TODOS");
+    setMesFilter(null);
   };
 
   const statusLabel = (s: "vencida" | "atencao" | "ok") =>
