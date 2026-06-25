@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,35 @@ import {
 import { inspecaoSaudeData as inspecaoFallback, type InspecaoRecord } from "@/data/inspecaoSaude";
 import { useLiveSheet } from "@/hooks/useLiveSheet";
 import { fetchInspecaoSaude } from "@/lib/sheetsLive";
+import { supabase } from "@/integrations/supabase/client";
+import { formatMilitarNameWithOpcao } from "@/lib/utils";
+
+const normalizeName = (s: string) =>
+  (s || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+
+const lastToken = (s: string) => {
+  const parts = normalizeName(s).split(" ").filter(Boolean);
+  return parts[parts.length - 1] || "";
+};
+
+type PersonnelLookup = {
+  neo: string;
+  nome: string;
+  posto: string;
+  quadro: string;
+  opcao: string;
+};
+
+const invokeWithTimeout = async <T,>(name: string, ms = 25000) =>
+  await Promise.race([
+    supabase.functions.invoke<T>(name),
+    new Promise<never>((_, rej) => setTimeout(() => rej(new Error(`Timeout ${name}`)), ms)),
+  ]);
 
 const POSTO_ORDER = [
   "CA", "CMG", "CF", "CC", "CT", "1T", "2T", "GM",
@@ -73,6 +102,77 @@ const InspecaoSaude = () => {
   const [statusFilter, setStatusFilter] = useState<"TODOS" | "vencida" | "atencao" | "ok">("TODOS");
   const [mesFilter, setMesFilter] = useState<string | null>(null);
   const { data: inspecaoSaudeData, lastUpdated } = useLiveSheet(fetchInspecaoSaude, inspecaoFallback, 30_000);
+  const [personnel, setPersonnel] = useState<PersonnelLookup[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [omRes, prRes] = await Promise.all([
+          invokeWithTimeout<any>("fetch-om-data").catch(() => ({ data: null })),
+          invokeWithTimeout<any>("fetch-pracas-data").catch(() => ({ data: null })),
+        ]);
+        const all: PersonnelLookup[] = [];
+        const push = (arr: any[]) => {
+          (arr || []).forEach((it: any) => {
+            if (!it?.nome) return;
+            all.push({
+              neo: String(it.neo ?? "").trim(),
+              nome: String(it.nome),
+              posto: String(it.postoEfe || it.postoTmft || "").trim(),
+              quadro: String(it.quadroEfe || it.quadroTmft || "").trim(),
+              opcao: String(it.opcaoEfe || it.opcaoTmft || "").trim(),
+            });
+          });
+        };
+        push(omRes?.data?.data || []);
+        push(prRes?.data?.data || []);
+        if (!cancelled) setPersonnel(all);
+      } catch (e) {
+        console.error("Erro ao carregar pessoal para NEO:", e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const personnelIndex = useMemo(() => {
+    const byLast = new Map<string, PersonnelLookup[]>();
+    personnel.forEach((p) => {
+      const k = lastToken(p.nome);
+      if (!k) return;
+      const list = byLast.get(k) || [];
+      list.push(p);
+      byLast.set(k, list);
+    });
+    return byLast;
+  }, [personnel]);
+
+  const matchPersonnel = (r: InspecaoRecord): PersonnelLookup | null => {
+    const tokens = normalizeName(r.nome).split(" ").filter(Boolean);
+    if (!tokens.length) return null;
+    const postoN = r.posto.replace(/\s+/g, "").toUpperCase();
+    // try each token as last-name key (handles "RICARDO NOGUEIRA" matching "RICARDO MELLO NOGUEIRA")
+    const tried = new Set<PersonnelLookup>();
+    for (let i = tokens.length - 1; i >= 0; i--) {
+      const candidates = personnelIndex.get(tokens[i]) || [];
+      for (const c of candidates) {
+        if (tried.has(c)) continue;
+        tried.add(c);
+        const cPosto = c.posto.replace(/\s+/g, "").toUpperCase();
+        const postoOk = !postoN || !cPosto || cPosto === postoN;
+        const cName = normalizeName(c.nome);
+        const allMatch = tokens.every((t) => cName.includes(t));
+        if (postoOk && allMatch) return c;
+      }
+    }
+    // fallback: first match by all tokens regardless of posto
+    for (const c of personnel) {
+      const cName = normalizeName(c.nome);
+      if (tokens.every((t) => cName.includes(t))) return c;
+    }
+    return null;
+  };
+
 
   const postos = useMemo(() => {
     const set = new Set(inspecaoSaudeData.map((r) => r.posto));
@@ -166,6 +266,17 @@ const InspecaoSaude = () => {
     });
   }, [filtered, mesFilter]);
 
+  const enrichedTable = useMemo(() => {
+    return tableData.map((r) => {
+      const p = matchPersonnel(r);
+      const neo = p?.neo && p.neo !== "0" ? p.neo : "";
+      const militar = p
+        ? formatMilitarNameWithOpcao(p.posto || r.posto, p.quadro || r.quadro, p.nome, p.opcao)
+        : formatMilitarNameWithOpcao(r.posto, r.quadro, r.nome, "");
+      return { r, neo, militar };
+    });
+  }, [tableData, personnelIndex]);
+
   const mesFilterLabel = useMemo(() => {
     if (!mesFilter) return null;
     const [y, m] = mesFilter.split("-").map(Number);
@@ -229,16 +340,16 @@ const InspecaoSaude = () => {
 
     autoTable(doc, {
       startY: 38,
-      head: [["P/G", "Esp/Quadro", "Nome de Guerra", "Validade", "Status"]],
-      body: tableData.map((r) => {
+      head: [["NEO", "P/G", "Esp/Quadro", "Militar", "Validade", "Status"]],
+      body: enrichedTable.map(({ r, neo, militar }) => {
         const s = statusValidade(parseDate(r.validade));
-        return [r.posto, r.quadro, r.nome, r.validade, statusLabel(s)];
+        return [neo || "—", r.posto, r.quadro, militar, r.validade, statusLabel(s)];
       }),
       styles: { fontSize: 9, cellPadding: 2 },
       headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [243, 244, 246] },
       didParseCell: (data) => {
-        if (data.section === "body" && data.column.index === 4) {
+        if (data.section === "body" && data.column.index === 5) {
           const v = String(data.cell.raw);
           if (v === "Vencida") data.cell.styles.textColor = [185, 28, 28];
           else if (v.startsWith("Vence")) data.cell.styles.textColor = [180, 83, 9];
@@ -510,29 +621,37 @@ const InspecaoSaude = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-16">NEO</TableHead>
                     <TableHead>P/G</TableHead>
                     <TableHead>Esp/Quadro</TableHead>
-                    <TableHead>Nome de Guerra</TableHead>
+                    <TableHead>Militar</TableHead>
                     <TableHead>Validade</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tableData.length === 0 ? (
+                  {enrichedTable.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         Nenhum registro encontrado.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    tableData.map((r, i) => {
+                    enrichedTable.map(({ r, neo, militar }, i) => {
                       const d = parseDate(r.validade);
                       const s = statusValidade(d);
                       return (
                         <TableRow key={i}>
+                          <TableCell className="font-mono text-xs">
+                            {neo ? (
+                              <Badge variant="outline" className="font-semibold">NEO {neo}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
                           <TableCell className="font-medium">{r.posto}</TableCell>
                           <TableCell>{r.quadro}</TableCell>
-                          <TableCell>{r.nome}</TableCell>
+                          <TableCell className="font-medium uppercase">{militar}</TableCell>
                           <TableCell>{r.validade}</TableCell>
                           <TableCell>
                             {s === "vencida" && (
