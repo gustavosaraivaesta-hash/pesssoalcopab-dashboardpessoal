@@ -442,16 +442,14 @@ const InspecaoSaude = () => {
                     >
                       {chartData.map((d) => {
                         const [y, m] = d.key.split("-").map(Number);
-                        const dt = new Date(y, m - 1, 1);
                         const today = new Date();
-                        today.setDate(1);
                         today.setHours(0, 0, 0, 0);
-                        const diffMonths =
-                          (dt.getFullYear() - today.getFullYear()) * 12 +
-                          (dt.getMonth() - today.getMonth());
+                        const lastDay = new Date(y, m, 0); // último dia do mês
+                        const sixMonths = new Date(today);
+                        sixMonths.setMonth(sixMonths.getMonth() + 6);
                         let color = "#2563eb";
-                        if (diffMonths < 0) color = "hsl(var(--destructive))";
-                        else if (diffMonths <= 6) color = "#f59e0b";
+                        if (lastDay < today) color = "hsl(var(--destructive))";
+                        else if (new Date(y, m - 1, 1) <= sixMonths) color = "#f59e0b";
                         const dimmed = mesFilter && mesFilter !== d.key;
                         return <Cell key={d.key} fill={color} fillOpacity={dimmed ? 0.25 : 1} />;
                       })}
