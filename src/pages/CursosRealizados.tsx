@@ -155,6 +155,7 @@ const CursosRealizados = () => {
   const [selected, setSelected] = useState<EnrichedMilitar | null>(null);
   const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
+  const { data: cursosRealizados } = useLiveSheet(fetchCursosRealizados, cursosFallback, 30_000);
 
   const toggleName = (nome: string) => {
     setSelectedNames((prev) => {
