@@ -31,7 +31,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
 } from "recharts";
 import { inspecaoSaudeData as inspecaoFallback, type InspecaoRecord } from "@/data/inspecaoSaude";
 import { useLiveSheet } from "@/hooks/useLiveSheet";
@@ -448,26 +447,50 @@ const InspecaoSaude = () => {
                         borderRadius: 8,
                         fontSize: 12,
                       }}
-                      formatter={(v) => [v, "Inspeções"]}
+                      formatter={(v, name) => [v, name]}
                     />
                     <Bar
-                      dataKey="total"
+                      dataKey="vencida"
+                      name="Vencidas"
+                      stackId="status"
+                      fill="hsl(var(--destructive))"
                       radius={[6, 6, 0, 0]}
                       cursor="pointer"
                       onClick={(data: any) => {
-                        const k = data?.key ?? data?.payload?.key;
+                        const k = data?.payload?.key;
                         if (!k) return;
                         setMesFilter((prev) => (prev === k ? null : k));
                       }}
-                    >
-                      {chartData.map((d) => {
-                        let color = "#2563eb";
-                        if (d.vencida > 0) color = "hsl(var(--destructive))";
-                        else if (d.atencao > 0) color = "#f59e0b";
-                        const dimmed = mesFilter && mesFilter !== d.key;
-                        return <Cell key={d.key} fill={color} fillOpacity={dimmed ? 0.25 : 1} />;
-                      })}
-                    </Bar>
+                      fillOpacity={mesFilter ? 0.65 : 1}
+                    />
+                    <Bar
+                      dataKey="atencao"
+                      name="Vence ≤ 6 meses"
+                      stackId="status"
+                      fill="#f59e0b"
+                      radius={[6, 6, 0, 0]}
+                      cursor="pointer"
+                      onClick={(data: any) => {
+                        const k = data?.payload?.key;
+                        if (!k) return;
+                        setMesFilter((prev) => (prev === k ? null : k));
+                      }}
+                      fillOpacity={mesFilter ? 0.65 : 1}
+                    />
+                    <Bar
+                      dataKey="ok"
+                      name="Em dia"
+                      stackId="status"
+                      fill="#2563eb"
+                      radius={[6, 6, 0, 0]}
+                      cursor="pointer"
+                      onClick={(data: any) => {
+                        const k = data?.payload?.key;
+                        if (!k) return;
+                        setMesFilter((prev) => (prev === k ? null : k));
+                      }}
+                      fillOpacity={mesFilter ? 0.65 : 1}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
