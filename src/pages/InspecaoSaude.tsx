@@ -80,14 +80,14 @@ const InspecaoSaude = () => {
     return Array.from(set).sort(
       (a, b) => POSTO_ORDER.indexOf(a) - POSTO_ORDER.indexOf(b),
     );
-  }, []);
+  }, [inspecaoSaudeData]);
 
   const quadros = useMemo(() => {
     const filtered = inspecaoSaudeData.filter(
       (r) => postoFilter === "TODOS" || r.posto === postoFilter,
     );
     return Array.from(new Set(filtered.map((r) => r.quadro))).sort();
-  }, [postoFilter]);
+  }, [postoFilter, inspecaoSaudeData]);
 
   const filtered = useMemo(() => {
     const ini = dataInicio ? new Date(dataInicio) : null;
