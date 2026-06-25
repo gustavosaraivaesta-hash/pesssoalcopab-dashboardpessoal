@@ -33,7 +33,9 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { inspecaoSaudeData, type InspecaoRecord } from "@/data/inspecaoSaude";
+import { inspecaoSaudeData as inspecaoFallback, type InspecaoRecord } from "@/data/inspecaoSaude";
+import { useLiveSheet } from "@/hooks/useLiveSheet";
+import { fetchInspecaoSaude } from "@/lib/sheetsLive";
 
 const POSTO_ORDER = [
   "CA", "CMG", "CF", "CC", "CT", "1T", "2T", "GM",
@@ -71,6 +73,7 @@ const InspecaoSaude = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"TODOS" | "vencida" | "atencao" | "ok">("TODOS");
   const [mesFilter, setMesFilter] = useState<string | null>(null);
+  const { data: inspecaoSaudeData, lastUpdated } = useLiveSheet(fetchInspecaoSaude, inspecaoFallback, 30_000);
 
   const postos = useMemo(() => {
     const set = new Set(inspecaoSaudeData.map((r) => r.posto));
