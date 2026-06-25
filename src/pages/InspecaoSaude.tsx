@@ -242,7 +242,7 @@ const InspecaoSaude = () => {
           const v = String(data.cell.raw);
           if (v === "Vencida") data.cell.styles.textColor = [185, 28, 28];
           else if (v.startsWith("Vence")) data.cell.styles.textColor = [180, 83, 9];
-          else if (v === "Em dia") data.cell.styles.textColor = [4, 120, 87];
+          else if (v === "Em dia") data.cell.styles.textColor = [37, 99, 235];
         }
       },
       didDrawPage: () => {
