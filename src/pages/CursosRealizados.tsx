@@ -11,7 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { cursosRealizados } from "@/data/cursosRealizados";
+import { cursosRealizados as cursosFallback } from "@/data/cursosRealizados";
+import { useLiveSheet } from "@/hooks/useLiveSheet";
+import { fetchCursosRealizados } from "@/lib/sheetsLive";
 import { supabase } from "@/integrations/supabase/client";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 
