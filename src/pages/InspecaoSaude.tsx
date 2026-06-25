@@ -621,29 +621,37 @@ const InspecaoSaude = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-16">NEO</TableHead>
                     <TableHead>P/G</TableHead>
                     <TableHead>Esp/Quadro</TableHead>
-                    <TableHead>Nome de Guerra</TableHead>
+                    <TableHead>Militar</TableHead>
                     <TableHead>Validade</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tableData.length === 0 ? (
+                  {enrichedTable.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         Nenhum registro encontrado.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    tableData.map((r, i) => {
+                    enrichedTable.map(({ r, neo, militar }, i) => {
                       const d = parseDate(r.validade);
                       const s = statusValidade(d);
                       return (
                         <TableRow key={i}>
+                          <TableCell className="font-mono text-xs">
+                            {neo ? (
+                              <Badge variant="outline" className="font-semibold">NEO {neo}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
                           <TableCell className="font-medium">{r.posto}</TableCell>
                           <TableCell>{r.quadro}</TableCell>
-                          <TableCell>{r.nome}</TableCell>
+                          <TableCell className="font-medium uppercase">{militar}</TableCell>
                           <TableCell>{r.validade}</TableCell>
                           <TableCell>
                             {s === "vencida" && (
