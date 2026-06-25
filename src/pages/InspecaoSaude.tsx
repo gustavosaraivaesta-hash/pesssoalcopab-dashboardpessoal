@@ -252,6 +252,11 @@ const InspecaoSaude = () => {
               <h1 className="text-xl font-bold">Inspeção de Saúde</h1>
               <p className="text-xs text-muted-foreground">
                 Controle de validade da Inspeção de Saúde
+                {lastUpdated && (
+                  <span className="ml-2 opacity-70">
+                    · atualizado {lastUpdated.toLocaleTimeString("pt-BR")}
+                  </span>
+                )}
               </p>
             </div>
           </div>
