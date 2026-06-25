@@ -340,16 +340,16 @@ const InspecaoSaude = () => {
 
     autoTable(doc, {
       startY: 38,
-      head: [["P/G", "Esp/Quadro", "Nome de Guerra", "Validade", "Status"]],
-      body: tableData.map((r) => {
+      head: [["NEO", "P/G", "Esp/Quadro", "Militar", "Validade", "Status"]],
+      body: enrichedTable.map(({ r, neo, militar }) => {
         const s = statusValidade(parseDate(r.validade));
-        return [r.posto, r.quadro, r.nome, r.validade, statusLabel(s)];
+        return [neo || "—", r.posto, r.quadro, militar, r.validade, statusLabel(s)];
       }),
       styles: { fontSize: 9, cellPadding: 2 },
       headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [243, 244, 246] },
       didParseCell: (data) => {
-        if (data.section === "body" && data.column.index === 4) {
+        if (data.section === "body" && data.column.index === 5) {
           const v = String(data.cell.raw);
           if (v === "Vencida") data.cell.styles.textColor = [185, 28, 28];
           else if (v.startsWith("Vence")) data.cell.styles.textColor = [180, 83, 9];
