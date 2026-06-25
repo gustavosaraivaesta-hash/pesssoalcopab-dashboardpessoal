@@ -266,6 +266,17 @@ const InspecaoSaude = () => {
     });
   }, [filtered, mesFilter]);
 
+  const enrichedTable = useMemo(() => {
+    return tableData.map((r) => {
+      const p = matchPersonnel(r);
+      const neo = p?.neo && p.neo !== "0" ? p.neo : "";
+      const militar = p
+        ? formatMilitarNameWithOpcao(p.posto || r.posto, p.quadro || r.quadro, p.nome, p.opcao)
+        : formatMilitarNameWithOpcao(r.posto, r.quadro, r.nome, "");
+      return { r, neo, militar };
+    });
+  }, [tableData, personnelIndex]);
+
   const mesFilterLabel = useMemo(() => {
     if (!mesFilter) return null;
     const [y, m] = mesFilter.split("-").map(Number);
