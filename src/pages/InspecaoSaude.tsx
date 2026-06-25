@@ -117,7 +117,7 @@ const InspecaoSaude = () => {
         const db = parseDate(b.validade)?.getTime() ?? 0;
         return da - db;
       });
-  }, [postoFilter, quadroFilter, dataInicio, dataFim, search, statusFilter]);
+  }, [postoFilter, quadroFilter, dataInicio, dataFim, search, statusFilter, inspecaoSaudeData]);
 
   // Gráfico mensal (mês de validade)
   const chartData = useMemo(() => {
