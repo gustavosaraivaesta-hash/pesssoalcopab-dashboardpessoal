@@ -225,7 +225,7 @@ const CursosRealizados = () => {
     const totalCursos = cursosRealizados.reduce((acc, m) => acc + m.cursos.length, 0);
     const semCursos = cursosRealizados.filter((m) => m.cursos.length === 0).length;
     return { totalMilitares, totalCursos, semCursos };
-  }, []);
+  }, [cursosRealizados]);
 
   const exportPDF = async () => {
     setExporting(true);
