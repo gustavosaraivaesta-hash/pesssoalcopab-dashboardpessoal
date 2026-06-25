@@ -11,7 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { cursosRealizados } from "@/data/cursosRealizados";
+import { cursosRealizados as cursosFallback } from "@/data/cursosRealizados";
+import { useLiveSheet } from "@/hooks/useLiveSheet";
+import { fetchCursosRealizados } from "@/lib/sheetsLive";
 import { supabase } from "@/integrations/supabase/client";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 
@@ -153,6 +155,7 @@ const CursosRealizados = () => {
   const [selected, setSelected] = useState<EnrichedMilitar | null>(null);
   const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
+  const { data: cursosRealizados } = useLiveSheet(fetchCursosRealizados, cursosFallback, 30_000);
 
   const toggleName = (nome: string) => {
     setSelectedNames((prev) => {
@@ -222,7 +225,7 @@ const CursosRealizados = () => {
     const totalCursos = cursosRealizados.reduce((acc, m) => acc + m.cursos.length, 0);
     const semCursos = cursosRealizados.filter((m) => m.cursos.length === 0).length;
     return { totalMilitares, totalCursos, semCursos };
-  }, []);
+  }, [cursosRealizados]);
 
   const exportPDF = async () => {
     setExporting(true);

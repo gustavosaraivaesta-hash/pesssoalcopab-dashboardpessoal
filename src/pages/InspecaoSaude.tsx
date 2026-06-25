@@ -33,7 +33,9 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { inspecaoSaudeData, type InspecaoRecord } from "@/data/inspecaoSaude";
+import { inspecaoSaudeData as inspecaoFallback, type InspecaoRecord } from "@/data/inspecaoSaude";
+import { useLiveSheet } from "@/hooks/useLiveSheet";
+import { fetchInspecaoSaude } from "@/lib/sheetsLive";
 
 const POSTO_ORDER = [
   "CA", "CMG", "CF", "CC", "CT", "1T", "2T", "GM",
@@ -71,20 +73,21 @@ const InspecaoSaude = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"TODOS" | "vencida" | "atencao" | "ok">("TODOS");
   const [mesFilter, setMesFilter] = useState<string | null>(null);
+  const { data: inspecaoSaudeData, lastUpdated } = useLiveSheet(fetchInspecaoSaude, inspecaoFallback, 30_000);
 
   const postos = useMemo(() => {
     const set = new Set(inspecaoSaudeData.map((r) => r.posto));
     return Array.from(set).sort(
       (a, b) => POSTO_ORDER.indexOf(a) - POSTO_ORDER.indexOf(b),
     );
-  }, []);
+  }, [inspecaoSaudeData]);
 
   const quadros = useMemo(() => {
     const filtered = inspecaoSaudeData.filter(
       (r) => postoFilter === "TODOS" || r.posto === postoFilter,
     );
     return Array.from(new Set(filtered.map((r) => r.quadro))).sort();
-  }, [postoFilter]);
+  }, [postoFilter, inspecaoSaudeData]);
 
   const filtered = useMemo(() => {
     const ini = dataInicio ? new Date(dataInicio) : null;
@@ -114,7 +117,7 @@ const InspecaoSaude = () => {
         const db = parseDate(b.validade)?.getTime() ?? 0;
         return da - db;
       });
-  }, [postoFilter, quadroFilter, dataInicio, dataFim, search, statusFilter]);
+  }, [postoFilter, quadroFilter, dataInicio, dataFim, search, statusFilter, inspecaoSaudeData]);
 
   // Gráfico mensal (mês de validade)
   const chartData = useMemo(() => {
@@ -249,6 +252,11 @@ const InspecaoSaude = () => {
               <h1 className="text-xl font-bold">Inspeção de Saúde</h1>
               <p className="text-xs text-muted-foreground">
                 Controle de validade da Inspeção de Saúde
+                {lastUpdated && (
+                  <span className="ml-2 opacity-70">
+                    · atualizado {lastUpdated.toLocaleTimeString("pt-BR")}
+                  </span>
+                )}
               </p>
             </div>
           </div>
