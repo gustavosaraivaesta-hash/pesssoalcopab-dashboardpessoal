@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,35 @@ import {
 import { inspecaoSaudeData as inspecaoFallback, type InspecaoRecord } from "@/data/inspecaoSaude";
 import { useLiveSheet } from "@/hooks/useLiveSheet";
 import { fetchInspecaoSaude } from "@/lib/sheetsLive";
+import { supabase } from "@/integrations/supabase/client";
+import { formatMilitarNameWithOpcao } from "@/lib/utils";
+
+const normalizeName = (s: string) =>
+  (s || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+
+const lastToken = (s: string) => {
+  const parts = normalizeName(s).split(" ").filter(Boolean);
+  return parts[parts.length - 1] || "";
+};
+
+type PersonnelLookup = {
+  neo: string;
+  nome: string;
+  posto: string;
+  quadro: string;
+  opcao: string;
+};
+
+const invokeWithTimeout = async <T,>(name: string, ms = 25000) =>
+  await Promise.race([
+    supabase.functions.invoke<T>(name),
+    new Promise<never>((_, rej) => setTimeout(() => rej(new Error(`Timeout ${name}`)), ms)),
+  ]);
 
 const POSTO_ORDER = [
   "CA", "CMG", "CF", "CC", "CT", "1T", "2T", "GM",
