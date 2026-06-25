@@ -102,6 +102,77 @@ const InspecaoSaude = () => {
   const [statusFilter, setStatusFilter] = useState<"TODOS" | "vencida" | "atencao" | "ok">("TODOS");
   const [mesFilter, setMesFilter] = useState<string | null>(null);
   const { data: inspecaoSaudeData, lastUpdated } = useLiveSheet(fetchInspecaoSaude, inspecaoFallback, 30_000);
+  const [personnel, setPersonnel] = useState<PersonnelLookup[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [omRes, prRes] = await Promise.all([
+          invokeWithTimeout<any>("fetch-om-data").catch(() => ({ data: null })),
+          invokeWithTimeout<any>("fetch-pracas-data").catch(() => ({ data: null })),
+        ]);
+        const all: PersonnelLookup[] = [];
+        const push = (arr: any[]) => {
+          (arr || []).forEach((it: any) => {
+            if (!it?.nome) return;
+            all.push({
+              neo: String(it.neo ?? "").trim(),
+              nome: String(it.nome),
+              posto: String(it.postoEfe || it.postoTmft || "").trim(),
+              quadro: String(it.quadroEfe || it.quadroTmft || "").trim(),
+              opcao: String(it.opcaoEfe || it.opcaoTmft || "").trim(),
+            });
+          });
+        };
+        push(omRes?.data?.data || []);
+        push(prRes?.data?.data || []);
+        if (!cancelled) setPersonnel(all);
+      } catch (e) {
+        console.error("Erro ao carregar pessoal para NEO:", e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const personnelIndex = useMemo(() => {
+    const byLast = new Map<string, PersonnelLookup[]>();
+    personnel.forEach((p) => {
+      const k = lastToken(p.nome);
+      if (!k) return;
+      const list = byLast.get(k) || [];
+      list.push(p);
+      byLast.set(k, list);
+    });
+    return byLast;
+  }, [personnel]);
+
+  const matchPersonnel = (r: InspecaoRecord): PersonnelLookup | null => {
+    const tokens = normalizeName(r.nome).split(" ").filter(Boolean);
+    if (!tokens.length) return null;
+    const postoN = r.posto.replace(/\s+/g, "").toUpperCase();
+    // try each token as last-name key (handles "RICARDO NOGUEIRA" matching "RICARDO MELLO NOGUEIRA")
+    const tried = new Set<PersonnelLookup>();
+    for (let i = tokens.length - 1; i >= 0; i--) {
+      const candidates = personnelIndex.get(tokens[i]) || [];
+      for (const c of candidates) {
+        if (tried.has(c)) continue;
+        tried.add(c);
+        const cPosto = c.posto.replace(/\s+/g, "").toUpperCase();
+        const postoOk = !postoN || !cPosto || cPosto === postoN;
+        const cName = normalizeName(c.nome);
+        const allMatch = tokens.every((t) => cName.includes(t));
+        if (postoOk && allMatch) return c;
+      }
+    }
+    // fallback: first match by all tokens regardless of posto
+    for (const c of personnel) {
+      const cName = normalizeName(c.nome);
+      if (tokens.every((t) => cName.includes(t))) return c;
+    }
+    return null;
+  };
+
 
   const postos = useMemo(() => {
     const set = new Set(inspecaoSaudeData.map((r) => r.posto));
