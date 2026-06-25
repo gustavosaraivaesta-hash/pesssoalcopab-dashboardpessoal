@@ -121,7 +121,15 @@ const InspecaoSaude = () => {
 
   // Gráfico mensal (mês de validade)
   const chartData = useMemo(() => {
-    const byKey = new Map<string, { label: string; key: string; total: number; sort: number }>();
+    const byKey = new Map<string, {
+      label: string;
+      key: string;
+      total: number;
+      sort: number;
+      vencida: number;
+      atencao: number;
+      ok: number;
+    }>();
     filtered.forEach((r) => {
       const d = parseDate(r.validade);
       if (!d) return;
@@ -130,9 +138,21 @@ const InspecaoSaude = () => {
       const key = `${ano}-${String(mes + 1).padStart(2, "0")}`;
       const label = `${MESES_PT[mes]}/${String(ano).slice(2)}`;
       const sort = ano * 12 + mes;
+      const status = statusValidade(d);
       const cur = byKey.get(key);
-      if (cur) cur.total += 1;
-      else byKey.set(key, { label, key, total: 1, sort });
+      const addStatus = (bucket: { vencida: number; atencao: number; ok: number }) => {
+        if (status === "vencida") bucket.vencida += 1;
+        else if (status === "atencao") bucket.atencao += 1;
+        else bucket.ok += 1;
+      };
+      if (cur) {
+        cur.total += 1;
+        addStatus(cur);
+      } else {
+        const bucket = { label, key, total: 1, sort, vencida: 0, atencao: 0, ok: 0 };
+        addStatus(bucket);
+        byKey.set(key, bucket);
+      }
     });
     return Array.from(byKey.values()).sort((a, b) => a.sort - b.sort);
   }, [filtered]);
@@ -294,7 +314,7 @@ const InspecaoSaude = () => {
           <Card>
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground">Em dia</p>
-              <p className="text-2xl font-bold text-emerald-600">{stats.ok}</p>
+              <p className="text-2xl font-bold text-primary">{stats.ok}</p>
             </CardContent>
           </Card>
         </div>
@@ -441,15 +461,9 @@ const InspecaoSaude = () => {
                       }}
                     >
                       {chartData.map((d) => {
-                        const [y, m] = d.key.split("-").map(Number);
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        const lastDay = new Date(y, m, 0); // último dia do mês
-                        const sixMonths = new Date(today);
-                        sixMonths.setMonth(sixMonths.getMonth() + 6);
                         let color = "#2563eb";
-                        if (lastDay < today) color = "hsl(var(--destructive))";
-                        else if (new Date(y, m - 1, 1) <= sixMonths) color = "#f59e0b";
+                        if (d.vencida > 0) color = "hsl(var(--destructive))";
+                        else if (d.atencao > 0) color = "#f59e0b";
                         const dimmed = mesFilter && mesFilter !== d.key;
                         return <Cell key={d.key} fill={color} fillOpacity={dimmed ? 0.25 : 1} />;
                       })}
@@ -505,7 +519,7 @@ const InspecaoSaude = () => {
                               <Badge className="bg-amber-500 hover:bg-amber-600">Vence ≤ 6m</Badge>
                             )}
                             {s === "ok" && (
-                              <Badge className="bg-emerald-600 hover:bg-emerald-700">Em dia</Badge>
+                              <Badge className="bg-primary hover:bg-primary/90">Em dia</Badge>
                             )}
                           </TableCell>
                         </TableRow>
