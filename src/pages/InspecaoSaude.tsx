@@ -449,7 +449,7 @@ const InspecaoSaude = () => {
                         const diffMonths =
                           (dt.getFullYear() - today.getFullYear()) * 12 +
                           (dt.getMonth() - today.getMonth());
-                        let color = "hsl(var(--primary))";
+                        let color = "#2563eb";
                         if (diffMonths < 0) color = "hsl(var(--destructive))";
                         else if (diffMonths <= 6) color = "#f59e0b";
                         const dimmed = mesFilter && mesFilter !== d.key;
