@@ -30,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { isForaDaNeo, expandSpecialtyEquivalents, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName } from "@/lib/utils";
+import OfficerCard from "@/components/dashboard/OfficerCard";
 
 import {
   BarChart,
@@ -3317,106 +3318,16 @@ const DashboardPracas = () => {
                       </Badge>
                     </div>
 
-                    <div className="space-y-3">
-                      {items.map((item) => {
-                        // Use the centralized isForaDaNeo function for consistency
-                        const isDifferentNeoEfe = item.ocupado && isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
-
-                        // Format military name: graduação-especialidade nome
-                        const formatMilitarName = () => {
-                          if (!item.nome || item.nome.toUpperCase() === "VAGO") return null;
-
-                          // Mostrar a identidade do militar ocupante (EFE), não do cargo (TMFT)
-                          const gradRaw = item.postoEfe || item.postoTmft || "";
-                          const espRaw = item.quadroEfe || item.quadroTmft || "";
-
-                          const grad = String(gradRaw || "")
-                            .trim()
-                            .toUpperCase()
-                            .replace(/^-+$/, "") // "-" sozinho = vazio
-                            .replace(/-+$/g, "");
-
-                          const esp = String(espRaw || "")
-                            .trim()
-                            .toUpperCase()
-                            .replace(/^-+$/, "") // "-" sozinho = vazio
-                            .replace(/^-+|-+$/g, "");
-
-                          const nomeCompleto = String(item.nome || "")
-                            .trim()
-                            .toUpperCase();
-
-                          // Ignore invalid esp values like "-", "QPA", "CPA", "QAP", "CAP", "PRM", etc.
-                          // E regra: para MN, não exibir especialidade (ex: "MN-MR" -> "MN")
-                          const isValidEsp =
-                            esp &&
-                            grad !== "MN" &&
-                            esp !== "-" &&
-                            !["QPA", "CPA", "QAP", "CAP", "PRM", "CPRM", "QFN", "CFN", "PL"].includes(esp);
-
-                          const opcao = (item.ocupado ? item.opcaoEfe : item.opcaoTmft || "").trim().toUpperCase();
-                          if (!grad) return nomeCompleto;
-                          return formatMilitarNameWithOpcao(grad, esp, nomeCompleto, opcao, { excludeMNQuadro: true });
-                        };
-
-                        return (
-                          <div
-                            key={item.id}
-                            className={`border-l-4 ${isDifferentNeoEfe ? "border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20" : "border-l-blue-500 bg-card"} rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow`}
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h4
-                                  className={`text-base font-bold ${isDifferentNeoEfe ? "text-amber-700 dark:text-amber-400" : "text-foreground"}`}
-                                >
-                                  {item.ocupado && item.nome && item.nome.toUpperCase() !== "VAGO"
-                                    ? formatMilitarName()
-                                    : item.nome || `NEO ${item.neo} - VAZIO`}
-                                </h4>
-                                <p className="text-sm text-muted-foreground">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
-                                <p className="text-xs text-blue-600 mt-1">
-                                  NEO: {item.neo} - {item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}
-                                </p>
-                                {isDifferentNeoEfe && (
-                                  <p className="text-xs text-amber-600 mt-1 font-medium">
-                                    ⚠️ NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE (
-                                    {item.postoEfe || "?"}/{item.quadroEfe || "-"})
-                                  </p>
-                                )}
-                              </div>
-                              <div className="flex flex-col items-end gap-2">
-                                <Badge
-                                  variant={item.ocupado ? "default" : "destructive"}
-                                  className={
-                                    item.ocupado
-                                      ? "bg-green-100 text-green-700 border border-green-300 hover:bg-green-100"
-                                      : "bg-red-100 text-red-700 border border-red-300 hover:bg-red-100"
-                                  }
-                                >
-                                  {item.ocupado ? "Ocupado" : "Vago"}
-                                </Badge>
-                                <div className="flex gap-2 flex-wrap">
-                                  <Badge variant="outline" className="bg-background">
-                                    {item.ocupado ? item.postoEfe : item.postoTmft}
-                                  </Badge>
-                                  <Badge
-                                    variant={isDifferentNeoEfe ? "default" : "outline"}
-                                    className={isDifferentNeoEfe ? "bg-blue-500 text-white" : "bg-background"}
-                                  >
-                                    NEO: {item.quadroTmft}
-                                  </Badge>
-                                  <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                                    {item.ocupado ? item.opcaoEfe : item.opcaoTmft}
-                                  </Badge>
-                                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-300">
-                                    {item.om}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {items.map((item, index) => (
+                        <OfficerCard
+                          key={item.id}
+                          item={item as any}
+                          index={index}
+                          keyPrefix={`efetivo-${setor}`}
+                          variant="blue"
+                        />
+                      ))}
                     </div>
                   </div>
                 ))}
