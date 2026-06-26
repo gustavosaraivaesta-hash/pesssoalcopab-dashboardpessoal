@@ -435,7 +435,7 @@ const CursosRealizados = () => {
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="space-y-3">
             <div className="flex items-center gap-2">
               <Search size={18} className="text-muted-foreground" />
               <Input
@@ -447,6 +447,25 @@ const CursosRealizados = () => {
               <span className="text-sm text-muted-foreground ml-auto">
                 {filtered.length} resultado(s)
               </span>
+            </div>
+            <div className="flex items-end gap-3 flex-wrap">
+              <div className="w-64">
+                <MultiSelectFilter
+                  label="Posto/Grad."
+                  options={postoOptions}
+                  selectedValues={postoFilter}
+                  onToggle={(v) =>
+                    setPostoFilter((prev) =>
+                      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v],
+                    )
+                  }
+                />
+              </div>
+              {postoFilter.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={() => setPostoFilter([])}>
+                  Limpar filtros
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
