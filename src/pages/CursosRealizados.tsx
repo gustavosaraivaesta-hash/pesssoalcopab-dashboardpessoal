@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import MultiSelectFilter from "@/components/dashboard/ttc/MultiSelectFilter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cursosRealizados as cursosFallback } from "@/data/cursosRealizados";
 import { useLiveSheet } from "@/hooks/useLiveSheet";
@@ -154,6 +155,7 @@ const CursosRealizados = () => {
   const [espMap, setEspMap] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<EnrichedMilitar | null>(null);
   const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
+  const [postoFilter, setPostoFilter] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
   const { data: cursosRealizados } = useLiveSheet(fetchCursosRealizados, cursosFallback, 30_000);
 
@@ -208,17 +210,27 @@ const CursosRealizados = () => {
     });
   }, [postoMap, espMap]);
 
+  const postoOptions = useMemo(() => {
+    const set = new Set<string>();
+    enriched.forEach((m) => {
+      if (m.posto) set.add(m.posto);
+    });
+    return Array.from(set).sort().map((v) => ({ value: v, label: v }));
+  }, [enriched]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toUpperCase();
-    if (!q) return enriched;
-    return enriched.filter(
-      (m) =>
+    return enriched.filter((m) => {
+      if (postoFilter.length > 0 && !postoFilter.includes(m.posto)) return false;
+      if (!q) return true;
+      return (
         m.nome.toUpperCase().includes(q) ||
         m.posto.toUpperCase().includes(q) ||
         m.especialidade.toUpperCase().includes(q) ||
-        m.cursos.some((c) => c.toUpperCase().includes(q)),
-    );
-  }, [search, enriched]);
+        m.cursos.some((c) => c.toUpperCase().includes(q))
+      );
+    });
+  }, [search, enriched, postoFilter]);
 
   const totals = useMemo(() => {
     const totalMilitares = cursosRealizados.length;
@@ -247,15 +259,16 @@ const CursosRealizados = () => {
         const { posto, especialidade } = resolve(m.nome, pMap, eMap, keys);
         return { ...m, posto, especialidade };
       });
-      const baseRows = q
-        ? list.filter(
-            (m) =>
-              m.nome.toUpperCase().includes(q) ||
-              m.posto.toUpperCase().includes(q) ||
-              m.especialidade.toUpperCase().includes(q) ||
-              m.cursos.some((c) => c.toUpperCase().includes(q)),
-          )
-        : list;
+      const baseRows = list.filter((m) => {
+        if (postoFilter.length > 0 && !postoFilter.includes(m.posto)) return false;
+        if (!q) return true;
+        return (
+          m.nome.toUpperCase().includes(q) ||
+          m.posto.toUpperCase().includes(q) ||
+          m.especialidade.toUpperCase().includes(q) ||
+          m.cursos.some((c) => c.toUpperCase().includes(q))
+        );
+      });
       const rows = selectedNames.size > 0
         ? baseRows.filter((m) => selectedNames.has(m.nome))
         : baseRows;
@@ -422,7 +435,7 @@ const CursosRealizados = () => {
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="space-y-3">
             <div className="flex items-center gap-2">
               <Search size={18} className="text-muted-foreground" />
               <Input
@@ -434,6 +447,25 @@ const CursosRealizados = () => {
               <span className="text-sm text-muted-foreground ml-auto">
                 {filtered.length} resultado(s)
               </span>
+            </div>
+            <div className="flex items-end gap-3 flex-wrap">
+              <div className="w-64">
+                <MultiSelectFilter
+                  label="Posto/Grad."
+                  options={postoOptions}
+                  selectedValues={postoFilter}
+                  onToggle={(v) =>
+                    setPostoFilter((prev) =>
+                      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v],
+                    )
+                  }
+                />
+              </div>
+              {postoFilter.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={() => setPostoFilter([])}>
+                  Limpar filtros
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
