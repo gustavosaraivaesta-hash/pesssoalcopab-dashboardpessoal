@@ -210,17 +210,27 @@ const CursosRealizados = () => {
     });
   }, [postoMap, espMap]);
 
+  const postoOptions = useMemo(() => {
+    const set = new Set<string>();
+    enriched.forEach((m) => {
+      if (m.posto) set.add(m.posto);
+    });
+    return Array.from(set).sort().map((v) => ({ value: v, label: v }));
+  }, [enriched]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toUpperCase();
-    if (!q) return enriched;
-    return enriched.filter(
-      (m) =>
+    return enriched.filter((m) => {
+      if (postoFilter.length > 0 && !postoFilter.includes(m.posto)) return false;
+      if (!q) return true;
+      return (
         m.nome.toUpperCase().includes(q) ||
         m.posto.toUpperCase().includes(q) ||
         m.especialidade.toUpperCase().includes(q) ||
-        m.cursos.some((c) => c.toUpperCase().includes(q)),
-    );
-  }, [search, enriched]);
+        m.cursos.some((c) => c.toUpperCase().includes(q))
+      );
+    });
+  }, [search, enriched, postoFilter]);
 
   const totals = useMemo(() => {
     const totalMilitares = cursosRealizados.length;
