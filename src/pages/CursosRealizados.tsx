@@ -211,11 +211,19 @@ const CursosRealizados = () => {
   }, [postoMap, espMap]);
 
   const postoOptions = useMemo(() => {
+    const order = ["CMG", "CF", "CC", "CT", "1TEN", "2TEN", "SO", "1SG", "2SG", "3SG", "CB", "MN"];
+    const rank = (v: string) => {
+      const u = v.toUpperCase().replace(/[º°\s-]/g, "");
+      const idx = order.findIndex((o) => u.startsWith(o));
+      return idx === -1 ? 999 : idx;
+    };
     const set = new Set<string>();
     enriched.forEach((m) => {
       if (m.posto) set.add(m.posto);
     });
-    return Array.from(set).sort().map((v) => ({ value: v, label: v }));
+    return Array.from(set)
+      .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
+      .map((v) => ({ value: v, label: v }));
   }, [enriched]);
 
   const filtered = useMemo(() => {
