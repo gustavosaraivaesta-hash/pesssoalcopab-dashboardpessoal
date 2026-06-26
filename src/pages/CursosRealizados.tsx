@@ -259,15 +259,16 @@ const CursosRealizados = () => {
         const { posto, especialidade } = resolve(m.nome, pMap, eMap, keys);
         return { ...m, posto, especialidade };
       });
-      const baseRows = q
-        ? list.filter(
-            (m) =>
-              m.nome.toUpperCase().includes(q) ||
-              m.posto.toUpperCase().includes(q) ||
-              m.especialidade.toUpperCase().includes(q) ||
-              m.cursos.some((c) => c.toUpperCase().includes(q)),
-          )
-        : list;
+      const baseRows = list.filter((m) => {
+        if (postoFilter.length > 0 && !postoFilter.includes(m.posto)) return false;
+        if (!q) return true;
+        return (
+          m.nome.toUpperCase().includes(q) ||
+          m.posto.toUpperCase().includes(q) ||
+          m.especialidade.toUpperCase().includes(q) ||
+          m.cursos.some((c) => c.toUpperCase().includes(q))
+        );
+      });
       const rows = selectedNames.size > 0
         ? baseRows.filter((m) => selectedNames.has(m.nome))
         : baseRows;
