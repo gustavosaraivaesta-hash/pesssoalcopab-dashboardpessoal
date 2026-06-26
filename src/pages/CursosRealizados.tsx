@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import MultiSelectFilter from "@/components/dashboard/ttc/MultiSelectFilter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cursosRealizados as cursosFallback } from "@/data/cursosRealizados";
 import { useLiveSheet } from "@/hooks/useLiveSheet";
