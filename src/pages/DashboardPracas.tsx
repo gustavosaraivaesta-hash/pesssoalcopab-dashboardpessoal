@@ -30,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { isForaDaNeo, expandSpecialtyEquivalents, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName } from "@/lib/utils";
+import OfficerCard from "@/components/dashboard/OfficerCard";
 
 import {
   BarChart,
