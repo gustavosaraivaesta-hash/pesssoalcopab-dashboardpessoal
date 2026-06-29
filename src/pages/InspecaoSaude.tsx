@@ -107,6 +107,8 @@ const InspecaoSaude = () => {
   const [mesFilter, setMesFilter] = useState<string | null>(null);
   const { data: inspecaoSaudeData, lastUpdated } = useLiveSheet(fetchInspecaoSaude, inspecaoFallback, 30_000);
   const [personnel, setPersonnel] = useState<PersonnelLookup[]>([]);
+  const [detail, setDetail] = useState<{ record: any | null; inspecao: any } | null>(null);
+
 
   useEffect(() => {
     let cancelled = false;
