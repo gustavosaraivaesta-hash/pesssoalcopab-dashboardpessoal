@@ -715,18 +715,24 @@ const InspecaoSaude = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    enrichedTable.map(({ r, neo, militar }, i) => {
+                    enrichedTable.map(({ r, neo, militar, full }, i) => {
                       const d = parseDate(r.validade);
                       const s = statusValidade(d);
+                      const openDetail = () =>
+                        setDetail({
+                          record: full,
+                          inspecao: { posto: r.posto, quadro: r.quadro, nome: r.nome, validade: r.validade, status: s },
+                        });
                       return (
-                        <TableRow key={i}>
+                        <TableRow key={i} className="cursor-pointer hover:bg-muted/40" onClick={openDetail}>
                           <TableCell className="font-mono text-xs">
                             {neo ? (
-                              <Badge variant="outline" className="font-semibold">NEO {neo}</Badge>
+                              <Badge variant="outline" className="font-semibold hover:bg-primary hover:text-primary-foreground cursor-pointer">NEO {neo}</Badge>
                             ) : (
-                              <Badge variant="secondary" className="font-semibold">SEM NEO</Badge>
+                              <Badge variant="secondary" className="font-semibold cursor-pointer">SEM NEO</Badge>
                             )}
                           </TableCell>
+
                           <TableCell className="font-medium">{r.posto}</TableCell>
                           <TableCell>{r.quadro}</TableCell>
                           <TableCell className="font-medium uppercase">{militar}</TableCell>
