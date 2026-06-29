@@ -758,11 +758,6 @@ const InspecaoSaude = () => {
           </CardContent>
         </Card>
       </main>
-    </div>
-  );
-};
-
-      </main>
 
       <MilitarFullDetailDialog
         open={!!detail}
@@ -773,6 +768,7 @@ const InspecaoSaude = () => {
     </div>
   );
 };
+
 
 export default InspecaoSaude;
 
