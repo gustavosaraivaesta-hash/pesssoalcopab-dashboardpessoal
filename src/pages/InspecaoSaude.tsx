@@ -37,6 +37,8 @@ import { useLiveSheet } from "@/hooks/useLiveSheet";
 import { fetchInspecaoSaude } from "@/lib/sheetsLive";
 import { supabase } from "@/integrations/supabase/client";
 import { formatMilitarNameWithOpcao } from "@/lib/utils";
+import MilitarFullDetailDialog from "@/components/dashboard/MilitarFullDetailDialog";
+
 
 const normalizeName = (s: string) =>
   (s || "")
