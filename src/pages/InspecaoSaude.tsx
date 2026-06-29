@@ -350,9 +350,10 @@ const InspecaoSaude = () => {
       const militar = p
         ? formatMilitarNameWithOpcao(p.posto || r.posto, p.quadro || r.quadro, p.nome, p.opcao)
         : formatMilitarNameWithOpcao(r.posto, r.quadro, r.nome, "");
-      return { r, neo, militar };
+      return { r, neo, militar, full: p?.full ?? null };
     });
   }, [tableData, personnelIndex]);
+
 
   const mesFilterLabel = useMemo(() => {
     if (!mesFilter) return null;
