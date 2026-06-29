@@ -137,6 +137,35 @@ const InspecaoSaude = () => {
 
   const STOP = new Set(["DE", "DA", "DO", "DAS", "DOS", "E"]);
 
+  // Levenshtein para tolerar erros de digitação (ex: OLIVIERA vs OLIVEIRA)
+  const lev = (a: string, b: string): number => {
+    if (a === b) return 0;
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    const dp = Array.from({ length: a.length + 1 }, (_, i) => i);
+    for (let j = 1; j <= b.length; j++) {
+      let prev = dp[0];
+      dp[0] = j;
+      for (let i = 1; i <= a.length; i++) {
+        const tmp = dp[i];
+        dp[i] = Math.min(dp[i] + 1, dp[i - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+        prev = tmp;
+      }
+    }
+    return dp[a.length];
+  };
+
+  const tokensFuzzyMatch = (a: string, set: Set<string>): boolean => {
+    if (set.has(a)) return true;
+    const max = a.length >= 8 ? 2 : a.length >= 5 ? 1 : 0;
+    if (max === 0) return false;
+    for (const b of set) {
+      if (Math.abs(b.length - a.length) > max) continue;
+      if (lev(a, b) <= max) return true;
+    }
+    return false;
+  };
+
   const personnelIndex = useMemo(() => {
     const byToken = new Map<string, PersonnelLookup[]>();
     personnel.forEach((p) => {
@@ -160,27 +189,48 @@ const InspecaoSaude = () => {
     if (!tokens.length) return null;
     const postoN = r.posto.replace(/\s+/g, "").toUpperCase();
 
-    // Score candidates by how many tokens they share with the inspection name
+    // Score por interseção exata
     const scores = new Map<PersonnelLookup, number>();
     tokens.forEach((t) => {
       (personnelIndex.get(t) || []).forEach((c) =>
         scores.set(c, (scores.get(c) || 0) + 1),
       );
     });
+
+    // Adiciona candidatos por fuzzy (tipo OLIVIERA→OLIVEIRA): qualquer chave próxima
+    const allKeys = Array.from(personnelIndex.keys());
+    tokens.forEach((t) => {
+      if (t.length < 5) return;
+      const max = t.length >= 8 ? 2 : 1;
+      allKeys.forEach((k) => {
+        if (k === t) return;
+        if (Math.abs(k.length - t.length) > max) return;
+        if (lev(t, k) <= max) {
+          (personnelIndex.get(k) || []).forEach((c) => {
+            if (!scores.has(c)) scores.set(c, 0.5); // contribuição parcial
+            else scores.set(c, scores.get(c)! + 0.5);
+          });
+        }
+      });
+    });
+
     if (scores.size === 0) return null;
 
-    const minOverlap = Math.min(2, tokens.length);
     const lastInsp = tokens[tokens.length - 1];
 
     let best: PersonnelLookup | null = null;
     let bestScore = -1;
     scores.forEach((score, c) => {
-      if (score < minOverlap) return;
       const cTokens = new Set(
         normalizeName(c.nome).split(" ").filter((t) => t && !STOP.has(t)),
       );
-      // exigir compartilhamento do último sobrenome (mais distintivo)
-      if (!cTokens.has(lastInsp)) return;
+      // último sobrenome precisa bater (exato OU fuzzy)
+      if (!tokensFuzzyMatch(lastInsp, cTokens)) return;
+      // pelo menos 1 outro token (exato ou fuzzy) também precisa bater, se houver mais
+      if (tokens.length > 1) {
+        const otherHit = tokens.slice(0, -1).some((t) => tokensFuzzyMatch(t, cTokens));
+        if (!otherHit) return;
+      }
       const cPosto = c.posto.replace(/\s+/g, "").toUpperCase();
       const postoBonus = postoN && cPosto && cPosto === postoN ? 10 : 0;
       const total = score + postoBonus;
