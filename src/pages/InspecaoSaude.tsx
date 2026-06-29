@@ -57,7 +57,9 @@ type PersonnelLookup = {
   posto: string;
   quadro: string;
   opcao: string;
+  full: any;
 };
+
 
 const invokeWithTimeout = async <T,>(name: string, ms = 25000) =>
   await Promise.race([
