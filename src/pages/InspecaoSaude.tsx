@@ -762,4 +762,17 @@ const InspecaoSaude = () => {
   );
 };
 
+      </main>
+
+      <MilitarFullDetailDialog
+        open={!!detail}
+        onOpenChange={(v) => !v && setDetail(null)}
+        record={detail?.record ?? null}
+        inspecao={detail?.inspecao ?? null}
+      />
+    </div>
+  );
+};
+
 export default InspecaoSaude;
+
