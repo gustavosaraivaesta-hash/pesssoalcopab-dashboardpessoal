@@ -54,29 +54,6 @@ const MilitarFullDetailDialog = ({ open, onOpenChange, record, inspecao }: Props
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">TMFT (Tabela Mestra)</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-4 gap-2 text-xs">
-                <Info label="Posto" value={record.postoTmft || "—"} />
-                <Info label="Corpo" value={record.corpoTmft || "—"} />
-                <Info label="Quadro" value={record.quadroTmft || "—"} />
-                <Info label="Opção" value={record.opcaoTmft || "—"} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">EFETIVO (Atual)</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-4 gap-2 text-xs">
-                <Info label="Posto" value={record.postoEfe || "—"} />
-                <Info label="Corpo" value={record.corpoEfe || "—"} />
-                <Info label="Quadro" value={record.quadroEfe || "—"} />
-                <Info label="Opção" value={record.opcaoEfe || "—"} />
-              </CardContent>
-            </Card>
 
             {inspecao && (
               <Card>
