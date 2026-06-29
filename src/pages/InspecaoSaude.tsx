@@ -124,8 +124,10 @@ const InspecaoSaude = () => {
               posto: String(it.postoEfe || it.postoTmft || "").trim(),
               quadro: String(it.quadroEfe || it.quadroTmft || "").trim(),
               opcao: String(it.opcaoEfe || it.opcaoTmft || "").trim(),
+              full: it,
             });
           });
+
         };
         push(omRes?.data?.data || []);
         push(prRes?.data?.data || []);
