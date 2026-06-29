@@ -362,7 +362,7 @@ const InspecaoSaude = () => {
       head: [["NEO", "P/G", "Esp/Quadro", "Militar", "Validade", "Status"]],
       body: enrichedTable.map(({ r, neo, militar }) => {
         const s = statusValidade(parseDate(r.validade));
-        return [neo || "—", r.posto, r.quadro, militar, r.validade, statusLabel(s)];
+        return [neo || "SEM NEO", r.posto, r.quadro, militar, r.validade, statusLabel(s)];
       }),
       styles: { fontSize: 9, cellPadding: 2 },
       headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
