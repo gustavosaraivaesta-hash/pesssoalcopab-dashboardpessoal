@@ -135,42 +135,61 @@ const InspecaoSaude = () => {
     return () => { cancelled = true; };
   }, []);
 
+  const STOP = new Set(["DE", "DA", "DO", "DAS", "DOS", "E"]);
+
   const personnelIndex = useMemo(() => {
-    const byLast = new Map<string, PersonnelLookup[]>();
+    const byToken = new Map<string, PersonnelLookup[]>();
     personnel.forEach((p) => {
-      const k = lastToken(p.nome);
-      if (!k) return;
-      const list = byLast.get(k) || [];
-      list.push(p);
-      byLast.set(k, list);
+      const seen = new Set<string>();
+      normalizeName(p.nome)
+        .split(" ")
+        .filter((t) => t && !STOP.has(t))
+        .forEach((t) => {
+          if (seen.has(t)) return;
+          seen.add(t);
+          const list = byToken.get(t) || [];
+          list.push(p);
+          byToken.set(t, list);
+        });
     });
-    return byLast;
+    return byToken;
   }, [personnel]);
 
   const matchPersonnel = (r: InspecaoRecord): PersonnelLookup | null => {
-    const tokens = normalizeName(r.nome).split(" ").filter(Boolean);
+    const tokens = normalizeName(r.nome).split(" ").filter((t) => t && !STOP.has(t));
     if (!tokens.length) return null;
     const postoN = r.posto.replace(/\s+/g, "").toUpperCase();
-    // try each token as last-name key (handles "RICARDO NOGUEIRA" matching "RICARDO MELLO NOGUEIRA")
-    const tried = new Set<PersonnelLookup>();
-    for (let i = tokens.length - 1; i >= 0; i--) {
-      const candidates = personnelIndex.get(tokens[i]) || [];
-      for (const c of candidates) {
-        if (tried.has(c)) continue;
-        tried.add(c);
-        const cPosto = c.posto.replace(/\s+/g, "").toUpperCase();
-        const postoOk = !postoN || !cPosto || cPosto === postoN;
-        const cName = normalizeName(c.nome);
-        const allMatch = tokens.every((t) => cName.includes(t));
-        if (postoOk && allMatch) return c;
+
+    // Score candidates by how many tokens they share with the inspection name
+    const scores = new Map<PersonnelLookup, number>();
+    tokens.forEach((t) => {
+      (personnelIndex.get(t) || []).forEach((c) =>
+        scores.set(c, (scores.get(c) || 0) + 1),
+      );
+    });
+    if (scores.size === 0) return null;
+
+    const minOverlap = Math.min(2, tokens.length);
+    const lastInsp = tokens[tokens.length - 1];
+
+    let best: PersonnelLookup | null = null;
+    let bestScore = -1;
+    scores.forEach((score, c) => {
+      if (score < minOverlap) return;
+      const cTokens = new Set(
+        normalizeName(c.nome).split(" ").filter((t) => t && !STOP.has(t)),
+      );
+      // exigir compartilhamento do último sobrenome (mais distintivo)
+      if (!cTokens.has(lastInsp)) return;
+      const cPosto = c.posto.replace(/\s+/g, "").toUpperCase();
+      const postoBonus = postoN && cPosto && cPosto === postoN ? 10 : 0;
+      const total = score + postoBonus;
+      if (total > bestScore) {
+        bestScore = total;
+        best = c;
       }
-    }
-    // fallback: first match by all tokens regardless of posto
-    for (const c of personnel) {
-      const cName = normalizeName(c.nome);
-      if (tokens.every((t) => cName.includes(t))) return c;
-    }
-    return null;
+    });
+    return best;
   };
 
 
