@@ -37,6 +37,8 @@ import { useLiveSheet } from "@/hooks/useLiveSheet";
 import { fetchInspecaoSaude } from "@/lib/sheetsLive";
 import { supabase } from "@/integrations/supabase/client";
 import { formatMilitarNameWithOpcao } from "@/lib/utils";
+import MilitarFullDetailDialog from "@/components/dashboard/MilitarFullDetailDialog";
+
 
 const normalizeName = (s: string) =>
   (s || "")
@@ -57,7 +59,9 @@ type PersonnelLookup = {
   posto: string;
   quadro: string;
   opcao: string;
+  full: any;
 };
+
 
 const invokeWithTimeout = async <T,>(name: string, ms = 25000) =>
   await Promise.race([
@@ -103,6 +107,8 @@ const InspecaoSaude = () => {
   const [mesFilter, setMesFilter] = useState<string | null>(null);
   const { data: inspecaoSaudeData, lastUpdated } = useLiveSheet(fetchInspecaoSaude, inspecaoFallback, 30_000);
   const [personnel, setPersonnel] = useState<PersonnelLookup[]>([]);
+  const [detail, setDetail] = useState<{ record: any | null; inspecao: any } | null>(null);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -122,8 +128,10 @@ const InspecaoSaude = () => {
               posto: String(it.postoEfe || it.postoTmft || "").trim(),
               quadro: String(it.quadroEfe || it.quadroTmft || "").trim(),
               opcao: String(it.opcaoEfe || it.opcaoTmft || "").trim(),
+              full: it,
             });
           });
+
         };
         push(omRes?.data?.data || []);
         push(prRes?.data?.data || []);
@@ -342,9 +350,10 @@ const InspecaoSaude = () => {
       const militar = p
         ? formatMilitarNameWithOpcao(p.posto || r.posto, p.quadro || r.quadro, p.nome, p.opcao)
         : formatMilitarNameWithOpcao(r.posto, r.quadro, r.nome, "");
-      return { r, neo, militar };
+      return { r, neo, militar, full: p?.full ?? null };
     });
   }, [tableData, personnelIndex]);
+
 
   const mesFilterLabel = useMemo(() => {
     if (!mesFilter) return null;
@@ -706,18 +715,24 @@ const InspecaoSaude = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    enrichedTable.map(({ r, neo, militar }, i) => {
+                    enrichedTable.map(({ r, neo, militar, full }, i) => {
                       const d = parseDate(r.validade);
                       const s = statusValidade(d);
+                      const openDetail = () =>
+                        setDetail({
+                          record: full,
+                          inspecao: { posto: r.posto, quadro: r.quadro, nome: r.nome, validade: r.validade, status: s },
+                        });
                       return (
-                        <TableRow key={i}>
+                        <TableRow key={i} className="cursor-pointer hover:bg-muted/40" onClick={openDetail}>
                           <TableCell className="font-mono text-xs">
                             {neo ? (
-                              <Badge variant="outline" className="font-semibold">NEO {neo}</Badge>
+                              <Badge variant="outline" className="font-semibold hover:bg-primary hover:text-primary-foreground cursor-pointer">NEO {neo}</Badge>
                             ) : (
-                              <Badge variant="secondary" className="font-semibold">SEM NEO</Badge>
+                              <Badge variant="secondary" className="font-semibold cursor-pointer">SEM NEO</Badge>
                             )}
                           </TableCell>
+
                           <TableCell className="font-medium">{r.posto}</TableCell>
                           <TableCell>{r.quadro}</TableCell>
                           <TableCell className="font-medium uppercase">{militar}</TableCell>
@@ -743,8 +758,17 @@ const InspecaoSaude = () => {
           </CardContent>
         </Card>
       </main>
+
+      <MilitarFullDetailDialog
+        open={!!detail}
+        onOpenChange={(v) => !v && setDetail(null)}
+        record={detail?.record ?? null}
+        inspecao={detail?.inspecao ?? null}
+      />
     </div>
   );
 };
 
+
 export default InspecaoSaude;
+
