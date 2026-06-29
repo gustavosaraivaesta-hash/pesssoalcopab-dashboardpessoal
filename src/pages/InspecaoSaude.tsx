@@ -665,7 +665,7 @@ const InspecaoSaude = () => {
                             {neo ? (
                               <Badge variant="outline" className="font-semibold">NEO {neo}</Badge>
                             ) : (
-                              <span className="text-muted-foreground">—</span>
+                              <Badge variant="secondary" className="font-semibold">SEM NEO</Badge>
                             )}
                           </TableCell>
                           <TableCell className="font-medium">{r.posto}</TableCell>
