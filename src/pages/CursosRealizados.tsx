@@ -251,11 +251,12 @@ const CursosRealizados = () => {
   }, [search, enriched, postoFilter]);
 
   const totals = useMemo(() => {
-    const totalMilitares = cursosRealizados.length;
-    const totalCursos = cursosRealizados.reduce((acc, m) => acc + m.cursos.length, 0);
-    const semCursos = cursosRealizados.filter((m) => m.cursos.length === 0).length;
+    const totalMilitares = filtered.length;
+    const totalCursos = filtered.reduce((acc, m) => acc + m.cursos.length, 0);
+    const semCursos = filtered.filter((m) => m.cursos.length === 0).length;
     return { totalMilitares, totalCursos, semCursos };
-  }, [cursosRealizados]);
+  }, [filtered]);
+
 
   const exportPDF = async () => {
     setExporting(true);
@@ -344,16 +345,20 @@ const CursosRealizados = () => {
         yPosition += 4;
       }
 
-      // Resumo
+      // Resumo (baseado no que está sendo exportado)
+      const pdfTotalMilitares = rows.length;
+      const pdfTotalCursos = rows.reduce((acc, m) => acc + m.cursos.length, 0);
+      const pdfSemCursos = rows.filter((m) => m.cursos.length === 0).length;
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       doc.text(
-        `Militares: ${totals.totalMilitares}   |   Total de Cursos: ${totals.totalCursos}   |   Sem cursos: ${totals.semCursos}`,
+        `Militares: ${pdfTotalMilitares}   |   Total de Cursos: ${pdfTotalCursos}   |   Sem cursos: ${pdfSemCursos}`,
         pageWidth / 2,
         yPosition,
         { align: "center" },
       );
       yPosition += 10;
+
 
       autoTable(doc, {
         startY: yPosition,
