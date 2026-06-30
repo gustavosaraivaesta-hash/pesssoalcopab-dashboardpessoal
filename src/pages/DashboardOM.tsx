@@ -1637,11 +1637,13 @@ const DashboardOM = () => {
         const omGeralTmft = omAllRegular.length;
         const omGeralEfetivo = omAllRegular.filter((item) => item.ocupado).length;
         const omGeralExtra = omAllExtra.length;
+        const omGeralDestLic = countDestLicForOM(om, false);
 
         // Calculate filtered metrics per OM
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omFiltExtraData = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
         const omFiltExtra = omFiltExtraData.length;
+        const omFiltDestLic = countDestLicForOM(om, true);
 
         if (hasEfeFiltersGlobal || selectedOMs.length > 0) {
           let filtTmft: number;
@@ -1663,18 +1665,18 @@ const DashboardOM = () => {
             filtTmft = omRegularData.length;
             filtEfetivo = omRegularData.filter((item) => item.ocupado).length;
           }
-          yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, omGeralExtra, filtTmft, filtEfetivo, omFiltExtra, yPosition);
+          yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, omGeralExtra, omGeralDestLic, filtTmft, filtEfetivo, omFiltExtra, omFiltDestLic, yPosition);
         } else {
           const omVagos = omGeralTmft - omGeralEfetivo;
-          const atTotal = omGeralTmft > 0 ? ((omGeralEfetivo + omGeralExtra) / omGeralTmft) * 100 : 0;
+          const atTotal = omGeralTmft > 0 ? ((omGeralEfetivo + omGeralExtra + omGeralDestLic) / omGeralTmft) * 100 : 0;
           pdf.setFontSize(8);
           pdf.setFont("helvetica", "bold");
           pdf.text("GERAL", pageWidth / 2, yPosition, { align: "center" });
           yPosition += 4;
           autoTable(pdf, {
             startY: yPosition,
-            head: [["TMFT", "EFE", "VAGOS", "SEM NEO", "AT. TOTAL"]],
-            body: [[omGeralTmft.toString(), omGeralEfetivo.toString(), omVagos.toString(), omGeralExtra.toString(), `${atTotal.toFixed(1)}%`]],
+            head: [["TMFT", "EFE", "VAGOS", "SEM NEO", "DEST/LIC", "AT. TOTAL"]],
+            body: [[omGeralTmft.toString(), omGeralEfetivo.toString(), omVagos.toString(), omGeralExtra.toString(), omGeralDestLic.toString(), `${atTotal.toFixed(1)}%`]],
             theme: "grid",
             styles: { fontSize: 8, cellPadding: 2, halign: "center" },
             headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
