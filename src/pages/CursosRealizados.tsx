@@ -277,9 +277,20 @@ const CursosRealizados = () => {
           m.cursos.some((c) => c.toUpperCase().includes(q))
         );
       });
-      const rows = selectedNames.size > 0
+      const filteredBySel = selectedNames.size > 0
         ? baseRows.filter((m) => selectedNames.has(m.nome))
         : baseRows;
+      // Quando há busca, mostra apenas os cursos que casam com o termo (não todos do militar)
+      const rows = q
+        ? filteredBySel.map((m) => {
+            const nomeMatch =
+              m.nome.toUpperCase().includes(q) ||
+              m.posto.toUpperCase().includes(q) ||
+              m.especialidade.toUpperCase().includes(q);
+            const cursosMatch = m.cursos.filter((c) => c.toUpperCase().includes(q));
+            return { ...m, cursos: nomeMatch ? m.cursos : cursosMatch };
+          })
+        : filteredBySel;
 
       const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const pageWidth = doc.internal.pageSize.getWidth();
