@@ -1471,8 +1471,8 @@ const DashboardOM = () => {
         yPosition += 6;
 
         // Dynamic columns based on extra lotação
-        const geralCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "SEM NEO", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS", "AT. TOTAL"];
-        const filtCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "SEM NEO", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS", "AT. TOTAL"];
+        const geralCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "SEM NEO", "DEST/LIC", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS", "DEST/LIC", "AT. TOTAL"];
+        const filtCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "SEM NEO", "DEST/LIC", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS", "DEST/LIC", "AT. TOTAL"];
         const colsPerSide = geralCols.length;
         const sepIdx = colsPerSide; // separator column index
 
