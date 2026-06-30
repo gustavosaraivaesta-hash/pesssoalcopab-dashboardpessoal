@@ -228,16 +228,26 @@ const CursosRealizados = () => {
 
   const filtered = useMemo(() => {
     const q = search.trim().toUpperCase();
-    return enriched.filter((m) => {
-      if (postoFilter.length > 0 && !postoFilter.includes(m.posto)) return false;
-      if (!q) return true;
-      return (
-        m.nome.toUpperCase().includes(q) ||
-        m.posto.toUpperCase().includes(q) ||
-        m.especialidade.toUpperCase().includes(q) ||
-        m.cursos.some((c) => c.toUpperCase().includes(q))
-      );
-    });
+    return enriched
+      .filter((m) => {
+        if (postoFilter.length > 0 && !postoFilter.includes(m.posto)) return false;
+        if (!q) return true;
+        return (
+          m.nome.toUpperCase().includes(q) ||
+          m.posto.toUpperCase().includes(q) ||
+          m.especialidade.toUpperCase().includes(q) ||
+          m.cursos.some((c) => c.toUpperCase().includes(q))
+        );
+      })
+      .map((m) => {
+        if (!q) return m;
+        const nomeMatch =
+          m.nome.toUpperCase().includes(q) ||
+          m.posto.toUpperCase().includes(q) ||
+          m.especialidade.toUpperCase().includes(q);
+        if (nomeMatch) return m;
+        return { ...m, cursos: m.cursos.filter((c) => c.toUpperCase().includes(q)) };
+      });
   }, [search, enriched, postoFilter]);
 
   const totals = useMemo(() => {
