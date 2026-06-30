@@ -1351,17 +1351,17 @@ const DashboardOM = () => {
 
       // Helper: render side-by-side GERAL / FILTRADO summary (single-row totals)
       const renderSideBySideTotals = (
-        geralTmft: number, geralEfetivo: number, geralExtra: number,
-        filtTmft: number, filtEfetivo: number, filtExtra: number,
+        geralTmft: number, geralEfetivo: number, geralExtra: number, geralDestLic: number,
+        filtTmft: number, filtEfetivo: number, filtExtra: number, filtDestLic: number,
         startY: number
       ) => {
         let y = startY;
         y = checkNewPage(y, 40);
 
         const geralVagos = geralTmft - geralEfetivo;
-        const geralAtTotal = geralTmft > 0 ? ((geralEfetivo + geralExtra) / geralTmft) * 100 : 0;
+        const geralAtTotal = geralTmft > 0 ? ((geralEfetivo + geralExtra + geralDestLic) / geralTmft) * 100 : 0;
         const filtVagos = filtTmft - filtEfetivo;
-        const filtAtTotal = filtTmft > 0 ? ((filtEfetivo + filtExtra) / filtTmft) * 100 : 0;
+        const filtAtTotal = filtTmft > 0 ? ((filtEfetivo + filtExtra + filtDestLic) / filtTmft) * 100 : 0;
 
         const filtLabelParts: string[] = [];
         if (selectedCorpos.length > 0) filtLabelParts.push(selectedCorpos.join(", "));
@@ -1379,16 +1379,16 @@ const DashboardOM = () => {
         pdf.text(filtTitleLabel, rx + halfW / 2, y, { align: "center" });
         y += 4;
 
-        const cols = ["TMFT", "EFE", "VAGOS", "SEM NEO", "AT. TOTAL"];
+        const cols = ["TMFT", "EFE", "VAGOS", "SEM NEO", "DEST/LIC", "AT. TOTAL"];
         const sepIdx = cols.length;
 
         autoTable(pdf, {
           startY: y,
           head: [[...cols, "", ...cols]],
           body: [[
-            geralTmft.toString(), geralEfetivo.toString(), geralVagos.toString(), geralExtra.toString(), `${geralAtTotal.toFixed(1)}%`,
+            geralTmft.toString(), geralEfetivo.toString(), geralVagos.toString(), geralExtra.toString(), geralDestLic.toString(), `${geralAtTotal.toFixed(1)}%`,
             "",
-            filtTmft.toString(), filtEfetivo.toString(), filtVagos.toString(), filtExtra.toString(), `${filtAtTotal.toFixed(1)}%`,
+            filtTmft.toString(), filtEfetivo.toString(), filtVagos.toString(), filtExtra.toString(), filtDestLic.toString(), `${filtAtTotal.toFixed(1)}%`,
           ]],
           theme: "grid",
           styles: { fontSize: 7, cellPadding: 2, halign: "center" },
