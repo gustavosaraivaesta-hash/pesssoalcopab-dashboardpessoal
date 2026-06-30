@@ -1443,8 +1443,8 @@ const DashboardOM = () => {
         const filtrado = buildFiltradoResumoRows();
 
         yPosition = renderSideBySideTotals(
-          geral.totalTmft, geral.totalEfetivo, geral.totalExtra,
-          filtrado.totalTmft, filtrado.totalEfetivo, filtrado.totalExtra,
+          geral.totalTmft, geral.totalEfetivo, geral.totalExtra, geral.totalDestLic,
+          filtrado.totalTmft, filtrado.totalEfetivo, filtrado.totalExtra, filtrado.totalDestLic,
           yPosition
         );
 
