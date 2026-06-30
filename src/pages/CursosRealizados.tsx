@@ -251,11 +251,12 @@ const CursosRealizados = () => {
   }, [search, enriched, postoFilter]);
 
   const totals = useMemo(() => {
-    const totalMilitares = cursosRealizados.length;
-    const totalCursos = cursosRealizados.reduce((acc, m) => acc + m.cursos.length, 0);
-    const semCursos = cursosRealizados.filter((m) => m.cursos.length === 0).length;
+    const totalMilitares = filtered.length;
+    const totalCursos = filtered.reduce((acc, m) => acc + m.cursos.length, 0);
+    const semCursos = filtered.filter((m) => m.cursos.length === 0).length;
     return { totalMilitares, totalCursos, semCursos };
-  }, [cursosRealizados]);
+  }, [filtered]);
+
 
   const exportPDF = async () => {
     setExporting(true);
