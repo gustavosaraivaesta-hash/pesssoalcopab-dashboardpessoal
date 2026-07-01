@@ -104,7 +104,7 @@ export function normalizeGraduacaoFields<T extends Record<string, any>>(items: T
   });
 }
 
-const EXCLUDED_QUADROS_LIST = ["QPA", "CPA", "QAP", "CAP", "CATP", "PRM", "CPRM", "QFN", "CFN", "PL"];
+const EXCLUDED_QUADROS_LIST = ["QPA", "CPA", "QAP", "CAP", "CATP", "PRM", "CPRM", "QFN", "CFN"];
 
 /**
  * Formats a military name with the correct posto-opcao-quadro pattern.
