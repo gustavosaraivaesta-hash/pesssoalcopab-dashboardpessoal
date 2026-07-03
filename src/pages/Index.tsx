@@ -826,6 +826,17 @@ const Index = () => {
     });
   }, [showNeoPersonnel, filters.especialidade, filters.categoria, filters.om, rawPersonnel]);
 
+  const licencasDestaquesCount = useMemo(() => {
+    const oms = filters.om;
+    const cat = filters.categoria;
+    const applies = (r: any) => {
+      if (oms.length > 0 && !oms.includes(String(r?.om || ""))) return false;
+      if (cat !== "TODOS" && r?._categoria !== cat) return false;
+      return true;
+    };
+    return licencasDestaques.licencas.filter(applies).length + licencasDestaques.destaques.filter(applies).length;
+  }, [licencasDestaques, filters.om, filters.categoria]);
+
   const handleEfetivoCardClick = () => {
     if (filters.especialidade.length > 0) {
       setShowNeoComparison(!showNeoComparison);
