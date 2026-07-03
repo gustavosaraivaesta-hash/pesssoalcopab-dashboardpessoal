@@ -3403,7 +3403,7 @@ const DashboardPracas = () => {
                     <div key={index} className="border-l-4 border-l-purple-500 bg-card rounded-lg p-4 shadow-sm">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground">{item.nome}</h4>
+                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [(item as any).especialidade, (item as any).quadro].find((v: any) => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = ((item as any).posto || "").split("-")[0].trim(); return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, (item as any).opcao); })()}</h4>
                           <p className="text-sm text-muted-foreground">{item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-purple-600">
