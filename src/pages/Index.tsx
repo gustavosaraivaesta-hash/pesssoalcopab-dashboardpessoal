@@ -1032,7 +1032,7 @@ const Index = () => {
         />
 
         {/* Métricas principais */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
           <MetricsCard title="Total TMFT" value={metrics.totalTMFT} icon={Shield} variant="default" />
           <div 
             onClick={handleEfetivoCardClick}
@@ -1064,9 +1064,22 @@ const Index = () => {
             }
           />
           <MetricsCard title="Sem NEO" value={extraLotacaoTotal} icon={Users} variant="warning" />
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 border-purple-200">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">DESTAQUES/LICENÇAS</p>
+                  <p className="text-4xl font-bold text-purple-900 dark:text-purple-100">
+                    {licencasDestaquesCount}
+                  </p>
+                </div>
+                <Award className="h-8 w-8 text-purple-500" />
+              </div>
+            </CardContent>
+          </Card>
           <MetricsCard 
             title="Atend. Total" 
-            value={`${metrics.totalTMFT > 0 ? (((metrics.totalEXI + extraLotacaoTotal) / metrics.totalTMFT) * 100).toFixed(1) : "0.0"}%`} 
+            value={`${metrics.totalTMFT > 0 ? (((metrics.totalEXI + extraLotacaoTotal + licencasDestaquesCount) / metrics.totalTMFT) * 100).toFixed(1) : "0.0"}%`} 
             icon={Percent} 
             variant="success" 
           />
