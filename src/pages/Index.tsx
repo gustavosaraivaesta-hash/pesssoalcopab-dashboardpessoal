@@ -86,6 +86,10 @@ const Index = () => {
     pracas: [],
     oficiais: [],
   });
+  const [licencasDestaques, setLicencasDestaques] = useState<{
+    licencas: Array<any & { _categoria: "PRAÇAS" | "OFICIAIS" }>;
+    destaques: Array<any & { _categoria: "PRAÇAS" | "OFICIAIS" }>;
+  }>({ licencas: [], destaques: [] });
   const [previousData, setPreviousData] = useState<MilitaryData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
