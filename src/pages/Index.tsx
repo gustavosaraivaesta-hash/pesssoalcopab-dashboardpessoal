@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent, Settings, X, ClipboardList, Archive, Lock, ChevronDown, BookOpen, HeartPulse } from "lucide-react";
+import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent, Settings, X, ClipboardList, Archive, Lock, ChevronDown, BookOpen, HeartPulse, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -86,6 +86,10 @@ const Index = () => {
     pracas: [],
     oficiais: [],
   });
+  const [licencasDestaques, setLicencasDestaques] = useState<{
+    licencas: Array<any & { _categoria: "PRAÇAS" | "OFICIAIS" }>;
+    destaques: Array<any & { _categoria: "PRAÇAS" | "OFICIAIS" }>;
+  }>({ licencas: [], destaques: [] });
   const [previousData, setPreviousData] = useState<MilitaryData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -349,6 +353,16 @@ const Index = () => {
       }
 
       setRawPersonnel({ pracas: nextRawPracas, oficiais: nextRawOficiais });
+
+      // Capture licenças/destaques from both sources (tagged by categoria)
+      const pracasLic = ((pracasResponse as any)?.data?.licencas || []).map((r: any) => ({ ...r, _categoria: "PRAÇAS" as const }));
+      const pracasDest = ((pracasResponse as any)?.data?.destaques || []).map((r: any) => ({ ...r, _categoria: "PRAÇAS" as const }));
+      const oficiaisLic = ((oficiaisResponse as any)?.data?.licencas || []).map((r: any) => ({ ...r, _categoria: "OFICIAIS" as const }));
+      const oficiaisDest = ((oficiaisResponse as any)?.data?.destaques || []).map((r: any) => ({ ...r, _categoria: "OFICIAIS" as const }));
+      setLicencasDestaques({
+        licencas: [...pracasLic, ...oficiaisLic].map((r) => ({ ...r, om: normalizeOMName(r?.om) })),
+        destaques: [...pracasDest, ...oficiaisDest].map((r) => ({ ...r, om: normalizeOMName(r?.om) })),
+      });
 
       if (allMilitaryData.length > 0) {
         console.log(`Total combined records: ${allMilitaryData.length}`);
@@ -812,6 +826,17 @@ const Index = () => {
     });
   }, [showNeoPersonnel, filters.especialidade, filters.categoria, filters.om, rawPersonnel]);
 
+  const licencasDestaquesCount = useMemo(() => {
+    const oms = filters.om;
+    const cat = filters.categoria;
+    const applies = (r: any) => {
+      if (oms.length > 0 && !oms.includes(String(r?.om || ""))) return false;
+      if (cat !== "TODOS" && r?._categoria !== cat) return false;
+      return true;
+    };
+    return licencasDestaques.licencas.filter(applies).length + licencasDestaques.destaques.filter(applies).length;
+  }, [licencasDestaques, filters.om, filters.categoria]);
+
   const handleEfetivoCardClick = () => {
     if (filters.especialidade.length > 0) {
       setShowNeoComparison(!showNeoComparison);
@@ -1007,7 +1032,7 @@ const Index = () => {
         />
 
         {/* Métricas principais */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
           <MetricsCard title="Total TMFT" value={metrics.totalTMFT} icon={Shield} variant="default" />
           <div 
             onClick={handleEfetivoCardClick}
@@ -1039,9 +1064,22 @@ const Index = () => {
             }
           />
           <MetricsCard title="Sem NEO" value={extraLotacaoTotal} icon={Users} variant="warning" />
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 border-purple-200">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">DESTAQUES/LICENÇAS</p>
+                  <p className="text-4xl font-bold text-purple-900 dark:text-purple-100">
+                    {licencasDestaquesCount}
+                  </p>
+                </div>
+                <Award className="h-8 w-8 text-purple-500" />
+              </div>
+            </CardContent>
+          </Card>
           <MetricsCard 
             title="Atend. Total" 
-            value={`${metrics.totalTMFT > 0 ? (((metrics.totalEXI + extraLotacaoTotal) / metrics.totalTMFT) * 100).toFixed(1) : "0.0"}%`} 
+            value={`${metrics.totalTMFT > 0 ? (((metrics.totalEXI + extraLotacaoTotal + licencasDestaquesCount) / metrics.totalTMFT) * 100).toFixed(1) : "0.0"}%`} 
             icon={Percent} 
             variant="success" 
           />
