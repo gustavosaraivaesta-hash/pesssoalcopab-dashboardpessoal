@@ -354,6 +354,16 @@ const Index = () => {
 
       setRawPersonnel({ pracas: nextRawPracas, oficiais: nextRawOficiais });
 
+      // Capture licenças/destaques from both sources (tagged by categoria)
+      const pracasLic = ((pracasResponse as any)?.data?.licencas || []).map((r: any) => ({ ...r, _categoria: "PRAÇAS" as const }));
+      const pracasDest = ((pracasResponse as any)?.data?.destaques || []).map((r: any) => ({ ...r, _categoria: "PRAÇAS" as const }));
+      const oficiaisLic = ((oficiaisResponse as any)?.data?.licencas || []).map((r: any) => ({ ...r, _categoria: "OFICIAIS" as const }));
+      const oficiaisDest = ((oficiaisResponse as any)?.data?.destaques || []).map((r: any) => ({ ...r, _categoria: "OFICIAIS" as const }));
+      setLicencasDestaques({
+        licencas: [...pracasLic, ...oficiaisLic].map((r) => ({ ...r, om: normalizeOMName(r?.om) })),
+        destaques: [...pracasDest, ...oficiaisDest].map((r) => ({ ...r, om: normalizeOMName(r?.om) })),
+      });
+
       if (allMilitaryData.length > 0) {
         console.log(`Total combined records: ${allMilitaryData.length}`);
 
