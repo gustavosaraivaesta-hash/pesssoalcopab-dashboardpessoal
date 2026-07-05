@@ -572,6 +572,17 @@ const InspecaoSaude = () => {
                 </Select>
               </div>
               <div className="md:col-span-1">
+                <label className="text-xs text-muted-foreground">OM</label>
+                <Select value={omFilter} onValueChange={setOmFilter}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TODOS">Todas</SelectItem>
+                    {omsDisponiveis.map((o) => (
+                      <SelectItem key={o} value={o}>{o}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              <div className="md:col-span-1">
                 <label className="text-xs text-muted-foreground">Status</label>
                 <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
