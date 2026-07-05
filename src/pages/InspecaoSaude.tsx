@@ -254,6 +254,24 @@ const InspecaoSaude = () => {
   };
 
 
+  // Mapa: nome+posto -> OM (via matchPersonnel), para filtro por OM
+  const inspecaoOmMap = useMemo(() => {
+    const map = new Map<InspecaoRecord, string>();
+    inspecaoSaudeData.forEach((r) => {
+      const p = matchPersonnel(r);
+      map.set(r, p?.om || "");
+    });
+    return map;
+  }, [inspecaoSaudeData, personnelIndex]);
+
+  const omsDisponiveis = useMemo(() => {
+    const set = new Set<string>();
+    inspecaoOmMap.forEach((om) => {
+      if (om) set.add(om);
+    });
+    return Array.from(set).sort();
+  }, [inspecaoOmMap]);
+
   const postos = useMemo(() => {
     const set = new Set(inspecaoSaudeData.map((r) => r.posto));
     return Array.from(set).sort(
@@ -276,6 +294,7 @@ const InspecaoSaude = () => {
     return inspecaoSaudeData
       .filter((r) => postoFilter === "TODOS" || r.posto === postoFilter)
       .filter((r) => quadroFilter === "TODOS" || r.quadro === quadroFilter)
+      .filter((r) => omFilter === "TODOS" || inspecaoOmMap.get(r) === omFilter)
       .filter((r) => {
         if (!ini && !fim) return true;
         const d = parseDate(r.validade);
@@ -296,7 +315,7 @@ const InspecaoSaude = () => {
         const db = parseDate(b.validade)?.getTime() ?? 0;
         return da - db;
       });
-  }, [postoFilter, quadroFilter, dataInicio, dataFim, search, statusFilter, inspecaoSaudeData]);
+  }, [postoFilter, quadroFilter, omFilter, inspecaoOmMap, dataInicio, dataFim, search, statusFilter, inspecaoSaudeData]);
 
   // Gráfico mensal (mês de validade)
   const chartData = useMemo(() => {
