@@ -279,23 +279,27 @@ const CursosRealizados = () => {
     try {
       let pMap = postoMap;
       let eMap = espMap;
+      let oMap = omMap;
       // Sempre recarrega para garantir dados atualizados no PDF
       if (Object.keys(pMap).length === 0 || Object.keys(eMap).length === 0) {
         const fresh = await loadMaps();
         pMap = fresh.pMap;
         eMap = fresh.eMap;
+        oMap = fresh.oMap;
         setPostoMap(pMap);
         setEspMap(eMap);
+        setOmMap(oMap);
       }
 
       const q = search.trim().toUpperCase();
-      const keys = Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap)]));
+      const keys = Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap), ...Object.keys(oMap)]));
       const list = cursosRealizados.map((m) => {
-        const { posto, especialidade } = resolve(m.nome, pMap, eMap, keys);
-        return { ...m, posto, especialidade };
+        const { posto, especialidade, om } = resolve(m.nome, pMap, eMap, oMap, keys);
+        return { ...m, posto, especialidade, om };
       });
       const baseRows = list.filter((m) => {
         if (postoFilter.length > 0 && !postoFilter.includes(m.posto)) return false;
+        if (omFilter.length > 0 && !omFilter.includes(m.om)) return false;
         if (!q) return true;
         return (
           m.nome.toUpperCase().includes(q) ||
