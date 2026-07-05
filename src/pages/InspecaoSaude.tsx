@@ -397,6 +397,7 @@ const InspecaoSaude = () => {
   const limparFiltros = () => {
     setPostoFilter("TODOS");
     setQuadroFilter("TODOS");
+    setOmFilter("TODOS");
     setDataInicio("");
     setDataFim("");
     setSearch("");
