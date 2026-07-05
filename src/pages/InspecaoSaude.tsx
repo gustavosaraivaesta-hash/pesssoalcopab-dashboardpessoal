@@ -422,6 +422,7 @@ const InspecaoSaude = () => {
     const filtros: string[] = [];
     if (postoFilter !== "TODOS") filtros.push(`P/G: ${postoFilter}`);
     if (quadroFilter !== "TODOS") filtros.push(`Esp/Quadro: ${quadroFilter}`);
+    if (omFilter !== "TODOS") filtros.push(`OM: ${omFilter}`);
     if (statusFilter !== "TODOS") filtros.push(`Status: ${statusLabel(statusFilter)}`);
     if (dataInicio) filtros.push(`De: ${dataInicio.split("-").reverse().join("/")}`);
     if (dataFim) filtros.push(`Até: ${dataFim.split("-").reverse().join("/")}`);
