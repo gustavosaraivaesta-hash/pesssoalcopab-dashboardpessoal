@@ -24,6 +24,7 @@ type EnrichedMilitar = {
   cursos: string[];
   posto: string;
   especialidade: string;
+  om: string;
 };
 
 type PersonnelMapRecord = {
@@ -31,6 +32,7 @@ type PersonnelMapRecord = {
   postoEfe?: string | null;
   quadroEfe?: string | null;
   especialidadeEfe?: string | null;
+  om?: string | null;
 };
 
 type PersonnelMapResponse = {
