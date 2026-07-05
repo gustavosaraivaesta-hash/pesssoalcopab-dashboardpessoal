@@ -219,12 +219,12 @@ const CursosRealizados = () => {
   }, []);
 
   const enriched = useMemo(() => {
-    const keys = Array.from(new Set([...Object.keys(postoMap), ...Object.keys(espMap)]));
+    const keys = Array.from(new Set([...Object.keys(postoMap), ...Object.keys(espMap), ...Object.keys(omMap)]));
     return cursosRealizados.map((m) => {
-      const { posto, especialidade } = resolve(m.nome, postoMap, espMap, keys);
-      return { ...m, posto, especialidade };
+      const { posto, especialidade, om } = resolve(m.nome, postoMap, espMap, omMap, keys);
+      return { ...m, posto, especialidade, om };
     });
-  }, [postoMap, espMap]);
+  }, [postoMap, espMap, omMap, cursosRealizados]);
 
   const postoOptions = useMemo(() => {
     const order = ["CMG", "CF", "CC", "CT", "1TEN", "2TEN", "SO", "1SG", "2SG", "3SG", "CB", "MN"];
