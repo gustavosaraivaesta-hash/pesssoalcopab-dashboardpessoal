@@ -524,8 +524,20 @@ const CursosRealizados = () => {
                   }
                 />
               </div>
-              {postoFilter.length > 0 && (
-                <Button variant="ghost" size="sm" onClick={() => setPostoFilter([])}>
+              <div className="w-64">
+                <MultiSelectFilter
+                  label="OM"
+                  options={omOptions}
+                  selectedValues={omFilter}
+                  onToggle={(v) =>
+                    setOmFilter((prev) =>
+                      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v],
+                    )
+                  }
+                />
+              </div>
+              {(postoFilter.length > 0 || omFilter.length > 0) && (
+                <Button variant="ghost" size="sm" onClick={() => { setPostoFilter([]); setOmFilter([]); }}>
                   Limpar filtros
                 </Button>
               )}
