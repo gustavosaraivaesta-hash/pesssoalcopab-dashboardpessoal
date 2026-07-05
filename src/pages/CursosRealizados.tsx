@@ -187,10 +187,11 @@ const CursosRealizados = () => {
     let cancelled = false;
     const load = async () => {
       try {
-        const { pMap, eMap } = await loadMaps();
+        const { pMap, eMap, oMap } = await loadMaps();
         if (cancelled) return;
         setPostoMap(pMap);
         setEspMap(eMap);
+        setOmMap(oMap);
       } catch (e) {
         console.error("Erro ao carregar postos:", e);
       }
