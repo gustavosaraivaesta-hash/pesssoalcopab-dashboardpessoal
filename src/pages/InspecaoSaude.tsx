@@ -101,6 +101,7 @@ const InspecaoSaude = () => {
   const navigate = useNavigate();
   const [postoFilter, setPostoFilter] = useState<string>("TODOS");
   const [quadroFilter, setQuadroFilter] = useState<string>("TODOS");
+  const [omFilter, setOmFilter] = useState<string>("TODOS");
   const [dataInicio, setDataInicio] = useState<string>("");
   const [dataFim, setDataFim] = useState<string>("");
   const [search, setSearch] = useState("");
