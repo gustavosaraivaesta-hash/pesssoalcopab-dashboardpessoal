@@ -166,9 +166,11 @@ const CursosRealizados = () => {
   const [search, setSearch] = useState("");
   const [postoMap, setPostoMap] = useState<Record<string, string>>({});
   const [espMap, setEspMap] = useState<Record<string, string>>({});
+  const [omMap, setOmMap] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<EnrichedMilitar | null>(null);
   const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
   const [postoFilter, setPostoFilter] = useState<string[]>([]);
+  const [omFilter, setOmFilter] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
   const { data: cursosRealizados } = useLiveSheet(fetchCursosRealizados, cursosFallback, 30_000);
 
