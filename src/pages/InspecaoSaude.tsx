@@ -582,6 +582,7 @@ const InspecaoSaude = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
               <div className="md:col-span-1">
                 <label className="text-xs text-muted-foreground">Status</label>
                 <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
