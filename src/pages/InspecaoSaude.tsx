@@ -59,6 +59,7 @@ type PersonnelLookup = {
   posto: string;
   quadro: string;
   opcao: string;
+  om: string;
   full: any;
 };
 
