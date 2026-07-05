@@ -94,6 +94,7 @@ const invokeFunction = async <T,>(name: string, ms = 25000) => {
 const loadMaps = async () => {
   const pMap: Record<string, string> = {};
   const eMap: Record<string, string> = {};
+  const oMap: Record<string, string> = {};
   const addPosto = (nome: string, posto: string) => {
     const key = normalizeName(nome);
     const p = (posto || "").trim();
@@ -103,6 +104,11 @@ const loadMaps = async () => {
     const key = normalizeName(nome);
     const e = (esp || "").trim();
     if (key && e && e !== "-" && !eMap[key]) eMap[key] = e;
+  };
+  const addOM = (nome: string, om: string) => {
+    const key = normalizeName(nome);
+    const o = (om || "").trim();
+    if (key && o && !oMap[key]) oMap[key] = o;
   };
 
   const emptyResponse = { data: null };
@@ -117,6 +123,7 @@ const loadMaps = async () => {
   omData.forEach((it) => {
     addPosto(it?.nome, it?.postoEfe);
     addEsp(it?.nome, it?.quadroEfe);
+    addOM(it?.nome, it?.om);
   });
 
   const pracasData = getRecords(pracasRes);
@@ -124,30 +131,34 @@ const loadMaps = async () => {
     addPosto(it?.nome, it?.postoEfe);
     // Especialidade EFE para praças; fallback para quadroEfe quando vazia.
     addEsp(it?.nome, it?.especialidadeEfe || it?.quadroEfe);
+    addOM(it?.nome, it?.om);
   });
 
-  return { pMap, eMap };
+  return { pMap, eMap, oMap };
 };
 
-// Resolve posto/especialidade com fallback fuzzy para tolerar pequenos erros de digitação no nome.
+// Resolve posto/especialidade/OM com fallback fuzzy para tolerar pequenos erros de digitação no nome.
 const resolve = (
   nome: string,
   pMap: Record<string, string>,
   eMap: Record<string, string>,
+  oMap: Record<string, string>,
   cachedKeys?: string[],
 ) => {
   const key = normalizeName(nome);
   let posto = pMap[key] || "";
   let especialidade = eMap[key] || "";
-  if (!posto || !especialidade) {
-    const keys = cachedKeys || Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap)]));
+  let om = oMap[key] || "";
+  if (!posto || !especialidade || !om) {
+    const keys = cachedKeys || Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap), ...Object.keys(oMap)]));
     const alt = findFuzzyKey(key, keys);
     if (alt) {
       if (!posto) posto = pMap[alt] || "";
       if (!especialidade) especialidade = eMap[alt] || "";
+      if (!om) om = oMap[alt] || "";
     }
   }
-  return { posto, especialidade };
+  return { posto, especialidade, om };
 };
 
 const CursosRealizados = () => {
