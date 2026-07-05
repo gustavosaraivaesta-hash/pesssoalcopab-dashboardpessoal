@@ -59,6 +59,7 @@ type PersonnelLookup = {
   posto: string;
   quadro: string;
   opcao: string;
+  om: string;
   full: any;
 };
 
@@ -100,6 +101,7 @@ const InspecaoSaude = () => {
   const navigate = useNavigate();
   const [postoFilter, setPostoFilter] = useState<string>("TODOS");
   const [quadroFilter, setQuadroFilter] = useState<string>("TODOS");
+  const [omFilter, setOmFilter] = useState<string>("TODOS");
   const [dataInicio, setDataInicio] = useState<string>("");
   const [dataFim, setDataFim] = useState<string>("");
   const [search, setSearch] = useState("");
@@ -128,6 +130,7 @@ const InspecaoSaude = () => {
               posto: String(it.postoEfe || it.postoTmft || "").trim(),
               quadro: String(it.quadroEfe || it.quadroTmft || "").trim(),
               opcao: String(it.opcaoEfe || it.opcaoTmft || "").trim(),
+              om: String(it.om || "").trim(),
               full: it,
             });
           });
@@ -251,6 +254,24 @@ const InspecaoSaude = () => {
   };
 
 
+  // Mapa: nome+posto -> OM (via matchPersonnel), para filtro por OM
+  const inspecaoOmMap = useMemo(() => {
+    const map = new Map<InspecaoRecord, string>();
+    inspecaoSaudeData.forEach((r) => {
+      const p = matchPersonnel(r);
+      map.set(r, p?.om || "");
+    });
+    return map;
+  }, [inspecaoSaudeData, personnelIndex]);
+
+  const omsDisponiveis = useMemo(() => {
+    const set = new Set<string>();
+    inspecaoOmMap.forEach((om) => {
+      if (om) set.add(om);
+    });
+    return Array.from(set).sort();
+  }, [inspecaoOmMap]);
+
   const postos = useMemo(() => {
     const set = new Set(inspecaoSaudeData.map((r) => r.posto));
     return Array.from(set).sort(
@@ -273,6 +294,7 @@ const InspecaoSaude = () => {
     return inspecaoSaudeData
       .filter((r) => postoFilter === "TODOS" || r.posto === postoFilter)
       .filter((r) => quadroFilter === "TODOS" || r.quadro === quadroFilter)
+      .filter((r) => omFilter === "TODOS" || inspecaoOmMap.get(r) === omFilter)
       .filter((r) => {
         if (!ini && !fim) return true;
         const d = parseDate(r.validade);
@@ -293,7 +315,7 @@ const InspecaoSaude = () => {
         const db = parseDate(b.validade)?.getTime() ?? 0;
         return da - db;
       });
-  }, [postoFilter, quadroFilter, dataInicio, dataFim, search, statusFilter, inspecaoSaudeData]);
+  }, [postoFilter, quadroFilter, omFilter, inspecaoOmMap, dataInicio, dataFim, search, statusFilter, inspecaoSaudeData]);
 
   // Gráfico mensal (mês de validade)
   const chartData = useMemo(() => {
@@ -375,6 +397,7 @@ const InspecaoSaude = () => {
   const limparFiltros = () => {
     setPostoFilter("TODOS");
     setQuadroFilter("TODOS");
+    setOmFilter("TODOS");
     setDataInicio("");
     setDataFim("");
     setSearch("");
@@ -399,6 +422,7 @@ const InspecaoSaude = () => {
     const filtros: string[] = [];
     if (postoFilter !== "TODOS") filtros.push(`P/G: ${postoFilter}`);
     if (quadroFilter !== "TODOS") filtros.push(`Esp/Quadro: ${quadroFilter}`);
+    if (omFilter !== "TODOS") filtros.push(`OM: ${omFilter}`);
     if (statusFilter !== "TODOS") filtros.push(`Status: ${statusLabel(statusFilter)}`);
     if (dataInicio) filtros.push(`De: ${dataInicio.split("-").reverse().join("/")}`);
     if (dataFim) filtros.push(`Até: ${dataFim.split("-").reverse().join("/")}`);
@@ -543,6 +567,18 @@ const InspecaoSaude = () => {
                     <SelectItem value="TODOS">Todos</SelectItem>
                     {quadros.map((q) => (
                       <SelectItem key={q} value={q}>{q}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-1">
+                <label className="text-xs text-muted-foreground">OM</label>
+                <Select value={omFilter} onValueChange={setOmFilter}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TODOS">Todas</SelectItem>
+                    {omsDisponiveis.map((o) => (
+                      <SelectItem key={o} value={o}>{o}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

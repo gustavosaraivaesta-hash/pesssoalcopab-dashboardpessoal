@@ -24,6 +24,7 @@ type EnrichedMilitar = {
   cursos: string[];
   posto: string;
   especialidade: string;
+  om: string;
 };
 
 type PersonnelMapRecord = {
@@ -31,6 +32,7 @@ type PersonnelMapRecord = {
   postoEfe?: string | null;
   quadroEfe?: string | null;
   especialidadeEfe?: string | null;
+  om?: string | null;
 };
 
 type PersonnelMapResponse = {
@@ -92,6 +94,7 @@ const invokeFunction = async <T,>(name: string, ms = 25000) => {
 const loadMaps = async () => {
   const pMap: Record<string, string> = {};
   const eMap: Record<string, string> = {};
+  const oMap: Record<string, string> = {};
   const addPosto = (nome: string, posto: string) => {
     const key = normalizeName(nome);
     const p = (posto || "").trim();
@@ -101,6 +104,11 @@ const loadMaps = async () => {
     const key = normalizeName(nome);
     const e = (esp || "").trim();
     if (key && e && e !== "-" && !eMap[key]) eMap[key] = e;
+  };
+  const addOM = (nome: string, om: string) => {
+    const key = normalizeName(nome);
+    const o = (om || "").trim();
+    if (key && o && !oMap[key]) oMap[key] = o;
   };
 
   const emptyResponse = { data: null };
@@ -115,6 +123,7 @@ const loadMaps = async () => {
   omData.forEach((it) => {
     addPosto(it?.nome, it?.postoEfe);
     addEsp(it?.nome, it?.quadroEfe);
+    addOM(it?.nome, it?.om);
   });
 
   const pracasData = getRecords(pracasRes);
@@ -122,30 +131,34 @@ const loadMaps = async () => {
     addPosto(it?.nome, it?.postoEfe);
     // Especialidade EFE para praças; fallback para quadroEfe quando vazia.
     addEsp(it?.nome, it?.especialidadeEfe || it?.quadroEfe);
+    addOM(it?.nome, it?.om);
   });
 
-  return { pMap, eMap };
+  return { pMap, eMap, oMap };
 };
 
-// Resolve posto/especialidade com fallback fuzzy para tolerar pequenos erros de digitação no nome.
+// Resolve posto/especialidade/OM com fallback fuzzy para tolerar pequenos erros de digitação no nome.
 const resolve = (
   nome: string,
   pMap: Record<string, string>,
   eMap: Record<string, string>,
+  oMap: Record<string, string>,
   cachedKeys?: string[],
 ) => {
   const key = normalizeName(nome);
   let posto = pMap[key] || "";
   let especialidade = eMap[key] || "";
-  if (!posto || !especialidade) {
-    const keys = cachedKeys || Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap)]));
+  let om = oMap[key] || "";
+  if (!posto || !especialidade || !om) {
+    const keys = cachedKeys || Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap), ...Object.keys(oMap)]));
     const alt = findFuzzyKey(key, keys);
     if (alt) {
       if (!posto) posto = pMap[alt] || "";
       if (!especialidade) especialidade = eMap[alt] || "";
+      if (!om) om = oMap[alt] || "";
     }
   }
-  return { posto, especialidade };
+  return { posto, especialidade, om };
 };
 
 const CursosRealizados = () => {
@@ -153,9 +166,11 @@ const CursosRealizados = () => {
   const [search, setSearch] = useState("");
   const [postoMap, setPostoMap] = useState<Record<string, string>>({});
   const [espMap, setEspMap] = useState<Record<string, string>>({});
+  const [omMap, setOmMap] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<EnrichedMilitar | null>(null);
   const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
   const [postoFilter, setPostoFilter] = useState<string[]>([]);
+  const [omFilter, setOmFilter] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
   const { data: cursosRealizados } = useLiveSheet(fetchCursosRealizados, cursosFallback, 30_000);
 
@@ -172,10 +187,11 @@ const CursosRealizados = () => {
     let cancelled = false;
     const load = async () => {
       try {
-        const { pMap, eMap } = await loadMaps();
+        const { pMap, eMap, oMap } = await loadMaps();
         if (cancelled) return;
         setPostoMap(pMap);
         setEspMap(eMap);
+        setOmMap(oMap);
       } catch (e) {
         console.error("Erro ao carregar postos:", e);
       }
@@ -203,12 +219,12 @@ const CursosRealizados = () => {
   }, []);
 
   const enriched = useMemo(() => {
-    const keys = Array.from(new Set([...Object.keys(postoMap), ...Object.keys(espMap)]));
+    const keys = Array.from(new Set([...Object.keys(postoMap), ...Object.keys(espMap), ...Object.keys(omMap)]));
     return cursosRealizados.map((m) => {
-      const { posto, especialidade } = resolve(m.nome, postoMap, espMap, keys);
-      return { ...m, posto, especialidade };
+      const { posto, especialidade, om } = resolve(m.nome, postoMap, espMap, omMap, keys);
+      return { ...m, posto, especialidade, om };
     });
-  }, [postoMap, espMap]);
+  }, [postoMap, espMap, omMap, cursosRealizados]);
 
   const postoOptions = useMemo(() => {
     const order = ["CMG", "CF", "CC", "CT", "1TEN", "2TEN", "SO", "1SG", "2SG", "3SG", "CB", "MN"];
@@ -226,11 +242,20 @@ const CursosRealizados = () => {
       .map((v) => ({ value: v, label: v }));
   }, [enriched]);
 
+  const omOptions = useMemo(() => {
+    const set = new Set<string>();
+    enriched.forEach((m) => {
+      if (m.om) set.add(m.om);
+    });
+    return Array.from(set).sort().map((v) => ({ value: v, label: v }));
+  }, [enriched]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toUpperCase();
     return enriched
       .filter((m) => {
         if (postoFilter.length > 0 && !postoFilter.includes(m.posto)) return false;
+        if (omFilter.length > 0 && !omFilter.includes(m.om)) return false;
         if (!q) return true;
         return (
           m.nome.toUpperCase().includes(q) ||
@@ -248,7 +273,7 @@ const CursosRealizados = () => {
         if (nomeMatch) return m;
         return { ...m, cursos: m.cursos.filter((c) => c.toUpperCase().includes(q)) };
       });
-  }, [search, enriched, postoFilter]);
+  }, [search, enriched, postoFilter, omFilter]);
 
   const totals = useMemo(() => {
     const totalMilitares = filtered.length;
@@ -263,23 +288,27 @@ const CursosRealizados = () => {
     try {
       let pMap = postoMap;
       let eMap = espMap;
+      let oMap = omMap;
       // Sempre recarrega para garantir dados atualizados no PDF
       if (Object.keys(pMap).length === 0 || Object.keys(eMap).length === 0) {
         const fresh = await loadMaps();
         pMap = fresh.pMap;
         eMap = fresh.eMap;
+        oMap = fresh.oMap;
         setPostoMap(pMap);
         setEspMap(eMap);
+        setOmMap(oMap);
       }
 
       const q = search.trim().toUpperCase();
-      const keys = Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap)]));
+      const keys = Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap), ...Object.keys(oMap)]));
       const list = cursosRealizados.map((m) => {
-        const { posto, especialidade } = resolve(m.nome, pMap, eMap, keys);
-        return { ...m, posto, especialidade };
+        const { posto, especialidade, om } = resolve(m.nome, pMap, eMap, oMap, keys);
+        return { ...m, posto, especialidade, om };
       });
       const baseRows = list.filter((m) => {
         if (postoFilter.length > 0 && !postoFilter.includes(m.posto)) return false;
+        if (omFilter.length > 0 && !omFilter.includes(m.om)) return false;
         if (!q) return true;
         return (
           m.nome.toUpperCase().includes(q) ||
@@ -495,8 +524,20 @@ const CursosRealizados = () => {
                   }
                 />
               </div>
-              {postoFilter.length > 0 && (
-                <Button variant="ghost" size="sm" onClick={() => setPostoFilter([])}>
+              <div className="w-64">
+                <MultiSelectFilter
+                  label="OM"
+                  options={omOptions}
+                  selectedValues={omFilter}
+                  onToggle={(v) =>
+                    setOmFilter((prev) =>
+                      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v],
+                    )
+                  }
+                />
+              </div>
+              {(postoFilter.length > 0 || omFilter.length > 0) && (
+                <Button variant="ghost" size="sm" onClick={() => { setPostoFilter([]); setOmFilter([]); }}>
                   Limpar filtros
                 </Button>
               )}
