@@ -36,6 +36,7 @@ import { inspecaoSaudeData as inspecaoFallback, type InspecaoRecord } from "@/da
 import { useLiveSheet } from "@/hooks/useLiveSheet";
 import { fetchInspecaoSaude } from "@/lib/sheetsLive";
 import { supabase } from "@/integrations/supabase/client";
+import { getAllowedOMs } from "@/lib/auth";
 import { formatMilitarNameWithOpcao } from "@/lib/utils";
 import MilitarFullDetailDialog from "@/components/dashboard/MilitarFullDetailDialog";
 
@@ -264,13 +265,21 @@ const InspecaoSaude = () => {
     return map;
   }, [inspecaoSaudeData, personnelIndex]);
 
+  const allowedOmsSet = useMemo(() => {
+    const allowed = getAllowedOMs();
+    if (allowed === "all") return null;
+    return new Set(allowed.map((o) => o.toUpperCase()));
+  }, []);
+
   const omsDisponiveis = useMemo(() => {
     const set = new Set<string>();
     inspecaoOmMap.forEach((om) => {
-      if (om) set.add(om);
+      if (!om) return;
+      if (allowedOmsSet && !allowedOmsSet.has(om.toUpperCase())) return;
+      set.add(om);
     });
     return Array.from(set).sort();
-  }, [inspecaoOmMap]);
+  }, [inspecaoOmMap, allowedOmsSet]);
 
   const postos = useMemo(() => {
     const set = new Set(inspecaoSaudeData.map((r) => r.posto));
@@ -292,6 +301,12 @@ const InspecaoSaude = () => {
     const q = search.trim().toUpperCase();
 
     return inspecaoSaudeData
+      .filter((r) => {
+        if (!allowedOmsSet) return true;
+        const om = inspecaoOmMap.get(r) || "";
+        if (!om) return false;
+        return allowedOmsSet.has(om.toUpperCase());
+      })
       .filter((r) => postoFilter === "TODOS" || r.posto === postoFilter)
       .filter((r) => quadroFilter === "TODOS" || r.quadro === quadroFilter)
       .filter((r) => omFilter === "TODOS" || inspecaoOmMap.get(r) === omFilter)
@@ -315,7 +330,7 @@ const InspecaoSaude = () => {
         const db = parseDate(b.validade)?.getTime() ?? 0;
         return da - db;
       });
-  }, [postoFilter, quadroFilter, omFilter, inspecaoOmMap, dataInicio, dataFim, search, statusFilter, inspecaoSaudeData]);
+  }, [postoFilter, quadroFilter, omFilter, inspecaoOmMap, dataInicio, dataFim, search, statusFilter, inspecaoSaudeData, allowedOmsSet]);
 
   // Gráfico mensal (mês de validade)
   const chartData = useMemo(() => {
