@@ -83,6 +83,14 @@ const findFuzzyKey = (target: string, keys: string[]): string | null => {
   return bestDist <= maxAllowed ? best : null;
 };
 
+const CURSOS_DATA_OM = "COPAB";
+
+const canViewCursosData = () => {
+  const allowed = getAllowedOMs();
+  if (allowed === "all") return true;
+  return allowed.some((om) => om.toUpperCase() === CURSOS_DATA_OM);
+};
+
 const invokeFunction = async <T,>(name: string, ms = 25000) => {
   return await Promise.race([
     supabase.functions.invoke<T>(name),
@@ -220,18 +228,12 @@ const CursosRealizados = () => {
   }, []);
 
   const enriched = useMemo(() => {
+    if (!canViewCursosData()) return [];
     const keys = Array.from(new Set([...Object.keys(postoMap), ...Object.keys(espMap), ...Object.keys(omMap)]));
-    const allowed = getAllowedOMs();
-    const allowedSet = allowed === "all" ? null : new Set(allowed.map((o) => o.toUpperCase()));
     return cursosRealizados
       .map((m) => {
-        const { posto, especialidade, om } = resolve(m.nome, postoMap, espMap, omMap, keys);
-        return { ...m, posto, especialidade, om };
-      })
-      .filter((m) => {
-        if (!allowedSet) return true;
-        if (!m.om) return false; // sem OM resolvida: oculta para usuários restritos
-        return allowedSet.has(m.om.toUpperCase());
+        const { posto, especialidade } = resolve(m.nome, postoMap, espMap, omMap, keys);
+        return { ...m, posto, especialidade, om: CURSOS_DATA_OM };
       });
   }, [postoMap, espMap, omMap, cursosRealizados]);
 
@@ -311,17 +313,14 @@ const CursosRealizados = () => {
 
       const q = search.trim().toUpperCase();
       const keys = Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap), ...Object.keys(oMap)]));
-      const allowed = getAllowedOMs();
-      const allowedSet = allowed === "all" ? null : new Set(allowed.map((o) => o.toUpperCase()));
+      if (!canViewCursosData()) {
+        toast.error("Sem dados de cursos para esta OM.");
+        return;
+      }
       const list = cursosRealizados
         .map((m) => {
-          const { posto, especialidade, om } = resolve(m.nome, pMap, eMap, oMap, keys);
-          return { ...m, posto, especialidade, om };
-        })
-        .filter((m) => {
-          if (!allowedSet) return true;
-          if (!m.om) return false;
-          return allowedSet.has(m.om.toUpperCase());
+          const { posto, especialidade } = resolve(m.nome, pMap, eMap, oMap, keys);
+          return { ...m, posto, especialidade, om: CURSOS_DATA_OM };
         });
       const baseRows = list.filter((m) => {
         if (postoFilter.length > 0 && !postoFilter.includes(m.posto)) return false;
