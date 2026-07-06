@@ -16,6 +16,7 @@ import { cursosRealizados as cursosFallback } from "@/data/cursosRealizados";
 import { useLiveSheet } from "@/hooks/useLiveSheet";
 import { fetchCursosRealizados } from "@/lib/sheetsLive";
 import { supabase } from "@/integrations/supabase/client";
+import { getAllowedOMs } from "@/lib/auth";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 
 
@@ -220,10 +221,18 @@ const CursosRealizados = () => {
 
   const enriched = useMemo(() => {
     const keys = Array.from(new Set([...Object.keys(postoMap), ...Object.keys(espMap), ...Object.keys(omMap)]));
-    return cursosRealizados.map((m) => {
-      const { posto, especialidade, om } = resolve(m.nome, postoMap, espMap, omMap, keys);
-      return { ...m, posto, especialidade, om };
-    });
+    const allowed = getAllowedOMs();
+    const allowedSet = allowed === "all" ? null : new Set(allowed.map((o) => o.toUpperCase()));
+    return cursosRealizados
+      .map((m) => {
+        const { posto, especialidade, om } = resolve(m.nome, postoMap, espMap, omMap, keys);
+        return { ...m, posto, especialidade, om };
+      })
+      .filter((m) => {
+        if (!allowedSet) return true;
+        if (!m.om) return false; // sem OM resolvida: oculta para usuários restritos
+        return allowedSet.has(m.om.toUpperCase());
+      });
   }, [postoMap, espMap, omMap, cursosRealizados]);
 
   const postoOptions = useMemo(() => {
@@ -302,10 +311,18 @@ const CursosRealizados = () => {
 
       const q = search.trim().toUpperCase();
       const keys = Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap), ...Object.keys(oMap)]));
-      const list = cursosRealizados.map((m) => {
-        const { posto, especialidade, om } = resolve(m.nome, pMap, eMap, oMap, keys);
-        return { ...m, posto, especialidade, om };
-      });
+      const allowed = getAllowedOMs();
+      const allowedSet = allowed === "all" ? null : new Set(allowed.map((o) => o.toUpperCase()));
+      const list = cursosRealizados
+        .map((m) => {
+          const { posto, especialidade, om } = resolve(m.nome, pMap, eMap, oMap, keys);
+          return { ...m, posto, especialidade, om };
+        })
+        .filter((m) => {
+          if (!allowedSet) return true;
+          if (!m.om) return false;
+          return allowedSet.has(m.om.toUpperCase());
+        });
       const baseRows = list.filter((m) => {
         if (postoFilter.length > 0 && !postoFilter.includes(m.posto)) return false;
         if (omFilter.length > 0 && !omFilter.includes(m.om)) return false;
