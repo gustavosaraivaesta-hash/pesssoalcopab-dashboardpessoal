@@ -2060,18 +2060,17 @@ const DashboardOM = () => {
           const destLic = countDestLicForOM(om, false);
           if (tmft === 0) continue;
           const efeTotal = eff + destLic + semNeo;
-          const vagos = tmft - efeTotal;
           const at = tmft > 0 ? (efeTotal / tmft) * 100 : 0;
           sT += tmft; sE += eff; sDL += destLic; sSN += semNeo;
-          detailedRows.push([om, String(tmft), String(eff), String(destLic), String(semNeo), String(efeTotal), String(vagos), `${at.toFixed(1)}%`]);
+          detailedRows.push([om, String(tmft), String(efeTotal), `${at.toFixed(1)}%`]);
         }
         const totalEfTotal = sE + sDL + sSN;
         const totalAt = sT > 0 ? (totalEfTotal / sT) * 100 : 0;
-        detailedRows.push(["TOTAL GERAL", String(sT), String(sE), String(sDL), String(sSN), String(totalEfTotal), String(sT - totalEfTotal), `${totalAt.toFixed(1)}%`]);
+        detailedRows.push(["TOTAL GERAL", String(sT), String(totalEfTotal), `${totalAt.toFixed(1)}%`]);
 
         autoTable(pdf, {
           startY: yFinal,
-          head: [["OM", "TMFT", "EFETIVO", "DEST/LIC", "SEM NEO", "EFETIVO TOTAL", "VAGOS", "AT. TOTAL"]],
+          head: [["OM", "TMFT", "EFETIVO TOTAL", "AT. TOTAL"]],
           body: detailedRows,
           theme: "grid",
           styles: { fontSize: 9, cellPadding: 3, halign: "center" },
