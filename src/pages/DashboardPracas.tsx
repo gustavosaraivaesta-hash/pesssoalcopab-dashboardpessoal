@@ -1594,6 +1594,62 @@ const DashboardPracas = () => {
         }
       }
 
+      // ====== FINAL PAGE: Detailed GERAL summary ======
+      pdf.addPage();
+      {
+        let yFinal = 20;
+        pdf.setFontSize(14);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("RESUMO GERAL DETALHADO - PRAÇAS", pageWidth / 2, yFinal, { align: "center" });
+        yFinal += 8;
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("EFETIVO TOTAL = EFETIVO + DESTAQUES/LICENÇAS + SEM NEO", pageWidth / 2, yFinal, { align: "center" });
+        yFinal += 8;
+
+        const countDestLicForOM = (om: string) =>
+          licencasData.filter((i) => i.om === om).length +
+          destaquesData.filter((i) => i.om === om).length;
+
+        const detailedRows: any[][] = [];
+        let sT = 0, sE = 0, sDL = 0, sSN = 0;
+        for (const om of availableOMs) {
+          const omAllData = personnelData.filter((i) => i.om === om);
+          if (omAllData.length === 0) continue;
+          const omReg = omAllData.filter((i) => i.tipoSetor !== "EXTRA LOTAÇÃO");
+          const omExt = omAllData.filter((i) => i.tipoSetor === "EXTRA LOTAÇÃO" && i.ocupado);
+          const tmft = omReg.length;
+          const eff = omReg.filter((i) => i.ocupado).length;
+          const semNeo = omExt.length;
+          const destLic = countDestLicForOM(om);
+          if (tmft === 0) continue;
+          const efeTotal = eff + destLic + semNeo;
+          const vagos = tmft - efeTotal;
+          const at = tmft > 0 ? (efeTotal / tmft) * 100 : 0;
+          sT += tmft; sE += eff; sDL += destLic; sSN += semNeo;
+          detailedRows.push([om, String(tmft), String(eff), String(destLic), String(semNeo), String(efeTotal), String(vagos), `${at.toFixed(1)}%`]);
+        }
+        const totalEfTotal = sE + sDL + sSN;
+        const totalAt = sT > 0 ? (totalEfTotal / sT) * 100 : 0;
+        detailedRows.push(["TOTAL GERAL", String(sT), String(sE), String(sDL), String(sSN), String(totalEfTotal), String(sT - totalEfTotal), `${totalAt.toFixed(1)}%`]);
+
+        autoTable(pdf, {
+          startY: yFinal,
+          head: [["OM", "TMFT", "EFETIVO", "DEST/LIC", "SEM NEO", "EFETIVO TOTAL", "VAGOS", "AT. TOTAL"]],
+          body: detailedRows,
+          theme: "grid",
+          styles: { fontSize: 9, cellPadding: 3, halign: "center" },
+          headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
+          margin: { left: 20, right: 20 },
+          didParseCell: (data) => {
+            if (data.section === "body" && data.row.raw?.[0] === "TOTAL GERAL") {
+              data.cell.styles.fontStyle = "bold";
+              data.cell.styles.fillColor = [229, 231, 235];
+            }
+          },
+        });
+      }
+
       // Add page numbers
       const totalPages = pdf.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
