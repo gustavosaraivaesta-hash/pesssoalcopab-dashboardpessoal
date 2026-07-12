@@ -3402,7 +3402,7 @@ const DashboardPracas = () => {
                     <div key={index} className="border-l-4 border-l-amber-500 bg-card rounded-lg p-4 shadow-sm">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [(item as any).especialidade, (item as any).quadro].find((v: any) => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = ((item as any).posto || "").split("-")[0].trim(); return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, (item as any).opcao); })()}</h4>
+                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [(item as any).especialidade, (item as any).quadro].find((v: any) => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = ((item as any).posto || "").split("-")[0].trim(); const rawOpcao = String((item as any).opcao || "").trim().toUpperCase(); const opcao = ["TTC","RM1","RM2","RM-1","RM-2","CARREIRA"].includes(rawOpcao) ? rawOpcao : ""; return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, opcao); })()}</h4>
                           <p className="text-sm text-muted-foreground">{item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-amber-600">Destino: {item.destino}</span>
@@ -3431,7 +3431,7 @@ const DashboardPracas = () => {
                     <div key={index} className="border-l-4 border-l-green-500 bg-card rounded-lg p-4 shadow-sm">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [(item as any).especialidade, (item as any).quadro].find((v: any) => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = ((item as any).posto || "").split("-")[0].trim(); return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, (item as any).opcao); })()}</h4>
+                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [(item as any).especialidade, (item as any).quadro].find((v: any) => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = ((item as any).posto || "").split("-")[0].trim(); const rawOpcao = String((item as any).opcao || "").trim().toUpperCase(); const opcao = ["TTC","RM1","RM2","RM-1","RM-2","CARREIRA"].includes(rawOpcao) ? rawOpcao : ""; return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, opcao); })()}</h4>
                           <p className="text-sm text-muted-foreground">{item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-green-600">Destino: {item.destino}</span>
@@ -3458,7 +3458,7 @@ const DashboardPracas = () => {
                     <div key={index} className="border-l-4 border-l-purple-500 bg-card rounded-lg p-4 shadow-sm">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [(item as any).especialidade, (item as any).quadro].find((v: any) => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = ((item as any).posto || "").split("-")[0].trim(); return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, (item as any).opcao); })()}</h4>
+                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [(item as any).especialidade, (item as any).quadro].find((v: any) => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = ((item as any).posto || "").split("-")[0].trim(); const rawOpcao = String((item as any).opcao || "").trim().toUpperCase(); const opcao = ["TTC","RM1","RM2","RM-1","RM-2","CARREIRA"].includes(rawOpcao) ? rawOpcao : ""; return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, opcao); })()}</h4>
                           <p className="text-sm text-muted-foreground">{item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-purple-600">
@@ -3485,7 +3485,7 @@ const DashboardPracas = () => {
                     <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [item.especialidade, item.quadro].find(v => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = (item.posto || "").split("-")[0].trim(); return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, item.opcao); })()}</h4>
+                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [item.especialidade, item.quadro].find(v => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = (item.posto || "").split("-")[0].trim(); const rawOpcao = String(item.opcao || "").trim().toUpperCase(); const opcao = ["TTC","RM1","RM2","RM-1","RM-2","CARREIRA"].includes(rawOpcao) ? rawOpcao : ""; return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, opcao); })()}</h4>
                           <p className="text-sm text-muted-foreground">{item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-orange-600">Motivo: {item.periodo || "Não informado"}</span>
@@ -3513,7 +3513,7 @@ const DashboardPracas = () => {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [item.especialidade, item.quadro].find(v => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = (item.posto || "").split("-")[0].trim(); return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, item.opcao); })()}</h4>
+                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [item.especialidade, item.quadro].find(v => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = (item.posto || "").split("-")[0].trim(); const rawOpcao = String(item.opcao || "").trim().toUpperCase(); const opcao = ["TTC","RM1","RM2","RM-1","RM-2","CARREIRA"].includes(rawOpcao) ? rawOpcao : ""; return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, opcao); })()}</h4>
                           <p className="text-sm text-muted-foreground">{item.cargo}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             {item.emOutraOm && <span className="text-cyan-600">Em: {item.emOutraOm}</span>}
@@ -3542,7 +3542,7 @@ const DashboardPracas = () => {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [(item as any).especialidade, (item as any).quadro].find((v: any) => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = ((item as any).posto || "").split("-")[0].trim(); return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, (item as any).opcao); })()}</h4>
+                          <h4 className="text-base font-bold text-foreground uppercase">{(() => { const esp = [(item as any).especialidade, (item as any).quadro].find((v: any) => v && v.length <= 5 && !/\s/.test(v)) || ""; const rawPosto = ((item as any).posto || "").split("-")[0].trim(); const rawOpcao = String((item as any).opcao || "").trim().toUpperCase(); const opcao = ["TTC","RM1","RM2","RM-1","RM-2","CARREIRA"].includes(rawOpcao) ? rawOpcao : ""; return formatMilitarNameWithOpcao(rawPosto, esp, item.nome, opcao); })()}</h4>
                           <p className="text-sm text-muted-foreground">{item.cargo || "-"}</p>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <span className="text-emerald-600 font-medium">
