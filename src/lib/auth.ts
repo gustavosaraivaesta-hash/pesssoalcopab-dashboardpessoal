@@ -47,6 +47,14 @@ export const USER_ACCESS_CONFIG: Record<string, UserAccess> = {
   "CDU-1DN": { allowedOMs: ["CDU-1DN"] },
 };
 
+export const getRoleFromEmail = (email?: string | null): string | null => {
+  const username = String(email || "").split("@")[0]?.trim().toUpperCase();
+  if (!username) return null;
+  return USER_ACCESS_CONFIG[username] ? username : null;
+};
+
+export const isCopabLogin = (email?: string | null): boolean => getRoleFromEmail(email) === "COPAB";
+
 // Get user role from database
 export const getUserRole = async (): Promise<string | null> => {
   try {
@@ -61,13 +69,18 @@ export const getUserRole = async (): Promise<string | null> => {
 
     if (error || !roleData) {
       console.log("Auth - No role found for user:", user.id);
-      return "COPAB"; // Default role
+      return getRoleFromEmail(user.email);
     }
 
     return roleData.role;
   } catch (error) {
     console.error("Error getting user role:", error);
-    return "COPAB";
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      return getRoleFromEmail(session?.user?.email);
+    } catch {
+      return null;
+    }
   }
 };
 

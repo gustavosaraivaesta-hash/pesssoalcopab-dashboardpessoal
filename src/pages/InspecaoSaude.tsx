@@ -36,7 +36,8 @@ import { inspecaoSaudeData as inspecaoFallback, type InspecaoRecord } from "@/da
 import { useLiveSheet } from "@/hooks/useLiveSheet";
 import { fetchInspecaoSaude } from "@/lib/sheetsLive";
 import { supabase } from "@/integrations/supabase/client";
-import { getAllowedOMs } from "@/lib/auth";
+import { isCopabLogin } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { formatMilitarNameWithOpcao } from "@/lib/utils";
 import MilitarFullDetailDialog from "@/components/dashboard/MilitarFullDetailDialog";
 
@@ -102,6 +103,7 @@ function statusValidade(d: Date | null): "vencida" | "atencao" | "ok" {
 
 const InspecaoSaude = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [postoFilter, setPostoFilter] = useState<string>("TODOS");
   const [quadroFilter, setQuadroFilter] = useState<string>("TODOS");
   const [omFilter, setOmFilter] = useState<string>("TODOS");
@@ -267,15 +269,9 @@ const InspecaoSaude = () => {
     return map;
   }, [inspecaoSaudeData, personnelIndex]);
 
-  const allowedOmsSet = useMemo(() => {
-    const allowed = getAllowedOMs();
-    if (allowed === "all") return null;
-    return new Set(allowed.map((o) => o.toUpperCase()));
-  }, []);
-
   const canViewInspecaoData = useMemo(
-    () => !allowedOmsSet || allowedOmsSet.has(INSPECAO_DATA_OM),
-    [allowedOmsSet],
+    () => isCopabLogin(user?.email),
+    [user?.email],
   );
 
   const omsDisponiveis = useMemo(() => {
@@ -505,7 +501,7 @@ const InspecaoSaude = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={gerarPDF} variant="default" size="sm">
+            <Button onClick={gerarPDF} variant="default" size="sm" disabled={!canViewInspecaoData}>
               <FileDown className="h-4 w-4 mr-1" />
               Gerar PDF
             </Button>
