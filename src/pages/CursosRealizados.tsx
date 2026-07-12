@@ -17,7 +17,8 @@ import { cursosRealizados as cursosFallback } from "@/data/cursosRealizados";
 import { useLiveSheet } from "@/hooks/useLiveSheet";
 import { fetchCursosRealizados } from "@/lib/sheetsLive";
 import { supabase } from "@/integrations/supabase/client";
-import { getAllowedOMs } from "@/lib/auth";
+import { isCopabLogin } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 
 
@@ -85,12 +86,6 @@ const findFuzzyKey = (target: string, keys: string[]): string | null => {
 };
 
 const CURSOS_DATA_OM = "COPAB";
-
-const canViewCursosData = () => {
-  const allowed = getAllowedOMs();
-  if (allowed === "all") return true;
-  return allowed.some((om) => om.toUpperCase() === CURSOS_DATA_OM);
-};
 
 const invokeFunction = async <T,>(name: string, ms = 25000) => {
   return await Promise.race([
@@ -173,6 +168,7 @@ const resolve = (
 
 const CursosRealizados = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [postoMap, setPostoMap] = useState<Record<string, string>>({});
   const [espMap, setEspMap] = useState<Record<string, string>>({});
@@ -183,6 +179,7 @@ const CursosRealizados = () => {
   const [omFilter, setOmFilter] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
   const { data: cursosRealizados } = useLiveSheet(fetchCursosRealizados, cursosFallback, 30_000);
+  const canViewCursosData = isCopabLogin(user?.email);
 
   const toggleName = (nome: string) => {
     setSelectedNames((prev) => {
@@ -229,14 +226,14 @@ const CursosRealizados = () => {
   }, []);
 
   const enriched = useMemo(() => {
-    if (!canViewCursosData()) return [];
+    if (!canViewCursosData) return [];
     const keys = Array.from(new Set([...Object.keys(postoMap), ...Object.keys(espMap), ...Object.keys(omMap)]));
     return cursosRealizados
       .map((m) => {
         const { posto, especialidade } = resolve(m.nome, postoMap, espMap, omMap, keys);
         return { ...m, posto, especialidade, om: CURSOS_DATA_OM };
       });
-  }, [postoMap, espMap, omMap, cursosRealizados]);
+  }, [postoMap, espMap, omMap, cursosRealizados, canViewCursosData]);
 
   const postoOptions = useMemo(() => {
     const order = ["CMG", "CF", "CC", "CT", "1TEN", "2TEN", "SO", "1SG", "2SG", "3SG", "CB", "MN"];
@@ -314,7 +311,7 @@ const CursosRealizados = () => {
 
       const q = search.trim().toUpperCase();
       const keys = Array.from(new Set([...Object.keys(pMap), ...Object.keys(eMap), ...Object.keys(oMap)]));
-      if (!canViewCursosData()) {
+      if (!canViewCursosData) {
         toast.error("Sem dados de cursos para esta OM.");
         return;
       }
@@ -473,7 +470,7 @@ const CursosRealizados = () => {
               </Button>
             </>
           )}
-          <Button onClick={exportPDF} size="sm" disabled={exporting}>
+          <Button onClick={exportPDF} size="sm" disabled={exporting || !canViewCursosData}>
             <FileDown size={16} className="mr-1" />{" "}
             {exporting
               ? "Gerando..."
