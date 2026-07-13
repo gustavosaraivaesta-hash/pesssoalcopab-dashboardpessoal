@@ -1345,7 +1345,7 @@ const DashboardPracas = () => {
         } else {
           const omVagos = omGeralTmft - omGeralEfetivo;
           const omDLGeral = countDestLicGeral(om);
-          const atTotal = omGeralTmft > 0 ? ((omGeralEfetivo + omGeralExtra + omDLGeral) / omGeralTmft) * 100 : 0;
+          const atTotal = formatAtTotal(omGeralTmft, omGeralEfetivo + omGeralExtra + omDLGeral);
           pdf.setFontSize(8);
           pdf.setFont("helvetica", "bold");
           pdf.text("GERAL", pageWidth / 2, yPosition, { align: "center" });
@@ -1353,7 +1353,7 @@ const DashboardPracas = () => {
           autoTable(pdf, {
             startY: yPosition,
             head: [["TMFT", "EFE", "VAGOS", "SEM NEO", "DEST/LIC", "AT. TOTAL"]],
-            body: [[omGeralTmft.toString(), omGeralEfetivo.toString(), omVagos.toString(), omGeralExtra.toString(), omDLGeral.toString(), `${atTotal.toFixed(1)}%`]],
+            body: [[omGeralTmft.toString(), omGeralEfetivo.toString(), omVagos.toString(), omGeralExtra.toString(), omDLGeral.toString(), atTotal]],
 
             theme: "grid",
             styles: { fontSize: 8, cellPadding: 2, halign: "center" },
@@ -1673,13 +1673,13 @@ const DashboardPracas = () => {
           const destLic = countDestLicForOM(om);
           if (tmft === 0 && eff === 0 && semNeo === 0 && destLic === 0) continue;
           const efeTotal = eff + destLic + semNeo;
-          const at = tmft > 0 ? (efeTotal / tmft) * 100 : 0;
+          const at = formatAtTotal(tmft, efeTotal);
           sT += tmft; sE += eff; sDL += destLic; sSN += semNeo;
           detailedRows.push([om, String(tmft), String(efeTotal), `${at.toFixed(1)}%`]);
         }
         const totalEfTotal = sE + sDL + sSN;
-        const totalAt = sT > 0 ? (totalEfTotal / sT) * 100 : 0;
-        detailedRows.push(["TOTAL GERAL", String(sT), String(totalEfTotal), `${totalAt.toFixed(1)}%`]);
+        const totalAt = formatAtTotal(sT, totalEfTotal);
+        detailedRows.push(["TOTAL GERAL", String(sT), String(totalEfTotal), totalAt]);
 
         autoTable(pdf, {
           startY: yFinal,
