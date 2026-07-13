@@ -1027,6 +1027,7 @@ const DashboardPracas = () => {
         let tTmft = 0;
         let tEfetivo = 0;
         let tExtra = 0;
+        let tDestLic = 0;
 
         for (const om of activeOMs) {
           const omBaseData = baseFilteredData.filter((item) => item.om === om);
@@ -1034,6 +1035,7 @@ const DashboardPracas = () => {
           const omExtraDataAll = omBaseData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
           const omExtraData = hasSpecificFilters ? omExtraDataAll.filter(matchesEfeFilters) : omExtraDataAll;
           const omExtra = omExtraData.length;
+          const omDestLic = countDestLicFiltrado(om);
 
           let omTmft: number;
           let omEfetivo: number;
@@ -1050,25 +1052,29 @@ const DashboardPracas = () => {
           tTmft += omTmft;
           tEfetivo += omEfetivo;
           tExtra += omExtra;
+          tDestLic += omDestLic;
 
-          const atendTotal = omTmft > 0 ? ((omEfetivo + omExtra) / omTmft) * 100 : 0;
+          const atendTotal = omTmft > 0 ? ((omEfetivo + omExtra + omDestLic) / omTmft) * 100 : 0;
           const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
           if (hasExtraLotacao) {
             row.push(omExtra.toString());
           }
+          row.push(omDestLic.toString());
           row.push(`${atendTotal.toFixed(1)}%`);
           rows.push(row);
         }
 
-        const totalAtendTotal = tTmft > 0 ? ((tEfetivo + tExtra) / tTmft) * 100 : 0;
+        const totalAtendTotal = tTmft > 0 ? ((tEfetivo + tExtra + tDestLic) / tTmft) * 100 : 0;
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
           totalRow.push(tExtra.toString());
         }
+        totalRow.push(tDestLic.toString());
         totalRow.push(`${totalAtendTotal.toFixed(1)}%`);
         rows.push(totalRow);
         return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra };
       };
+
 
       const renderResumoTable = (title: string, rows: string[][], startY: number, color: [number, number, number]) => {
         let y = startY;
