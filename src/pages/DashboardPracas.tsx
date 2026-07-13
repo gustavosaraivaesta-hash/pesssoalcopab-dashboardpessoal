@@ -1607,22 +1607,33 @@ const DashboardPracas = () => {
         pdf.text("EFETIVO TOTAL = EFETIVO + DESTAQUES/LICENÇAS + SEM NEO", pageWidth / 2, yFinal, { align: "center" });
         yFinal += 8;
 
+        // Aplicar os mesmos filtros ativos (Quadros/Graduações/Opções) nas contagens de Destaques e Licenças
+        const eqQuadrosFilter = selectedQuadros.length > 0 ? expandSpecialtyEquivalents(selectedQuadros) : null;
+        const matchesDestLicFilters = (item: any) => {
+          if (eqQuadrosFilter && !(eqQuadrosFilter.includes(item.quadro || "") || eqQuadrosFilter.includes(item.especialidade || ""))) return false;
+          if (selectedGraduacoes.length > 0 && !selectedGraduacoes.includes(item.posto || "")) return false;
+          if (selectedOpcoes.length > 0 && !selectedOpcoes.includes(item.opcao || "")) return false;
+          return true;
+        };
         const countDestLicForOM = (om: string) =>
-          licencasData.filter((i) => i.om === om).length +
-          destaquesData.filter((i) => i.om === om).length;
+          licencasData.filter((i) => i.om === om && matchesDestLicFilters(i)).length +
+          destaquesData.filter((i) => i.om === om && matchesDestLicFilters(i)).length;
 
         const detailedRows: any[][] = [];
         let sT = 0, sE = 0, sDL = 0, sSN = 0;
-        for (const om of availableOMs) {
-          const omAllData = personnelData.filter((i) => i.om === om);
-          if (omAllData.length === 0) continue;
-          const omReg = omAllData.filter((i) => i.tipoSetor !== "EXTRA LOTAÇÃO");
-          const omExt = omAllData.filter((i) => i.tipoSetor === "EXTRA LOTAÇÃO" && i.ocupado);
-          const tmft = omReg.length;
-          const eff = omReg.filter((i) => i.ocupado).length;
+        for (const om of activeOMs) {
+          const omBase = baseFilteredData.filter((i) => i.om === om);
+          if (omBase.length === 0) continue;
+          const omReg = omBase.filter((i) => i.tipoSetor !== "EXTRA LOTAÇÃO");
+          const omExtAll = omBase.filter((i) => i.tipoSetor === "EXTRA LOTAÇÃO" && i.ocupado);
+          const omExt = hasSpecificFilters ? omExtAll.filter(matchesEfeFilters) : omExtAll;
+          const tmft = hasSpecificFilters ? omReg.filter(matchesTmftFilters).length : omReg.length;
+          const eff = hasSpecificFilters
+            ? omReg.filter((i) => i.ocupado && matchesEfeFilters(i)).length
+            : omReg.filter((i) => i.ocupado).length;
           const semNeo = omExt.length;
           const destLic = countDestLicForOM(om);
-          if (tmft === 0) continue;
+          if (tmft === 0 && eff === 0 && semNeo === 0 && destLic === 0) continue;
           const efeTotal = eff + destLic + semNeo;
           const at = tmft > 0 ? (efeTotal / tmft) * 100 : 0;
           sT += tmft; sE += eff; sDL += destLic; sSN += semNeo;
