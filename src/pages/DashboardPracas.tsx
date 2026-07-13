@@ -998,24 +998,24 @@ const DashboardPracas = () => {
           tDestLic += omDestLic;
 
           if (omTmft > 0) {
-            const atendTotal = omTmft > 0 ? ((omEfetivo + omExtra + omDestLic) / omTmft) * 100 : 0;
+            const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + omDestLic);
             const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
             if (hasExtraLotacao) {
               row.push(omExtra.toString());
             }
             row.push(omDestLic.toString());
-            row.push(`${atendTotal.toFixed(1)}%`);
+            row.push(atendTotal);
             rows.push(row);
           }
         }
 
-        const totalAtendTotal = tTmft > 0 ? ((tEfetivo + tExtra + tDestLic) / tTmft) * 100 : 0;
+        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLic);
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
           totalRow.push(tExtra.toString());
         }
         totalRow.push(tDestLic.toString());
-        totalRow.push(`${totalAtendTotal.toFixed(1)}%`);
+        totalRow.push(totalAtendTotal);
         rows.push(totalRow);
         return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra };
       };
@@ -1054,23 +1054,23 @@ const DashboardPracas = () => {
           tExtra += omExtra;
           tDestLic += omDestLic;
 
-          const atendTotal = omTmft > 0 ? ((omEfetivo + omExtra + omDestLic) / omTmft) * 100 : 0;
+          const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + omDestLic);
           const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
           if (hasExtraLotacao) {
             row.push(omExtra.toString());
           }
           row.push(omDestLic.toString());
-          row.push(`${atendTotal.toFixed(1)}%`);
+          row.push(atendTotal);
           rows.push(row);
         }
 
-        const totalAtendTotal = tTmft > 0 ? ((tEfetivo + tExtra + tDestLic) / tTmft) * 100 : 0;
+        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLic);
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
           totalRow.push(tExtra.toString());
         }
         totalRow.push(tDestLic.toString());
-        totalRow.push(`${totalAtendTotal.toFixed(1)}%`);
+        totalRow.push(totalAtendTotal);
         rows.push(totalRow);
         return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra };
       };
@@ -1120,9 +1120,9 @@ const DashboardPracas = () => {
         y = checkNewPage(y, 40);
 
         const geralVagos = geralTmft - geralEfetivo;
-        const geralAtTotal = geralTmft > 0 ? ((geralEfetivo + geralExtra + geralDestLic) / geralTmft) * 100 : 0;
+        const geralAtTotal = formatAtTotal(geralTmft, geralEfetivo + geralExtra + geralDestLic);
         const filtVagos = filtTmft - filtEfetivo;
-        const filtAtTotal = filtTmft > 0 ? ((filtEfetivo + filtExtra + filtDestLic) / filtTmft) * 100 : 0;
+        const filtAtTotal = formatAtTotal(filtTmft, filtEfetivo + filtExtra + filtDestLic);
 
         const filtLabelParts: string[] = [];
         if (selectedQuadros.length > 0) filtLabelParts.push(selectedQuadros.join(", "));
@@ -1146,9 +1146,9 @@ const DashboardPracas = () => {
           startY: y,
           head: [[...cols, "", ...cols]],
           body: [[
-            geralTmft.toString(), geralEfetivo.toString(), geralVagos.toString(), geralExtra.toString(), geralDestLic.toString(), `${geralAtTotal.toFixed(1)}%`,
+            geralTmft.toString(), geralEfetivo.toString(), geralVagos.toString(), geralExtra.toString(), geralDestLic.toString(), geralAtTotal,
             "",
-            filtTmft.toString(), filtEfetivo.toString(), filtVagos.toString(), filtExtra.toString(), filtDestLic.toString(), `${filtAtTotal.toFixed(1)}%`,
+            filtTmft.toString(), filtEfetivo.toString(), filtVagos.toString(), filtExtra.toString(), filtDestLic.toString(), filtAtTotal,
           ]],
           theme: "grid",
           styles: { fontSize: 7, cellPadding: 2, halign: "center" },
