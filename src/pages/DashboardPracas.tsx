@@ -1240,9 +1240,13 @@ const DashboardPracas = () => {
         pdf.text(filtradoLabel, rightX + halfWidth / 2, yPosition, { align: "center" });
         yPosition += 6;
 
-        // Dynamic columns based on extra lotação
-        const geralCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "SEM NEO", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS", "AT. TOTAL"];
-        const filtCols = hasExtraLotacao ? ["OM", "TMFT", "EFE", "VAGOS", "SEM NEO", "AT. TOTAL"] : ["OM", "TMFT", "EFE", "VAGOS", "AT. TOTAL"];
+        // Dynamic columns based on extra lotação — must match row shape from buildFiltradoResumoRows/buildGeralResumoRows
+        const geralCols = hasExtraLotacao
+          ? ["OM", "TMFT", "EFE", "VAGOS", "SEM NEO", "DEST/LIC", "AT. TOTAL"]
+          : ["OM", "TMFT", "EFE", "VAGOS", "DEST/LIC", "AT. TOTAL"];
+        const filtCols = hasExtraLotacao
+          ? ["OM", "TMFT", "EFE", "VAGOS", "SEM NEO", "DEST/LIC", "AT. TOTAL"]
+          : ["OM", "TMFT", "EFE", "VAGOS", "DEST/LIC", "AT. TOTAL"];
         const colsPerSide = geralCols.length;
         const sepIdx = colsPerSide;
 
