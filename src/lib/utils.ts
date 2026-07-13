@@ -269,3 +269,14 @@ export function isForaDaNeo(quadroTmft: string, quadroEfe: string, opcaoTmft?: s
   if (!tmft || !efe || tmft === "-" || efe === "-") return false;
   return !areSpecialtiesEquivalent(tmft, efe);
 }
+
+/**
+ * Format the AT. TOTAL (attendance total) percentage.
+ * When TMFT is zero and there are effective personnel, show as excess
+ * (e.g. "EXCEDENTE (1+)"), otherwise return the percentage.
+ */
+export function formatAtTotal(tmft: number, total: number): string {
+  if (tmft > 0) return `${((total / tmft) * 100).toFixed(1)}%`;
+  if (total > 0) return `EXCEDENTE (${total}+)`;
+  return "0.0%";
+}

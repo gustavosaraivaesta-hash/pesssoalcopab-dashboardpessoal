@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { isForaDaNeo, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName } from "@/lib/utils";
+import { isForaDaNeo, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal } from "@/lib/utils";
 
 import {
   BarChart,
