@@ -2049,16 +2049,31 @@ const DashboardOM = () => {
 
         const detailedRows: any[][] = [];
         let sT = 0, sE = 0, sDL = 0, sSN = 0;
-        for (const om of availableOMs) {
-          const omAllData = personnelData.filter((i) => i.om === om);
-          if (omAllData.length === 0) continue;
-          const omReg = omAllData.filter((i) => i.tipoSetor !== "EXTRA LOTAÇÃO");
-          const omExt = omAllData.filter((i) => i.tipoSetor === "EXTRA LOTAÇÃO" && i.ocupado);
+        for (const om of activeOMs) {
+          const omData = filteredData.filter((i) => i.om === om);
+          const omReg = omData.filter((i) => i.tipoSetor !== "EXTRA LOTAÇÃO");
+          const omExt = omData.filter((i) => i.tipoSetor === "EXTRA LOTAÇÃO" && i.ocupado);
           const tmft = omReg.length;
-          const eff = omReg.filter((i) => i.ocupado).length;
+
+          let eff: number;
+          if (hasEfeFiltersGlobal) {
+            let ef = personnelData.filter((i) => i.om === om && i.tipoSetor !== "EXTRA LOTAÇÃO" && i.ocupado);
+            const hasNonOpcaoFiltersPdf = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+            if (hasNonOpcaoFiltersPdf && !selectedOpcoes.includes("TTC")) {
+              ef = ef.filter((i) => normalizeOpcao(i.opcaoEfe) !== "TTC");
+            }
+            if (selectedCorpos.length > 0) ef = ef.filter((i) => selectedCorpos.includes(i.corpoEfe));
+            if (selectedQuadros.length > 0) ef = ef.filter((i) => selectedQuadros.includes(i.quadroEfe));
+            if (selectedPostoFilter.length > 0) ef = ef.filter((i) => selectedPostoFilter.includes(i.postoEfe));
+            if (selectedOpcoes.length > 0) ef = ef.filter((i) => matchesOpcaoFilter(i.opcaoEfe, selectedOpcoes));
+            eff = ef.length;
+          } else {
+            eff = omReg.filter((i) => i.ocupado).length;
+          }
+
           const semNeo = omExt.length;
-          const destLic = countDestLicForOM(om, false);
-          if (tmft === 0) continue;
+          const destLic = countDestLicForOM(om, true);
+          if (tmft === 0 && eff === 0 && semNeo === 0 && destLic === 0) continue;
           const efeTotal = eff + destLic + semNeo;
           const at = tmft > 0 ? (efeTotal / tmft) * 100 : 0;
           sT += tmft; sE += eff; sDL += destLic; sSN += semNeo;
