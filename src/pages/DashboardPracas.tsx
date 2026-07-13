@@ -1339,18 +1339,22 @@ const DashboardPracas = () => {
             omFiltTmft = omRegularData.length;
             omFiltEfetivo = omRegularData.filter((item) => item.ocupado).length;
           }
-          yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, omGeralExtra, omFiltTmft, omFiltEfetivo, omFiltExtra, yPosition);
+          const omDLGeral = countDestLicGeral(om);
+          const omDLFilt = countDestLicFiltrado(om);
+          yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, omGeralExtra, omFiltTmft, omFiltEfetivo, omFiltExtra, yPosition, omDLGeral, omDLFilt);
         } else {
           const omVagos = omGeralTmft - omGeralEfetivo;
-          const atTotal = omGeralTmft > 0 ? ((omGeralEfetivo + omGeralExtra) / omGeralTmft) * 100 : 0;
+          const omDLGeral = countDestLicGeral(om);
+          const atTotal = omGeralTmft > 0 ? ((omGeralEfetivo + omGeralExtra + omDLGeral) / omGeralTmft) * 100 : 0;
           pdf.setFontSize(8);
           pdf.setFont("helvetica", "bold");
           pdf.text("GERAL", pageWidth / 2, yPosition, { align: "center" });
           yPosition += 4;
           autoTable(pdf, {
             startY: yPosition,
-            head: [["TMFT", "EFE", "VAGOS", "SEM NEO", "AT. TOTAL"]],
-            body: [[omGeralTmft.toString(), omGeralEfetivo.toString(), omVagos.toString(), omGeralExtra.toString(), `${atTotal.toFixed(1)}%`]],
+            head: [["TMFT", "EFE", "VAGOS", "SEM NEO", "DEST/LIC", "AT. TOTAL"]],
+            body: [[omGeralTmft.toString(), omGeralEfetivo.toString(), omVagos.toString(), omGeralExtra.toString(), omDLGeral.toString(), `${atTotal.toFixed(1)}%`]],
+
             theme: "grid",
             styles: { fontSize: 8, cellPadding: 2, halign: "center" },
             headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
