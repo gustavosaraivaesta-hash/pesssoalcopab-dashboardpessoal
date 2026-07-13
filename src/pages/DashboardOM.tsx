@@ -1574,7 +1574,7 @@ const DashboardOM = () => {
             omImVagos.toString(),
             `${omImAtendimento.toFixed(1)}%`,
             omImExtra.toString(),
-            `${omImAtendTotal.toFixed(1)}%`,
+            omImAtendTotal,
           ]);
         }
 
@@ -2077,7 +2077,7 @@ const DashboardOM = () => {
           const efeTotal = eff + destLic + semNeo;
           const at = formatAtTotal(tmft, efeTotal);
           sT += tmft; sE += eff; sDL += destLic; sSN += semNeo;
-          detailedRows.push([om, String(tmft), String(efeTotal), `${at.toFixed(1)}%`]);
+          detailedRows.push([om, String(tmft), String(efeTotal), at]);
         }
         const totalEfTotal = sE + sDL + sSN;
         const totalAt = formatAtTotal(sT, totalEfTotal);
