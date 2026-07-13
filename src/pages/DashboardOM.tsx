@@ -3320,7 +3320,54 @@ const DashboardOM = () => {
                   : "from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200"
             }`}
           >
-...
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p
+                    className={`text-sm font-medium mb-1 ${
+                      metrics.atendimentoTotal >= 100
+                        ? "text-cyan-700 dark:text-cyan-300"
+                        : metrics.atendimentoTotal >= 90
+                          ? "text-teal-700 dark:text-teal-300"
+                          : "text-amber-700 dark:text-amber-300"
+                    }`}
+                  >
+                    ATEND. TOTAL
+                  </p>
+                  <p
+                    className={`text-4xl font-bold ${
+                      metrics.atendimentoTotal >= 100
+                        ? "text-cyan-900 dark:text-cyan-100"
+                        : metrics.atendimentoTotal >= 90
+                          ? "text-teal-900 dark:text-teal-100"
+                          : "text-amber-900 dark:text-amber-100"
+                    }`}
+                  >
+                    {metrics.atendimentoTotal.toFixed(0)}%
+                  </p>
+                  <p
+                    className={`text-xs mt-1 ${
+                      metrics.atendimentoTotal >= 100
+                        ? "text-cyan-600 dark:text-cyan-400"
+                        : metrics.atendimentoTotal >= 90
+                          ? "text-teal-600 dark:text-teal-400"
+                          : "text-amber-600 dark:text-amber-400"
+                    }`}
+                  >
+                    (Extra + EFE) / TMFT
+                  </p>
+                </div>
+                <TrendingUp
+                  className={`h-8 w-8 ${
+                    metrics.atendimentoTotal >= 100
+                      ? "text-cyan-500"
+                      : metrics.atendimentoTotal >= 90
+                        ? "text-teal-500"
+                        : "text-amber-500"
+                  }`}
+                />
+              </div>
+            </CardContent>
           </Card>
         </div>
 
