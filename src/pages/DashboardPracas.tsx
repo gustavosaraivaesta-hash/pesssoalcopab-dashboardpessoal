@@ -1087,7 +1087,7 @@ const DashboardPracas = () => {
         if (rows.length > 1) {
           autoTable(pdf, {
             startY: y,
-            head: [hasExtraLotacao ? ["OM", "TMFT", "EFETIVO", "VAGOS", "SEM NEO", "AT. TOTAL"] : ["OM", "TMFT", "EFETIVO", "VAGOS", "AT. TOTAL"]],
+            head: [hasExtraLotacao ? ["OM", "TMFT", "EFETIVO", "VAGOS", "SEM NEO", "DEST/LIC", "AT. TOTAL"] : ["OM", "TMFT", "EFETIVO", "VAGOS", "DEST/LIC", "AT. TOTAL"]],
             body: rows,
             theme: "grid",
             styles: { fontSize: 9, cellPadding: 3, halign: "center" },
