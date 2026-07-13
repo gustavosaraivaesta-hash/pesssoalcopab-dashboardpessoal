@@ -1204,6 +1204,8 @@ const DashboardPracas = () => {
         const filtrado = buildFiltradoResumoRows();
 
         // Side-by-side totals
+        const geralDLTotal = availableOMs.reduce((acc, om) => acc + countDestLicGeral(om), 0);
+        const filtDLTotal = activeOMs.reduce((acc, om) => acc + countDestLicFiltrado(om), 0);
         yPosition = renderSideBySideTotals(
           geral.totalTmft,
           geral.totalEfetivo,
@@ -1212,7 +1214,10 @@ const DashboardPracas = () => {
           filtrado.totalEfetivo,
           filtrado.totalExtra,
           yPosition,
+          geralDLTotal,
+          filtDLTotal,
         );
+
 
         // Per-OM tables - show GERAL and FILTRADO side-by-side as ONE combined table
         yPosition = checkNewPage(yPosition, 50);
