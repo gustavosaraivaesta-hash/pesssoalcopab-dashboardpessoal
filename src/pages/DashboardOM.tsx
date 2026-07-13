@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { isForaDaNeo, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName } from "@/lib/utils";
+import { isForaDaNeo, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal } from "@/lib/utils";
 
 import {
   BarChart,
@@ -1234,24 +1234,24 @@ const DashboardOM = () => {
           tDestLic += omDestLic;
 
           if (omTmft > 0) {
-            const atendTotal = omTmft > 0 ? ((omEfetivo + omExtra + omDestLic) / omTmft) * 100 : 0;
+            const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + omDestLic);
             const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
             if (hasExtraLotacao) {
               row.push(omExtra.toString());
             }
             row.push(omDestLic.toString());
-            row.push(`${atendTotal.toFixed(1)}%`);
+            row.push(atendTotal);
             rows.push(row);
           }
         }
 
-        const totalAtendTotal = tTmft > 0 ? ((tEfetivo + tExtra + tDestLic) / tTmft) * 100 : 0;
+        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLic);
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
           totalRow.push(tExtra.toString());
         }
         totalRow.push(tDestLic.toString());
-        totalRow.push(`${totalAtendTotal.toFixed(1)}%`);
+        totalRow.push(totalAtendTotal);
         rows.push(totalRow);
         return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra, totalDestLic: tDestLic };
       };
@@ -1295,23 +1295,23 @@ const DashboardOM = () => {
           tExtra += omExtra;
           tDestLic += omDestLic;
 
-          const atendTotal = omTmft > 0 ? ((omEfetivo + omExtra + omDestLic) / omTmft) * 100 : 0;
+          const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + omDestLic);
           const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
           if (hasExtraLotacao) {
             row.push(omExtra.toString());
           }
           row.push(omDestLic.toString());
-          row.push(`${atendTotal.toFixed(1)}%`);
+          row.push(atendTotal);
           rows.push(row);
         }
 
-        const totalAtendTotal = tTmft > 0 ? ((tEfetivo + tExtra + tDestLic) / tTmft) * 100 : 0;
+        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLic);
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
           totalRow.push(tExtra.toString());
         }
         totalRow.push(tDestLic.toString());
-        totalRow.push(`${totalAtendTotal.toFixed(1)}%`);
+        totalRow.push(totalAtendTotal);
         rows.push(totalRow);
         return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra, totalDestLic: tDestLic };
       };
@@ -1359,9 +1359,9 @@ const DashboardOM = () => {
         y = checkNewPage(y, 40);
 
         const geralVagos = geralTmft - geralEfetivo;
-        const geralAtTotal = geralTmft > 0 ? ((geralEfetivo + geralExtra + geralDestLic) / geralTmft) * 100 : 0;
+        const geralAtTotal = formatAtTotal(geralTmft, geralEfetivo + geralExtra + geralDestLic);
         const filtVagos = filtTmft - filtEfetivo;
-        const filtAtTotal = filtTmft > 0 ? ((filtEfetivo + filtExtra + filtDestLic) / filtTmft) * 100 : 0;
+        const filtAtTotal = formatAtTotal(filtTmft, filtEfetivo + filtExtra + filtDestLic);
 
         const filtLabelParts: string[] = [];
         if (selectedCorpos.length > 0) filtLabelParts.push(selectedCorpos.join(", "));
@@ -1386,9 +1386,9 @@ const DashboardOM = () => {
           startY: y,
           head: [[...cols, "", ...cols]],
           body: [[
-            geralTmft.toString(), geralEfetivo.toString(), geralVagos.toString(), geralExtra.toString(), geralDestLic.toString(), `${geralAtTotal.toFixed(1)}%`,
+            geralTmft.toString(), geralEfetivo.toString(), geralVagos.toString(), geralExtra.toString(), geralDestLic.toString(), geralAtTotal,
             "",
-            filtTmft.toString(), filtEfetivo.toString(), filtVagos.toString(), filtExtra.toString(), filtDestLic.toString(), `${filtAtTotal.toFixed(1)}%`,
+            filtTmft.toString(), filtEfetivo.toString(), filtVagos.toString(), filtExtra.toString(), filtDestLic.toString(), filtAtTotal,
           ]],
           theme: "grid",
           styles: { fontSize: 7, cellPadding: 2, halign: "center" },
@@ -1561,7 +1561,7 @@ const DashboardOM = () => {
           const omImVagos = omImTmft - omImEfetivo;
           const omImAtendimento = omImTmft > 0 ? (omImEfetivo / omImTmft) * 100 : 0;
           const omImExtra = omImExtraData.length;
-          const omImAtendTotal = omImTmft > 0 ? ((omImEfetivo + omImExtra) / omImTmft) * 100 : 0;
+          const omImAtendTotal = formatAtTotal(omImTmft, omImEfetivo + omImExtra);
 
           totalImTmft += omImTmft;
           totalImEfetivo += omImEfetivo;
@@ -1574,14 +1574,14 @@ const DashboardOM = () => {
             omImVagos.toString(),
             `${omImAtendimento.toFixed(1)}%`,
             omImExtra.toString(),
-            `${omImAtendTotal.toFixed(1)}%`,
+            omImAtendTotal,
           ]);
         }
 
         // Add TOTAL IM row
         const totalImVagos = totalImTmft - totalImEfetivo;
         const totalImAtendimento = totalImTmft > 0 ? (totalImEfetivo / totalImTmft) * 100 : 0;
-        const totalImAtendTotal = totalImTmft > 0 ? ((totalImEfetivo + totalImExtra) / totalImTmft) * 100 : 0;
+        const totalImAtendTotal = formatAtTotal(totalImTmft, totalImEfetivo + totalImExtra);
 
         imResumoRows.push([
           "TOTAL IM",
@@ -1590,7 +1590,7 @@ const DashboardOM = () => {
           totalImVagos.toString(),
           `${totalImAtendimento.toFixed(1)}%`,
           totalImExtra.toString(),
-          `${totalImAtendTotal.toFixed(1)}%`,
+          totalImAtendTotal,
         ]);
 
         autoTable(pdf, {
@@ -1668,7 +1668,7 @@ const DashboardOM = () => {
           yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, omGeralExtra, omGeralDestLic, filtTmft, filtEfetivo, omFiltExtra, omFiltDestLic, yPosition);
         } else {
           const omVagos = omGeralTmft - omGeralEfetivo;
-          const atTotal = omGeralTmft > 0 ? ((omGeralEfetivo + omGeralExtra + omGeralDestLic) / omGeralTmft) * 100 : 0;
+          const atTotal = formatAtTotal(omGeralTmft, omGeralEfetivo + omGeralExtra + omGeralDestLic);
           pdf.setFontSize(8);
           pdf.setFont("helvetica", "bold");
           pdf.text("GERAL", pageWidth / 2, yPosition, { align: "center" });
@@ -1676,7 +1676,7 @@ const DashboardOM = () => {
           autoTable(pdf, {
             startY: yPosition,
             head: [["TMFT", "EFE", "VAGOS", "SEM NEO", "DEST/LIC", "AT. TOTAL"]],
-            body: [[omGeralTmft.toString(), omGeralEfetivo.toString(), omVagos.toString(), omGeralExtra.toString(), omGeralDestLic.toString(), `${atTotal.toFixed(1)}%`]],
+            body: [[omGeralTmft.toString(), omGeralEfetivo.toString(), omVagos.toString(), omGeralExtra.toString(), omGeralDestLic.toString(), atTotal]],
             theme: "grid",
             styles: { fontSize: 8, cellPadding: 2, halign: "center" },
             headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
@@ -2075,13 +2075,13 @@ const DashboardOM = () => {
           const destLic = countDestLicForOM(om, true);
           if (tmft === 0 && eff === 0 && semNeo === 0 && destLic === 0) continue;
           const efeTotal = eff + destLic + semNeo;
-          const at = tmft > 0 ? (efeTotal / tmft) * 100 : 0;
+          const at = formatAtTotal(tmft, efeTotal);
           sT += tmft; sE += eff; sDL += destLic; sSN += semNeo;
-          detailedRows.push([om, String(tmft), String(efeTotal), `${at.toFixed(1)}%`]);
+          detailedRows.push([om, String(tmft), String(efeTotal), at]);
         }
         const totalEfTotal = sE + sDL + sSN;
-        const totalAt = sT > 0 ? (totalEfTotal / sT) * 100 : 0;
-        detailedRows.push(["TOTAL GERAL", String(sT), String(totalEfTotal), `${totalAt.toFixed(1)}%`]);
+        const totalAt = formatAtTotal(sT, totalEfTotal);
+        detailedRows.push(["TOTAL GERAL", String(sT), String(totalEfTotal), totalAt]);
 
         autoTable(pdf, {
           startY: yFinal,
