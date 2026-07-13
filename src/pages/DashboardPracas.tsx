@@ -958,6 +958,21 @@ const DashboardPracas = () => {
       // EXT LOT e AT. TOTAL sempre visíveis em todas as tabelas do PDF
       const hasExtraLotacao = true;
 
+      // Contagem de DESTAQUES/LICENÇAS por OM (para exibir no PDF)
+      const eqQuadrosFilterPdf = selectedQuadros.length > 0 ? expandSpecialtyEquivalents(selectedQuadros) : null;
+      const matchesDestLicFiltersPdf = (item: any) => {
+        if (eqQuadrosFilterPdf && !(eqQuadrosFilterPdf.includes(item.quadro || "") || eqQuadrosFilterPdf.includes(item.especialidade || ""))) return false;
+        if (selectedGraduacoes.length > 0 && !selectedGraduacoes.includes(item.posto || "")) return false;
+        if (selectedOpcoes.length > 0 && !selectedOpcoes.includes(item.opcao || "")) return false;
+        return true;
+      };
+      const countDestLicGeral = (om: string) =>
+        licencasData.filter((i) => i.om === om).length + destaquesData.filter((i) => i.om === om).length;
+      const countDestLicFiltrado = (om: string) =>
+        licencasData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)).length +
+        destaquesData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)).length;
+
+
       // Build GERAL rows from ALL personnelData (no filters) across ALL availableOMs
       const buildGeralResumoRows = () => {
         const rows: string[][] = [];
