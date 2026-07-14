@@ -893,7 +893,7 @@ const Index = () => {
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {/* Online/Offline Status */}
               <Badge variant={isOnline ? "default" : "destructive"} className="flex items-center gap-1 justify-center">
                 {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
