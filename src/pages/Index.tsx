@@ -893,42 +893,44 @@ const Index = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {/* Online/Offline Status */}
-              <Badge variant={isOnline ? "default" : "destructive"} className="flex items-center gap-1">
+              <Badge variant={isOnline ? "default" : "destructive"} className="flex items-center gap-1 justify-center">
                 {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
                 {isOnline ? "Online" : "Offline"}
               </Badge>
-              {isUsingCache && (
-                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+              {isUsingCache ? (
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 justify-center">
                   Cache
                 </Badge>
+              ) : (
+                <div />
               )}
-              <Button variant="secondary" onClick={() => navigate("/dashboard-pracas")}>
-                <FileText size={18} className="mr-2" />
+              <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-pracas")}>
+                <FileText size={18} className="mr-2 shrink-0" />
                 Dashboard de Praças
               </Button>
-              <Button variant="secondary" onClick={() => navigate("/dashboard-om")}>
-                <FileText size={18} className="mr-2" />
+              <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-om")}>
+                <FileText size={18} className="mr-2 shrink-0" />
                 Dashboard de Oficiais
               </Button>
-              <Button variant="secondary" onClick={() => navigate("/dashboard-ttc")}>
-                <FileText size={18} className="mr-2" />
+              <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-ttc")}>
+                <FileText size={18} className="mr-2 shrink-0" />
                 Dashboard de TTC
               </Button>
-              <Button variant="secondary" onClick={() => navigate("/cursos-realizados")}>
-                <BookOpen size={18} className="mr-2" />
+              <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/cursos-realizados")}>
+                <BookOpen size={18} className="mr-2 shrink-0" />
                 Cursos Realizados
               </Button>
-              <Button variant="secondary" onClick={() => navigate("/inspecao-saude")}>
-                <HeartPulse size={18} className="mr-2" />
+              <Button variant="secondary" className="h-auto whitespace-normal py-2 col-span-2" onClick={() => navigate("/inspecao-saude")}>
+                <HeartPulse size={18} className="mr-2 shrink-0" />
                 Inspeção de Saúde
               </Button>
               
               {/* Solicitações button for non-COPAB users */}
               {role && role !== "COPAB" && (
-                <Button variant="secondary" onClick={() => navigate("/solicitacoes")}>
-                  <ClipboardList size={18} className="mr-2" />
+                <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/solicitacoes")}>
+                  <ClipboardList size={18} className="mr-2 shrink-0" />
                   Solicitações
                 </Button>
               )}
@@ -937,10 +939,10 @@ const Index = () => {
               {role === "COPAB" && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="secondary" className="flex items-center gap-1">
-                      <Lock size={18} className="mr-1" />
+                    <Button variant="secondary" className="h-auto whitespace-normal py-2 flex items-center gap-1">
+                      <Lock size={18} className="mr-1 shrink-0" />
                       Admin
-                      <ChevronDown size={16} />
+                      <ChevronDown size={16} className="shrink-0" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
@@ -964,11 +966,10 @@ const Index = () => {
                 </DropdownMenu>
               )}
 
-
               <ThemeToggle />
 
-              <Button variant="destructive" onClick={handleLogout}>
-                <LogOut size={18} className="mr-2" />
+              <Button variant="destructive" className="h-auto whitespace-normal py-2" onClick={handleLogout}>
+                <LogOut size={18} className="mr-2 shrink-0" />
                 Sair
               </Button>
             </div>
