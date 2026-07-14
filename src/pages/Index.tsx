@@ -922,7 +922,7 @@ const Index = () => {
                 <BookOpen size={18} className="mr-2 shrink-0" />
                 Cursos Realizados
               </Button>
-              <Button variant="secondary" className="h-auto whitespace-normal py-2 col-span-2" onClick={() => navigate("/inspecao-saude")}>
+              <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/inspecao-saude")}>
                 <HeartPulse size={18} className="mr-2 shrink-0" />
                 Inspeção de Saúde
               </Button>
