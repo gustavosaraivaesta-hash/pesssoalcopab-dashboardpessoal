@@ -910,15 +910,15 @@ const Index = () => {
               <div className="grid grid-cols-3 gap-2">
                 <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-pracas")}>
                   <FileText size={18} className="mr-2 shrink-0" />
-                  Dashboard de Praças
+                  Praças
                 </Button>
                 <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-om")}>
                   <FileText size={18} className="mr-2 shrink-0" />
-                  Dashboard de Oficiais
+                  Oficiais
                 </Button>
                 <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-ttc")}>
                   <FileText size={18} className="mr-2 shrink-0" />
-                  Dashboard de TTC
+                  TTC
                 </Button>
                 <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/cursos-realizados")}>
                   <BookOpen size={18} className="mr-2 shrink-0" />
