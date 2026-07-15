@@ -883,15 +883,22 @@ const Index = () => {
       {/* Header */}
       <header className="bg-blue-600 text-primary-foreground shadow-elevated relative z-10">
         <div className="px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield size={36} className="text-primary-foreground" />
-              <div>
-                <h1 className="text-3xl font-bold">Dashboard COpAb</h1>
-                <p className="text-sm opacity-90">
-                  Centro de Operações do Abastecimento - Análise do Pessoal Militar e Civil
-                </p>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-2 items-start">
+              <ThemeToggle />
+              <div className="flex items-center gap-3">
+                <Shield size={36} className="text-primary-foreground" />
+                <div>
+                  <h1 className="text-3xl font-bold">Dashboard COpAb</h1>
+                  <p className="text-sm opacity-90">
+                    Centro de Operações do Abastecimento - Análise do Pessoal Militar e Civil
+                  </p>
+                </div>
               </div>
+              <Button variant="destructive" className="h-auto whitespace-normal py-2" onClick={handleLogout}>
+                <LogOut size={18} className="mr-2 shrink-0" />
+                Sair
+              </Button>
             </div>
             <div className="flex flex-col gap-2 items-end">
               {/* Online/Offline Status */}
