@@ -979,9 +979,8 @@ const Index = () => {
             </div>
           </div>
         </div>
-
-        </div>
       </header>
+
 
       {/* Admin Password Modal */}
       <Dialog open={showAdminPasswordModal} onOpenChange={setShowAdminPasswordModal}>
