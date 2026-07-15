@@ -975,13 +975,9 @@ const Index = () => {
                   </DropdownMenu>
                 )}
 
-                <ThemeToggle />
-
-                <Button variant="destructive" className="h-auto whitespace-normal py-2" onClick={handleLogout}>
-                  <LogOut size={18} className="mr-2 shrink-0" />
-                  Sair
-                </Button>
               </div>
+            </div>
+
             </div>
           </div>
         </div>
