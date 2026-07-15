@@ -893,85 +893,88 @@ const Index = () => {
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-col gap-2 items-end">
               {/* Online/Offline Status */}
-              <Badge variant={isOnline ? "default" : "destructive"} className="flex items-center gap-1 justify-center">
-                {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
-                {isOnline ? "Online" : "Offline"}
-              </Badge>
-              {isUsingCache ? (
-                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 justify-center">
-                  Cache
+              <div className="flex gap-2">
+                <Badge variant={isOnline ? "default" : "destructive"} className="flex items-center gap-1 justify-center">
+                  {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
+                  {isOnline ? "Online" : "Offline"}
                 </Badge>
-              ) : (
-                <div />
-              )}
-              <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-pracas")}>
-                <FileText size={18} className="mr-2 shrink-0" />
-                Dashboard de Praças
-              </Button>
-              <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-om")}>
-                <FileText size={18} className="mr-2 shrink-0" />
-                Dashboard de Oficiais
-              </Button>
-              <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-ttc")}>
-                <FileText size={18} className="mr-2 shrink-0" />
-                Dashboard de TTC
-              </Button>
-              <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/cursos-realizados")}>
-                <BookOpen size={18} className="mr-2 shrink-0" />
-                Cursos Realizados
-              </Button>
-              <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/inspecao-saude")}>
-                <HeartPulse size={18} className="mr-2 shrink-0" />
-                Inspeção de Saúde
-              </Button>
-              
-              {/* Solicitações button for non-COPAB users */}
-              {role && role !== "COPAB" && (
-                <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/solicitacoes")}>
-                  <ClipboardList size={18} className="mr-2 shrink-0" />
-                  Solicitações
+                {isUsingCache && (
+                  <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 justify-center">
+                    Cache
+                  </Badge>
+                )}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-pracas")}>
+                  <FileText size={18} className="mr-2 shrink-0" />
+                  Dashboard de Praças
                 </Button>
-              )}
-              
-              {/* Admin Dropdown Menu - Only for COPAB */}
-              {role === "COPAB" && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="secondary" className="h-auto whitespace-normal py-2 flex items-center gap-1">
-                      <Lock size={18} className="mr-1 shrink-0" />
-                      Admin
-                      <ChevronDown size={16} className="shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={() => handleAdminNavigation("/solicitacoes")}>
-                      <ClipboardList size={16} className="mr-2" />
-                      Solicitações
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/solicitacoes")}>
-                      <Settings size={16} className="mr-2" />
-                      Gestão
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/historico")}>
-                      <Archive size={16} className="mr-2" />
-                      Histórico
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/users")}>
-                      <Users size={16} className="mr-2" />
-                      Usuários
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+                <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-om")}>
+                  <FileText size={18} className="mr-2 shrink-0" />
+                  Dashboard de Oficiais
+                </Button>
+                <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-ttc")}>
+                  <FileText size={18} className="mr-2 shrink-0" />
+                  Dashboard de TTC
+                </Button>
+                <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/cursos-realizados")}>
+                  <BookOpen size={18} className="mr-2 shrink-0" />
+                  Cursos Realizados
+                </Button>
+                <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/inspecao-saude")}>
+                  <HeartPulse size={18} className="mr-2 shrink-0" />
+                  Inspeção de Saúde
+                </Button>
 
-              <ThemeToggle />
+                {/* Solicitações button for non-COPAB users */}
+                {role && role !== "COPAB" && (
+                  <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/solicitacoes")}>
+                    <ClipboardList size={18} className="mr-2 shrink-0" />
+                    Solicitações
+                  </Button>
+                )}
 
-              <Button variant="destructive" className="h-auto whitespace-normal py-2" onClick={handleLogout}>
-                <LogOut size={18} className="mr-2 shrink-0" />
-                Sair
-              </Button>
+                {/* Admin Dropdown Menu - Only for COPAB */}
+                {role === "COPAB" && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="secondary" className="h-auto whitespace-normal py-2 flex items-center gap-1">
+                        <Lock size={18} className="mr-1 shrink-0" />
+                        Admin
+                        <ChevronDown size={16} className="shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem onClick={() => handleAdminNavigation("/solicitacoes")}>
+                        <ClipboardList size={16} className="mr-2" />
+                        Solicitações
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/solicitacoes")}>
+                        <Settings size={16} className="mr-2" />
+                        Gestão
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/historico")}>
+                        <Archive size={16} className="mr-2" />
+                        Histórico
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAdminNavigation("/admin/users")}>
+                        <Users size={16} className="mr-2" />
+                        Usuários
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+
+                <ThemeToggle />
+
+                <Button variant="destructive" className="h-auto whitespace-normal py-2" onClick={handleLogout}>
+                  <LogOut size={18} className="mr-2 shrink-0" />
+                  Sair
+                </Button>
+              </div>
             </div>
           </div>
         </div>
