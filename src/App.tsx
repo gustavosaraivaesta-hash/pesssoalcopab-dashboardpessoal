@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AuthGuard from "./components/AuthGuard";
+import PdfPreviewHost from "./components/PdfPreviewHost";
 
 // Retry dynamic imports once and force a hard reload if a stale chunk (post-deploy) fails.
 function lazyWithRetry<T extends ComponentType<any>>(factory: () => Promise<{ default: T }>) {
@@ -69,6 +70,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <PdfPreviewHost />
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
           <Routes>

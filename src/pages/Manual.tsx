@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { openPdfPreview } from "@/lib/pdfPreview";
 import { ArrowLeft, Download, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -302,7 +303,7 @@ const Manual = () => {
       doc.setTextColor(0, 0, 0);
     }
 
-    doc.save(`Manual_Dashboard_COPAB_v${MANUAL_VERSION}.pdf`);
+    openPdfPreview(doc, `Manual_Dashboard_COPAB_v${MANUAL_VERSION}.pdf`);
   };
 
   return (

@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { openPdfPreview } from "@/lib/pdfPreview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TTCData } from "@/types/ttc";
@@ -63,7 +64,7 @@ const TTCMilitarDetailDialog = ({ militar, open, onOpenChange }: TTCMilitarDetai
         heightLeft -= pageHeight - margin * 2;
       }
       const nome = militar.isVaga ? "VAGA" : (militar.nomeCompleto || "militar").replace(/\s+/g, "_");
-      pdf.save(`TTC_${nome}.pdf`);
+      openPdfPreview(pdf, `TTC_${nome}.pdf`);
       toast.success("PDF gerado com sucesso!", { id: "pdf-export" });
     } catch (e) {
       console.error(e);

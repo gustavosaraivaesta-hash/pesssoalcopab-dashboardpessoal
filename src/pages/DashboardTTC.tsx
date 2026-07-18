@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { openPdfPreview } from "@/lib/pdfPreview";
 import { useNavigate } from "react-router-dom";
 import { Users, UserCheck, UserX, RefreshCw, LogOut, Wifi, WifiOff, Calendar, FileDown, X, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -264,7 +265,7 @@ const DashboardTTC = () => {
     if (exportData.length === 0) {
       doc.setFontSize(12);
       doc.text("Nenhum registro encontrado para os filtros selecionados.", 14, 48);
-      doc.save(`dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
+      openPdfPreview(doc, `dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
       toast.success("PDF exportado com sucesso!");
       return;
     }
@@ -341,7 +342,7 @@ const DashboardTTC = () => {
       currentY = (doc as any).lastAutoTable.finalY + 10;
     });
 
-    doc.save(`dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
+    openPdfPreview(doc, `dashboard-ttc-${new Date().toISOString().split("T")[0]}.pdf`);
     toast.success("PDF exportado com sucesso!");
   }, [applyTtcFilters, formatPdfAge, ttcData]);
 

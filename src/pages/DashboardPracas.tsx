@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { openPdfPreview } from "@/lib/pdfPreview";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getAllowedOMs, getAvailableOMsForUser } from "@/lib/auth";
@@ -1710,7 +1711,7 @@ const DashboardPracas = () => {
         pdf.text(`${i} - ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: "center" });
       }
 
-      pdf.save("tabela-mestra-forca-trabalho-pracas.pdf");
+      openPdfPreview(pdf, "tabela-mestra-forca-trabalho-pracas.pdf");
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
       console.error("Error generating PDF:", error);
