@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { openPdfPreview } from "@/lib/pdfPreview";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FilterOptions, MilitaryData } from "@/types/military";
@@ -524,7 +525,7 @@ export const DashboardFilters = ({
 
       // Save
       const categoriaFile = selectedFilters.categoria === "TODOS" ? "geral" : selectedFilters.categoria.toLowerCase();
-      pdf.save(`relatorio-copab-${categoriaFile}-${new Date().toISOString().split("T")[0]}.pdf`);
+      openPdfPreview(pdf, `relatorio-copab-${categoriaFile}-${new Date().toISOString().split("T")[0]}.pdf`);
 
       const { toast } = await import("sonner");
       toast.success("PDF gerado com sucesso!");

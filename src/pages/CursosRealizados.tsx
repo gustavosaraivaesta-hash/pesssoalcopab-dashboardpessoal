@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { openPdfPreview } from "@/lib/pdfPreview";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, BookOpen, Search, Users, GraduationCap, FileDown } from "lucide-react";
 import jsPDF from "jspdf";
@@ -433,7 +434,7 @@ const CursosRealizados = () => {
         },
       });
 
-      doc.save("cursos-realizados-copab.pdf");
+      openPdfPreview(doc, "cursos-realizados-copab.pdf");
     } catch (e) {
       console.error("Erro ao exportar PDF:", e);
     } finally {

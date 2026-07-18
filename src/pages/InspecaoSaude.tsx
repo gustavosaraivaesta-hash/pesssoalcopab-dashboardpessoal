@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { openPdfPreview } from "@/lib/pdfPreview";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -476,7 +477,7 @@ const InspecaoSaude = () => {
       },
     });
 
-    doc.save(`inspecao-saude-${new Date().toISOString().slice(0, 10)}.pdf`);
+    openPdfPreview(doc, `inspecao-saude-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   return (
