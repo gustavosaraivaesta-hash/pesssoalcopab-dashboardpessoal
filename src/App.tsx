@@ -70,6 +70,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <PdfPreviewHost />
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
           <Routes>
