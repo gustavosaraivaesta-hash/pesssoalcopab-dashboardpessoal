@@ -3522,37 +3522,68 @@ const DashboardOM = () => {
               </span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             {chartDataVagosByOM.length > 0 ? (
-              <ResponsiveContainer width="100%" height={Math.max(200, chartDataVagosByOM.length * 45)}>
+              <ResponsiveContainer width="100%" height={Math.max(240, chartDataVagosByOM.length * 42)}>
                 <BarChart
                   data={chartDataVagosByOM}
                   layout="vertical"
+                  margin={{ top: 8, right: 56, left: 8, bottom: 8 }}
+                  barCategoryGap="28%"
                   onClick={(e) => e && e.activePayload && handleVagosBarClick(e.activePayload[0]?.payload)}
                 >
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <defs>
+                    <linearGradient id="vagosGradientOM" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#f97316" stopOpacity={0.95} />
+                      <stop offset="100%" stopColor="#dc2626" stopOpacity={1} />
+                    </linearGradient>
+                    <linearGradient id="vagosGradientActiveOM" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#dc2626" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#7f1d1d" stopOpacity={1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--border))" horizontal={false} />
                   <XAxis
                     type="number"
-                    className="text-xs"
-                    domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3)]}
+                    domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.15)]}
+                    stroke="hsl(var(--muted-foreground))"
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    dataKey="om"
+                    type="category"
+                    width={110}
                     stroke="hsl(var(--foreground))"
-                    tick={{ fill: "hsl(var(--foreground))" }}
+                    tick={{ fill: "hsl(var(--foreground))", fontSize: 12, fontWeight: 600 }}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                  <YAxis dataKey="om" type="category" className="text-xs" width={120} stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
                   <Tooltip
-                    formatter={(value: number, name: string) => [value, name === "vagos" ? "Vagos" : name]}
-                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
+                    cursor={{ fill: "hsl(var(--muted) / 0.35)" }}
+                    formatter={(value: number, name: string) => [`${value} vaga${value === 1 ? "" : "s"}`, name === "vagos" ? "Vagos" : name]}
+                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }}
                   />
-                  <Bar dataKey="vagos" name="Vagos" fill="#ef4444" radius={[0, 4, 4, 0]} style={{ cursor: "pointer" }}>
+                  <Bar
+                    dataKey="vagos"
+                    name="Vagos"
+                    radius={[0, 10, 10, 0]}
+                    background={{ fill: "hsl(var(--muted) / 0.25)", radius: 10 } as any}
+                    style={{ cursor: "pointer" }}
+                  >
                     {chartDataVagosByOM.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={selectedOMsForVagos.includes(entry.om) ? "#b91c1c" : "#ef4444"}
-                        stroke={selectedOMsForVagos.includes(entry.om) ? "#7f1d1d" : "none"}
-                        strokeWidth={selectedOMsForVagos.includes(entry.om) ? 2 : 0}
+                        fill={selectedOMsForVagos.includes(entry.om) ? "url(#vagosGradientActiveOM)" : "url(#vagosGradientOM)"}
                       />
                     ))}
-                    <LabelList dataKey="vagos" position="right" style={{ fontWeight: "bold", fontSize: "12px" }} />
+                    <LabelList
+                      dataKey="vagos"
+                      position="right"
+                      offset={10}
+                      style={{ fontWeight: 700, fontSize: 12, fill: "hsl(var(--foreground))" }}
+                    />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
