@@ -166,7 +166,7 @@ Restrição por OM:
   },
   {
     id: "solicitacoes",
-    title: "8. Sistema de Solicitações",
+    title: "9. Sistema de Solicitações",
     content: `O sistema permite que OMs solicitem alterações no efetivo. Acesse pelo menu "Solicitações".
 
 Tipos de solicitação:
@@ -189,7 +189,7 @@ Status possíveis:
   },
   {
     id: "administracao",
-    title: "9. Área Administrativa",
+    title: "10. Área Administrativa",
     content: `A área administrativa é restrita e protegida por senha adicional. Para acessar, clique no ícone de configurações (⚙️) e insira a senha de administrador.
 
 Funcionalidades administrativas:
@@ -204,7 +204,7 @@ Gerenciamento de Usuários:
   },
   {
     id: "atualizacao-dados",
-    title: "10. Atualização dos Dados",
+    title: "11. Atualização dos Dados",
     content: `Os dados do sistema são mantidos atualizados através de múltiplos mecanismos:
 
 Atualização Automática na Interface:
@@ -224,7 +224,7 @@ Cache Offline:
   },
   {
     id: "funcionalidades-offline",
-    title: "11. Funcionamento Offline",
+    title: "12. Funcionamento Offline",
     content: `O sistema possui suporte a funcionamento offline através de cache local:
 
 • Os dados são salvos automaticamente no dispositivo
@@ -239,7 +239,7 @@ Limitações do modo offline:
   },
   {
     id: "dicas",
-    title: "12. Dicas e Boas Práticas",
+    title: "13. Dicas e Boas Práticas",
     content: `• Utilize os filtros para focar nos dados relevantes antes de exportar
 • Verifique o horário da última atualização no topo do dashboard
 • Em caso de dados inconsistentes, force uma atualização manual
