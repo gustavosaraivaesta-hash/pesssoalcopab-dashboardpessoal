@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import jsPDF from "jspdf";
 
-const MANUAL_VERSION = "1.5";
+const MANUAL_VERSION = "1.6";
 const MANUAL_DATE = new Date().toLocaleDateString("pt-BR");
 
 const manualSections = [
@@ -119,10 +119,16 @@ Dados apresentados:
     title: "7. Exportação de Relatórios",
     content: `O sistema oferece exportação em três formatos, todos sincronizados com os filtros ativos:
 
-PDF:
+PDF (com pré-visualização):
+• Ao gerar um PDF, o sistema abre uma janela de pré-visualização com o documento renderizado
+• Você pode revisar o conteúdo antes de decidir baixar
+• O download só ocorre ao clicar em "Baixar PDF" dentro da pré-visualização
 • Relatório visual com tabelas formatadas
 • Legendas coloridas: Laranja (Fora da NEO), Azul Claro (Efetivo Extra), Amarelo (SEM NEO), Vermelho (Vagas), Verde Claro (SEM NEO)
 • Cabeçalho com brasão da República e informações da OM
+• Página final com RESUMO GERAL DETALHADO (TMFT, Efetivo somado com Destaques/Licenças e Sem NEO), respeitando os filtros ativos
+• Coluna DEST/LIC incluída nos resumos por OM
+• Quando TMFT for zero e houver efetivo, o AT. TOTAL exibe "EXCEDENTE (N+)"
 
 Excel (XLSX):
 • Abas dedicadas: "Resumo", "Efetivo Completo" e tabelas auxiliares
@@ -138,11 +144,29 @@ Como exportar:
 1. Aplique os filtros desejados no dashboard
 2. Clique no ícone de exportação (📄)
 3. Selecione o formato desejado (PDF, Excel ou Word)
-4. O arquivo será baixado automaticamente`,
+4. Para PDF: revise na pré-visualização e clique em "Baixar PDF" se desejar salvar
+5. Para Excel/Word: o arquivo é baixado diretamente`,
+  },
+  {
+    id: "cursos-inspecao",
+    title: "8. Cursos Realizados e Inspeção de Saúde",
+    content: `Cursos Realizados (COPAB):
+• Permite selecionar militares individualmente com checkboxes
+• O PDF gerado inclui apenas os registros selecionados
+• Métricas (TMFT, EFETIVO, VAGOS, SEM NEO) refletem os filtros ativos
+• Design padronizado com brasão e cabeçalhos idênticos aos demais dashboards
+
+Inspeção de Saúde:
+• Cores do gráfico: Azul (Em dia), Âmbar (Vence nos próximos 6 meses), Vermelho (Vencido)
+• Cada militar é vinculado à sua NEO por correspondência fuzzy (ex.: NEO 1 C ALTE-IM RICARDO...)
+• Ao clicar na NEO, abre modal com todos os dados do militar consolidados dos demais dashboards
+
+Restrição por OM:
+• OMs que não são COPAB só visualizam Cursos e Inspeção de Saúde das OMs às quais possuem acesso`,
   },
   {
     id: "solicitacoes",
-    title: "8. Sistema de Solicitações",
+    title: "9. Sistema de Solicitações",
     content: `O sistema permite que OMs solicitem alterações no efetivo. Acesse pelo menu "Solicitações".
 
 Tipos de solicitação:
@@ -165,7 +189,7 @@ Status possíveis:
   },
   {
     id: "administracao",
-    title: "9. Área Administrativa",
+    title: "10. Área Administrativa",
     content: `A área administrativa é restrita e protegida por senha adicional. Para acessar, clique no ícone de configurações (⚙️) e insira a senha de administrador.
 
 Funcionalidades administrativas:
@@ -180,7 +204,7 @@ Gerenciamento de Usuários:
   },
   {
     id: "atualizacao-dados",
-    title: "10. Atualização dos Dados",
+    title: "11. Atualização dos Dados",
     content: `Os dados do sistema são mantidos atualizados através de múltiplos mecanismos:
 
 Atualização Automática na Interface:
@@ -200,7 +224,7 @@ Cache Offline:
   },
   {
     id: "funcionalidades-offline",
-    title: "11. Funcionamento Offline",
+    title: "12. Funcionamento Offline",
     content: `O sistema possui suporte a funcionamento offline através de cache local:
 
 • Os dados são salvos automaticamente no dispositivo
@@ -215,7 +239,7 @@ Limitações do modo offline:
   },
   {
     id: "dicas",
-    title: "12. Dicas e Boas Práticas",
+    title: "13. Dicas e Boas Práticas",
     content: `• Utilize os filtros para focar nos dados relevantes antes de exportar
 • Verifique o horário da última atualização no topo do dashboard
 • Em caso de dados inconsistentes, force uma atualização manual
