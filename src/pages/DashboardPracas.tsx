@@ -3182,76 +3182,106 @@ const DashboardPracas = () => {
         )}
 
         {/* Chart Distribuição por Posto */}
-        <Card ref={chartRef} data-chart="graduacao">
-          <CardHeader>
-            <CardTitle>Distribuição por Graduação</CardTitle>
-            <p className="text-sm text-muted-foreground">Clique nas colunas para ver os militares</p>
+        <Card ref={chartRef} data-chart="graduacao" className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <CardTitle className="text-xl">Distribuição por Graduação</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">Clique nas colunas para ver os militares</p>
+              </div>
+              <div className="flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="inline-block w-3 h-3 rounded-sm bg-gradient-to-b from-sky-400 to-sky-600" />
+                  <span className="font-medium text-foreground">TMFT</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="inline-block w-3 h-3 rounded-sm bg-gradient-to-b from-rose-400 to-rose-600" />
+                  <span className="font-medium text-foreground">Efetivo</span>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={chartDataByPosto} barCategoryGap="15%" barGap={4}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="name" className="text-xs" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} />
+            <ResponsiveContainer width="100%" height={380}>
+              <BarChart data={chartDataByPosto} barCategoryGap="22%" barGap={6} margin={{ top: 30, right: 20, left: 0, bottom: 10 }}>
+                <defs>
+                  <linearGradient id="tmftGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.95} />
+                    <stop offset="100%" stopColor="#2563eb" stopOpacity={0.9} />
+                  </linearGradient>
+                  <linearGradient id="efeGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#fb7185" stopOpacity={0.95} />
+                    <stop offset="100%" stopColor="#e11d48" stopOpacity={0.9} />
+                  </linearGradient>
+                  <filter id="barShadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15" />
+                  </filter>
+                </defs>
+                <CartesianGrid strokeDasharray="3 6" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  stroke="hsl(var(--foreground))"
+                  tick={{ fill: "hsl(var(--foreground))", fontSize: 13, fontWeight: 600 }}
+                  tickLine={false}
+                  axisLine={{ stroke: "hsl(var(--border))" }}
+                  dy={4}
+                />
                 <YAxis
-                  className="text-xs"
                   domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.15)]}
                   allowDecimals={false}
-                  stroke="hsl(var(--foreground))"
-                  tick={{ fill: "hsl(var(--foreground))", fontSize: 11 }}
+                  stroke="hsl(var(--muted-foreground))"
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={40}
                 />
                 <Tooltip
-                  formatter={(value: number, name: string) => [value, name === "tmft" ? "TMFT" : "Efetivo"]}
+                  cursor={{ fill: "hsl(var(--muted))", opacity: 0.35, radius: 8 }}
+                  formatter={(value: number, name: string) => [value.toLocaleString("pt-BR"), name === "tmft" ? "TMFT" : "Efetivo"]}
                   contentStyle={{
                     backgroundColor: "hsl(var(--card))",
                     border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+                    borderRadius: "10px",
+                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)",
                     color: "hsl(var(--foreground))",
+                    padding: "10px 12px",
                   }}
-                  labelStyle={{ fontWeight: "bold", marginBottom: "4px", color: "hsl(var(--foreground))" }}
+                  labelStyle={{ fontWeight: 700, marginBottom: "6px", color: "hsl(var(--foreground))" }}
                 />
-                <Legend wrapperStyle={{ paddingTop: "10px" }} />
                 <Bar
                   dataKey="tmft"
                   name="TMFT"
-                  fill="#93c5fd"
+                  fill="url(#tmftGrad)"
                   cursor="pointer"
                   onClick={handlePostoTmftClick}
                   minPointSize={8}
-                  radius={[4, 4, 0, 0]}
+                  radius={[8, 8, 0, 0]}
+                  filter="url(#barShadow)"
                 >
                   <LabelList
                     dataKey="tmft"
                     position="top"
-                    style={{ fontWeight: "bold", fontSize: "11px", fill: "#1e40af" }}
+                    style={{ fontWeight: 700, fontSize: "12px", fill: "#1e3a8a" }}
                     formatter={(value: number) => (value > 0 ? value : "")}
                   />
                 </Bar>
                 <Bar
                   dataKey="efe"
                   name="EFE"
-                  fill="#ef4444"
+                  fill="url(#efeGrad)"
                   cursor="pointer"
                   onClick={handlePostoEfeClick}
                   minPointSize={8}
-                  radius={[4, 4, 0, 0]}
+                  radius={[8, 8, 0, 0]}
+                  filter="url(#barShadow)"
                 >
                   <LabelList
                     dataKey="efe"
                     position="top"
-                    style={{ fontWeight: "bold", fontSize: "11px", fill: "#b91c1c" }}
+                    style={{ fontWeight: 700, fontSize: "12px", fill: "#9f1239" }}
                     formatter={(value: number) => (value > 0 ? value : "")}
                   />
                 </Bar>
-                <Brush
-                  dataKey="name"
-                  height={30}
-                  stroke="hsl(var(--primary))"
-                  fill="hsl(var(--muted))"
-                  travellerWidth={10}
-                  startIndex={0}
-                  endIndex={Math.min(5, chartDataByPosto.length - 1)}
-                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
