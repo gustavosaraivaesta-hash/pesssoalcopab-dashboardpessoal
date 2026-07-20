@@ -3812,35 +3812,90 @@ const DashboardOM = () => {
         )}
 
         {/* Chart Distribuição por Corpo (CORPO) */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Corpo</CardTitle>
-            <p className="text-sm text-muted-foreground">Clique nas colunas para ver os militares</p>
+        <Card data-chart="corpo" className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <CardTitle className="text-xl">Corpo</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">Clique nas colunas para ver os militares</p>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="inline-block w-3 h-3 rounded-sm bg-gradient-to-b from-violet-400 to-violet-600" />
+                <span className="font-medium text-foreground">Quantidade</span>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {chartDataByCorpo.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartDataByCorpo}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
-                  <YAxis
-                    className="text-xs"
-                    domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.2)]}
-                    allowDecimals={false}
+              <ResponsiveContainer width="100%" height={380}>
+                <BarChart data={chartDataByCorpo} barCategoryGap="25%" barGap={8} margin={{ top: 30, right: 20, left: 0, bottom: 10 }}>
+                  <defs>
+                    <linearGradient id="corpoSelected" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#a78bfa" stopOpacity={0.95} />
+                      <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.95} />
+                    </linearGradient>
+                    <linearGradient id="corpoUnselected" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#c4b5fd" stopOpacity={0.85} />
+                      <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                    </linearGradient>
+                    <filter id="corpoShadow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15" />
+                    </filter>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 6" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis
+                    dataKey="name"
                     stroke="hsl(var(--foreground))"
-                    tick={{ fill: "hsl(var(--foreground))" }}
+                    tick={{ fill: "hsl(var(--foreground))", fontSize: 13, fontWeight: 600 }}
+                    tickLine={false}
+                    axisLine={{ stroke: "hsl(var(--border))" }}
+                    dy={4}
                   />
-                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }} />
-                  <Bar dataKey="value" name="Quantidade" cursor="pointer" onClick={handleCorpoBarClick}>
+                  <YAxis
+                    domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.15)]}
+                    allowDecimals={false}
+                    stroke="hsl(var(--muted-foreground))"
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={false}
+                    width={40}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "hsl(var(--muted))", opacity: 0.35, radius: 8 }}
+                    formatter={(value: number) => [value.toLocaleString("pt-BR"), "Quantidade"]}
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "10px",
+                      boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)",
+                      color: "hsl(var(--foreground))",
+                      padding: "10px 12px",
+                    }}
+                    labelStyle={{ fontWeight: 700, marginBottom: "6px", color: "hsl(var(--foreground))" }}
+                  />
+                  <Bar
+                    dataKey="value"
+                    name="Quantidade"
+                    cursor="pointer"
+                    onClick={handleCorpoBarClick}
+                    minPointSize={8}
+                    radius={[8, 8, 0, 0]}
+                    filter="url(#corpoShadow)"
+                  >
                     {chartDataByCorpo.map((entry, index) => (
                       <Cell
                         key={`cell-corpo-${index}`}
-                        fill={selectedCorpos.includes(entry.name) ? "#8b5cf6" : "#c4b5fd"}
+                        fill={selectedCorpos.includes(entry.name) ? "url(#corpoSelected)" : "url(#corpoUnselected)"}
                         stroke={selectedCorpos.includes(entry.name) ? "#6d28d9" : "transparent"}
                         strokeWidth={selectedCorpos.includes(entry.name) ? 2 : 0}
                       />
                     ))}
-                    <LabelList dataKey="value" position="top" style={{ fontWeight: "bold", fontSize: "14px" }} />
+                    <LabelList
+                      dataKey="value"
+                      position="top"
+                      style={{ fontWeight: 700, fontSize: "13px", fill: "#5b21b6" }}
+                      formatter={(value: number) => (value > 0 ? value : "")}
+                    />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
