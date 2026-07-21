@@ -573,34 +573,82 @@ const DashboardTTC = () => {
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="bg-card/80 backdrop-blur-sm">
-              <CardHeader>
+            <Card className="bg-card/80 backdrop-blur-sm shadow-card">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-base">Situação Geral</CardTitle>
+                <div className="flex items-center gap-3 text-xs">
+                  <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Contratados</span>
+                  <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" />Vagas</span>
+                </div>
               </CardHeader>
               <CardContent>
                 <ChartContainer config={chartConfig} className="h-[280px]">
                   <PieChart>
-                    <Pie data={statusChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, value }) => `${name}: ${value}`}>
+                    <defs>
+                      <linearGradient id="ttcGreenGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#34d399" />
+                        <stop offset="100%" stopColor="#059669" />
+                      </linearGradient>
+                      <linearGradient id="ttcRedGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#fb7185" />
+                        <stop offset="100%" stopColor="#e11d48" />
+                      </linearGradient>
+                      <filter id="ttcPieShadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.18" />
+                      </filter>
+                    </defs>
+                    <Pie
+                      data={statusChartData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={2}
+                      stroke="hsl(var(--card))"
+                      strokeWidth={3}
+                      filter="url(#ttcPieShadow)"
+                    >
                       {statusChartData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                     </Pie>
+                    <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="fill-foreground" style={{ fontSize: 26, fontWeight: 700 }}>
+                      {percPreenchido}%
+                    </text>
+                    <text x="50%" y="50%" dy={22} textAnchor="middle" dominantBaseline="middle" className="fill-muted-foreground" style={{ fontSize: 11 }}>
+                      preenchido
+                    </text>
                     <ChartTooltip content={<ChartTooltipContent />} />
                   </PieChart>
                 </ChartContainer>
               </CardContent>
             </Card>
 
-            <Card className="bg-card/80 backdrop-blur-sm lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base">Previsão Mensal de Término de Contrato</CardTitle>
+            <Card className="bg-card/80 backdrop-blur-sm lg:col-span-2 shadow-card">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle className="text-base">Previsão Mensal de Término de Contrato</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">Clique nas barras para ver os militares</p>
+                </div>
               </CardHeader>
               <CardContent>
                 {previsaoMensalData.length > 0 ? (
                   <ChartContainer config={chartConfig} className="h-[280px]">
-                    <BarChart data={previsaoMensalData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }} onClick={handleBarClick} style={{ cursor: 'pointer' }}>
-                      <XAxis dataKey="mes" tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} stroke="hsl(var(--foreground))" />
-                      <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} stroke="hsl(var(--foreground))" />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="quantidade" fill="#2563eb" radius={[4, 4, 0, 0]} name="Militares" label={{ position: 'top', fontSize: 11 }} />
+                    <BarChart data={previsaoMensalData} margin={{ top: 24, right: 20, left: 0, bottom: 5 }} onClick={handleBarClick} style={{ cursor: 'pointer' }} barCategoryGap="22%">
+                      <defs>
+                        <linearGradient id="ttcBarGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#60a5fa" />
+                          <stop offset="100%" stopColor="#1d4ed8" />
+                        </linearGradient>
+                        <filter id="ttcBarShadow" x="-10%" y="-10%" width="120%" height="130%">
+                          <feDropShadow dx="0" dy="3" stdDeviation="3" floodOpacity="0.2" />
+                        </filter>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                      <XAxis dataKey="mes" tick={{ fontSize: 12, fill: "hsl(var(--foreground))", fontWeight: 500 }} stroke="hsl(var(--border))" tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--border))" tickLine={false} axisLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} cursor={{ fill: "hsl(var(--muted) / 0.4)" }} />
+                      <Bar dataKey="quantidade" fill="url(#ttcBarGrad)" radius={[8, 8, 0, 0]} name="Militares" label={{ position: 'top', fontSize: 12, fontWeight: 700, fill: "hsl(var(--foreground))" }} filter="url(#ttcBarShadow)" />
                     </BarChart>
                   </ChartContainer>
                 ) : (
