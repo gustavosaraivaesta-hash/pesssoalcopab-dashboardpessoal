@@ -20,7 +20,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { differenceInYears, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { parseDataFlexivel, calcularTempoRestante, isOficial, getGradIndex, calcularIdadeAtual } from "@/lib/ttcUtils";
+import { parseDataFlexivel, calcularTempoRestante, isOficial, getGradIndex, calcularIdadeAtual, formatMilitarName } from "@/lib/ttcUtils";
 import { isBefore, isAfter } from "date-fns";
 import MultiSelectFilter from "@/components/dashboard/ttc/MultiSelectFilter";
 import TTCTableRow from "@/components/dashboard/ttc/TTCTableRow";
@@ -46,6 +46,7 @@ const DashboardTTC = () => {
   const [filterDataTerminoFrom, setFilterDataTerminoFrom] = useState<Date | undefined>(undefined);
   const [filterDataTerminoTo, setFilterDataTerminoTo] = useState<Date | undefined>(undefined);
   const [selectedMonth, setSelectedMonth] = useState<{ mes: string; militares: TTCData[] } | null>(null);
+  const [selectedMonthSearch, setSelectedMonthSearch] = useState("");
   const [selectedMilitar, setSelectedMilitar] = useState<TTCData | null>(null);
 
   const isOnline = useOnlineStatus();
@@ -423,9 +424,24 @@ const DashboardTTC = () => {
   const handleBarClick = useCallback((e: any) => {
     if (e?.activePayload?.[0]?.payload) {
       const p = e.activePayload[0].payload;
+      setSelectedMonthSearch("");
       setSelectedMonth({ mes: p.mes, militares: p.militares });
     }
   }, []);
+
+  const selectedMonthMilitares = useMemo(() => {
+    if (!selectedMonth) return [];
+    const term = selectedMonthSearch.trim().toLowerCase();
+    const militares = [...selectedMonth.militares].sort((a, b) => {
+      const omCmp = (a.om || "").localeCompare(b.om || "");
+      return omCmp !== 0 ? omCmp : getGradIndex(a.graduacao) - getGradIndex(b.graduacao);
+    });
+    if (!term) return militares;
+    return militares.filter(mil =>
+      [mil.graduacao, mil.nomeCompleto, mil.om, mil.area, mil.neo, mil.espQuadro, mil.tarefaDesignada, mil.termino]
+        .some(value => String(value || "").toLowerCase().includes(term))
+    );
+  }, [selectedMonth, selectedMonthSearch]);
 
   if (isLoading) {
     return (
@@ -656,38 +672,65 @@ const DashboardTTC = () => {
                 )}
 
                 {selectedMonth && (
-                  <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setSelectedMonth(null)}>
-                    <div className="bg-card rounded-lg shadow-xl max-w-6xl w-[95vw] max-h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center justify-between p-4 border-b shrink-0">
-                        <h3 className="text-lg font-semibold">Término em {selectedMonth.mes} ({selectedMonth.militares.length} militares)</h3>
-                        <Button variant="ghost" size="icon" onClick={() => setSelectedMonth(null)}>
-                          <X className="h-4 w-4" />
-                        </Button>
+                  <div className="fixed inset-0 bg-background z-[100] flex flex-col" onClick={() => setSelectedMonth(null)}>
+                    <div className="h-dvh w-screen flex flex-col bg-card" onClick={e => e.stopPropagation()}>
+                      <div className="flex flex-col gap-3 border-b p-4 shrink-0 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <h3 className="text-xl font-semibold">Término em {selectedMonth.mes}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Mostrando {selectedMonthMilitares.length} de {selectedMonth.militares.length} militares. Clique no nome para abrir os detalhes.
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            className="w-full md:w-80"
+                            placeholder="Buscar nesta seleção..."
+                            value={selectedMonthSearch}
+                            onChange={e => setSelectedMonthSearch(e.target.value)}
+                          />
+                          <Button variant="outline" size="sm" onClick={() => setSelectedMonth(null)}>
+                            <X className="h-4 w-4 mr-2" />
+                            Fechar
+                          </Button>
+                        </div>
                       </div>
-                      <ScrollArea className="flex-1 min-h-0">
-                        <Table>
-                          <TableHeader>
+                      <div className="flex-1 min-h-0 overflow-auto p-3">
+                        <Table className="min-w-[900px]">
+                          <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
                             <TableRow>
-                              <TableHead>Graduação</TableHead>
+                              <TableHead className="w-[110px]">Graduação</TableHead>
                               <TableHead>Nome</TableHead>
-                              <TableHead>OM</TableHead>
-                              <TableHead>Área</TableHead>
-                              <TableHead>Término</TableHead>
+                              <TableHead className="w-[110px]">OM</TableHead>
+                              <TableHead className="w-[90px]">NEO</TableHead>
+                              <TableHead className="w-[90px]">Área</TableHead>
+                              <TableHead className="w-[120px]">Término</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {selectedMonth.militares.map(mil => (
-                              <TableRow key={mil.id}>
+                            {selectedMonthMilitares.map(mil => (
+                              <TableRow
+                                key={mil.id}
+                                className="cursor-pointer hover:bg-muted/70"
+                                onClick={() => setSelectedMilitar(mil)}
+                              >
                                 <TableCell className="font-medium">{mil.graduacao}</TableCell>
-                                <TableCell>{mil.nomeCompleto}</TableCell>
+                                <TableCell className="font-semibold text-primary">{formatMilitarName(mil.graduacao, mil.espQuadro, mil.nomeCompleto)}</TableCell>
                                 <TableCell>{mil.om}</TableCell>
+                                <TableCell>{mil.neo || "-"}</TableCell>
                                 <TableCell>{mil.area}</TableCell>
                                 <TableCell>{mil.termino}</TableCell>
                               </TableRow>
                             ))}
+                            {selectedMonthMilitares.length === 0 && (
+                              <TableRow>
+                                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                                  Nenhum militar encontrado nesta seleção.
+                                </TableCell>
+                              </TableRow>
+                            )}
                           </TableBody>
                         </Table>
-                      </ScrollArea>
+                      </div>
                     </div>
                   </div>
                 )}
