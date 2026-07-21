@@ -17,7 +17,7 @@ import { useOnlineStatus } from "@/hooks/useOfflineCache";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis } from "recharts";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { differenceInYears, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseDataFlexivel, calcularTempoRestante, isOficial, getGradIndex, calcularIdadeAtual } from "@/lib/ttcUtils";
