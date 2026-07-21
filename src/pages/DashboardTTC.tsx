@@ -380,9 +380,12 @@ const DashboardTTC = () => {
 
   // Chart data
   const statusChartData = useMemo(() => [
-    { name: "Contratados", value: filteredSummary.contratados, fill: "#3b82f6" },
-    { name: "Vagas Abertas", value: filteredSummary.vagasAbertas, fill: "#93c5fd" },
+    { name: "Contratados", value: filteredSummary.contratados, fill: "url(#ttcGreenGrad)" },
+    { name: "Vagas Abertas", value: filteredSummary.vagasAbertas, fill: "url(#ttcRedGrad)" },
   ], [filteredSummary]);
+
+  const totalVagasTTC = filteredSummary.contratados + filteredSummary.vagasAbertas;
+  const percPreenchido = totalVagasTTC > 0 ? ((filteredSummary.contratados / totalVagasTTC) * 100).toFixed(1) : "0";
 
   const previsaoMensalData = useMemo(() => {
     const today = new Date();
