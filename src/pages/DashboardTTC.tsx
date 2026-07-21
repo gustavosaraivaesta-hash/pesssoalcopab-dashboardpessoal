@@ -657,14 +657,14 @@ const DashboardTTC = () => {
 
                 {selectedMonth && (
                   <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setSelectedMonth(null)}>
-                    <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center justify-between p-4 border-b">
+                    <div className="bg-card rounded-lg shadow-xl max-w-6xl w-[95vw] max-h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center justify-between p-4 border-b shrink-0">
                         <h3 className="text-lg font-semibold">Término em {selectedMonth.mes} ({selectedMonth.militares.length} militares)</h3>
                         <Button variant="ghost" size="icon" onClick={() => setSelectedMonth(null)}>
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
-                      <ScrollArea className="max-h-[60vh]">
+                      <ScrollArea className="flex-1 min-h-0">
                         <Table>
                           <TableHeader>
                             <TableRow>
