@@ -694,42 +694,40 @@ const DashboardTTC = () => {
                           </Button>
                         </div>
                       </div>
-                      <div className="flex-1 min-h-0 overflow-auto p-3">
-                        <Table className="w-full min-w-[1000px] table-auto">
-                          <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
-                            <TableRow>
-                              <TableHead className="w-[100px] whitespace-normal">Graduação</TableHead>
-                              <TableHead className="min-w-[260px] whitespace-normal">Nome</TableHead>
-                              <TableHead className="w-[100px] whitespace-normal">OM</TableHead>
-                              <TableHead className="w-[80px] whitespace-normal">NEO</TableHead>
-                              <TableHead className="w-[100px] whitespace-normal">Área</TableHead>
-                              <TableHead className="w-[110px] whitespace-normal">Término</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
+                      <div className="flex-1 min-h-0 overflow-y-auto p-3">
+                        {selectedMonthMilitares.length > 0 ? (
+                          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
                             {selectedMonthMilitares.map(mil => (
-                              <TableRow
+                              <button
                                 key={mil.id}
-                                className="cursor-pointer hover:bg-muted/70"
+                                type="button"
+                                className="w-full rounded-md border bg-background/80 p-3 text-left transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 onClick={() => setSelectedMilitar(mil)}
                               >
-                                <TableCell className="font-medium whitespace-normal break-words align-top">{mil.graduacao}</TableCell>
-                                <TableCell className="font-semibold text-primary whitespace-normal break-words align-top leading-snug min-w-[260px]">{formatMilitarName(mil.graduacao, mil.espQuadro, mil.nomeCompleto)}</TableCell>
-                                <TableCell className="whitespace-normal break-words align-top">{mil.om}</TableCell>
-                                <TableCell className="whitespace-normal break-words align-top">{mil.neo || "-"}</TableCell>
-                                <TableCell className="whitespace-normal break-words align-top">{mil.area}</TableCell>
-                                <TableCell className="whitespace-normal break-words align-top">{mil.termino}</TableCell>
-                              </TableRow>
+                                <div className="flex items-start gap-3">
+                                  <span className="shrink-0 rounded-sm bg-muted px-2 py-1 text-xs font-bold text-foreground">
+                                    {mil.graduacao || "-"}
+                                  </span>
+                                  <div className="min-w-0 flex-1 space-y-1">
+                                    <p className="whitespace-normal break-words text-sm font-semibold leading-snug text-primary">
+                                      {formatMilitarName(mil.graduacao, mil.espQuadro, mil.nomeCompleto)}
+                                    </p>
+                                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                      <span>OM: {mil.om || "-"}</span>
+                                      <span>NEO: {mil.neo || "-"}</span>
+                                      <span>Área: {mil.area || "-"}</span>
+                                      <span>Término: {mil.termino || "-"}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </button>
                             ))}
-                            {selectedMonthMilitares.length === 0 && (
-                              <TableRow>
-                                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                                  Nenhum militar encontrado nesta seleção.
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </TableBody>
-                        </Table>
+                          </div>
+                        ) : (
+                          <div className="flex h-full min-h-[220px] items-center justify-center rounded-md border bg-background/80 text-sm text-muted-foreground">
+                            Nenhum militar encontrado nesta seleção.
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
