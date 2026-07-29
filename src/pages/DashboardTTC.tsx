@@ -695,15 +695,15 @@ const DashboardTTC = () => {
                         </div>
                       </div>
                       <div className="flex-1 min-h-0 overflow-auto p-3">
-                        <Table className="min-w-[900px]">
+                        <Table className="w-full min-w-[1000px] table-auto">
                           <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
                             <TableRow>
-                              <TableHead className="w-[110px]">Graduação</TableHead>
-                              <TableHead>Nome</TableHead>
-                              <TableHead className="w-[110px]">OM</TableHead>
-                              <TableHead className="w-[90px]">NEO</TableHead>
-                              <TableHead className="w-[90px]">Área</TableHead>
-                              <TableHead className="w-[120px]">Término</TableHead>
+                              <TableHead className="w-[100px] whitespace-normal">Graduação</TableHead>
+                              <TableHead className="min-w-[260px] whitespace-normal">Nome</TableHead>
+                              <TableHead className="w-[100px] whitespace-normal">OM</TableHead>
+                              <TableHead className="w-[80px] whitespace-normal">NEO</TableHead>
+                              <TableHead className="w-[100px] whitespace-normal">Área</TableHead>
+                              <TableHead className="w-[110px] whitespace-normal">Término</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -713,12 +713,12 @@ const DashboardTTC = () => {
                                 className="cursor-pointer hover:bg-muted/70"
                                 onClick={() => setSelectedMilitar(mil)}
                               >
-                                <TableCell className="font-medium">{mil.graduacao}</TableCell>
-                                <TableCell className="font-semibold text-primary">{formatMilitarName(mil.graduacao, mil.espQuadro, mil.nomeCompleto)}</TableCell>
-                                <TableCell>{mil.om}</TableCell>
-                                <TableCell>{mil.neo || "-"}</TableCell>
-                                <TableCell>{mil.area}</TableCell>
-                                <TableCell>{mil.termino}</TableCell>
+                                <TableCell className="font-medium whitespace-normal break-words align-top">{mil.graduacao}</TableCell>
+                                <TableCell className="font-semibold text-primary whitespace-normal break-words align-top leading-snug min-w-[260px]">{formatMilitarName(mil.graduacao, mil.espQuadro, mil.nomeCompleto)}</TableCell>
+                                <TableCell className="whitespace-normal break-words align-top">{mil.om}</TableCell>
+                                <TableCell className="whitespace-normal break-words align-top">{mil.neo || "-"}</TableCell>
+                                <TableCell className="whitespace-normal break-words align-top">{mil.area}</TableCell>
+                                <TableCell className="whitespace-normal break-words align-top">{mil.termino}</TableCell>
                               </TableRow>
                             ))}
                             {selectedMonthMilitares.length === 0 && (
