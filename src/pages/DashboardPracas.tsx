@@ -1712,8 +1712,16 @@ const DashboardPracas = () => {
           return true;
         };
         const countDestLicForOM = (om: string) =>
-          licencasData.filter((i) => i.om === om && matchesDestLicFilters(i)).length +
-          destaquesData.filter((i) => i.om === om && matchesDestLicFilters(i)).length;
+          dedupeDestLic(
+            licencasData.filter((i) => i.om === om && matchesDestLicFilters(i)),
+            destaquesData.filter((i) => i.om === om && matchesDestLicFilters(i)),
+            new Set(
+              personnelData
+                .filter((i) => i.om === om && i.ocupado)
+                .map((i) => nomeKey(i.nome))
+                .filter(Boolean),
+            ),
+          ).total;
 
         const detailedRows: any[][] = [];
         let sT = 0, sE = 0, sDL = 0, sSN = 0;
