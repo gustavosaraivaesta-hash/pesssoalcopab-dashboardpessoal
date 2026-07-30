@@ -599,6 +599,7 @@ const DashboardOM = () => {
     const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
 
     let totalEXI: number;
+    let efetivoNames = new Set<string>();
     if (hasEfeFilters) {
       // Aplica todos os filtros usando campos EFE para corpo/quadro/posto
       let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
