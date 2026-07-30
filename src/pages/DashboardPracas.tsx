@@ -149,6 +149,36 @@ interface CursoRecord {
   om: string;
 }
 
+// Normaliza nome para comparação (evita contar o mesmo militar 2x: EFETIVO + LICENÇA/DESTAQUE)
+const nomeKey = (nome: string | undefined | null): string =>
+  (nome || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+
+const dedupeDestLic = <T extends { nome?: string }>(
+  licencas: T[],
+  destaques: T[],
+  efetivoNames: Set<string>,
+): { licencas: T[]; destaques: T[]; total: number } => {
+  const seen = new Set<string>();
+  const filter = (list: T[]) =>
+    list.filter((item) => {
+      const key = nomeKey(item.nome);
+      if (!key) return true;
+      if (efetivoNames.has(key) || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  const l = filter(licencas);
+  const d = filter(destaques);
+  return { licencas: l, destaques: d, total: l.length + d.length };
+};
+
 const DashboardPracas = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
@@ -593,21 +623,29 @@ const DashboardPracas = () => {
     let totalTMFT: number;
     let totalEXI: number;
 
+    let efetivoOcupados: typeof regularData;
     if (hasSpecificFilters) {
       // Independent counting: TMFT by TMFT fields, EFETIVO by EFE fields
       totalTMFT = regularData.filter(matchesTmftFilters).length;
-      totalEXI = regularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length;
+      efetivoOcupados = regularData.filter((item) => item.ocupado && matchesEfeFilters(item));
+      totalEXI = efetivoOcupados.length;
     } else {
       totalTMFT = regularData.length;
-      totalEXI = regularData.filter((item) => item.ocupado).length;
+      efetivoOcupados = regularData.filter((item) => item.ocupado);
+      totalEXI = efetivoOcupados.length;
     }
 
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
 
-    const totalExtraLotacao = hasSpecificFilters
-      ? baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && matchesEfeFilters(item)).length
-      : baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
+    const extraLotacaoList = hasSpecificFilters
+      ? baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && matchesEfeFilters(item))
+      : baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO");
+    const totalExtraLotacao = extraLotacaoList.length;
+
+    const efetivoNames = new Set(
+      [...efetivoOcupados, ...extraLotacaoList].map((item) => nomeKey(item.nome)).filter(Boolean),
+    );
 
     // Contar DESTAQUES e LICENÇAS com os mesmos filtros
     let filteredLicencas = licencasData;
@@ -629,7 +667,8 @@ const DashboardPracas = () => {
       filteredLicencas = filteredLicencas.filter((item) => selectedOpcoes.includes(item.opcao || ""));
       filteredDestaques = filteredDestaques.filter((item) => selectedOpcoes.includes(item.opcao || ""));
     }
-    const totalLicencasDestaques = filteredLicencas.length + filteredDestaques.length;
+    // Não contar duas vezes quem já aparece no EFETIVO / Extra Lotação
+    const totalLicencasDestaques = dedupeDestLic(filteredLicencas, filteredDestaques, efetivoNames).total;
 
     const atendimentoTotal = totalTMFT > 0 ? ((totalExtraLotacao + totalEXI + totalLicencasDestaques) / totalTMFT) * 100 : 0;
 
@@ -967,11 +1006,25 @@ const DashboardPracas = () => {
         if (selectedOpcoes.length > 0 && !selectedOpcoes.includes(item.opcao || "")) return false;
         return true;
       };
+      const omEfetivoNames = (om: string) =>
+        new Set(
+          personnelData
+            .filter((i) => i.om === om && i.ocupado)
+            .map((i) => nomeKey(i.nome))
+            .filter(Boolean),
+        );
       const countDestLicGeral = (om: string) =>
-        licencasData.filter((i) => i.om === om).length + destaquesData.filter((i) => i.om === om).length;
+        dedupeDestLic(
+          licencasData.filter((i) => i.om === om),
+          destaquesData.filter((i) => i.om === om),
+          omEfetivoNames(om),
+        ).total;
       const countDestLicFiltrado = (om: string) =>
-        licencasData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)).length +
-        destaquesData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)).length;
+        dedupeDestLic(
+          licencasData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)),
+          destaquesData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)),
+          omEfetivoNames(om),
+        ).total;
 
 
       // Build GERAL rows from ALL personnelData (no filters) across ALL availableOMs
@@ -1659,8 +1712,16 @@ const DashboardPracas = () => {
           return true;
         };
         const countDestLicForOM = (om: string) =>
-          licencasData.filter((i) => i.om === om && matchesDestLicFilters(i)).length +
-          destaquesData.filter((i) => i.om === om && matchesDestLicFilters(i)).length;
+          dedupeDestLic(
+            licencasData.filter((i) => i.om === om && matchesDestLicFilters(i)),
+            destaquesData.filter((i) => i.om === om && matchesDestLicFilters(i)),
+            new Set(
+              personnelData
+                .filter((i) => i.om === om && i.ocupado)
+                .map((i) => nomeKey(i.nome))
+                .filter(Boolean),
+            ),
+          ).total;
 
         const detailedRows: any[][] = [];
         let sT = 0, sE = 0, sDL = 0, sSN = 0;

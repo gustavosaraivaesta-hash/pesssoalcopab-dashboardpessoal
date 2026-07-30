@@ -201,6 +201,38 @@ const formatMilitarNameFull = (item: { posto: string; quadro: string; nome: stri
   return formatMilitarNameWithOpcao(item.posto, item.quadro, item.nome, item.opcao || "");
 };
 
+// Normaliza nome para comparação (evita contar o mesmo militar 2x: EFETIVO + LICENÇA/DESTAQUE)
+const nomeKey = (nome: string | undefined | null): string =>
+  (nome || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+
+// Remove de licenças/destaques quem já está contabilizado no efetivo (ou duplicado entre as listas)
+const dedupeDestLic = <T extends { nome?: string }>(
+  licencas: T[],
+  destaques: T[],
+  efetivoNames: Set<string>,
+): { licencas: T[]; destaques: T[]; total: number } => {
+  const seen = new Set<string>();
+  const filter = (list: T[]) =>
+    list.filter((item) => {
+      const key = nomeKey(item.nome);
+      if (!key) return true;
+      if (efetivoNames.has(key) || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  const l = filter(licencas);
+  const d = filter(destaques);
+  return { licencas: l, destaques: d, total: l.length + d.length };
+};
+
+
 const DashboardOM = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
@@ -567,6 +599,7 @@ const DashboardOM = () => {
     const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
 
     let totalEXI: number;
+    let efetivoNames = new Set<string>();
     if (hasEfeFilters) {
       // Aplica todos os filtros usando campos EFE para corpo/quadro/posto
       let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
@@ -614,13 +647,21 @@ const DashboardOM = () => {
       }
 
       totalEXI = efetivoData.length;
+      efetivoNames = new Set(efetivoData.map((item) => nomeKey(item.nome)).filter(Boolean));
     } else {
-      totalEXI = regularData.filter((item) => item.ocupado).length;
+      const ocupados = regularData.filter((item) => item.ocupado);
+      totalEXI = ocupados.length;
+      efetivoNames = new Set(ocupados.map((item) => nomeKey(item.nome)).filter(Boolean));
     }
 
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
-    const totalExtraLotacao = baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
+    const extraLotacaoData = baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO");
+    const totalExtraLotacao = extraLotacaoData.length;
+    extraLotacaoData.forEach((item) => {
+      const k = nomeKey(item.nome);
+      if (k) efetivoNames.add(k);
+    });
 
     // Contar DESTAQUES e LICENÇAS com os mesmos filtros
     let filteredLicencas = licencasData;
@@ -637,7 +678,8 @@ const DashboardOM = () => {
       filteredLicencas = filteredLicencas.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
       filteredDestaques = filteredDestaques.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
     }
-    const totalLicencasDestaques = filteredLicencas.length + filteredDestaques.length;
+    // Não contar duas vezes quem já aparece no EFETIVO / Extra Lotação
+    const totalLicencasDestaques = dedupeDestLic(filteredLicencas, filteredDestaques, efetivoNames).total;
 
     // ATENDIMENTO TOTAL = (Extra Lotação + Efetivo + Destaques/Licenças) / TMFT * 100
     const atendimentoTotal = totalTMFT > 0 ? ((totalExtraLotacao + totalEXI + totalLicencasDestaques) / totalTMFT) * 100 : 0;
@@ -1207,7 +1249,14 @@ const DashboardOM = () => {
             des = des.filter((i) => matchesOpcaoFilter(i.opcao, selectedOpcoes));
           }
         }
-        return lic.length + des.length;
+        // Não contar duas vezes quem já está no EFETIVO da OM
+        const omEfetivoNames = new Set(
+          personnelData
+            .filter((i) => i.om === om && i.ocupado)
+            .map((i) => nomeKey(i.nome))
+            .filter(Boolean),
+        );
+        return dedupeDestLic(lic, des, omEfetivoNames).total;
       };
 
       // Build GERAL rows from ALL personnelData (no filters) across ALL availableOMs
