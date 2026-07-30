@@ -646,13 +646,21 @@ const DashboardOM = () => {
       }
 
       totalEXI = efetivoData.length;
+      efetivoNames = new Set(efetivoData.map((item) => nomeKey(item.nome)).filter(Boolean));
     } else {
-      totalEXI = regularData.filter((item) => item.ocupado).length;
+      const ocupados = regularData.filter((item) => item.ocupado);
+      totalEXI = ocupados.length;
+      efetivoNames = new Set(ocupados.map((item) => nomeKey(item.nome)).filter(Boolean));
     }
 
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
-    const totalExtraLotacao = baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
+    const extraLotacaoData = baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO");
+    const totalExtraLotacao = extraLotacaoData.length;
+    extraLotacaoData.forEach((item) => {
+      const k = nomeKey(item.nome);
+      if (k) efetivoNames.add(k);
+    });
 
     // Contar DESTAQUES e LICENÇAS com os mesmos filtros
     let filteredLicencas = licencasData;
@@ -669,7 +677,8 @@ const DashboardOM = () => {
       filteredLicencas = filteredLicencas.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
       filteredDestaques = filteredDestaques.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
     }
-    const totalLicencasDestaques = filteredLicencas.length + filteredDestaques.length;
+    // Não contar duas vezes quem já aparece no EFETIVO / Extra Lotação
+    const totalLicencasDestaques = dedupeDestLic(filteredLicencas, filteredDestaques, efetivoNames).total;
 
     // ATENDIMENTO TOTAL = (Extra Lotação + Efetivo + Destaques/Licenças) / TMFT * 100
     const atendimentoTotal = totalTMFT > 0 ? ((totalExtraLotacao + totalEXI + totalLicencasDestaques) / totalTMFT) * 100 : 0;
