@@ -1006,11 +1006,25 @@ const DashboardPracas = () => {
         if (selectedOpcoes.length > 0 && !selectedOpcoes.includes(item.opcao || "")) return false;
         return true;
       };
+      const omEfetivoNames = (om: string) =>
+        new Set(
+          personnelData
+            .filter((i) => i.om === om && i.ocupado)
+            .map((i) => nomeKey(i.nome))
+            .filter(Boolean),
+        );
       const countDestLicGeral = (om: string) =>
-        licencasData.filter((i) => i.om === om).length + destaquesData.filter((i) => i.om === om).length;
+        dedupeDestLic(
+          licencasData.filter((i) => i.om === om),
+          destaquesData.filter((i) => i.om === om),
+          omEfetivoNames(om),
+        ).total;
       const countDestLicFiltrado = (om: string) =>
-        licencasData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)).length +
-        destaquesData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)).length;
+        dedupeDestLic(
+          licencasData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)),
+          destaquesData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)),
+          omEfetivoNames(om),
+        ).total;
 
 
       // Build GERAL rows from ALL personnelData (no filters) across ALL availableOMs
