@@ -593,21 +593,29 @@ const DashboardPracas = () => {
     let totalTMFT: number;
     let totalEXI: number;
 
+    let efetivoOcupados: typeof regularData;
     if (hasSpecificFilters) {
       // Independent counting: TMFT by TMFT fields, EFETIVO by EFE fields
       totalTMFT = regularData.filter(matchesTmftFilters).length;
-      totalEXI = regularData.filter((item) => item.ocupado && matchesEfeFilters(item)).length;
+      efetivoOcupados = regularData.filter((item) => item.ocupado && matchesEfeFilters(item));
+      totalEXI = efetivoOcupados.length;
     } else {
       totalTMFT = regularData.length;
-      totalEXI = regularData.filter((item) => item.ocupado).length;
+      efetivoOcupados = regularData.filter((item) => item.ocupado);
+      totalEXI = efetivoOcupados.length;
     }
 
     const totalDIF = totalEXI - totalTMFT;
     const percentualPreenchimento = totalTMFT > 0 ? (totalEXI / totalTMFT) * 100 : 0;
 
-    const totalExtraLotacao = hasSpecificFilters
-      ? baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && matchesEfeFilters(item)).length
-      : baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO").length;
+    const extraLotacaoList = hasSpecificFilters
+      ? baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && matchesEfeFilters(item))
+      : baseFilteredData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO");
+    const totalExtraLotacao = extraLotacaoList.length;
+
+    const efetivoNames = new Set(
+      [...efetivoOcupados, ...extraLotacaoList].map((item) => nomeKey(item.nome)).filter(Boolean),
+    );
 
     // Contar DESTAQUES e LICENÇAS com os mesmos filtros
     let filteredLicencas = licencasData;
@@ -629,7 +637,8 @@ const DashboardPracas = () => {
       filteredLicencas = filteredLicencas.filter((item) => selectedOpcoes.includes(item.opcao || ""));
       filteredDestaques = filteredDestaques.filter((item) => selectedOpcoes.includes(item.opcao || ""));
     }
-    const totalLicencasDestaques = filteredLicencas.length + filteredDestaques.length;
+    // Não contar duas vezes quem já aparece no EFETIVO / Extra Lotação
+    const totalLicencasDestaques = dedupeDestLic(filteredLicencas, filteredDestaques, efetivoNames).total;
 
     const atendimentoTotal = totalTMFT > 0 ? ((totalExtraLotacao + totalEXI + totalLicencasDestaques) / totalTMFT) * 100 : 0;
 
