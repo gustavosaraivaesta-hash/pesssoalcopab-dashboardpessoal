@@ -1249,7 +1249,14 @@ const DashboardOM = () => {
             des = des.filter((i) => matchesOpcaoFilter(i.opcao, selectedOpcoes));
           }
         }
-        return lic.length + des.length;
+        // Não contar duas vezes quem já está no EFETIVO da OM
+        const omEfetivoNames = new Set(
+          personnelData
+            .filter((i) => i.om === om && i.ocupado)
+            .map((i) => nomeKey(i.nome))
+            .filter(Boolean),
+        );
+        return dedupeDestLic(lic, des, omEfetivoNames).total;
       };
 
       // Build GERAL rows from ALL personnelData (no filters) across ALL availableOMs
