@@ -149,6 +149,36 @@ interface CursoRecord {
   om: string;
 }
 
+// Normaliza nome para comparação (evita contar o mesmo militar 2x: EFETIVO + LICENÇA/DESTAQUE)
+const nomeKey = (nome: string | undefined | null): string =>
+  (nome || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+
+const dedupeDestLic = <T extends { nome?: string }>(
+  licencas: T[],
+  destaques: T[],
+  efetivoNames: Set<string>,
+): { licencas: T[]; destaques: T[]; total: number } => {
+  const seen = new Set<string>();
+  const filter = (list: T[]) =>
+    list.filter((item) => {
+      const key = nomeKey(item.nome);
+      if (!key) return true;
+      if (efetivoNames.has(key) || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  const l = filter(licencas);
+  const d = filter(destaques);
+  return { licencas: l, destaques: d, total: l.length + d.length };
+};
+
 const DashboardPracas = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
