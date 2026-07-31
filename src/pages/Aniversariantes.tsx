@@ -140,9 +140,15 @@ const Aniversariantes = () => {
     doc.setFontSize(14);
     doc.text("MARINHA DO BRASIL - COPAB", 105, 16, { align: "center" });
     doc.setFontSize(12);
-    doc.text(`ANIVERSARIANTES - ${MESES[mes - 1].toUpperCase()}`, 105, 23, {
-      align: "center",
-    });
+    doc.text(
+      periodoAtivo
+        ? `ANIVERSARIANTES - PERÍODO ${periodoLabel}`
+        : `ANIVERSARIANTES - ${MESES[mes - 1].toUpperCase()}`,
+      105,
+      23,
+      { align: "center" },
+    );
+
     doc.setFontSize(9);
     doc.text(
       `Gerado em ${hoje.toLocaleDateString("pt-BR")} - Total: ${lista.length}`,
