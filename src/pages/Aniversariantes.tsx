@@ -169,7 +169,13 @@ const Aniversariantes = () => {
       headStyles: { fillColor: [15, 60, 110], textColor: 255, fontSize: 8 },
       alternateRowStyles: { fillColor: [245, 248, 252] },
     });
-    openPdfPreview(doc, `aniversariantes-${MESES[mes - 1].toLowerCase()}.pdf`);
+    openPdfPreview(
+      doc,
+      periodoAtivo
+        ? `aniversariantes-${dataIni}-a-${dataFim}.pdf`
+        : `aniversariantes-${MESES[mes - 1].toLowerCase()}.pdf`,
+    );
+
   };
 
   return (
