@@ -88,6 +88,7 @@ const App = () => (
             <Route path="/install" element={<Install />} />
             <Route path="/manual" element={<Manual />} />
             <Route path="/inspecao-saude" element={<AuthGuard><InspecaoSaude /></AuthGuard>} />
+            <Route path="/aniversariantes" element={<AuthGuard><Aniversariantes /></AuthGuard>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
