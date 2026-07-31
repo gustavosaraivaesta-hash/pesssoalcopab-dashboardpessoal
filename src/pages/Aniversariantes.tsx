@@ -226,26 +226,83 @@ const Aniversariantes = () => {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Selecione o mês</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2">
+              Filtro
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant={modo === "mes" ? "default" : "outline"}
+                  className="h-7 text-xs"
+                  onClick={() => setModo("mes")}
+                >
+                  Por mês
+                </Button>
+                <Button
+                  size="sm"
+                  variant={modo === "periodo" ? "default" : "outline"}
+                  className="h-7 text-xs"
+                  onClick={() => setModo("periodo")}
+                >
+                  Por período
+                </Button>
+              </div>
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-              {MESES.map((m, idx) => {
-                const n = idx + 1;
-                const ativo = n === mes;
-                return (
-                  <Button
-                    key={m}
-                    variant={ativo ? "default" : "secondary"}
-                    className="h-auto py-2 flex flex-col gap-0.5"
-                    onClick={() => setMes(n)}
-                  >
-                    <span className="text-xs font-semibold">{m}</span>
-                    <span className="text-[10px] opacity-80">{porMes[n]} militar(es)</span>
-                  </Button>
-                );
-              })}
-            </div>
+            {modo === "mes" ? (
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                {MESES.map((m, idx) => {
+                  const n = idx + 1;
+                  const ativo = n === mes;
+                  return (
+                    <Button
+                      key={m}
+                      variant={ativo ? "default" : "secondary"}
+                      className="h-auto py-2 flex flex-col gap-0.5"
+                      onClick={() => setMes(n)}
+                    >
+                      <span className="text-xs font-semibold">{m}</span>
+                      <span className="text-[10px] opacity-80">{porMes[n]} militar(es)</span>
+                    </Button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">De</label>
+                  <Input
+                    type="date"
+                    value={dataIni}
+                    onChange={(e) => setDataIni(e.target.value)}
+                    className="w-44"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Até</label>
+                  <Input
+                    type="date"
+                    value={dataFim}
+                    onChange={(e) => setDataFim(e.target.value)}
+                    className="w-44"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setDataIni("");
+                    setDataFim("");
+                  }}
+                >
+                  <X size={14} className="mr-1" /> Limpar
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  O período considera apenas dia/mês (o ano é ignorado), então
+                  pode atravessar a virada do ano.
+                </p>
+              </div>
+            )}
 
             <div className="relative max-w-sm">
               <Search
@@ -273,9 +330,15 @@ const Aniversariantes = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">
-              {MESES[mes - 1]} — {lista.length} aniversariante(s)
+              {periodoAtivo
+                ? `Período ${periodoLabel}`
+                : modo === "periodo"
+                  ? "Selecione as datas"
+                  : MESES[mes - 1]}{" "}
+              — {lista.length} aniversariante(s)
             </CardTitle>
           </CardHeader>
+
           <CardContent>
             {loading && !enriched.length ? (
               <p className="text-sm text-muted-foreground py-6 text-center">
