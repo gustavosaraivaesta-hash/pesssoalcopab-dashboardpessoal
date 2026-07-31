@@ -52,6 +52,33 @@ export async function fetchInspecaoSaude(): Promise<InspecaoRecord[]> {
   return out;
 }
 
+export type AniversarianteRecord = {
+  posto: string;
+  quadro: string;
+  nome: string;
+  nascimento: string; // dd/mm/yyyy
+};
+
+export async function fetchAniversariantes(): Promise<AniversarianteRecord[]> {
+  const rows = await fetchGviz(GID_INSPECAO);
+  const out: AniversarianteRecord[] = [];
+  for (const r of rows) {
+    const posto = r[0] ? String(r[0]).trim() : "";
+    const quadro = r[1] ? String(r[1]).trim() : "";
+    const nome = r[2] ? String(r[2]).trim() : "";
+    const nascimento = r[4] ? String(r[4]).trim() : "";
+    if (!posto || !nome || !nascimento) continue;
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(nascimento)) continue;
+    out.push({
+      posto: normalizePosto(posto),
+      quadro: normalizeQuadro(quadro),
+      nome,
+      nascimento,
+    });
+  }
+  return out;
+}
+
 export async function fetchCursosRealizados(): Promise<CursoRealizado[]> {
   const rows = await fetchGviz(GID_CURSOS);
   const out: CursoRealizado[] = [];

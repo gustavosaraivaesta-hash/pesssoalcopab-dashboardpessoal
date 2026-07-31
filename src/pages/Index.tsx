@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent, Settings, X, ClipboardList, Archive, Lock, ChevronDown, BookOpen, HeartPulse, Award } from "lucide-react";
+import { Shield, Users, TrendingDown, TrendingUp, LogOut, RefreshCw, FileText, Wifi, WifiOff, Percent, Settings, X, ClipboardList, Archive, Lock, ChevronDown, BookOpen, HeartPulse, Award, Cake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -934,6 +934,10 @@ const Index = () => {
                 <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/inspecao-saude")}>
                   <HeartPulse size={18} className="mr-2 shrink-0" />
                   Inspeção de Saúde
+                </Button>
+                <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/aniversariantes")}>
+                  <Cake size={18} className="mr-2 shrink-0" />
+                  Aniversariantes
                 </Button>
 
                 {/* Solicitações button for non-COPAB users */}
