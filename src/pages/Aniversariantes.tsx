@@ -160,7 +160,10 @@ const Aniversariantes = () => {
       startY: 34,
       head: [["DIA", "P/G - ESP - NOME DE GUERRA", "NASCIMENTO", "IDADE"]],
       body: lista.map((r) => [
-        String(r.dia).padStart(2, "0"),
+        periodoAtivo
+          ? `${String(r.dia).padStart(2, "0")}/${String(r.mes).padStart(2, "0")}`
+          : String(r.dia).padStart(2, "0"),
+
         formatNome(r),
         r.nascimento,
         `${r.idade} anos`,
