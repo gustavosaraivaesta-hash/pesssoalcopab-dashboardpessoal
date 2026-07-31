@@ -46,6 +46,7 @@ const AdminHistorico = lazyWithRetry(() => import("./pages/AdminHistorico"));
 const Install = lazyWithRetry(() => import("./pages/Install"));
 const Manual = lazyWithRetry(() => import("./pages/Manual"));
 const InspecaoSaude = lazyWithRetry(() => import("./pages/InspecaoSaude"));
+const Aniversariantes = lazyWithRetry(() => import("./pages/Aniversariantes"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 const PageLoader = () => (
