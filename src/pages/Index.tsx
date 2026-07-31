@@ -935,6 +935,10 @@ const Index = () => {
                   <HeartPulse size={18} className="mr-2 shrink-0" />
                   Inspeção de Saúde
                 </Button>
+                <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/aniversariantes")}>
+                  <Cake size={18} className="mr-2 shrink-0" />
+                  Aniversariantes
+                </Button>
 
                 {/* Solicitações button for non-COPAB users */}
                 {role && role !== "COPAB" && (
