@@ -44,10 +44,15 @@ const formatNome = (r: AniversarianteRecord) => {
   return `${r.posto}${esp ? `-${esp}` : ""} ${r.nome}`;
 };
 
+const toMMDD = (mes: number, dia: number) => mes * 100 + dia;
+
 const Aniversariantes = () => {
   const navigate = useNavigate();
   const hoje = new Date();
+  const [modo, setModo] = useState<"mes" | "periodo">("mes");
   const [mes, setMes] = useState<number>(hoje.getMonth() + 1);
+  const [dataIni, setDataIni] = useState("");
+  const [dataFim, setDataFim] = useState("");
   const [search, setSearch] = useState("");
 
   const { data, loading, lastUpdated } = useLiveSheet<AniversarianteRecord[]>(
@@ -85,18 +90,42 @@ const Aniversariantes = () => {
     return arr;
   }, [enriched]);
 
+  const periodoAtivo = modo === "periodo" && !!dataIni && !!dataFim;
+
+  const periodoLabel = useMemo(() => {
+    if (!periodoAtivo) return "";
+    const f = (s: string) => s.split("-").reverse().join("/");
+    return `${f(dataIni)} a ${f(dataFim)}`;
+  }, [periodoAtivo, dataIni, dataFim]);
+
   const lista = useMemo(() => {
     const q = search.trim().toUpperCase();
-    return enriched
-      .filter((r) => r.mes === mes)
+    let base = enriched;
+
+    if (periodoAtivo) {
+      const [, mi, di] = dataIni.split("-").map(Number);
+      const [, mf, df] = dataFim.split("-").map(Number);
+      const ini = toMMDD(mi, di);
+      const fim = toMMDD(mf, df);
+      base = base.filter((r) => {
+        const v = toMMDD(r.mes, r.dia);
+        return ini <= fim ? v >= ini && v <= fim : v >= ini || v <= fim;
+      });
+    } else if (modo === "mes") {
+      base = base.filter((r) => r.mes === mes);
+    }
+
+    return base
       .filter((r) => !q || formatNome(r).toUpperCase().includes(q))
       .sort((a, b) => {
+        if (a.mes !== b.mes) return a.mes - b.mes;
         if (a.dia !== b.dia) return a.dia - b.dia;
         const ia = POSTO_ORDER.indexOf(a.posto);
         const ib = POSTO_ORDER.indexOf(b.posto);
         return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
       });
-  }, [enriched, mes, search]);
+  }, [enriched, mes, search, modo, periodoAtivo, dataIni, dataFim]);
+
 
   const doHoje = useMemo(
     () =>
