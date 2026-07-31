@@ -36,14 +36,8 @@ const parseNasc = (s: string) => {
   return { dia: Number(m[1]), mes: Number(m[2]), ano: Number(m[3]) };
 };
 
-const idadeEm = (ano: number, mes: number, dia: number) => {
-  const hoje = new Date();
-  let idade = hoje.getFullYear() - ano;
-  const jaFez =
-    hoje.getMonth() + 1 > mes || (hoje.getMonth() + 1 === mes && hoje.getDate() >= dia);
-  if (!jaFez) idade -= 1;
-  return idade;
-};
+// Idade que o militar completa no ano corrente
+const idadeEm = (ano: number) => new Date().getFullYear() - ano;
 
 const formatNome = (r: AniversarianteRecord) => {
   const esp = (r.quadro || "").trim();
@@ -73,7 +67,7 @@ const Aniversariantes = () => {
             dia: p.dia,
             mes: p.mes,
             ano: p.ano,
-            idade: idadeEm(p.ano, p.mes, p.dia),
+            idade: idadeEm(p.ano),
           };
         })
         .filter(Boolean) as (AniversarianteRecord & {
@@ -134,7 +128,7 @@ const Aniversariantes = () => {
         String(r.dia).padStart(2, "0"),
         formatNome(r),
         r.nascimento,
-        `${r.idade + (r.dia >= hoje.getDate() && r.mes === hoje.getMonth() + 1 ? 1 : 1)} anos`,
+        `${r.idade} anos`,
       ]),
       styles: { fontSize: 8, cellPadding: 1.6 },
       headStyles: { fillColor: [15, 60, 110], textColor: 255, fontSize: 8 },
@@ -182,7 +176,7 @@ const Aniversariantes = () => {
             <CardContent className="flex flex-wrap gap-2">
               {doHoje.map((r, i) => (
                 <Badge key={i} className="text-xs uppercase">
-                  {formatNome(r)} — {r.idade + 1} anos
+                  {formatNome(r)} — {r.idade} anos
                 </Badge>
               ))}
             </CardContent>
@@ -281,7 +275,7 @@ const Aniversariantes = () => {
                           </TableCell>
                           <TableCell>{r.nascimento}</TableCell>
                           <TableCell>
-                            <Badge variant="secondary">{r.idade + 1} anos</Badge>
+                            <Badge variant="secondary">{r.idade} anos</Badge>
                           </TableCell>
                         </TableRow>
                       );
