@@ -50,7 +50,11 @@ const Aniversariantes = () => {
   const navigate = useNavigate();
   const hoje = new Date();
   const [modo, setModo] = useState<"mes" | "periodo">("mes");
-  const [mes, setMes] = useState<number>(hoje.getMonth() + 1);
+  const [meses, setMeses] = useState<number[]>([hoje.getMonth() + 1]);
+  const toggleMes = (n: number) =>
+    setMeses((prev) =>
+      prev.includes(n) ? prev.filter((m) => m !== n) : [...prev, n].sort((a, b) => a - b),
+    );
   const [dataIni, setDataIni] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [search, setSearch] = useState("");
@@ -111,8 +115,8 @@ const Aniversariantes = () => {
         const v = toMMDD(r.mes, r.dia);
         return ini <= fim ? v >= ini && v <= fim : v >= ini || v <= fim;
       });
-    } else if (modo === "mes") {
-      base = base.filter((r) => r.mes === mes);
+    } else if (modo === "mes" && meses.length) {
+      base = base.filter((r) => meses.includes(r.mes));
     }
 
     return base
@@ -124,7 +128,17 @@ const Aniversariantes = () => {
         const ib = POSTO_ORDER.indexOf(b.posto);
         return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
       });
-  }, [enriched, mes, search, modo, periodoAtivo, dataIni, dataFim]);
+  }, [enriched, meses, search, modo, periodoAtivo, dataIni, dataFim]);
+
+  const mesesLabel = useMemo(
+    () =>
+      meses.length === 0
+        ? "Nenhum mês selecionado"
+        : meses.length === 12
+          ? "Ano inteiro"
+          : meses.map((m) => MESES[m - 1]).join(", "),
+    [meses],
+  );
 
 
   const doHoje = useMemo(
@@ -143,7 +157,7 @@ const Aniversariantes = () => {
     doc.text(
       periodoAtivo
         ? `ANIVERSARIANTES - PERÍODO ${periodoLabel}`
-        : `ANIVERSARIANTES - ${MESES[mes - 1].toUpperCase()}`,
+        : `ANIVERSARIANTES - ${mesesLabel.toUpperCase()}`,
       105,
       23,
       { align: "center" },
@@ -160,7 +174,7 @@ const Aniversariantes = () => {
       startY: 34,
       head: [["DIA", "P/G - ESP - NOME DE GUERRA", "NASCIMENTO", "IDADE"]],
       body: lista.map((r) => [
-        periodoAtivo
+        periodoAtivo || meses.length > 1
           ? `${String(r.dia).padStart(2, "0")}/${String(r.mes).padStart(2, "0")}`
           : String(r.dia).padStart(2, "0"),
 
@@ -176,7 +190,7 @@ const Aniversariantes = () => {
       doc,
       periodoAtivo
         ? `aniversariantes-${dataIni}-a-${dataFim}.pdf`
-        : `aniversariantes-${MESES[mes - 1].toLowerCase()}.pdf`,
+        : `aniversariantes-${meses.map((m) => MESES[m - 1].toLowerCase()).join("-")}.pdf`,
     );
 
   };
@@ -253,22 +267,74 @@ const Aniversariantes = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {modo === "mes" ? (
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                {MESES.map((m, idx) => {
-                  const n = idx + 1;
-                  const ativo = n === mes;
-                  return (
-                    <Button
-                      key={m}
-                      variant={ativo ? "default" : "secondary"}
-                      className="h-auto py-2 flex flex-col gap-0.5"
-                      onClick={() => setMes(n)}
-                    >
-                      <span className="text-xs font-semibold">{m}</span>
-                      <span className="text-[10px] opacity-80">{porMes[n]} militar(es)</span>
-                    </Button>
-                  );
-                })}
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => setMeses(MESES.map((_, i) => i + 1))}
+                  >
+                    Selecionar todos
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => setMeses([])}
+                  >
+                    <X size={13} className="mr-1" /> Limpar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => setMeses([hoje.getMonth() + 1])}
+                  >
+                    Mês atual
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    {meses.length} mês(es) selecionado(s)
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                  {MESES.map((m, idx) => {
+                    const n = idx + 1;
+                    const ativo = meses.includes(n);
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => toggleMes(n)}
+                        className={`group relative overflow-hidden rounded-xl border px-3 py-3 text-left transition-all duration-200 ${
+                          ativo
+                            ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]"
+                            : "border-border bg-card hover:border-primary/40 hover:bg-accent hover:shadow-sm"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-semibold">{m}</span>
+                          <span
+                            className={`flex h-4 w-4 items-center justify-center rounded-full border text-[9px] ${
+                              ativo
+                                ? "border-primary-foreground bg-primary-foreground text-primary"
+                                : "border-muted-foreground/40"
+                            }`}
+                          >
+                            {ativo ? "✓" : ""}
+                          </span>
+                        </div>
+                        <span
+                          className={`mt-1 block text-[11px] ${
+                            ativo ? "opacity-90" : "text-muted-foreground"
+                          }`}
+                        >
+                          {porMes[n]} militar(es)
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             ) : (
               <div className="flex flex-wrap items-end gap-3">
@@ -337,7 +403,7 @@ const Aniversariantes = () => {
                 ? `Período ${periodoLabel}`
                 : modo === "periodo"
                   ? "Selecione as datas"
-                  : MESES[mes - 1]}{" "}
+                  : mesesLabel}{" "}
               — {lista.length} aniversariante(s)
             </CardTitle>
           </CardHeader>
@@ -373,7 +439,8 @@ const Aniversariantes = () => {
                         >
                           <TableCell className="font-bold">
                             {String(r.dia).padStart(2, "0")}
-                            {periodoAtivo && `/${String(r.mes).padStart(2, "0")}`}
+                            {(periodoAtivo || meses.length > 1) &&
+                              `/${String(r.mes).padStart(2, "0")}`}
 
                           </TableCell>
                           <TableCell className="uppercase font-medium">
