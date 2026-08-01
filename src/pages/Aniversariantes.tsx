@@ -174,7 +174,7 @@ const Aniversariantes = () => {
       startY: 34,
       head: [["DIA", "P/G - ESP - NOME DE GUERRA", "NASCIMENTO", "IDADE"]],
       body: lista.map((r) => [
-        periodoAtivo
+        periodoAtivo || meses.length > 1
           ? `${String(r.dia).padStart(2, "0")}/${String(r.mes).padStart(2, "0")}`
           : String(r.dia).padStart(2, "0"),
 
