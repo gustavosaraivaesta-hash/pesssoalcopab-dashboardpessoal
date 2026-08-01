@@ -128,7 +128,17 @@ const Aniversariantes = () => {
         const ib = POSTO_ORDER.indexOf(b.posto);
         return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
       });
-  }, [enriched, mes, search, modo, periodoAtivo, dataIni, dataFim]);
+  }, [enriched, meses, search, modo, periodoAtivo, dataIni, dataFim]);
+
+  const mesesLabel = useMemo(
+    () =>
+      meses.length === 0
+        ? "Nenhum mês selecionado"
+        : meses.length === 12
+          ? "Ano inteiro"
+          : meses.map((m) => MESES[m - 1]).join(", "),
+    [meses],
+  );
 
 
   const doHoje = useMemo(
