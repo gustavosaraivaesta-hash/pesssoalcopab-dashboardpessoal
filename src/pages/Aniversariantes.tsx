@@ -115,8 +115,8 @@ const Aniversariantes = () => {
         const v = toMMDD(r.mes, r.dia);
         return ini <= fim ? v >= ini && v <= fim : v >= ini || v <= fim;
       });
-    } else if (modo === "mes") {
-      base = base.filter((r) => r.mes === mes);
+    } else if (modo === "mes" && meses.length) {
+      base = base.filter((r) => meses.includes(r.mes));
     }
 
     return base
