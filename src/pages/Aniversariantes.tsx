@@ -403,7 +403,7 @@ const Aniversariantes = () => {
                 ? `Período ${periodoLabel}`
                 : modo === "periodo"
                   ? "Selecione as datas"
-                  : MESES[mes - 1]}{" "}
+                  : mesesLabel}{" "}
               — {lista.length} aniversariante(s)
             </CardTitle>
           </CardHeader>
