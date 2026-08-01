@@ -50,7 +50,11 @@ const Aniversariantes = () => {
   const navigate = useNavigate();
   const hoje = new Date();
   const [modo, setModo] = useState<"mes" | "periodo">("mes");
-  const [mes, setMes] = useState<number>(hoje.getMonth() + 1);
+  const [meses, setMeses] = useState<number[]>([hoje.getMonth() + 1]);
+  const toggleMes = (n: number) =>
+    setMeses((prev) =>
+      prev.includes(n) ? prev.filter((m) => m !== n) : [...prev, n].sort((a, b) => a - b),
+    );
   const [dataIni, setDataIni] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [search, setSearch] = useState("");
