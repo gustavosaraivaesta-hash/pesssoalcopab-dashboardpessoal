@@ -439,7 +439,8 @@ const Aniversariantes = () => {
                         >
                           <TableCell className="font-bold">
                             {String(r.dia).padStart(2, "0")}
-                            {periodoAtivo && `/${String(r.mes).padStart(2, "0")}`}
+                            {(periodoAtivo || meses.length > 1) &&
+                              `/${String(r.mes).padStart(2, "0")}`}
 
                           </TableCell>
                           <TableCell className="uppercase font-medium">
