@@ -157,7 +157,7 @@ const Aniversariantes = () => {
     doc.text(
       periodoAtivo
         ? `ANIVERSARIANTES - PERÍODO ${periodoLabel}`
-        : `ANIVERSARIANTES - ${MESES[mes - 1].toUpperCase()}`,
+        : `ANIVERSARIANTES - ${mesesLabel.toUpperCase()}`,
       105,
       23,
       { align: "center" },
