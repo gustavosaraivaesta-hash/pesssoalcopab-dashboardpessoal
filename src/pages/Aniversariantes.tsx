@@ -267,22 +267,74 @@ const Aniversariantes = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {modo === "mes" ? (
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                {MESES.map((m, idx) => {
-                  const n = idx + 1;
-                  const ativo = n === mes;
-                  return (
-                    <Button
-                      key={m}
-                      variant={ativo ? "default" : "secondary"}
-                      className="h-auto py-2 flex flex-col gap-0.5"
-                      onClick={() => setMes(n)}
-                    >
-                      <span className="text-xs font-semibold">{m}</span>
-                      <span className="text-[10px] opacity-80">{porMes[n]} militar(es)</span>
-                    </Button>
-                  );
-                })}
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => setMeses(MESES.map((_, i) => i + 1))}
+                  >
+                    Selecionar todos
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => setMeses([])}
+                  >
+                    <X size={13} className="mr-1" /> Limpar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => setMeses([hoje.getMonth() + 1])}
+                  >
+                    Mês atual
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    {meses.length} mês(es) selecionado(s)
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                  {MESES.map((m, idx) => {
+                    const n = idx + 1;
+                    const ativo = meses.includes(n);
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => toggleMes(n)}
+                        className={`group relative overflow-hidden rounded-xl border px-3 py-3 text-left transition-all duration-200 ${
+                          ativo
+                            ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]"
+                            : "border-border bg-card hover:border-primary/40 hover:bg-accent hover:shadow-sm"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-semibold">{m}</span>
+                          <span
+                            className={`flex h-4 w-4 items-center justify-center rounded-full border text-[9px] ${
+                              ativo
+                                ? "border-primary-foreground bg-primary-foreground text-primary"
+                                : "border-muted-foreground/40"
+                            }`}
+                          >
+                            {ativo ? "✓" : ""}
+                          </span>
+                        </div>
+                        <span
+                          className={`mt-1 block text-[11px] ${
+                            ativo ? "opacity-90" : "text-muted-foreground"
+                          }`}
+                        >
+                          {porMes[n]} militar(es)
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             ) : (
               <div className="flex flex-wrap items-end gap-3">
