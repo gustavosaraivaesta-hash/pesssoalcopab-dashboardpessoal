@@ -190,7 +190,7 @@ const Aniversariantes = () => {
       doc,
       periodoAtivo
         ? `aniversariantes-${dataIni}-a-${dataFim}.pdf`
-        : `aniversariantes-${MESES[mes - 1].toLowerCase()}.pdf`,
+        : `aniversariantes-${meses.map((m) => MESES[m - 1].toLowerCase()).join("-")}.pdf`,
     );
 
   };
