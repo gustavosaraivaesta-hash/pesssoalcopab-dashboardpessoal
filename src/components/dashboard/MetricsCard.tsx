@@ -4,7 +4,10 @@ interface MetricsCardProps {
   title: string;
   value: number | string;
   icon: LucideIcon;
-  variant?: "default" | "success" | "warning" | "destructive";
+  variant?: "default" | "success" | "warning" | "destructive" | "info" | "purple";
+  onClick?: () => void;
+  active?: boolean;
+  subtitle?: string;
 }
 
 const styles = {
@@ -40,6 +43,22 @@ const styles = {
     track: "bg-destructive/10",
     bar: "bg-destructive",
   },
+  info: {
+    border: "border-info/25",
+    label: "text-info",
+    iconBg: "bg-info/10 text-info",
+    value: "text-info",
+    track: "bg-info/10",
+    bar: "bg-info",
+  },
+  purple: {
+    border: "border-purple/25",
+    label: "text-purple",
+    iconBg: "bg-purple/10 text-purple",
+    value: "text-purple",
+    track: "bg-purple/10",
+    bar: "bg-purple",
+  },
 } as const;
 
 export const MetricsCard = ({
@@ -47,12 +66,18 @@ export const MetricsCard = ({
   value,
   icon: Icon,
   variant = "default",
+  onClick,
+  active = false,
+  subtitle,
 }: MetricsCardProps) => {
   const s = styles[variant];
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-xl border ${s.border} bg-card p-4 shadow-card transition-all hover:shadow-elevated hover:-translate-y-0.5`}
+      onClick={onClick}
+      className={`group relative overflow-hidden rounded-xl border ${s.border} bg-card p-4 shadow-card transition-all hover:shadow-elevated hover:-translate-y-0.5 ${
+        onClick ? "cursor-pointer" : ""
+      } ${active ? "ring-2 ring-offset-2 ring-[hsl(var(--ring))]" : ""}`}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
         <span className={`text-[10px] font-bold uppercase tracking-wider leading-tight ${s.label}`}>
@@ -66,6 +91,12 @@ export const MetricsCard = ({
       <div className={`font-mono text-2xl font-bold tracking-tight tabular-nums ${s.value}`}>
         {value}
       </div>
+
+      {subtitle && (
+        <p className={`mt-1 text-[10px] font-medium uppercase tracking-wider leading-tight ${s.label} opacity-80`}>
+          {subtitle}
+        </p>
+      )}
 
       <div className={`mt-2 h-1 w-full overflow-hidden rounded-full ${s.track}`}>
         <div className={`h-full w-full origin-left ${s.bar} transition-transform duration-500 group-hover:scale-x-100`} />
