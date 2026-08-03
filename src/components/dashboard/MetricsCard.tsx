@@ -18,6 +18,7 @@ const styles = {
     value: "text-foreground",
     track: "bg-primary/10",
     bar: "bg-primary",
+    ring: "ring-primary",
   },
   success: {
     border: "border-success/25",
@@ -26,6 +27,7 @@ const styles = {
     value: "text-success",
     track: "bg-success/10",
     bar: "bg-success",
+    ring: "ring-success",
   },
   warning: {
     border: "border-warning/30",
@@ -34,6 +36,7 @@ const styles = {
     value: "text-warning",
     track: "bg-warning/15",
     bar: "bg-warning",
+    ring: "ring-warning",
   },
   destructive: {
     border: "border-destructive/25",
@@ -42,6 +45,7 @@ const styles = {
     value: "text-destructive",
     track: "bg-destructive/10",
     bar: "bg-destructive",
+    ring: "ring-destructive",
   },
   info: {
     border: "border-info/25",
@@ -50,6 +54,7 @@ const styles = {
     value: "text-info",
     track: "bg-info/10",
     bar: "bg-info",
+    ring: "ring-info",
   },
   purple: {
     border: "border-purple/25",
@@ -58,6 +63,7 @@ const styles = {
     value: "text-purple",
     track: "bg-purple/10",
     bar: "bg-purple",
+    ring: "ring-purple",
   },
 } as const;
 
@@ -77,7 +83,7 @@ export const MetricsCard = ({
       onClick={onClick}
       className={`group relative overflow-hidden rounded-xl border ${s.border} bg-card p-4 shadow-card transition-all hover:shadow-elevated hover:-translate-y-0.5 ${
         onClick ? "cursor-pointer" : ""
-      } ${active ? "ring-2 ring-offset-2 ring-[hsl(var(--ring))]" : ""}`}
+      } ${active ? `ring-2 ring-offset-2 ${s.ring}` : ""}`}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
         <span className={`text-[10px] font-bold uppercase tracking-wider leading-tight ${s.label}`}>
