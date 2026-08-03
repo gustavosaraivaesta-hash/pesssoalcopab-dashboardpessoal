@@ -68,6 +68,7 @@ import {
 } from "docx";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 import OfficerCard from "@/components/dashboard/OfficerCard";
+import { MetricsCard } from "@/components/dashboard/MetricsCard";
 
 interface PersonnelRecord {
   id: string;
