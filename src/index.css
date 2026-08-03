@@ -29,6 +29,12 @@ All colors MUST be HSL.
     --accent: 210 60% 50%;
     --accent-foreground: 0 0% 100%;
 
+    --info: 210 60% 50%;
+    --info-foreground: 0 0% 100%;
+
+    --purple: 270 60% 50%;
+    --purple-foreground: 0 0% 100%;
+
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
@@ -71,6 +77,12 @@ All colors MUST be HSL.
 
     --accent: 210 70% 55%;
     --accent-foreground: 210 30% 10%;
+
+    --info: 210 70% 55%;
+    --info-foreground: 210 30% 10%;
+
+    --purple: 270 60% 60%;
+    --purple-foreground: 0 0% 100%;
 
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;

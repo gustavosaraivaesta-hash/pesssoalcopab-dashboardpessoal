@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { isForaDaNeo, expandSpecialtyEquivalents, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal } from "@/lib/utils";
 import OfficerCard from "@/components/dashboard/OfficerCard";
+import { MetricsCard } from "@/components/dashboard/MetricsCard";
 
 import {
   BarChart,
@@ -2741,209 +2742,81 @@ const DashboardPracas = () => {
 
         {/* Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
-          <Card
-            className={`bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 border-blue-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${statusFilter === "all" ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
+          <MetricsCard
+            title="TMFT"
+            value={metrics.totalTMFT}
+            icon={Users2}
+            variant="info"
             onClick={() => handleStatusCardClick("all")}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">TMFT</p>
-                  <p className="text-4xl font-bold text-blue-900 dark:text-blue-100">{metrics.totalTMFT}</p>
-                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Tabela Mestra</p>
-                </div>
-                <Users2 className="h-8 w-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className={`bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${statusFilter === "ocupados" ? "ring-2 ring-green-500 ring-offset-2" : ""}`}
+            active={statusFilter === "all"}
+            subtitle="Tabela Mestra"
+          />
+          <MetricsCard
+            title="EFETIVO"
+            value={metrics.totalEXI}
+            icon={UserCheck}
+            variant="success"
             onClick={handleEfetivoCardClick}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">EFETIVO</p>
-                  <p className="text-4xl font-bold text-green-900 dark:text-green-100">{metrics.totalEXI}</p>
-                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                    Cargos ocupados {selectedQuadros.length > 0 && "(Clique para ver Na/Fora da NEO)"}
-                  </p>
-                </div>
-                <UserCheck className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className={`bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${statusFilter === "vagos" ? "ring-2 ring-red-500 ring-offset-2" : ""}`}
+            active={statusFilter === "ocupados"}
+            subtitle={
+              selectedQuadros.length > 0
+                ? "Cargos ocupados (Clique para ver Na/Fora da NEO)"
+                : "Cargos ocupados"
+            }
+          />
+          <MetricsCard
+            title="VAGOS"
+            value={Math.abs(metrics.totalDIF)}
+            icon={UserX}
+            variant="destructive"
             onClick={() => handleStatusCardClick("vagos")}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-1">VAGOS</p>
-                  <p className="text-4xl font-bold text-red-900 dark:text-red-100">{Math.abs(metrics.totalDIF)}</p>
-                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">Cargos sem ocupante</p>
-                </div>
-                <UserX className="h-8 w-8 text-red-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className={`bg-gradient-to-br ${
+            active={statusFilter === "vagos"}
+            subtitle="Cargos sem ocupante"
+          />
+          <MetricsCard
+            title="ATENDIMENTO"
+            value={`${metrics.percentualPreenchimento.toFixed(0)}%`}
+            icon={TrendingUp}
+            variant={
               metrics.percentualPreenchimento >= 90
-                ? "from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200"
+                ? "success"
                 : metrics.percentualPreenchimento >= 70
-                  ? "from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200"
-                  : "from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200"
-            }`}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p
-                    className={`text-sm font-medium mb-1 ${
-                      metrics.percentualPreenchimento >= 90
-                        ? "text-green-700 dark:text-green-300"
-                        : metrics.percentualPreenchimento >= 70
-                          ? "text-amber-700 dark:text-amber-300"
-                          : "text-red-700 dark:text-red-300"
-                    }`}
-                  >
-                    ATENDIMENTO
-                  </p>
-                  <p
-                    className={`text-4xl font-bold ${
-                      metrics.percentualPreenchimento >= 90
-                        ? "text-green-900 dark:text-green-100"
-                        : metrics.percentualPreenchimento >= 70
-                          ? "text-amber-900 dark:text-amber-100"
-                          : "text-red-900 dark:text-red-100"
-                    }`}
-                  >
-                    {metrics.percentualPreenchimento.toFixed(0)}%
-                  </p>
-                  <p
-                    className={`text-xs mt-1 ${
-                      metrics.percentualPreenchimento >= 90
-                        ? "text-green-600 dark:text-green-400"
-                        : metrics.percentualPreenchimento >= 70
-                          ? "text-amber-600 dark:text-amber-400"
-                          : "text-red-600 dark:text-red-400"
-                    }`}
-                  >
-                    Situação: {metrics.totalDIF < 0 ? metrics.totalDIF : `+${metrics.totalDIF}`}
-                  </p>
-                </div>
-                <TrendingUp
-                  className={`h-8 w-8 ${
-                    metrics.percentualPreenchimento >= 90
-                      ? "text-green-500"
-                      : metrics.percentualPreenchimento >= 70
-                        ? "text-amber-500"
-                        : "text-red-500"
-                  }`}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className={`bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 border-orange-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${showOnlyExtraLotacao ? "ring-2 ring-orange-500 ring-offset-2" : ""}`}
+                  ? "warning"
+                  : "destructive"
+            }
+            subtitle={`Situação: ${metrics.totalDIF < 0 ? metrics.totalDIF : `+${metrics.totalDIF}`}`}
+          />
+          <MetricsCard
+            title="SEM NEO"
+            value={metrics.totalExtraLotacao}
+            icon={Users2}
+            variant="warning"
             onClick={() => setShowOnlyExtraLotacao((prev) => !prev)}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">SEM NEO</p>
-                  <p className="text-4xl font-bold text-orange-900 dark:text-orange-100">{metrics.totalExtraLotacao}</p>
-                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Militares sem NEO</p>
-                </div>
-                <Users2 className="h-8 w-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className={`bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 border-purple-200 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${activeTab === "licencas" || activeTab === "destaques" ? "ring-2 ring-purple-500 ring-offset-2" : ""}`}
+            active={showOnlyExtraLotacao}
+            subtitle="Militares sem NEO"
+          />
+          <MetricsCard
+            title="DESTAQUES/LICENÇAS"
+            value={filteredDestaquesData.length + filteredLicencasData.length}
+            icon={Award}
+            variant="purple"
             onClick={() => setActiveTab((prev) => (prev === "licencas" ? "destaques" : "licencas"))}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">DESTAQUES/LICENÇAS</p>
-                  <p className="text-4xl font-bold text-purple-900 dark:text-purple-100">
-                    {filteredDestaquesData.length + filteredLicencasData.length}
-                  </p>
-                  <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                    Clique para alternar entre Licenças e Destaques
-                  </p>
-                </div>
-                <Award className="h-8 w-8 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className={`bg-gradient-to-br ${
+            active={activeTab === "licencas" || activeTab === "destaques"}
+            subtitle="Clique para alternar"
+          />
+          <MetricsCard
+            title="ATEND. TOTAL"
+            value={`${metrics.atendimentoTotal.toFixed(0)}%`}
+            icon={TrendingUp}
+            variant={
               metrics.atendimentoTotal >= 100
-                ? "from-cyan-50 to-cyan-100 dark:from-cyan-950/20 dark:to-cyan-900/20 border-cyan-200"
+                ? "success"
                 : metrics.atendimentoTotal >= 90
-                  ? "from-teal-50 to-teal-100 dark:from-teal-950/20 dark:to-teal-900/20 border-teal-200"
-                  : "from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200"
-            }`}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p
-                    className={`text-sm font-medium mb-1 ${
-                      metrics.atendimentoTotal >= 100
-                        ? "text-cyan-700 dark:text-cyan-300"
-                        : metrics.atendimentoTotal >= 90
-                          ? "text-teal-700 dark:text-teal-300"
-                          : "text-amber-700 dark:text-amber-300"
-                    }`}
-                  >
-                    ATEND. TOTAL
-                  </p>
-                  <p
-                    className={`text-4xl font-bold ${
-                      metrics.atendimentoTotal >= 100
-                        ? "text-cyan-900 dark:text-cyan-100"
-                        : metrics.atendimentoTotal >= 90
-                          ? "text-teal-900 dark:text-teal-100"
-                          : "text-amber-900 dark:text-amber-100"
-                    }`}
-                  >
-                    {metrics.atendimentoTotal.toFixed(0)}%
-                  </p>
-                  <p
-                    className={`text-xs mt-1 ${
-                      metrics.atendimentoTotal >= 100
-                        ? "text-cyan-600 dark:text-cyan-400"
-                        : metrics.atendimentoTotal >= 90
-                          ? "text-teal-600 dark:text-teal-400"
-                          : "text-amber-600 dark:text-amber-400"
-                    }`}
-                  >
-                    (Extra + EFE) / TMFT
-                  </p>
-                </div>
-                <TrendingUp
-                  className={`h-8 w-8 ${
-                    metrics.atendimentoTotal >= 100
-                      ? "text-cyan-500"
-                      : metrics.atendimentoTotal >= 90
-                        ? "text-teal-500"
-                        : "text-amber-500"
-                  }`}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                  ? "warning"
+                  : "destructive"
+            }
+            subtitle="(Extra + EFE) / TMFT"
+          />
         </div>
 
         {/* Cards "Fora da NEO" e "Na NEO" - aparecem quando especialidade TMFT ou EFETIVO é filtrada e EFETIVO é clicado */}
