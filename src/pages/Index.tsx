@@ -1074,22 +1074,12 @@ const Index = () => {
             }
           />
           <MetricsCard title="Sem NEO" value={extraLotacaoTotal} icon={Users} variant="warning" />
-          <div className="group relative overflow-hidden rounded-xl border border-purple-300/50 dark:border-purple-800/50 bg-card p-4 shadow-card transition-all hover:shadow-elevated hover:-translate-y-0.5">
-            <div className="mb-2 flex items-start justify-between gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider leading-tight text-purple-600 dark:text-purple-400">
-                Destaques/Licenças
-              </span>
-              <div className="shrink-0 rounded-lg p-1.5 bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                <Award className="h-4 w-4" />
-              </div>
-            </div>
-            <div className="font-mono text-2xl font-bold tracking-tight tabular-nums text-purple-600 dark:text-purple-400">
-              {licencasDestaquesCount}
-            </div>
-            <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-purple-500/10">
-              <div className="h-full w-full bg-purple-500" />
-            </div>
-          </div>
+          <MetricsCard
+            title="Destaques/Licenças"
+            value={licencasDestaquesCount}
+            icon={Award}
+            variant="purple"
+          />
 
           <MetricsCard 
             title="Atend. Total" 
