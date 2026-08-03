@@ -1074,19 +1074,23 @@ const Index = () => {
             }
           />
           <MetricsCard title="Sem NEO" value={extraLotacaoTotal} icon={Users} variant="warning" />
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 border-purple-200">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">DESTAQUES/LICENÇAS</p>
-                  <p className="text-4xl font-bold text-purple-900 dark:text-purple-100">
-                    {licencasDestaquesCount}
-                  </p>
-                </div>
-                <Award className="h-8 w-8 text-purple-500" />
+          <div className="group relative overflow-hidden rounded-xl border border-purple-300/50 dark:border-purple-800/50 bg-card p-4 shadow-card transition-all hover:shadow-elevated hover:-translate-y-0.5">
+            <div className="mb-2 flex items-start justify-between gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider leading-tight text-purple-600 dark:text-purple-400">
+                Destaques/Licenças
+              </span>
+              <div className="shrink-0 rounded-lg p-1.5 bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                <Award className="h-4 w-4" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="font-mono text-2xl font-bold tracking-tight tabular-nums text-purple-600 dark:text-purple-400">
+              {licencasDestaquesCount}
+            </div>
+            <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-purple-500/10">
+              <div className="h-full w-full bg-purple-500" />
+            </div>
+          </div>
+
           <MetricsCard 
             title="Atend. Total" 
             value={`${metrics.totalTMFT > 0 ? (((metrics.totalEXI + extraLotacaoTotal + licencasDestaquesCount) / metrics.totalTMFT) * 100).toFixed(1) : "0.0"}%`} 
