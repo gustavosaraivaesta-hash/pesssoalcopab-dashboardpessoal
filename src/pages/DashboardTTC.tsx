@@ -696,7 +696,7 @@ const DashboardTTC = () => {
                       </div>
                       <div className="flex-1 min-h-0 overflow-y-auto p-3">
                         {selectedMonthMilitares.length > 0 ? (
-                          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+                          <div className="flex flex-col gap-2">
                             {selectedMonthMilitares.map(mil => (
                               <button
                                 key={mil.id}
@@ -705,24 +705,25 @@ const DashboardTTC = () => {
                                 onClick={() => setSelectedMilitar(mil)}
                               >
                                 <div className="flex items-start gap-3">
-                                  <span className="shrink-0 rounded-sm bg-muted px-2 py-1 text-xs font-bold text-foreground">
+                                  <span className="shrink-0 rounded-sm bg-muted px-2 py-1 text-sm font-bold text-foreground">
                                     {mil.graduacao || "-"}
                                   </span>
                                   <div className="min-w-0 flex-1 space-y-1">
-                                    <p className="whitespace-normal break-words text-sm font-semibold leading-snug text-primary">
+                                    <p className="whitespace-normal break-words text-base font-bold leading-snug text-primary">
                                       {formatMilitarName(mil.graduacao, mil.espQuadro, mil.nomeCompleto)}
                                     </p>
-                                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                                      <span>OM: {mil.om || "-"}</span>
-                                      <span>NEO: {mil.neo || "-"}</span>
-                                      <span>Área: {mil.area || "-"}</span>
-                                      <span>Término: {mil.termino || "-"}</span>
+                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                                      <span>OM: <strong className="text-foreground">{mil.om || "-"}</strong></span>
+                                      <span>NEO: <strong className="text-foreground">{mil.neo || "-"}</strong></span>
+                                      <span>Área: <strong className="text-foreground">{mil.area || "-"}</strong></span>
+                                      <span>Término: <strong className="text-foreground">{mil.termino || "-"}</strong></span>
                                     </div>
                                   </div>
                                 </div>
                               </button>
                             ))}
                           </div>
+
                         ) : (
                           <div className="flex h-full min-h-[220px] items-center justify-center rounded-md border bg-background/80 text-sm text-muted-foreground">
                             Nenhum militar encontrado nesta seleção.
