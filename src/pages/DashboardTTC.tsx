@@ -695,9 +695,10 @@ const DashboardTTC = () => {
                           </Button>
                         </div>
                       </div>
-                      <div className="flex-1 min-h-0 overflow-y-auto p-3">
+                      <div className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden p-4">
                         {selectedMonthMilitares.length > 0 ? (
-                          <div className="flex flex-col gap-2">
+                          <div className="mx-auto flex w-full max-w-5xl flex-col gap-2">
+
                             {selectedMonthMilitares.map(mil => (
                               <button
                                 key={mil.id}
