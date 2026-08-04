@@ -672,9 +672,10 @@ const DashboardTTC = () => {
                 )}
 
                 {selectedMonth && (
-                  <div className="fixed inset-0 bg-background z-[100] flex flex-col" onClick={() => setSelectedMonth(null)}>
-                    <div className="h-dvh w-screen flex flex-col bg-card" onClick={e => e.stopPropagation()}>
+                  <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-[100] flex flex-col" onClick={() => setSelectedMonth(null)}>
+                    <div className="h-full w-full flex flex-col bg-card overflow-hidden" onClick={e => e.stopPropagation()}>
                       <div className="flex flex-col gap-3 border-b p-4 shrink-0 md:flex-row md:items-center md:justify-between">
+
                         <div>
                           <h3 className="text-xl font-semibold">Término em {selectedMonth.mes}</h3>
                           <p className="text-sm text-muted-foreground">
@@ -694,9 +695,10 @@ const DashboardTTC = () => {
                           </Button>
                         </div>
                       </div>
-                      <div className="flex-1 min-h-0 overflow-y-auto p-3">
+                      <div className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden p-4">
                         {selectedMonthMilitares.length > 0 ? (
-                          <div className="flex flex-col gap-2">
+                          <div className="mx-auto flex w-full max-w-5xl flex-col gap-2">
+
                             {selectedMonthMilitares.map(mil => (
                               <button
                                 key={mil.id}
