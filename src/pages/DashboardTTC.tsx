@@ -672,9 +672,10 @@ const DashboardTTC = () => {
                 )}
 
                 {selectedMonth && (
-                  <div className="fixed inset-0 bg-background z-[100] flex flex-col" onClick={() => setSelectedMonth(null)}>
-                    <div className="h-dvh w-screen flex flex-col bg-card" onClick={e => e.stopPropagation()}>
+                  <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-[100] flex flex-col" onClick={() => setSelectedMonth(null)}>
+                    <div className="h-full w-full flex flex-col bg-card overflow-hidden" onClick={e => e.stopPropagation()}>
                       <div className="flex flex-col gap-3 border-b p-4 shrink-0 md:flex-row md:items-center md:justify-between">
+
                         <div>
                           <h3 className="text-xl font-semibold">Término em {selectedMonth.mes}</h3>
                           <p className="text-sm text-muted-foreground">
