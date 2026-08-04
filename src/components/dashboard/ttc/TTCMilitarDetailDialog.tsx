@@ -7,8 +7,6 @@ import { calcularIdadeAtual, calcularTempoRestante, getTempoFaltanteStatus, form
 import { cn } from "@/lib/utils";
 import { User, Building2, Calendar, Clock, FileText, AlertCircle, Briefcase, Hash, Download } from "lucide-react";
 import { useRef } from "react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import { toast } from "sonner";
 
 interface TTCMilitarDetailDialogProps {
@@ -41,6 +39,8 @@ const TTCMilitarDetailDialog = ({ militar, open, onOpenChange }: TTCMilitarDetai
     if (!contentRef.current) return;
     try {
       toast.loading("Gerando PDF...", { id: "pdf-export" });
+      const { default: html2canvas } = await import("html2canvas");
+      const { default: jsPDF } = await import("jspdf");
       const canvas = await html2canvas(contentRef.current, {
         scale: 2,
         backgroundColor: "#ffffff",

@@ -48,20 +48,6 @@ import {
   Brush,
 } from "recharts";
 // Heavy libraries - dynamically imported in exportToExcel
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import {
-  Document,
-  Packer,
-  Paragraph,
-  Table,
-  TableCell,
-  TableRow,
-  WidthType,
-  TextRun,
-  AlignmentType,
-  ShadingType,
-} from "docx";
 
 import brasaoRepublica from "@/assets/brasao-republica.png";
 
@@ -919,6 +905,10 @@ const DashboardPracas = () => {
 
   const exportToPDF = async () => {
     try {
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+        import("jspdf"),
+        import("jspdf-autotable"),
+      ]);
       const pdf = new jsPDF("l", "mm", "a4");
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
@@ -1783,6 +1773,7 @@ const DashboardPracas = () => {
 
   const exportToWord = async () => {
     try {
+      const { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, TextRun, AlignmentType, ShadingType } = await import("docx");
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
       const sections: any[] = [];
 
