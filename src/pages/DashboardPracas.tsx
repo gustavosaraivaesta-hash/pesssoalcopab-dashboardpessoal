@@ -48,21 +48,8 @@ import {
   Brush,
 } from "recharts";
 // Heavy libraries - dynamically imported in exportToExcel
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import {
-  Document,
-  Packer,
-  Paragraph,
-  Table,
-  TableCell,
-  TableRow,
-  WidthType,
-  TextRun,
-  AlignmentType,
-  ShadingType,
-} from "docx";
 
+import type { Paragraph as DocxParagraph, TableRow as DocxTableRow } from "docx";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 
 interface PersonnelRecord {
@@ -919,6 +906,10 @@ const DashboardPracas = () => {
 
   const exportToPDF = async () => {
     try {
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+        import("jspdf"),
+        import("jspdf-autotable"),
+      ]);
       const pdf = new jsPDF("l", "mm", "a4");
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
@@ -1783,6 +1774,7 @@ const DashboardPracas = () => {
 
   const exportToWord = async () => {
     try {
+      const { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, TextRun, AlignmentType, ShadingType } = await import("docx");
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
       const sections: any[] = [];
 
@@ -1870,7 +1862,7 @@ const DashboardPracas = () => {
         }),
       );
 
-      const neoResumoRows: TableRow[] = [
+      const neoResumoRows: DocxTableRow[] = [
         new TableRow({
           children: [
             createCell("OM", true, "10B981"),
@@ -1955,7 +1947,7 @@ const DashboardPracas = () => {
       );
 
       titleParagraphs.push(
-        new Table({ rows: neoResumoRows, width: { size: 100, type: WidthType.PERCENTAGE } }) as unknown as Paragraph,
+        new Table({ rows: neoResumoRows, width: { size: 100, type: WidthType.PERCENTAGE } }) as unknown as DocxParagraph,
       );
       titleParagraphs.push(new Paragraph({ spacing: { after: 400 } }));
 
@@ -1996,7 +1988,7 @@ const DashboardPracas = () => {
         }).length;
         const omNaNeoCount = omEfetivo - omForaNeoCount;
 
-        const metricsRows: TableRow[] = [
+        const metricsRows: DocxTableRow[] = [
           new TableRow({
             children: [
               createCell("TMFT", true, "10B981"),
@@ -2050,7 +2042,7 @@ const DashboardPracas = () => {
           String(a.neo || "").localeCompare(String(b.neo || ""), undefined, { numeric: true }),
         );
 
-        const efetivoRows: TableRow[] = [
+        const efetivoRows: DocxTableRow[] = [
           new TableRow({
             children: [
               createCell("NEO", true, "2980B9"),
@@ -2129,7 +2121,7 @@ const DashboardPracas = () => {
               spacing: { before: 200, after: 200 },
             }),
           );
-          const rows: TableRow[] = [
+          const rows: DocxTableRow[] = [
             new TableRow({
               children: [
                 createCell("NOME", true, "D97706"),
@@ -2167,7 +2159,7 @@ const DashboardPracas = () => {
               spacing: { before: 200, after: 200 },
             }),
           );
-          const rows: TableRow[] = [
+          const rows: DocxTableRow[] = [
             new TableRow({
               children: [
                 createCell("NOME", true, "9333EA"),
@@ -2203,7 +2195,7 @@ const DashboardPracas = () => {
               spacing: { before: 200, after: 200 },
             }),
           );
-          const rows: TableRow[] = [
+          const rows: DocxTableRow[] = [
             new TableRow({
               children: [
                 createCell("NOME", true, "EA580C"),
@@ -2237,7 +2229,7 @@ const DashboardPracas = () => {
               spacing: { before: 200, after: 200 },
             }),
           );
-          const rows: TableRow[] = [
+          const rows: DocxTableRow[] = [
             new TableRow({
               children: [
                 createCell("NOME", true, "CA8A04"),
@@ -2275,7 +2267,7 @@ const DashboardPracas = () => {
               spacing: { before: 200, after: 200 },
             }),
           );
-          const rows: TableRow[] = [
+          const rows: DocxTableRow[] = [
             new TableRow({
               children: [
                 createCell("NOME", true, "059669"),

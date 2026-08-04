@@ -2,8 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { openPdfPreview } from "@/lib/pdfPreview";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, BookOpen, Search, Users, GraduationCap, FileDown } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -347,6 +345,10 @@ const CursosRealizados = () => {
           })
         : filteredBySel;
 
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+        import("jspdf"),
+        import("jspdf-autotable"),
+      ]);
       const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();

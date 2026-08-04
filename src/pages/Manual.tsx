@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import jsPDF from "jspdf";
 
 const MANUAL_VERSION = "1.6";
 const MANUAL_DATE = new Date().toLocaleDateString("pt-BR");
@@ -253,7 +252,8 @@ Limitações do modo offline:
 const Manual = () => {
   const navigate = useNavigate();
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
+    const { default: jsPDF } = await import("jspdf");
     const doc = new jsPDF("p", "mm", "a4");
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;

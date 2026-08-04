@@ -22,8 +22,6 @@ import {
 } from "@/components/ui/table";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ArrowLeft, HeartPulse, Search, X, CalendarClock, FileDown } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import {
   BarChart,
   Bar,
@@ -417,7 +415,11 @@ const InspecaoSaude = () => {
   const statusLabel = (s: "vencida" | "atencao" | "ok") =>
     s === "vencida" ? "Vencida" : s === "atencao" ? "Vence em ≤ 6 meses" : "Em dia";
 
-  const gerarPDF = () => {
+  const gerarPDF = async () => {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pageWidth = doc.internal.pageSize.getWidth();
     const now = new Date().toLocaleString("pt-BR");
