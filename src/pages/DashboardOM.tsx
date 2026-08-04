@@ -49,6 +49,7 @@ import {
   LabelList,
 } from "recharts";
 // Heavy libraries - dynamically imported in exportToExcel
+import type { Paragraph as DocxParagraph } from "docx";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 import OfficerCard from "@/components/dashboard/OfficerCard";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
@@ -2152,7 +2153,8 @@ const DashboardOM = () => {
 
   const exportToWord = async () => {
     try {
-      const { Document, Packer, Paragraph, Table, TableCell, TableRow: DocTableRow, WidthType, TextRun, AlignmentType, HeadingLevel, BorderStyle, ShadingType } = await import("docx");
+      const { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, TextRun, AlignmentType, HeadingLevel, BorderStyle, ShadingType } = await import("docx");
+      const DocTableRow = TableRow;
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
       const sections: any[] = [];
@@ -2316,7 +2318,7 @@ const DashboardOM = () => {
         width: { size: 100, type: WidthType.PERCENTAGE },
       });
 
-      titleParagraphs.push(neoResumoTable as unknown as Paragraph);
+      titleParagraphs.push(neoResumoTable as unknown as DocxParagraph);
       titleParagraphs.push(new Paragraph({ spacing: { after: 400 } }));
 
       // IM Summary Table
@@ -2392,7 +2394,7 @@ const DashboardOM = () => {
           width: { size: 100, type: WidthType.PERCENTAGE },
         });
 
-        titleParagraphs.push(imResumoTable as unknown as Paragraph);
+        titleParagraphs.push(imResumoTable as unknown as DocxParagraph);
       }
 
       sections.push({

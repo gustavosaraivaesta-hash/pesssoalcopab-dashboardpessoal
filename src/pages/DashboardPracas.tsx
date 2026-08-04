@@ -49,6 +49,7 @@ import {
 } from "recharts";
 // Heavy libraries - dynamically imported in exportToExcel
 
+import type { Paragraph as DocxParagraph } from "docx";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 
 interface PersonnelRecord {
