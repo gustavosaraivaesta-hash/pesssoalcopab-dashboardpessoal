@@ -49,7 +49,7 @@ import {
   LabelList,
 } from "recharts";
 // Heavy libraries - dynamically imported in exportToExcel
-import type { Paragraph as DocxParagraph } from "docx";
+import type { Paragraph as DocxParagraph, TableRow as DocxTableRow } from "docx";
 import brasaoRepublica from "@/assets/brasao-republica.png";
 import OfficerCard from "@/components/dashboard/OfficerCard";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
@@ -2229,7 +2229,7 @@ const DashboardOM = () => {
         }),
       );
 
-      const neoResumoRows: TableRow[] = [];
+      const neoResumoRows: DocxTableRow[] = [];
       let totalNaNeo = 0;
       let totalForaNeo = 0;
       let totalEfetivoGeral = 0;
@@ -2333,7 +2333,7 @@ const DashboardOM = () => {
           }),
         );
 
-        const imResumoRows: TableRow[] = [];
+        const imResumoRows: DocxTableRow[] = [];
         let totalImTmft = 0;
         let totalImEfetivo = 0;
 
@@ -2432,7 +2432,7 @@ const DashboardOM = () => {
         const omNaNeoCount = omEfetivo - omForaNeoCount;
 
         // Metrics table
-        const metricsRows: TableRow[] = [
+        const metricsRows: DocxTableRow[] = [
           new TableRow({
             children: [
               createCell("TMFT", true, "10B981"),
@@ -2472,7 +2472,7 @@ const DashboardOM = () => {
           }),
         );
 
-        const efetivoRows: TableRow[] = [
+        const efetivoRows: DocxTableRow[] = [
           new TableRow({
             children: [
               createCell("NEO", true, "2980B9"),
@@ -2553,7 +2553,7 @@ const DashboardOM = () => {
             }),
           );
 
-          const desembarqueRows: TableRow[] = [
+          const desembarqueRows: DocxTableRow[] = [
             new TableRow({
               children: [
                 createCell("NOME", true, "D97706"),
@@ -2596,7 +2596,7 @@ const DashboardOM = () => {
             }),
           );
 
-          const trrmRows: TableRow[] = [
+          const trrmRows: DocxTableRow[] = [
             new TableRow({
               children: [
                 createCell("NOME", true, "9333EA"),
@@ -2637,7 +2637,7 @@ const DashboardOM = () => {
             }),
           );
 
-          const licencasRows: TableRow[] = [
+          const licencasRows: DocxTableRow[] = [
             new TableRow({
               children: [
                 createCell("NOME", true, "EA580C"),
@@ -2676,7 +2676,7 @@ const DashboardOM = () => {
             }),
           );
 
-          const destaquesRows: TableRow[] = [
+          const destaquesRows: DocxTableRow[] = [
             new TableRow({
               children: [
                 createCell("NOME", true, "CA8A04"),
@@ -2724,7 +2724,7 @@ const DashboardOM = () => {
             }),
           );
 
-          const concursoRows: TableRow[] = [
+          const concursoRows: DocxTableRow[] = [
             new TableRow({
               children: [
                 createCell("NOME", true, "059669"),
