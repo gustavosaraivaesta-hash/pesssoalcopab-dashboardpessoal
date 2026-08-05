@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { isForaDaNeo, expandSpecialtyEquivalents, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal } from "@/lib/utils";
+import { isForaDaNeo, expandSpecialtyEquivalents, canonicalizeSpecialty, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal } from "@/lib/utils";
 import OfficerCard from "@/components/dashboard/OfficerCard";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 
