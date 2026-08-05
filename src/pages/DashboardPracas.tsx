@@ -867,13 +867,25 @@ const DashboardPracas = () => {
       return map.get(key)!;
     };
 
+    const efetivoNames = new Set<string>();
+
     baseFilteredData.forEach((item) => {
       if (item.tipoSetor !== "EXTRA LOTAÇÃO") {
         if (!hasSpecificFilters || matchesTmftFilters(item)) get(item.quadroTmft || "").tmft += 1;
       }
       if (item.ocupado || item.tipoSetor === "EXTRA LOTAÇÃO") {
-        if (!hasSpecificFilters || matchesEfeFilters(item)) get(item.quadroEfe || item.quadroTmft || "").efe += 1;
+        if (!hasSpecificFilters || matchesEfeFilters(item)) {
+          get(item.quadroEfe || item.quadroTmft || "").efe += 1;
+          const k = nomeKey(item.nome);
+          if (k) efetivoNames.add(k);
+        }
       }
+    });
+
+    // DESTAQUES/LICENÇAS também contam como efetivo (sem duplicar quem já consta)
+    const destLic = dedupeDestLic(filteredLicencasData, filteredDestaquesData, efetivoNames);
+    [...destLic.licencas, ...destLic.destaques].forEach((item: any) => {
+      get(item.quadro || item.especialidade || "").efe += 1;
     });
 
     const all = Array.from(map.values()).map((e) => ({ ...e, dif: e.efe - e.tmft }));
@@ -885,7 +897,7 @@ const DashboardPracas = () => {
         .slice(0, 10)
         .map((e) => ({ ...e, falta: Math.abs(e.dif) })),
     };
-  }, [baseFilteredData, hasSpecificFilters, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
+  }, [baseFilteredData, hasSpecificFilters, selectedQuadros, selectedGraduacoes, selectedOpcoes, filteredLicencasData, filteredDestaquesData]);
 
 
 
