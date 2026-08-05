@@ -3138,6 +3138,89 @@ const DashboardPracas = () => {
           </Card>
         )}
 
+        {/* Top 10 Especialidades: Excesso x Falta */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <BarChart3 className="h-5 w-5 text-emerald-600" />
+                Top 10 Especialidades com Excesso
+                <Badge variant="outline" className="ml-1">
+                  +{especialidadesBalanco.excesso.reduce((s, e) => s + e.dif, 0)}
+                </Badge>
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Efetivo acima do TMFT</p>
+            </CardHeader>
+            <CardContent>
+              {especialidadesBalanco.excesso.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-10">Nenhum excesso encontrado</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={340}>
+                  <BarChart data={especialidadesBalanco.excesso} layout="vertical" margin={{ right: 40 }}>
+                    <defs>
+                      <linearGradient id="gradExcesso" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#34d399" />
+                        <stop offset="100%" stopColor="#059669" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis type="number" domain={[0, (m: number) => Math.ceil(m * 1.3)]} stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
+                    <YAxis dataKey="especialidade" type="category" width={110} className="text-xs" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
+                    <Tooltip
+                      formatter={(v: number, _n, p: any) => [`+${v} (TMFT ${p.payload.tmft} / EFE ${p.payload.efe})`, "Excesso"]}
+                      contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
+                    />
+                    <Bar dataKey="dif" name="Excesso" fill="url(#gradExcesso)" radius={[0, 6, 6, 0]}>
+                      <LabelList dataKey="dif" position="right" formatter={(v: number) => `+${v}`} style={{ fontWeight: "bold", fontSize: 12, fill: "hsl(var(--foreground))" }} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <BarChart3 className="h-5 w-5 text-red-600" />
+                Top 10 Especialidades com Falta
+                <Badge variant="outline" className="ml-1">
+                  -{especialidadesBalanco.falta.reduce((s, e) => s + e.falta, 0)}
+                </Badge>
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Efetivo abaixo do TMFT</p>
+            </CardHeader>
+            <CardContent>
+              {especialidadesBalanco.falta.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-10">Nenhuma falta encontrada</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={340}>
+                  <BarChart data={especialidadesBalanco.falta} layout="vertical" margin={{ right: 40 }}>
+                    <defs>
+                      <linearGradient id="gradFalta" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#f87171" />
+                        <stop offset="100%" stopColor="#dc2626" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis type="number" domain={[0, (m: number) => Math.ceil(m * 1.3)]} stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
+                    <YAxis dataKey="especialidade" type="category" width={110} className="text-xs" stroke="hsl(var(--foreground))" tick={{ fill: "hsl(var(--foreground))" }} />
+                    <Tooltip
+                      formatter={(v: number, _n, p: any) => [`-${v} (TMFT ${p.payload.tmft} / EFE ${p.payload.efe})`, "Falta"]}
+                      contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
+                    />
+                    <Bar dataKey="falta" name="Falta" fill="url(#gradFalta)" radius={[0, 6, 6, 0]}>
+                      <LabelList dataKey="falta" position="right" formatter={(v: number) => `-${v}`} style={{ fontWeight: "bold", fontSize: 12, fill: "hsl(var(--foreground))" }} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+
+
         {/* Chart Distribuição por Posto */}
         <Card ref={chartRef} data-chart="graduacao" className="overflow-hidden">
           <CardHeader className="pb-2">
