@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { isForaDaNeo, expandSpecialtyEquivalents, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal } from "@/lib/utils";
+import { isForaDaNeo, expandSpecialtyEquivalents, canonicalizeSpecialty, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal } from "@/lib/utils";
 import OfficerCard from "@/components/dashboard/OfficerCard";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 
@@ -862,7 +862,7 @@ const DashboardPracas = () => {
   const especialidadesBalanco = useMemo(() => {
     const map = new Map<string, { especialidade: string; tmft: number; efe: number }>();
     const get = (esp: string) => {
-      const key = (esp || "").trim().toUpperCase() || "SEM ESPECIALIDADE";
+      const key = canonicalizeSpecialty(esp);
       if (!map.has(key)) map.set(key, { especialidade: key, tmft: 0, efe: 0 });
       return map.get(key)!;
     };
