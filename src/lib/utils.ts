@@ -252,6 +252,30 @@ export function expandSpecialtyEquivalents(selected: string[]): string[] {
 }
 
 /**
+ * Maps equivalent specialty codes to a single canonical code.
+ * Used to group counts for charts/metrics (e.g., PD and TIC together).
+ * Canonical: TIC, QUI, SAU, ADM, IF.
+ */
+const SPECIALTY_CANONICAL: Record<string, string> = {
+  PD: "TIC",
+  QI: "QUI",
+  EF: "SAU",
+  PC: "SAU",
+  HD: "SAU",
+  ND: "SAU",
+  AD: "ADM",
+  "IF-FN": "IF",
+  IFFN: "IF",
+};
+
+export function canonicalizeSpecialty(code: string | undefined | null): string {
+  const c = (code || "").trim().toUpperCase();
+  if (!c || c === "-") return "SEM ESPECIALIDADE";
+  return SPECIALTY_CANONICAL[c] || c;
+}
+
+
+/**
  * Checks if a person is "FORA DA NEO" based on specialty comparison.
  * Returns true if FORA DA NEO (specialties don't match and aren't equivalent).
  * Also checks opcao: if one is TTC and the other is not, it's divergent (TTC x Carreira).
