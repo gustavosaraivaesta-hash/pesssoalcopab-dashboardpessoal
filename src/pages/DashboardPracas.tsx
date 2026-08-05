@@ -858,6 +858,37 @@ const DashboardPracas = () => {
       .slice(0, 5);
   }, [baseFilteredForVagos, selectedOMsForVagos]);
 
+  // Top 10 especialidades com EXCESSO e FALTA (EFETIVO x TMFT)
+  const especialidadesBalanco = useMemo(() => {
+    const map = new Map<string, { especialidade: string; tmft: number; efe: number }>();
+    const get = (esp: string) => {
+      const key = (esp || "").trim().toUpperCase() || "SEM ESPECIALIDADE";
+      if (!map.has(key)) map.set(key, { especialidade: key, tmft: 0, efe: 0 });
+      return map.get(key)!;
+    };
+
+    baseFilteredData.forEach((item) => {
+      if (item.tipoSetor !== "EXTRA LOTAÇÃO") {
+        if (!hasSpecificFilters || matchesTmftFilters(item)) get(item.quadroTmft || "").tmft += 1;
+      }
+      if (item.ocupado || item.tipoSetor === "EXTRA LOTAÇÃO") {
+        if (!hasSpecificFilters || matchesEfeFilters(item)) get(item.quadroEfe || item.quadroTmft || "").efe += 1;
+      }
+    });
+
+    const all = Array.from(map.values()).map((e) => ({ ...e, dif: e.efe - e.tmft }));
+    return {
+      excesso: all.filter((e) => e.dif > 0).sort((a, b) => b.dif - a.dif).slice(0, 10),
+      falta: all
+        .filter((e) => e.dif < 0)
+        .sort((a, b) => a.dif - b.dif)
+        .slice(0, 10)
+        .map((e) => ({ ...e, falta: Math.abs(e.dif) })),
+    };
+  }, [baseFilteredData, hasSpecificFilters, selectedQuadros, selectedGraduacoes, selectedOpcoes]);
+
+
+
   // Track which bar type was clicked (tmft or efe)
   const [selectedPostoType, setSelectedPostoType] = useState<"tmft" | "efe" | null>(null);
 
