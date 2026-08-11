@@ -1363,6 +1363,7 @@ const DashboardOM = () => {
             if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+            if (selectedGradAcadFilter.length > 0) ef = ef.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
             if (selectedOpcoes.length > 0) ef = ef.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
             omEfetivo = ef.length;
           } else {
@@ -1740,6 +1741,7 @@ const DashboardOM = () => {
             if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+            if (selectedGradAcadFilter.length > 0) ef = ef.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
             if (selectedOpcoes.length > 0) ef = ef.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
             filtEfetivo = ef.length;
           } else {
@@ -2146,6 +2148,7 @@ const DashboardOM = () => {
             if (selectedCorpos.length > 0) ef = ef.filter((i) => selectedCorpos.includes(i.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((i) => selectedQuadros.includes(i.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((i) => selectedPostoFilter.includes(i.postoEfe));
+            if (selectedGradAcadFilter.length > 0) ef = ef.filter((i) => selectedGradAcadFilter.includes((i.graduacaoAcademica || "").toString().trim()));
             if (selectedOpcoes.length > 0) ef = ef.filter((i) => matchesOpcaoFilter(i.opcaoEfe, selectedOpcoes));
             eff = ef.length;
           } else {
