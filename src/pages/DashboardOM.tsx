@@ -990,6 +990,11 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
     }
 
+    // Filtro de Graduação Acadêmica
+    if (selectedGradAcadFilter.length > 0) {
+      filtered = filtered.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
+    }
+
     // Filtro de corpo
     if (selectedCorpos.length > 0) {
       filtered = filtered.filter(
