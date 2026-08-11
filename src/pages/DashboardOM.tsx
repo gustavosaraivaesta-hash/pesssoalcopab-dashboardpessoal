@@ -714,6 +714,7 @@ const DashboardOM = () => {
     selectedCorpos,
     selectedQuadros,
     selectedPostoFilter,
+    selectedGradAcadFilter,
     selectedOMs,
     selectedOpcoes,
     searchQuery,
@@ -769,7 +770,7 @@ const DashboardOM = () => {
     } else {
       return baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
     }
-  }, [baseFilteredData, personnelData, selectedCorpos, selectedQuadros, selectedPostoFilter, selectedOMs, selectedOpcoes, searchQuery]);
+  }, [baseFilteredData, personnelData, selectedCorpos, selectedQuadros, selectedPostoFilter, selectedGradAcadFilter, selectedOMs, selectedOpcoes, searchQuery]);
 
   // Filtered data for display (applies status filter and extra lotação for drill-down)
   const filteredData = useMemo(() => {
@@ -1024,7 +1025,7 @@ const DashboardOM = () => {
     }
 
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedCorpos, searchQuery]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedGradAcadFilter, selectedCorpos, searchQuery]);
 
   // Chart data showing vacancies by OM (aligned with metrics: VAGOS = TMFT - EFETIVO per OM)
   const chartDataVagosByOM = useMemo(() => {
