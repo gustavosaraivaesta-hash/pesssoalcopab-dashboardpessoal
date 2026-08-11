@@ -69,6 +69,7 @@ interface PersonnelRecord {
   quadroEfe: string;
   opcaoEfe: string;
   nome: string;
+  graduacaoAcademica?: string;
   ocupado: boolean;
   om: string;
 }
