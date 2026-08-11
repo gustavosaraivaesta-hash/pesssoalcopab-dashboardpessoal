@@ -51,6 +51,7 @@ const MilitarFullDetailDialog = ({ open, onOpenChange, record, inspecao }: Props
                 <Info label="Cargo / Incumbência" value={record.cargo || "—"} />
                 <Info label="Setor" value={record.setor || "—"} />
                 <Info label="Tipo de Setor" value={record.tipoSetor || "—"} />
+                <Info label="Graduação Acadêmica" value={record.graduacaoAcademica || "—"} />
               </CardContent>
             </Card>
 

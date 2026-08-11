@@ -17,6 +17,7 @@ interface PersonnelRecord {
   quadroEfe: string;
   opcaoEfe: string;
   nome: string;
+  graduacaoAcademica?: string;
   ocupado: boolean;
   om: string;
 }
@@ -111,6 +112,13 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
 
       {/* Cargo */}
       <p className="text-xs text-muted-foreground uppercase">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
+
+      {/* Graduação Acadêmica */}
+      {item.graduacaoAcademica && item.graduacaoAcademica.trim() !== "-" && (
+        <p className="text-xs text-muted-foreground uppercase">
+          <span className="font-semibold">Grad. Acadêmica:</span> {item.graduacaoAcademica}
+        </p>
+      )}
 
       {/* Setor */}
       <p className="text-xs text-muted-foreground">{item.tipoSetor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor}</p>
