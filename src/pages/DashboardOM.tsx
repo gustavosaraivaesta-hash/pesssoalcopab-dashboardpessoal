@@ -233,12 +233,14 @@ const DashboardOM = () => {
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
   const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
   const [availablePostos, setAvailablePostos] = useState<string[]>([]);
+  const [availableGradAcad, setAvailableGradAcad] = useState<string[]>([]);
   const [availableCorpos, setAvailableCorpos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedQuadros, setSelectedQuadros] = useState<string[]>([]);
   const [selectedOpcoes, setSelectedOpcoes] = useState<string[]>([]);
   const [selectedPostoFilter, setSelectedPostoFilter] = useState<string[]>([]);
+  const [selectedGradAcadFilter, setSelectedGradAcadFilter] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("efetivo");
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -321,6 +323,16 @@ const DashboardOM = () => {
       return indexA - indexB;
     });
     setAvailablePostos(postosFromData as string[]);
+
+    // Extrair graduações acadêmicas disponíveis
+    const gradAcadFromData = [
+      ...new Set(
+        data
+          .map((item: any) => (item.graduacaoAcademica || "").toString().trim())
+          .filter((g: string) => g && g !== "-" && g.toUpperCase() !== "N/A"),
+      ),
+    ].sort((a, b) => a.localeCompare(b, "pt-BR"));
+    setAvailableGradAcad(gradAcadFromData as string[]);
     setAvailableOpcoes(opcoes as string[]);
 
     // Extrair corpos disponíveis (corpoTmft ou corpoEfe)
@@ -504,6 +516,16 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedCorpos.includes(item.corpoTmft));
     }
 
+    // Filtro de Graduação Acadêmica - filtra pelo campo graduacaoAcademica
+    if (selectedGradAcadFilter.length > 0) {
+      filtered = filtered.filter((item) => {
+        const grad = (item.graduacaoAcademica || "").toString().trim();
+        return selectedGradAcadFilter.includes(grad);
+      });
+    }
+
+
+
 
     // Apply search filter
     if (searchQuery.trim()) {
@@ -521,13 +543,13 @@ const DashboardOM = () => {
     }
 
     // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
-    const hasNonOpcaoFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+    const hasNonOpcaoFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
     if (hasNonOpcaoFilters && !selectedOpcoes.includes("TTC")) {
       filtered = filtered.filter((item) => normalizeOpcao(item.opcaoTmft) !== "TTC");
     }
 
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedCorpos, searchQuery]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedCorpos, selectedGradAcadFilter, searchQuery]);
 
   
 
@@ -547,6 +569,10 @@ const DashboardOM = () => {
     setSelectedPostoFilter((prev) => (prev.includes(posto) ? prev.filter((p) => p !== posto) : [...prev, posto]));
   }, []);
 
+  const toggleGradAcad = useCallback((grad: string) => {
+    setSelectedGradAcadFilter((prev) => (prev.includes(grad) ? prev.filter((g) => g !== grad) : [...prev, grad]));
+  }, []);
+
   const toggleCorpo = useCallback((corpo: string) => {
     setSelectedCorpos((prev) => (prev.includes(corpo) ? prev.filter((c) => c !== corpo) : [...prev, corpo]));
   }, []);
@@ -556,6 +582,7 @@ const DashboardOM = () => {
     setSelectedQuadros([]);
     setSelectedOpcoes([]);
     setSelectedPostoFilter([]);
+    setSelectedGradAcadFilter([]);
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
     setSelectedCorpos([]);
@@ -582,7 +609,7 @@ const DashboardOM = () => {
 
     // EFETIVO: quando há filtros de corpo/quadro/posto, conta ocupados pelo campo EFE correspondente
     // Aplica os mesmos filtros (OM, Opção, Search) mas usa corpoEfe/quadroEfe/postoEfe ao invés de TMFT
-    const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
+    const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedOpcoes.length > 0;
 
     let totalEXI: number;
     let efetivoNames = new Set<string>();
@@ -590,7 +617,7 @@ const DashboardOM = () => {
       // Aplica todos os filtros usando campos EFE para corpo/quadro/posto
       let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
       // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
-      const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+      const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
       if (hasNonOpcaoFiltersEfe && !selectedOpcoes.includes("TTC")) {
         efetivoData = efetivoData.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
       }
@@ -627,6 +654,9 @@ const DashboardOM = () => {
       }
       if (selectedPostoFilter.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+      }
+      if (selectedGradAcadFilter.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
       }
       if (selectedOpcoes.length > 0) {
         efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
@@ -684,6 +714,7 @@ const DashboardOM = () => {
     selectedCorpos,
     selectedQuadros,
     selectedPostoFilter,
+    selectedGradAcadFilter,
     selectedOMs,
     selectedOpcoes,
     searchQuery,
@@ -693,11 +724,11 @@ const DashboardOM = () => {
 
   // Calculate the same EFETIVO population used by metrics to ensure NA NEO + FORA DA NEO = EFETIVO
   const efetivoPopulation = useMemo(() => {
-    const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
+    const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedOpcoes.length > 0;
 
     if (hasEfeFilters) {
       let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
-      const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+      const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
       if (hasNonOpcaoFiltersEfe && !selectedOpcoes.includes("TTC")) {
         efetivoData = efetivoData.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
       }
@@ -729,6 +760,9 @@ const DashboardOM = () => {
       if (selectedPostoFilter.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
       }
+      if (selectedGradAcadFilter.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
+      }
       if (selectedOpcoes.length > 0) {
         efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
       }
@@ -736,7 +770,7 @@ const DashboardOM = () => {
     } else {
       return baseFilteredData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
     }
-  }, [baseFilteredData, personnelData, selectedCorpos, selectedQuadros, selectedPostoFilter, selectedOMs, selectedOpcoes, searchQuery]);
+  }, [baseFilteredData, personnelData, selectedCorpos, selectedQuadros, selectedPostoFilter, selectedGradAcadFilter, selectedOMs, selectedOpcoes, searchQuery]);
 
   // Filtered data for display (applies status filter and extra lotação for drill-down)
   const filteredData = useMemo(() => {
@@ -957,6 +991,11 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedPostoFilter.includes(item.postoEfe));
     }
 
+    // Filtro de Graduação Acadêmica
+    if (selectedGradAcadFilter.length > 0) {
+      filtered = filtered.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
+    }
+
     // Filtro de corpo
     if (selectedCorpos.length > 0) {
       filtered = filtered.filter(
@@ -965,7 +1004,7 @@ const DashboardOM = () => {
     }
 
     // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
-    const hasNonOpcaoFiltersVagas = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+    const hasNonOpcaoFiltersVagas = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
     if (hasNonOpcaoFiltersVagas && !selectedOpcoes.includes("TTC")) {
       filtered = filtered.filter((item) => normalizeOpcao(item.opcaoTmft) !== "TTC");
     }
@@ -986,7 +1025,7 @@ const DashboardOM = () => {
     }
 
     return filtered;
-  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedCorpos, searchQuery]);
+  }, [personnelData, selectedOMs, selectedQuadros, selectedOpcoes, selectedPostoFilter, selectedGradAcadFilter, selectedCorpos, searchQuery]);
 
   // Chart data showing vacancies by OM (aligned with metrics: VAGOS = TMFT - EFETIVO per OM)
   const chartDataVagosByOM = useMemo(() => {
@@ -1208,7 +1247,12 @@ const DashboardOM = () => {
           filterX += 50;
         }
         if (selectedPostoFilter.length > 0) {
-          pdf.text(`Graduação: ${selectedPostoFilter.join(", ")}`, filterX, yPosition);
+          pdf.text(`Posto: ${selectedPostoFilter.join(", ")}`, filterX, yPosition);
+        }
+        if (selectedGradAcadFilter.length > 0) {
+          filterX = 20;
+          yPosition += 10;
+          pdf.text(`Grad. Acadêmica: ${selectedGradAcadFilter.join(", ")}`, filterX, yPosition);
         }
         yPosition += 10;
       }
@@ -1216,7 +1260,7 @@ const DashboardOM = () => {
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
       // ====== Helper: build resumo rows (OM, TMFT, EFETIVO, ATENDIMENTO) ======
-      const hasEfeFiltersGlobal = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
+      const hasEfeFiltersGlobal = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedOpcoes.length > 0;
 
       // EXT LOT e AT. TOTAL sempre visíveis em todas as tabelas do PDF
       const hasExtraLotacao = true;
@@ -1312,13 +1356,14 @@ const DashboardOM = () => {
           if (hasEfeFiltersGlobal) {
             let ef = personnelData.filter((item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
             // Excluir TTC quando filtros específicos estão ativos
-            const hasNonOpcaoFiltersPdf = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+            const hasNonOpcaoFiltersPdf = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
             if (hasNonOpcaoFiltersPdf && !selectedOpcoes.includes("TTC")) {
               ef = ef.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
             }
             if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+            if (selectedGradAcadFilter.length > 0) ef = ef.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
             if (selectedOpcoes.length > 0) ef = ef.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
             omEfetivo = ef.length;
           } else {
@@ -1491,7 +1536,8 @@ const DashboardOM = () => {
         const filterDescParts: string[] = [];
         if (selectedCorpos.length > 0) filterDescParts.push(`Corpo: ${selectedCorpos.join(", ")}`);
         if (selectedQuadros.length > 0) filterDescParts.push(`Quadro: ${selectedQuadros.join(", ")}`);
-        if (selectedPostoFilter.length > 0) filterDescParts.push(`Graduação: ${selectedPostoFilter.join(", ")}`);
+        if (selectedPostoFilter.length > 0) filterDescParts.push(`Posto: ${selectedPostoFilter.join(", ")}`);
+        if (selectedGradAcadFilter.length > 0) filterDescParts.push(`Grad. Acadêmica: ${selectedGradAcadFilter.join(", ")}`);
         if (selectedOpcoes.length > 0) filterDescParts.push(`Opção: ${selectedOpcoes.join(", ")}`);
         if (selectedOMs.length > 0) filterDescParts.push(`OM: ${selectedOMs.join(", ")}`);
         const filtradoResumoLabel = filterDescParts.length > 0 ? `RESUMO FILTRADO POR OM (${filterDescParts.join(" | ")})` : "RESUMO FILTRADO POR OM";
@@ -1688,13 +1734,14 @@ const DashboardOM = () => {
             filtTmft = omRegularData.length;
             let ef = personnelData.filter((item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
             // Excluir TTC quando filtros específicos estão ativos
-            const hasNonOpcaoFiltersPdf2 = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+            const hasNonOpcaoFiltersPdf2 = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
             if (hasNonOpcaoFiltersPdf2 && !selectedOpcoes.includes("TTC")) {
               ef = ef.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
             }
             if (selectedCorpos.length > 0) ef = ef.filter((item) => selectedCorpos.includes(item.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+            if (selectedGradAcadFilter.length > 0) ef = ef.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
             if (selectedOpcoes.length > 0) ef = ef.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
             filtEfetivo = ef.length;
           } else {
@@ -1731,7 +1778,7 @@ const DashboardOM = () => {
         // Quando há filtros de corpo/quadro/posto, incluir linhas extras de militares que estão em outras posições
         let omTableData = omData;
         const hasEfeFiltersTable =
-          selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
+          selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedOpcoes.length > 0;
 
         if (hasEfeFiltersTable) {
           // Buscar militares desta OM que têm campos EFE no filtro mas TMFT diferente
@@ -2094,13 +2141,14 @@ const DashboardOM = () => {
           let eff: number;
           if (hasEfeFiltersGlobal) {
             let ef = personnelData.filter((i) => i.om === om && i.tipoSetor !== "EXTRA LOTAÇÃO" && i.ocupado);
-            const hasNonOpcaoFiltersPdf = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+            const hasNonOpcaoFiltersPdf = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
             if (hasNonOpcaoFiltersPdf && !selectedOpcoes.includes("TTC")) {
               ef = ef.filter((i) => normalizeOpcao(i.opcaoEfe) !== "TTC");
             }
             if (selectedCorpos.length > 0) ef = ef.filter((i) => selectedCorpos.includes(i.corpoEfe));
             if (selectedQuadros.length > 0) ef = ef.filter((i) => selectedQuadros.includes(i.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((i) => selectedPostoFilter.includes(i.postoEfe));
+            if (selectedGradAcadFilter.length > 0) ef = ef.filter((i) => selectedGradAcadFilter.includes((i.graduacaoAcademica || "").toString().trim()));
             if (selectedOpcoes.length > 0) ef = ef.filter((i) => matchesOpcaoFilter(i.opcaoEfe, selectedOpcoes));
             eff = ef.length;
           } else {
@@ -2197,7 +2245,7 @@ const DashboardOM = () => {
       ];
 
       // Filters applied
-      if (selectedOMs.length > 0 || selectedOpcoes.length > 0) {
+      if (selectedOMs.length > 0 || selectedOpcoes.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedCorpos.length > 0 || selectedQuadros.length > 0) {
         titleParagraphs.push(
           new Paragraph({
             children: [new TextRun({ text: "Filtros Aplicados:", bold: true, size: 20 })],
@@ -2215,6 +2263,34 @@ const DashboardOM = () => {
           titleParagraphs.push(
             new Paragraph({
               children: [new TextRun({ text: `Opção: ${selectedOpcoes.join(", ")}`, size: 20 })],
+            }),
+          );
+        }
+        if (selectedPostoFilter.length > 0) {
+          titleParagraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `Posto: ${selectedPostoFilter.join(", ")}`, size: 20 })],
+            }),
+          );
+        }
+        if (selectedGradAcadFilter.length > 0) {
+          titleParagraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `Grad. Acadêmica: ${selectedGradAcadFilter.join(", ")}`, size: 20 })],
+            }),
+          );
+        }
+        if (selectedCorpos.length > 0) {
+          titleParagraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `Corpo: ${selectedCorpos.join(", ")}`, size: 20 })],
+            }),
+          );
+        }
+        if (selectedQuadros.length > 0) {
+          titleParagraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `Quadro: ${selectedQuadros.join(", ")}`, size: 20 })],
             }),
           );
         }
@@ -3110,10 +3186,10 @@ const DashboardOM = () => {
                 </div>
               </div>
 
-              {/* Graduação Filter */}
+              {/* Posto Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium">Graduação</h4>
+                  <h4 className="text-sm font-medium">Posto</h4>
                   {selectedPostoFilter.length > 0 && (
                     <Badge variant="outline" className="text-xs">
                       {selectedPostoFilter.length} selecionado(s)
@@ -3130,6 +3206,32 @@ const DashboardOM = () => {
                       />
                       <label htmlFor={`posto-${posto}`} className="text-xs cursor-pointer">
                         {posto}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Graduação Acadêmica Filter */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Graduação Acadêmica</h4>
+                  {selectedGradAcadFilter.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {selectedGradAcadFilter.length} selecionado(s)
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-1 p-2 border rounded-lg bg-muted/30 max-h-40 overflow-y-auto">
+                  {availableGradAcad.map((grad) => (
+                    <div key={grad} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`grad-${grad}`}
+                        checked={selectedGradAcadFilter.includes(grad)}
+                        onCheckedChange={() => toggleGradAcad(grad)}
+                      />
+                      <label htmlFor={`grad-${grad}`} className="text-xs cursor-pointer">
+                        {grad}
                       </label>
                     </div>
                   ))}
