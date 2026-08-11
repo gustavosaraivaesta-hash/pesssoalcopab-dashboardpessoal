@@ -655,6 +655,9 @@ const DashboardOM = () => {
       if (selectedPostoFilter.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
       }
+      if (selectedGradAcadFilter.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
+      }
       if (selectedOpcoes.length > 0) {
         efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
       }
@@ -755,6 +758,9 @@ const DashboardOM = () => {
       }
       if (selectedPostoFilter.length > 0) {
         efetivoData = efetivoData.filter((item) => selectedPostoFilter.includes(item.postoEfe));
+      }
+      if (selectedGradAcadFilter.length > 0) {
+        efetivoData = efetivoData.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
       }
       if (selectedOpcoes.length > 0) {
         efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
