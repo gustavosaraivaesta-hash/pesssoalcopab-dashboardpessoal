@@ -113,6 +113,9 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
       {/* Cargo */}
       <p className="text-xs text-muted-foreground uppercase">{item.cargo === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.cargo}</p>
 
+      {/* Setor */}
+      <p className="text-xs text-muted-foreground">{item.tipoSetor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor}</p>
+
       {/* Graduação Acadêmica */}
       {item.graduacaoAcademica && item.graduacaoAcademica.trim() !== "-" && (
         <p className="text-xs text-muted-foreground uppercase">
@@ -120,8 +123,6 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
         </p>
       )}
 
-      {/* Setor */}
-      <p className="text-xs text-muted-foreground">{item.tipoSetor === "EXTRA LOTAÇÃO" ? "SEM NEO" : item.setor}</p>
 
       {/* Warning message for NEO ≠ EFE discrepancy */}
       {isDifferentNeoEfe && (
