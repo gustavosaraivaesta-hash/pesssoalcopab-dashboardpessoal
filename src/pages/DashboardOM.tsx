@@ -1235,7 +1235,12 @@ const DashboardOM = () => {
           filterX += 50;
         }
         if (selectedPostoFilter.length > 0) {
-          pdf.text(`Graduação: ${selectedPostoFilter.join(", ")}`, filterX, yPosition);
+          pdf.text(`Posto: ${selectedPostoFilter.join(", ")}`, filterX, yPosition);
+        }
+        if (selectedGradAcadFilter.length > 0) {
+          filterX = 20;
+          yPosition += 10;
+          pdf.text(`Grad. Acadêmica: ${selectedGradAcadFilter.join(", ")}`, filterX, yPosition);
         }
         yPosition += 10;
       }
@@ -1518,7 +1523,8 @@ const DashboardOM = () => {
         const filterDescParts: string[] = [];
         if (selectedCorpos.length > 0) filterDescParts.push(`Corpo: ${selectedCorpos.join(", ")}`);
         if (selectedQuadros.length > 0) filterDescParts.push(`Quadro: ${selectedQuadros.join(", ")}`);
-        if (selectedPostoFilter.length > 0) filterDescParts.push(`Graduação: ${selectedPostoFilter.join(", ")}`);
+        if (selectedPostoFilter.length > 0) filterDescParts.push(`Posto: ${selectedPostoFilter.join(", ")}`);
+        if (selectedGradAcadFilter.length > 0) filterDescParts.push(`Grad. Acadêmica: ${selectedGradAcadFilter.join(", ")}`);
         if (selectedOpcoes.length > 0) filterDescParts.push(`Opção: ${selectedOpcoes.join(", ")}`);
         if (selectedOMs.length > 0) filterDescParts.push(`OM: ${selectedOMs.join(", ")}`);
         const filtradoResumoLabel = filterDescParts.length > 0 ? `RESUMO FILTRADO POR OM (${filterDescParts.join(" | ")})` : "RESUMO FILTRADO POR OM";
