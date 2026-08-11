@@ -2230,7 +2230,7 @@ const DashboardOM = () => {
       ];
 
       // Filters applied
-      if (selectedOMs.length > 0 || selectedOpcoes.length > 0) {
+      if (selectedOMs.length > 0 || selectedOpcoes.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedCorpos.length > 0 || selectedQuadros.length > 0) {
         titleParagraphs.push(
           new Paragraph({
             children: [new TextRun({ text: "Filtros Aplicados:", bold: true, size: 20 })],
@@ -2248,6 +2248,34 @@ const DashboardOM = () => {
           titleParagraphs.push(
             new Paragraph({
               children: [new TextRun({ text: `Opção: ${selectedOpcoes.join(", ")}`, size: 20 })],
+            }),
+          );
+        }
+        if (selectedPostoFilter.length > 0) {
+          titleParagraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `Posto: ${selectedPostoFilter.join(", ")}`, size: 20 })],
+            }),
+          );
+        }
+        if (selectedGradAcadFilter.length > 0) {
+          titleParagraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `Grad. Acadêmica: ${selectedGradAcadFilter.join(", ")}`, size: 20 })],
+            }),
+          );
+        }
+        if (selectedCorpos.length > 0) {
+          titleParagraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `Corpo: ${selectedCorpos.join(", ")}`, size: 20 })],
+            }),
+          );
+        }
+        if (selectedQuadros.length > 0) {
+          titleParagraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `Quadro: ${selectedQuadros.join(", ")}`, size: 20 })],
             }),
           );
         }
