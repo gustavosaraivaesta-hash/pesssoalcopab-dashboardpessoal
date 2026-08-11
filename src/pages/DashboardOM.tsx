@@ -233,12 +233,14 @@ const DashboardOM = () => {
   const [availableQuadros, setAvailableQuadros] = useState<string[]>([]);
   const [availableOpcoes, setAvailableOpcoes] = useState<string[]>([]);
   const [availablePostos, setAvailablePostos] = useState<string[]>([]);
+  const [availableGradAcad, setAvailableGradAcad] = useState<string[]>([]);
   const [availableCorpos, setAvailableCorpos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOMs, setSelectedOMs] = useState<string[]>([]);
   const [selectedQuadros, setSelectedQuadros] = useState<string[]>([]);
   const [selectedOpcoes, setSelectedOpcoes] = useState<string[]>([]);
   const [selectedPostoFilter, setSelectedPostoFilter] = useState<string[]>([]);
+  const [selectedGradAcadFilter, setSelectedGradAcadFilter] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("efetivo");
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -3110,10 +3112,10 @@ const DashboardOM = () => {
                 </div>
               </div>
 
-              {/* Graduação Filter */}
+              {/* Posto Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium">Graduação</h4>
+                  <h4 className="text-sm font-medium">Posto</h4>
                   {selectedPostoFilter.length > 0 && (
                     <Badge variant="outline" className="text-xs">
                       {selectedPostoFilter.length} selecionado(s)
@@ -3130,6 +3132,32 @@ const DashboardOM = () => {
                       />
                       <label htmlFor={`posto-${posto}`} className="text-xs cursor-pointer">
                         {posto}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Graduação Acadêmica Filter */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Graduação Acadêmica</h4>
+                  {selectedGradAcadFilter.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {selectedGradAcadFilter.length} selecionado(s)
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-1 p-2 border rounded-lg bg-muted/30 max-h-40 overflow-y-auto">
+                  {availableGradAcad.map((grad) => (
+                    <div key={grad} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`grad-${grad}`}
+                        checked={selectedGradAcadFilter.includes(grad)}
+                        onCheckedChange={() => toggleGradAcad(grad)}
+                      />
+                      <label htmlFor={`grad-${grad}`} className="text-xs cursor-pointer">
+                        {grad}
                       </label>
                     </div>
                   ))}
