@@ -2230,7 +2230,7 @@ const DashboardOM = () => {
       ];
 
       // Filters applied
-      if (selectedOMs.length > 0 || selectedOpcoes.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedCorpos.length > 0 || selectedQuadros.length > 0) {
+      if (selectedOMs.length > 0 || selectedOpcoes.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedCorpos.length > 0 || selectedQuadros.length > 0) {
         titleParagraphs.push(
           new Paragraph({
             children: [new TextRun({ text: "Filtros Aplicados:", bold: true, size: 20 })],
