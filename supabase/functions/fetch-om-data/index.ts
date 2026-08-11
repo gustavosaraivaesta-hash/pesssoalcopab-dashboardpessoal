@@ -65,6 +65,7 @@ interface PersonnelRecord {
   quadroEfe: string;
   opcaoEfe: string;
   nome: string;
+  graduacaoAcademica: string;
   ocupado: boolean;
   om: string;
 }
@@ -481,6 +482,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             quadroEfe,
             opcaoEfe,
             nome,
+            graduacaoAcademica: String(cells[13]?.f || cells[13]?.v || '').trim(),
             ocupado: true,
             om: omName,
           };
@@ -518,6 +520,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
             quadroEfe,
             opcaoEfe,
             nome,
+            graduacaoAcademica: String(cells[13]?.f || cells[13]?.v || '').trim(),
             ocupado: true,
             om: omName,
           };
@@ -574,6 +577,7 @@ async function fetchSheetData(spreadsheetId: string, gid: string, omName: string
       quadroEfe,
       opcaoEfe,
       nome,
+      graduacaoAcademica: normalizeValue(String(cells[13]?.f || cells[13]?.v || '')),
       ocupado: nomeUpper.length > 0 && nomeUpper !== 'VAZIO' && nomeUpper !== 'VAGO',
       om: omName,
     };
