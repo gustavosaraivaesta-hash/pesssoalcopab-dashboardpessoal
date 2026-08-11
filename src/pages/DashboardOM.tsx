@@ -323,6 +323,16 @@ const DashboardOM = () => {
       return indexA - indexB;
     });
     setAvailablePostos(postosFromData as string[]);
+
+    // Extrair graduações acadêmicas disponíveis
+    const gradAcadFromData = [
+      ...new Set(
+        data
+          .map((item: any) => (item.graduacaoAcademica || "").toString().trim())
+          .filter((g: string) => g && g !== "-" && g.toUpperCase() !== "N/A"),
+      ),
+    ].sort((a, b) => a.localeCompare(b, "pt-BR"));
+    setAvailableGradAcad(gradAcadFromData as string[]);
     setAvailableOpcoes(opcoes as string[]);
 
     // Extrair corpos disponíveis (corpoTmft ou corpoEfe)
@@ -549,6 +559,10 @@ const DashboardOM = () => {
     setSelectedPostoFilter((prev) => (prev.includes(posto) ? prev.filter((p) => p !== posto) : [...prev, posto]));
   }, []);
 
+  const toggleGradAcad = useCallback((grad: string) => {
+    setSelectedGradAcadFilter((prev) => (prev.includes(grad) ? prev.filter((g) => g !== grad) : [...prev, grad]));
+  }, []);
+
   const toggleCorpo = useCallback((corpo: string) => {
     setSelectedCorpos((prev) => (prev.includes(corpo) ? prev.filter((c) => c !== corpo) : [...prev, corpo]));
   }, []);
@@ -558,6 +572,7 @@ const DashboardOM = () => {
     setSelectedQuadros([]);
     setSelectedOpcoes([]);
     setSelectedPostoFilter([]);
+    setSelectedGradAcadFilter([]);
     setStatusFilter("all");
     setShowOnlyExtraLotacao(false);
     setSelectedCorpos([]);
