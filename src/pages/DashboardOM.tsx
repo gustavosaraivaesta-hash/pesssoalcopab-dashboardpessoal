@@ -516,6 +516,16 @@ const DashboardOM = () => {
       filtered = filtered.filter((item) => selectedCorpos.includes(item.corpoTmft));
     }
 
+    // Filtro de Graduação Acadêmica - filtra pelo campo graduacaoAcademica
+    if (selectedGradAcadFilter.length > 0) {
+      filtered = filtered.filter((item) => {
+        const grad = (item.graduacaoAcademica || "").toString().trim();
+        return selectedGradAcadFilter.includes(grad);
+      });
+    }
+
+
+
 
     // Apply search filter
     if (searchQuery.trim()) {
