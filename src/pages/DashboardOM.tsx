@@ -543,7 +543,7 @@ const DashboardOM = () => {
     }
 
     // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
-    const hasNonOpcaoFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+    const hasNonOpcaoFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
     if (hasNonOpcaoFilters && !selectedOpcoes.includes("TTC")) {
       filtered = filtered.filter((item) => normalizeOpcao(item.opcaoTmft) !== "TTC");
     }
@@ -609,7 +609,7 @@ const DashboardOM = () => {
 
     // EFETIVO: quando há filtros de corpo/quadro/posto, conta ocupados pelo campo EFE correspondente
     // Aplica os mesmos filtros (OM, Opção, Search) mas usa corpoEfe/quadroEfe/postoEfe ao invés de TMFT
-    const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
+    const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedOpcoes.length > 0;
 
     let totalEXI: number;
     let efetivoNames = new Set<string>();
@@ -617,7 +617,7 @@ const DashboardOM = () => {
       // Aplica todos os filtros usando campos EFE para corpo/quadro/posto
       let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
       // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
-      const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+      const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
       if (hasNonOpcaoFiltersEfe && !selectedOpcoes.includes("TTC")) {
         efetivoData = efetivoData.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
       }
@@ -720,11 +720,11 @@ const DashboardOM = () => {
 
   // Calculate the same EFETIVO population used by metrics to ensure NA NEO + FORA DA NEO = EFETIVO
   const efetivoPopulation = useMemo(() => {
-    const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
+    const hasEfeFilters = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedOpcoes.length > 0;
 
     if (hasEfeFilters) {
       let efetivoData = personnelData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
-      const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+      const hasNonOpcaoFiltersEfe = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
       if (hasNonOpcaoFiltersEfe && !selectedOpcoes.includes("TTC")) {
         efetivoData = efetivoData.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
       }
@@ -992,7 +992,7 @@ const DashboardOM = () => {
     }
 
     // Excluir TTC quando filtros específicos estão ativos e TTC não foi selecionado
-    const hasNonOpcaoFiltersVagas = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+    const hasNonOpcaoFiltersVagas = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
     if (hasNonOpcaoFiltersVagas && !selectedOpcoes.includes("TTC")) {
       filtered = filtered.filter((item) => normalizeOpcao(item.opcaoTmft) !== "TTC");
     }
@@ -1248,7 +1248,7 @@ const DashboardOM = () => {
       const activeOMs = selectedOMs.length > 0 ? selectedOMs : availableOMs;
 
       // ====== Helper: build resumo rows (OM, TMFT, EFETIVO, ATENDIMENTO) ======
-      const hasEfeFiltersGlobal = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
+      const hasEfeFiltersGlobal = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedOpcoes.length > 0;
 
       // EXT LOT e AT. TOTAL sempre visíveis em todas as tabelas do PDF
       const hasExtraLotacao = true;
@@ -1344,7 +1344,7 @@ const DashboardOM = () => {
           if (hasEfeFiltersGlobal) {
             let ef = personnelData.filter((item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
             // Excluir TTC quando filtros específicos estão ativos
-            const hasNonOpcaoFiltersPdf = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+            const hasNonOpcaoFiltersPdf = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
             if (hasNonOpcaoFiltersPdf && !selectedOpcoes.includes("TTC")) {
               ef = ef.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
             }
@@ -1721,7 +1721,7 @@ const DashboardOM = () => {
             filtTmft = omRegularData.length;
             let ef = personnelData.filter((item) => item.om === om && item.tipoSetor !== "EXTRA LOTAÇÃO" && item.ocupado);
             // Excluir TTC quando filtros específicos estão ativos
-            const hasNonOpcaoFiltersPdf2 = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+            const hasNonOpcaoFiltersPdf2 = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
             if (hasNonOpcaoFiltersPdf2 && !selectedOpcoes.includes("TTC")) {
               ef = ef.filter((item) => normalizeOpcao(item.opcaoEfe) !== "TTC");
             }
@@ -1764,7 +1764,7 @@ const DashboardOM = () => {
         // Quando há filtros de corpo/quadro/posto, incluir linhas extras de militares que estão em outras posições
         let omTableData = omData;
         const hasEfeFiltersTable =
-          selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedOpcoes.length > 0;
+          selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedOpcoes.length > 0;
 
         if (hasEfeFiltersTable) {
           // Buscar militares desta OM que têm campos EFE no filtro mas TMFT diferente
@@ -2127,7 +2127,7 @@ const DashboardOM = () => {
           let eff: number;
           if (hasEfeFiltersGlobal) {
             let ef = personnelData.filter((i) => i.om === om && i.tipoSetor !== "EXTRA LOTAÇÃO" && i.ocupado);
-            const hasNonOpcaoFiltersPdf = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0;
+            const hasNonOpcaoFiltersPdf = selectedCorpos.length > 0 || selectedQuadros.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0;
             if (hasNonOpcaoFiltersPdf && !selectedOpcoes.includes("TTC")) {
               ef = ef.filter((i) => normalizeOpcao(i.opcaoEfe) !== "TTC");
             }
@@ -2230,7 +2230,7 @@ const DashboardOM = () => {
       ];
 
       // Filters applied
-      if (selectedOMs.length > 0 || selectedOpcoes.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedCorpos.length > 0 || selectedQuadros.length > 0) {
+      if (selectedOMs.length > 0 || selectedOpcoes.length > 0 || selectedPostoFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedGradAcadFilter.length > 0 || selectedCorpos.length > 0 || selectedQuadros.length > 0) {
         titleParagraphs.push(
           new Paragraph({
             children: [new TextRun({ text: "Filtros Aplicados:", bold: true, size: 20 })],
