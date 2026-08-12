@@ -229,10 +229,13 @@ const REVERSE_EQUIVALENCE: Record<string, string[]> = {
 };
 
 export function areSpecialtiesEquivalent(tmft: string, efe: string): boolean {
-  if (tmft === efe) return true;
-  const equivalents = SPECIALTY_EQUIVALENCE[tmft];
-  if (equivalents && equivalents.includes(efe)) return true;
-  return false;
+  const a = (tmft || "").trim().toUpperCase();
+  const b = (efe || "").trim().toUpperCase();
+  if (a === b) return true;
+  if (SPECIALTY_EQUIVALENCE[a]?.includes(b)) return true;
+  if (SPECIALTY_EQUIVALENCE[b]?.includes(a)) return true;
+  // Symmetric comparison via canonical codes (e.g. TIC <-> PD, ADM <-> AD)
+  return canonicalizeSpecialty(a) === canonicalizeSpecialty(b);
 }
 
 /**
