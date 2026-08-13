@@ -2184,13 +2184,22 @@ const DashboardOM = () => {
         });
       }
 
-      // Add page numbers
+      // Rodapé: linha, data de geração e numeração
       const totalPages = pdf.getNumberOfPages();
+      const geradoEm = new Date().toLocaleString("pt-BR");
       for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
-        pdf.setFontSize(10);
-        pdf.text(`${i} - ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+        pdf.setDrawColor(41, 128, 185);
+        pdf.setLineWidth(0.4);
+        pdf.line(14, pageHeight - 14, pageWidth - 14, pageHeight - 14);
+        pdf.setFontSize(8);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(`COpAb - Oficiais | Gerado em ${geradoEm}`, 14, pageHeight - 9);
+        pdf.text(`Página ${i} de ${totalPages}`, pageWidth - 14, pageHeight - 9, { align: "right" });
+        pdf.setTextColor(0, 0, 0);
       }
+
 
       openPdfPreview(pdf, "tabela-mestra-forca-trabalho.pdf");
       toast.success("PDF gerado com sucesso!");
