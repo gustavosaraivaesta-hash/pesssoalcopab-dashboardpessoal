@@ -1399,8 +1399,9 @@ const DashboardOM = () => {
           tEfetivo += omEfetivo;
           tExtra += omExtra;
           tDestLic += omDestLic;
+          tDestLicAt += dlF.atend;
 
-          const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + omDestLic);
+          const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + dlF.atend);
           const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
           if (hasExtraLotacao) {
             row.push(omExtra.toString());
@@ -1410,7 +1411,7 @@ const DashboardOM = () => {
           rows.push(row);
         }
 
-        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLic);
+        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLicAt);
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
           totalRow.push(tExtra.toString());
@@ -1418,7 +1419,8 @@ const DashboardOM = () => {
         totalRow.push(tDestLic.toString());
         totalRow.push(totalAtendTotal);
         rows.push(totalRow);
-        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra, totalDestLic: tDestLic };
+        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra, totalDestLic: tDestLic, totalDestLicAt: tDestLicAt };
+
       };
 
       const renderResumoTable = (title: string, rows: string[][], startY: number, color: [number, number, number]) => {
