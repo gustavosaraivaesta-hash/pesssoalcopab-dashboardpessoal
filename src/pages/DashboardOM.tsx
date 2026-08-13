@@ -1293,15 +1293,19 @@ const DashboardOM = () => {
             des = des.filter((i) => matchesOpcaoFilter(i.opcao, selectedOpcoes));
           }
         }
-        // Não contar duas vezes quem já está no EFETIVO da OM
+        // DISPLAY: total real de destaques/licenças da OM (apenas sem repetir a mesma pessoa nas duas listas)
+        const display = dedupeDestLic(lic, des, new Set<string>()).total;
+        // ATEND: desconta quem já está contabilizado no EFETIVO da OM (evita contar 2x no percentual)
         const omEfetivoNames = new Set(
           personnelData
             .filter((i) => i.om === om && i.ocupado)
             .map((i) => nomeKey(i.nome))
             .filter(Boolean),
         );
-        return dedupeDestLic(lic, des, omEfetivoNames).total;
+        const atend = dedupeDestLic(lic, des, omEfetivoNames).total;
+        return { display, atend };
       };
+
 
       // Build GERAL rows from ALL personnelData (no filters) across ALL availableOMs
       const buildGeralResumoRows = () => {
@@ -1310,6 +1314,7 @@ const DashboardOM = () => {
         let tEfetivo = 0;
         let tExtra = 0;
         let tDestLic = 0;
+        let tDestLicAt = 0;
 
         for (const om of availableOMs) {
           const omAllData = personnelData.filter((item) => item.om === om);
@@ -1319,16 +1324,18 @@ const DashboardOM = () => {
           const omTmft = omRegularData.length;
           const omEfetivo = omRegularData.filter((item) => item.ocupado).length;
           const omExtra = omExtraData.length;
-          const omDestLic = countDestLicForOM(om, false);
+          const dl = countDestLicForOM(om, false);
+          const omDestLic = dl.display;
           const omVagos = omTmft - omEfetivo;
 
           tTmft += omTmft;
           tEfetivo += omEfetivo;
           tExtra += omExtra;
           tDestLic += omDestLic;
+          tDestLicAt += dl.atend;
 
           if (omTmft > 0) {
-            const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + omDestLic);
+            const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + dl.atend);
             const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
             if (hasExtraLotacao) {
               row.push(omExtra.toString());
@@ -1339,7 +1346,7 @@ const DashboardOM = () => {
           }
         }
 
-        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLic);
+        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLicAt);
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
           totalRow.push(tExtra.toString());
@@ -1347,7 +1354,8 @@ const DashboardOM = () => {
         totalRow.push(tDestLic.toString());
         totalRow.push(totalAtendTotal);
         rows.push(totalRow);
-        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra, totalDestLic: tDestLic };
+        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra, totalDestLic: tDestLic, totalDestLicAt: tDestLicAt };
+
       };
 
       // Build FILTRADO rows from filtered data
@@ -1357,6 +1365,7 @@ const DashboardOM = () => {
         let tEfetivo = 0;
         let tExtra = 0;
         let tDestLic = 0;
+        let tDestLicAt = 0;
 
         for (const om of activeOMs) {
           const omData = filteredData.filter((item) => item.om === om);
@@ -1364,7 +1373,8 @@ const DashboardOM = () => {
           const omExtraData = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
           const omTmft = omRegularData.length;
           const omExtra = omExtraData.length;
-          const omDestLic = countDestLicForOM(om, true);
+          const dlF = countDestLicForOM(om, true);
+          const omDestLic = dlF.display;
 
           let omEfetivo: number;
           if (hasEfeFiltersGlobal) {
@@ -1389,8 +1399,9 @@ const DashboardOM = () => {
           tEfetivo += omEfetivo;
           tExtra += omExtra;
           tDestLic += omDestLic;
+          tDestLicAt += dlF.atend;
 
-          const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + omDestLic);
+          const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + dlF.atend);
           const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
           if (hasExtraLotacao) {
             row.push(omExtra.toString());
@@ -1400,7 +1411,7 @@ const DashboardOM = () => {
           rows.push(row);
         }
 
-        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLic);
+        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLicAt);
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
           totalRow.push(tExtra.toString());
@@ -1408,7 +1419,8 @@ const DashboardOM = () => {
         totalRow.push(tDestLic.toString());
         totalRow.push(totalAtendTotal);
         rows.push(totalRow);
-        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra, totalDestLic: tDestLic };
+        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra, totalDestLic: tDestLic, totalDestLicAt: tDestLicAt };
+
       };
 
       const renderResumoTable = (title: string, rows: string[][], startY: number, color: [number, number, number]) => {
@@ -1448,15 +1460,16 @@ const DashboardOM = () => {
       const renderSideBySideTotals = (
         geralTmft: number, geralEfetivo: number, geralExtra: number, geralDestLic: number,
         filtTmft: number, filtEfetivo: number, filtExtra: number, filtDestLic: number,
-        startY: number
+        startY: number,
+        geralDestLicAt?: number, filtDestLicAt?: number
       ) => {
         let y = startY;
         y = checkNewPage(y, 40);
 
         const geralVagos = geralTmft - geralEfetivo;
-        const geralAtTotal = formatAtTotal(geralTmft, geralEfetivo + geralExtra + geralDestLic);
+        const geralAtTotal = formatAtTotal(geralTmft, geralEfetivo + geralExtra + (geralDestLicAt ?? geralDestLic));
         const filtVagos = filtTmft - filtEfetivo;
-        const filtAtTotal = formatAtTotal(filtTmft, filtEfetivo + filtExtra + filtDestLic);
+        const filtAtTotal = formatAtTotal(filtTmft, filtEfetivo + filtExtra + (filtDestLicAt ?? filtDestLic));
 
         const filtLabelParts: string[] = [];
         if (selectedCorpos.length > 0) filtLabelParts.push(selectedCorpos.join(", "));
@@ -1542,7 +1555,8 @@ const DashboardOM = () => {
         yPosition = renderSideBySideTotals(
           geral.totalTmft, geral.totalEfetivo, geral.totalExtra, geral.totalDestLic,
           filtrado.totalTmft, filtrado.totalEfetivo, filtrado.totalExtra, filtrado.totalDestLic,
-          yPosition
+          yPosition,
+          geral.totalDestLicAt, filtrado.totalDestLicAt
         );
 
         // Per-OM tables - show GERAL and FILTRADO side-by-side as ONE combined table
@@ -1735,13 +1749,15 @@ const DashboardOM = () => {
         const omGeralTmft = omAllRegular.length;
         const omGeralEfetivo = omAllRegular.filter((item) => item.ocupado).length;
         const omGeralExtra = omAllExtra.length;
-        const omGeralDestLic = countDestLicForOM(om, false);
+        const omGeralDL = countDestLicForOM(om, false);
+        const omGeralDestLic = omGeralDL.display;
 
         // Calculate filtered metrics per OM
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omFiltExtraData = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
         const omFiltExtra = omFiltExtraData.length;
-        const omFiltDestLic = countDestLicForOM(om, true);
+        const omFiltDL = countDestLicForOM(om, true);
+        const omFiltDestLic = omFiltDL.display;
 
         if (hasEfeFiltersGlobal || selectedOMs.length > 0) {
           let filtTmft: number;
@@ -1764,10 +1780,10 @@ const DashboardOM = () => {
             filtTmft = omRegularData.length;
             filtEfetivo = omRegularData.filter((item) => item.ocupado).length;
           }
-          yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, omGeralExtra, omGeralDestLic, filtTmft, filtEfetivo, omFiltExtra, omFiltDestLic, yPosition);
+          yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, omGeralExtra, omGeralDestLic, filtTmft, filtEfetivo, omFiltExtra, omFiltDestLic, yPosition, omGeralDL.atend, omFiltDL.atend);
         } else {
           const omVagos = omGeralTmft - omGeralEfetivo;
-          const atTotal = formatAtTotal(omGeralTmft, omGeralEfetivo + omGeralExtra + omGeralDestLic);
+          const atTotal = formatAtTotal(omGeralTmft, omGeralEfetivo + omGeralExtra + omGeralDL.atend);
           pdf.setFontSize(8);
           pdf.setFont("helvetica", "bold");
           pdf.text("GERAL", pageWidth / 2, yPosition, { align: "center" });
@@ -2176,9 +2192,10 @@ const DashboardOM = () => {
           }
 
           const semNeo = omExt.length;
-          const destLic = countDestLicForOM(om, true);
+          const destLicObj = countDestLicForOM(om, true);
+          const destLic = destLicObj.display;
           if (tmft === 0 && eff === 0 && semNeo === 0 && destLic === 0) continue;
-          const efeTotal = eff + destLic + semNeo;
+          const efeTotal = eff + destLicObj.atend + semNeo;
           const at = formatAtTotal(tmft, efeTotal);
           sT += tmft; sE += eff; sDL += destLic; sSN += semNeo;
           detailedRows.push([om, String(tmft), String(efeTotal), at]);
