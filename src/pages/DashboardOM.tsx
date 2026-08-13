@@ -1460,15 +1460,16 @@ const DashboardOM = () => {
       const renderSideBySideTotals = (
         geralTmft: number, geralEfetivo: number, geralExtra: number, geralDestLic: number,
         filtTmft: number, filtEfetivo: number, filtExtra: number, filtDestLic: number,
-        startY: number
+        startY: number,
+        geralDestLicAt?: number, filtDestLicAt?: number
       ) => {
         let y = startY;
         y = checkNewPage(y, 40);
 
         const geralVagos = geralTmft - geralEfetivo;
-        const geralAtTotal = formatAtTotal(geralTmft, geralEfetivo + geralExtra + geralDestLic);
+        const geralAtTotal = formatAtTotal(geralTmft, geralEfetivo + geralExtra + (geralDestLicAt ?? geralDestLic));
         const filtVagos = filtTmft - filtEfetivo;
-        const filtAtTotal = formatAtTotal(filtTmft, filtEfetivo + filtExtra + filtDestLic);
+        const filtAtTotal = formatAtTotal(filtTmft, filtEfetivo + filtExtra + (filtDestLicAt ?? filtDestLic));
 
         const filtLabelParts: string[] = [];
         if (selectedCorpos.length > 0) filtLabelParts.push(selectedCorpos.join(", "));
