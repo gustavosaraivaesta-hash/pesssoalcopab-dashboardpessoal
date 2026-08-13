@@ -1462,7 +1462,9 @@ const DashboardOM = () => {
         if (selectedCorpos.length > 0) filtLabelParts.push(selectedCorpos.join(", "));
         if (selectedQuadros.length > 0) filtLabelParts.push(selectedQuadros.join(", "));
         if (selectedPostoFilter.length > 0) filtLabelParts.push(selectedPostoFilter.join(", "));
+        if (selectedGradAcadFilter.length > 0) filtLabelParts.push(selectedGradAcadFilter.join(", "));
         if (selectedOpcoes.length > 0) filtLabelParts.push(selectedOpcoes.join(", "));
+
         const filtTitleLabel = filtLabelParts.length > 0 ? `FILTRADO (${filtLabelParts.join(" | ")})` : "FILTRADO";
 
         const halfW = (pageWidth - 46) / 2;
