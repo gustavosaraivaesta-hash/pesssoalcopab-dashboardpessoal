@@ -1916,7 +1916,7 @@ const DashboardOM = () => {
               const quadroEfe = data.row.raw?.[9];
               const corpoTmft = data.row.raw?.[6];
               const corpoEfe = data.row.raw?.[10];
-              const status = data.row.raw?.[11];
+              const status = data.row.raw?.[12];
               const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
               const setorStr = setor ? setor.toString().trim().toUpperCase() : "";
               const quadroTmftStr = quadroTmft ? quadroTmft.toString().trim().toUpperCase() : "";
