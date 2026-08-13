@@ -1555,7 +1555,8 @@ const DashboardOM = () => {
         yPosition = renderSideBySideTotals(
           geral.totalTmft, geral.totalEfetivo, geral.totalExtra, geral.totalDestLic,
           filtrado.totalTmft, filtrado.totalEfetivo, filtrado.totalExtra, filtrado.totalDestLic,
-          yPosition
+          yPosition,
+          geral.totalDestLicAt, filtrado.totalDestLicAt
         );
 
         // Per-OM tables - show GERAL and FILTRADO side-by-side as ONE combined table
