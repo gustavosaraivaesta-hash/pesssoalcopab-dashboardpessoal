@@ -1203,29 +1203,43 @@ const DashboardOM = () => {
         return y;
       };
 
-      // First page with brasão and general info
+      // Cabeçalho da capa com faixa institucional
+      pdf.setFillColor(15, 35, 63);
+      pdf.rect(0, 0, pageWidth, 6, "F");
+
       pdf.addImage(brasaoImg, "PNG", (pageWidth - 20) / 2, yPosition, 20, 24);
       yPosition += 28;
 
       pdf.setFontSize(16);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(15, 35, 63);
       pdf.text("CENTRO DE OPERAÇÕES DO ABASTECIMENTO", pageWidth / 2, yPosition, {
         align: "center",
       });
-      yPosition += 10;
+      yPosition += 9;
 
-      pdf.setFontSize(14);
+      pdf.setFontSize(13);
+      pdf.setTextColor(41, 128, 185);
       pdf.text("Tabela Mestra de Força de Trabalho - OFICIAIS", pageWidth / 2, yPosition, {
         align: "center",
       });
-      yPosition += 15;
+      yPosition += 5;
+      pdf.setDrawColor(41, 128, 185);
+      pdf.setLineWidth(0.6);
+      pdf.line(pageWidth / 2 - 60, yPosition, pageWidth / 2 + 60, yPosition);
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont("helvetica", "normal");
+      yPosition += 12;
 
       if (
         selectedOMs.length > 0 ||
         selectedOpcoes.length > 0 ||
         selectedCorpos.length > 0 ||
         selectedQuadros.length > 0 ||
+        selectedGradAcadFilter.length > 0 ||
         selectedPostoFilter.length > 0
       ) {
+
         pdf.setFontSize(10);
         pdf.text("Filtros Aplicados:", 14, yPosition);
         yPosition += 6;
@@ -1448,7 +1462,9 @@ const DashboardOM = () => {
         if (selectedCorpos.length > 0) filtLabelParts.push(selectedCorpos.join(", "));
         if (selectedQuadros.length > 0) filtLabelParts.push(selectedQuadros.join(", "));
         if (selectedPostoFilter.length > 0) filtLabelParts.push(selectedPostoFilter.join(", "));
+        if (selectedGradAcadFilter.length > 0) filtLabelParts.push(selectedGradAcadFilter.join(", "));
         if (selectedOpcoes.length > 0) filtLabelParts.push(selectedOpcoes.join(", "));
+
         const filtTitleLabel = filtLabelParts.length > 0 ? `FILTRADO (${filtLabelParts.join(" | ")})` : "FILTRADO";
 
         const halfW = (pageWidth - 46) / 2;
@@ -1859,7 +1875,9 @@ const DashboardOM = () => {
             item.postoEfe || "-",
             item.quadroEfe || "-",
             item.corpoEfe || "-",
+            (item.graduacaoAcademica || "").toString().trim() || "-",
             item.ocupado
+
               ? (() => {
                   if (isExtraRow) {
                     return "EFETIVO";
@@ -1895,7 +1913,9 @@ const DashboardOM = () => {
               "POSTO EFE",
               "QUADRO EFE",
               "CORPO EFE",
+              "GRAD. ACAD.",
               "STATUS",
+
             ],
           ],
           body: tableData,
@@ -1912,7 +1932,7 @@ const DashboardOM = () => {
               const quadroEfe = data.row.raw?.[9];
               const corpoTmft = data.row.raw?.[6];
               const corpoEfe = data.row.raw?.[10];
-              const status = data.row.raw?.[11];
+              const status = data.row.raw?.[12];
               const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
               const setorStr = setor ? setor.toString().trim().toUpperCase() : "";
               const quadroTmftStr = quadroTmft ? quadroTmft.toString().trim().toUpperCase() : "";
@@ -2184,13 +2204,22 @@ const DashboardOM = () => {
         });
       }
 
-      // Add page numbers
+      // Rodapé: linha, data de geração e numeração
       const totalPages = pdf.getNumberOfPages();
+      const geradoEm = new Date().toLocaleString("pt-BR");
       for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
-        pdf.setFontSize(10);
-        pdf.text(`${i} - ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+        pdf.setDrawColor(41, 128, 185);
+        pdf.setLineWidth(0.4);
+        pdf.line(14, pageHeight - 14, pageWidth - 14, pageHeight - 14);
+        pdf.setFontSize(8);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(`COpAb - Oficiais | Gerado em ${geradoEm}`, 14, pageHeight - 9);
+        pdf.text(`Página ${i} de ${totalPages}`, pageWidth - 14, pageHeight - 9, { align: "right" });
+        pdf.setTextColor(0, 0, 0);
       }
+
 
       openPdfPreview(pdf, "tabela-mestra-forca-trabalho.pdf");
       toast.success("PDF gerado com sucesso!");

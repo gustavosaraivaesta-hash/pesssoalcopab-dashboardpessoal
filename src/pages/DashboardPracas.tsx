@@ -983,21 +983,33 @@ const DashboardPracas = () => {
         return y;
       };
 
-      // First page with brasão and general info
+      // Cabeçalho da capa com faixa institucional
+      pdf.setFillColor(15, 35, 63);
+      pdf.rect(0, 0, pageWidth, 6, "F");
+
       pdf.addImage(brasaoImg, "PNG", (pageWidth - 20) / 2, yPosition, 20, 24);
       yPosition += 28;
 
       pdf.setFontSize(16);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(15, 35, 63);
       pdf.text("CENTRO DE OPERAÇÕES DO ABASTECIMENTO", pageWidth / 2, yPosition, {
         align: "center",
       });
-      yPosition += 10;
+      yPosition += 9;
 
-      pdf.setFontSize(14);
+      pdf.setFontSize(13);
+      pdf.setTextColor(41, 128, 185);
       pdf.text("Tabela Mestra de Força de Trabalho - PRAÇAS", pageWidth / 2, yPosition, {
         align: "center",
       });
-      yPosition += 15;
+      yPosition += 5;
+      pdf.setDrawColor(41, 128, 185);
+      pdf.setLineWidth(0.6);
+      pdf.line(pageWidth / 2 - 60, yPosition, pageWidth / 2 + 60, yPosition);
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont("helvetica", "normal");
+      yPosition += 12;
 
       if (
         selectedOMs.length > 0 ||
@@ -1014,9 +1026,15 @@ const DashboardPracas = () => {
           filterX += 50;
         }
         if (selectedQuadros.length > 0) {
-          pdf.text(`Especialidade: ${selectedQuadros.join(", ")}`, filterX, yPosition);
-          filterX += 50;
+          const eq = expandSpecialtyEquivalents(selectedQuadros).filter((c) => !selectedQuadros.includes(c));
+          pdf.text(
+            `Especialidade: ${selectedQuadros.join(", ")}${eq.length > 0 ? ` (inclui ${eq.join(", ")})` : ""}`,
+            filterX,
+            yPosition,
+          );
+          filterX += 60;
         }
+
         if (selectedGraduacoes.length > 0) {
           pdf.text(`Graduação: ${selectedGraduacoes.join(", ")}`, filterX, yPosition);
           filterX += 50;
@@ -1799,13 +1817,96 @@ const DashboardPracas = () => {
         });
       }
 
-      // Add page numbers
+      // ====== PÁGINA: RESUMO POR ESPECIALIDADE (equivalentes agrupados) ======
+      pdf.addPage();
+      {
+        let yEsp = 20;
+        pdf.setFontSize(14);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(15, 35, 63);
+        pdf.text("RESUMO POR ESPECIALIDADE - PRAÇAS", pageWidth / 2, yEsp, { align: "center" });
+        yEsp += 7;
+        pdf.setFontSize(8);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(
+          "Especialidades equivalentes agrupadas: PD = TIC | AD = ADM | QI = QUI | EF, PC, HD, ND = SAU | IF-FN = IF",
+          pageWidth / 2,
+          yEsp,
+          { align: "center" },
+        );
+        pdf.setTextColor(0, 0, 0);
+        yEsp += 8;
+
+        const espMap = new Map<string, { tmft: number; efe: number }>();
+        const getEsp = (code: string) => {
+          const key = canonicalizeSpecialty(code);
+          if (!espMap.has(key)) espMap.set(key, { tmft: 0, efe: 0 });
+          return espMap.get(key)!;
+        };
+        for (const item of baseFilteredData) {
+          if (item.tipoSetor !== "EXTRA LOTAÇÃO") {
+            if (!hasSpecificFilters || matchesTmftFilters(item)) getEsp(item.quadroTmft || "").tmft += 1;
+          }
+          if (item.ocupado && (!hasSpecificFilters || matchesEfeFilters(item))) {
+            getEsp(item.quadroEfe || item.quadroTmft || "").efe += 1;
+          }
+        }
+
+        const espRows = Array.from(espMap.entries())
+          .filter(([, v]) => v.tmft > 0 || v.efe > 0)
+          .sort((a, b) => b[1].tmft - a[1].tmft || a[0].localeCompare(b[0]))
+          .map(([esp, v]) => [
+            esp,
+            String(v.tmft),
+            String(v.efe),
+            String(v.tmft - v.efe),
+            formatAtTotal(v.tmft, v.efe),
+          ]);
+
+        const tEsp = espRows.reduce((acc, r) => acc + Number(r[1]), 0);
+        const eEsp = espRows.reduce((acc, r) => acc + Number(r[2]), 0);
+        espRows.push(["TOTAL GERAL", String(tEsp), String(eEsp), String(tEsp - eEsp), formatAtTotal(tEsp, eEsp)]);
+
+        autoTable(pdf, {
+          startY: yEsp,
+          head: [["ESPECIALIDADE", "TMFT", "EFETIVO", "SALDO", "ATEND."]],
+          body: espRows,
+          theme: "grid",
+          styles: { fontSize: 9, cellPadding: 3, halign: "center" },
+          headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+          margin: { left: 40, right: 40 },
+          didParseCell: (data) => {
+            if (data.section === "body") {
+              if (data.row.raw?.[0] === "TOTAL GERAL") {
+                data.cell.styles.fontStyle = "bold";
+                data.cell.styles.fillColor = [229, 231, 235];
+              } else if (data.column.index === 3) {
+                const saldo = Number(data.row.raw?.[3]);
+                if (saldo > 0) data.cell.styles.textColor = [185, 28, 28];
+                else if (saldo < 0) data.cell.styles.textColor = [22, 101, 52];
+              }
+            }
+          },
+        });
+      }
+
+      // Rodapé: linha, data de geração e numeração
       const totalPages = pdf.getNumberOfPages();
+      const geradoEm = new Date().toLocaleString("pt-BR");
       for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
-        pdf.setFontSize(10);
-        pdf.text(`${i} - ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+        pdf.setDrawColor(41, 128, 185);
+        pdf.setLineWidth(0.4);
+        pdf.line(14, pageHeight - 14, pageWidth - 14, pageHeight - 14);
+        pdf.setFontSize(8);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(`COpAb - Praças | Gerado em ${geradoEm}`, 14, pageHeight - 9);
+        pdf.text(`Página ${i} de ${totalPages}`, pageWidth - 14, pageHeight - 9, { align: "right" });
+        pdf.setTextColor(0, 0, 0);
       }
+
 
       openPdfPreview(pdf, "tabela-mestra-forca-trabalho-pracas.pdf");
       toast.success("PDF gerado com sucesso!");
