@@ -983,21 +983,33 @@ const DashboardPracas = () => {
         return y;
       };
 
-      // First page with brasão and general info
+      // Cabeçalho da capa com faixa institucional
+      pdf.setFillColor(15, 35, 63);
+      pdf.rect(0, 0, pageWidth, 6, "F");
+
       pdf.addImage(brasaoImg, "PNG", (pageWidth - 20) / 2, yPosition, 20, 24);
       yPosition += 28;
 
       pdf.setFontSize(16);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(15, 35, 63);
       pdf.text("CENTRO DE OPERAÇÕES DO ABASTECIMENTO", pageWidth / 2, yPosition, {
         align: "center",
       });
-      yPosition += 10;
+      yPosition += 9;
 
-      pdf.setFontSize(14);
+      pdf.setFontSize(13);
+      pdf.setTextColor(41, 128, 185);
       pdf.text("Tabela Mestra de Força de Trabalho - PRAÇAS", pageWidth / 2, yPosition, {
         align: "center",
       });
-      yPosition += 15;
+      yPosition += 5;
+      pdf.setDrawColor(41, 128, 185);
+      pdf.setLineWidth(0.6);
+      pdf.line(pageWidth / 2 - 60, yPosition, pageWidth / 2 + 60, yPosition);
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont("helvetica", "normal");
+      yPosition += 12;
 
       if (
         selectedOMs.length > 0 ||
@@ -1014,9 +1026,15 @@ const DashboardPracas = () => {
           filterX += 50;
         }
         if (selectedQuadros.length > 0) {
-          pdf.text(`Especialidade: ${selectedQuadros.join(", ")}`, filterX, yPosition);
-          filterX += 50;
+          const eq = expandSpecialtyEquivalents(selectedQuadros).filter((c) => !selectedQuadros.includes(c));
+          pdf.text(
+            `Especialidade: ${selectedQuadros.join(", ")}${eq.length > 0 ? ` (inclui ${eq.join(", ")})` : ""}`,
+            filterX,
+            yPosition,
+          );
+          filterX += 60;
         }
+
         if (selectedGraduacoes.length > 0) {
           pdf.text(`Graduação: ${selectedGraduacoes.join(", ")}`, filterX, yPosition);
           filterX += 50;
