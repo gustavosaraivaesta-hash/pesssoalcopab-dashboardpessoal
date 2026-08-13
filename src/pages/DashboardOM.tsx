@@ -1314,6 +1314,7 @@ const DashboardOM = () => {
         let tEfetivo = 0;
         let tExtra = 0;
         let tDestLic = 0;
+        let tDestLicAt = 0;
 
         for (const om of availableOMs) {
           const omAllData = personnelData.filter((item) => item.om === om);
@@ -1323,16 +1324,18 @@ const DashboardOM = () => {
           const omTmft = omRegularData.length;
           const omEfetivo = omRegularData.filter((item) => item.ocupado).length;
           const omExtra = omExtraData.length;
-          const omDestLic = countDestLicForOM(om, false);
+          const dl = countDestLicForOM(om, false);
+          const omDestLic = dl.display;
           const omVagos = omTmft - omEfetivo;
 
           tTmft += omTmft;
           tEfetivo += omEfetivo;
           tExtra += omExtra;
           tDestLic += omDestLic;
+          tDestLicAt += dl.atend;
 
           if (omTmft > 0) {
-            const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + omDestLic);
+            const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + dl.atend);
             const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
             if (hasExtraLotacao) {
               row.push(omExtra.toString());
@@ -1343,7 +1346,7 @@ const DashboardOM = () => {
           }
         }
 
-        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLic);
+        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLicAt);
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
           totalRow.push(tExtra.toString());
@@ -1351,7 +1354,8 @@ const DashboardOM = () => {
         totalRow.push(tDestLic.toString());
         totalRow.push(totalAtendTotal);
         rows.push(totalRow);
-        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra, totalDestLic: tDestLic };
+        return { rows, totalTmft: tTmft, totalEfetivo: tEfetivo, totalExtra: tExtra, totalDestLic: tDestLic, totalDestLicAt: tDestLicAt };
+
       };
 
       // Build FILTRADO rows from filtered data
