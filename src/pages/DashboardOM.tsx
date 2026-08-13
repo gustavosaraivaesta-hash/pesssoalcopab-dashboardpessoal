@@ -1859,7 +1859,9 @@ const DashboardOM = () => {
             item.postoEfe || "-",
             item.quadroEfe || "-",
             item.corpoEfe || "-",
+            (item.graduacaoAcademica || "").toString().trim() || "-",
             item.ocupado
+
               ? (() => {
                   if (isExtraRow) {
                     return "EFETIVO";
