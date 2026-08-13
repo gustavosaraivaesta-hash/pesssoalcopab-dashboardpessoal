@@ -1293,15 +1293,19 @@ const DashboardOM = () => {
             des = des.filter((i) => matchesOpcaoFilter(i.opcao, selectedOpcoes));
           }
         }
-        // Não contar duas vezes quem já está no EFETIVO da OM
+        // DISPLAY: total real de destaques/licenças da OM (apenas sem repetir a mesma pessoa nas duas listas)
+        const display = dedupeDestLic(lic, des, new Set<string>()).total;
+        // ATEND: desconta quem já está contabilizado no EFETIVO da OM (evita contar 2x no percentual)
         const omEfetivoNames = new Set(
           personnelData
             .filter((i) => i.om === om && i.ocupado)
             .map((i) => nomeKey(i.nome))
             .filter(Boolean),
         );
-        return dedupeDestLic(lic, des, omEfetivoNames).total;
+        const atend = dedupeDestLic(lic, des, omEfetivoNames).total;
+        return { display, atend };
       };
+
 
       // Build GERAL rows from ALL personnelData (no filters) across ALL availableOMs
       const buildGeralResumoRows = () => {
