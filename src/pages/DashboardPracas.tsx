@@ -1066,13 +1066,26 @@ const DashboardPracas = () => {
             .map((i) => nomeKey(i.nome))
             .filter(Boolean),
         );
+      // total real (exibido) x total para o percentual (sem contar 2x quem já está no efetivo)
       const countDestLicGeral = (om: string) =>
+        dedupeDestLic(
+          licencasData.filter((i) => i.om === om),
+          destaquesData.filter((i) => i.om === om),
+          new Set<string>(),
+        ).total;
+      const countDestLicGeralAt = (om: string) =>
         dedupeDestLic(
           licencasData.filter((i) => i.om === om),
           destaquesData.filter((i) => i.om === om),
           omEfetivoNames(om),
         ).total;
       const countDestLicFiltrado = (om: string) =>
+        dedupeDestLic(
+          licencasData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)),
+          destaquesData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)),
+          new Set<string>(),
+        ).total;
+      const countDestLicFiltradoAt = (om: string) =>
         dedupeDestLic(
           licencasData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)),
           destaquesData.filter((i) => i.om === om && matchesDestLicFiltersPdf(i)),
@@ -1087,6 +1100,7 @@ const DashboardPracas = () => {
         let tEfetivo = 0;
         let tExtra = 0;
         let tDestLic = 0;
+        let tDestLicAt = 0;
 
         for (const om of availableOMs) {
           const omAllData = personnelData.filter((item) => item.om === om);
@@ -1098,14 +1112,16 @@ const DashboardPracas = () => {
           const omExtra = omExtraData.length;
           const omVagos = omTmft - omEfetivo;
           const omDestLic = countDestLicGeral(om);
+          const omDestLicAt = countDestLicGeralAt(om);
 
           tTmft += omTmft;
           tEfetivo += omEfetivo;
           tExtra += omExtra;
           tDestLic += omDestLic;
+          tDestLicAt += omDestLicAt;
 
           if (omTmft > 0) {
-            const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + omDestLic);
+            const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + omDestLicAt);
             const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
             if (hasExtraLotacao) {
               row.push(omExtra.toString());
@@ -1116,7 +1132,7 @@ const DashboardPracas = () => {
           }
         }
 
-        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLic);
+        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLicAt);
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
           totalRow.push(tExtra.toString());
@@ -1135,6 +1151,7 @@ const DashboardPracas = () => {
         let tEfetivo = 0;
         let tExtra = 0;
         let tDestLic = 0;
+        let tDestLicAt = 0;
 
         for (const om of activeOMs) {
           const omBaseData = baseFilteredData.filter((item) => item.om === om);
@@ -1143,6 +1160,7 @@ const DashboardPracas = () => {
           const omExtraData = hasSpecificFilters ? omExtraDataAll.filter(matchesEfeFilters) : omExtraDataAll;
           const omExtra = omExtraData.length;
           const omDestLic = countDestLicFiltrado(om);
+          const omDestLicAt = countDestLicFiltradoAt(om);
 
           let omTmft: number;
           let omEfetivo: number;
@@ -1160,8 +1178,9 @@ const DashboardPracas = () => {
           tEfetivo += omEfetivo;
           tExtra += omExtra;
           tDestLic += omDestLic;
+          tDestLicAt += omDestLicAt;
 
-          const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + omDestLic);
+          const atendTotal = formatAtTotal(omTmft, omEfetivo + omExtra + omDestLicAt);
           const row = [om, omTmft.toString(), omEfetivo.toString(), omVagos.toString()];
           if (hasExtraLotacao) {
             row.push(omExtra.toString());
@@ -1171,7 +1190,7 @@ const DashboardPracas = () => {
           rows.push(row);
         }
 
-        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLic);
+        const totalAtendTotal = formatAtTotal(tTmft, tEfetivo + tExtra + tDestLicAt);
         const totalRow = ["TOTAL GERAL", tTmft.toString(), tEfetivo.toString(), (tTmft - tEfetivo).toString()];
         if (hasExtraLotacao) {
           totalRow.push(tExtra.toString());
@@ -1775,6 +1794,12 @@ const DashboardPracas = () => {
                 .filter(Boolean),
             ),
           ).total;
+        const countDestLicDisplayForOM = (om: string) =>
+          dedupeDestLic(
+            licencasData.filter((i) => i.om === om && matchesDestLicFilters(i)),
+            destaquesData.filter((i) => i.om === om && matchesDestLicFilters(i)),
+            new Set<string>(),
+          ).total;
 
         const detailedRows: any[][] = [];
         let sT = 0, sE = 0, sDL = 0, sSN = 0;
@@ -1789,9 +1814,10 @@ const DashboardPracas = () => {
             ? omReg.filter((i) => i.ocupado && matchesEfeFilters(i)).length
             : omReg.filter((i) => i.ocupado).length;
           const semNeo = omExt.length;
-          const destLic = countDestLicForOM(om);
+          const destLic = countDestLicDisplayForOM(om);
+          const destLicAt = countDestLicForOM(om);
           if (tmft === 0 && eff === 0 && semNeo === 0 && destLic === 0) continue;
-          const efeTotal = eff + destLic + semNeo;
+          const efeTotal = eff + destLicAt + semNeo;
           const at = formatAtTotal(tmft, efeTotal);
           sT += tmft; sE += eff; sDL += destLic; sSN += semNeo;
           detailedRows.push([om, String(tmft), String(efeTotal), at]);
