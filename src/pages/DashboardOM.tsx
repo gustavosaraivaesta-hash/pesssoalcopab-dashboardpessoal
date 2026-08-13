@@ -1365,6 +1365,7 @@ const DashboardOM = () => {
         let tEfetivo = 0;
         let tExtra = 0;
         let tDestLic = 0;
+        let tDestLicAt = 0;
 
         for (const om of activeOMs) {
           const omData = filteredData.filter((item) => item.om === om);
