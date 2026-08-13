@@ -1897,7 +1897,9 @@ const DashboardOM = () => {
               "POSTO EFE",
               "QUADRO EFE",
               "CORPO EFE",
+              "GRAD. ACAD.",
               "STATUS",
+
             ],
           ],
           body: tableData,
