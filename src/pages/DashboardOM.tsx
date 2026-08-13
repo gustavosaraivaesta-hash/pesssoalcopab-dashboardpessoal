@@ -1749,13 +1749,15 @@ const DashboardOM = () => {
         const omGeralTmft = omAllRegular.length;
         const omGeralEfetivo = omAllRegular.filter((item) => item.ocupado).length;
         const omGeralExtra = omAllExtra.length;
-        const omGeralDestLic = countDestLicForOM(om, false);
+        const omGeralDL = countDestLicForOM(om, false);
+        const omGeralDestLic = omGeralDL.display;
 
         // Calculate filtered metrics per OM
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omFiltExtraData = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
         const omFiltExtra = omFiltExtraData.length;
-        const omFiltDestLic = countDestLicForOM(om, true);
+        const omFiltDL = countDestLicForOM(om, true);
+        const omFiltDestLic = omFiltDL.display;
 
         if (hasEfeFiltersGlobal || selectedOMs.length > 0) {
           let filtTmft: number;
@@ -1778,10 +1780,10 @@ const DashboardOM = () => {
             filtTmft = omRegularData.length;
             filtEfetivo = omRegularData.filter((item) => item.ocupado).length;
           }
-          yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, omGeralExtra, omGeralDestLic, filtTmft, filtEfetivo, omFiltExtra, omFiltDestLic, yPosition);
+          yPosition = renderSideBySideTotals(omGeralTmft, omGeralEfetivo, omGeralExtra, omGeralDestLic, filtTmft, filtEfetivo, omFiltExtra, omFiltDestLic, yPosition, omGeralDL.atend, omFiltDL.atend);
         } else {
           const omVagos = omGeralTmft - omGeralEfetivo;
-          const atTotal = formatAtTotal(omGeralTmft, omGeralEfetivo + omGeralExtra + omGeralDestLic);
+          const atTotal = formatAtTotal(omGeralTmft, omGeralEfetivo + omGeralExtra + omGeralDL.atend);
           pdf.setFontSize(8);
           pdf.setFont("helvetica", "bold");
           pdf.text("GERAL", pageWidth / 2, yPosition, { align: "center" });
@@ -2190,9 +2192,10 @@ const DashboardOM = () => {
           }
 
           const semNeo = omExt.length;
-          const destLic = countDestLicForOM(om, true);
+          const destLicObj = countDestLicForOM(om, true);
+          const destLic = destLicObj.display;
           if (tmft === 0 && eff === 0 && semNeo === 0 && destLic === 0) continue;
-          const efeTotal = eff + destLic + semNeo;
+          const efeTotal = eff + destLicObj.atend + semNeo;
           const at = formatAtTotal(tmft, efeTotal);
           sT += tmft; sE += eff; sDL += destLic; sSN += semNeo;
           detailedRows.push([om, String(tmft), String(efeTotal), at]);
