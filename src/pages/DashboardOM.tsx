@@ -1373,7 +1373,8 @@ const DashboardOM = () => {
           const omExtraData = omData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
           const omTmft = omRegularData.length;
           const omExtra = omExtraData.length;
-          const omDestLic = countDestLicForOM(om, true);
+          const dlF = countDestLicForOM(om, true);
+          const omDestLic = dlF.display;
 
           let omEfetivo: number;
           if (hasEfeFiltersGlobal) {
