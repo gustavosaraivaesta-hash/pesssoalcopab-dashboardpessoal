@@ -15,8 +15,12 @@ export function normalizeGraduacao(val: string | undefined | null): string {
     .trim()
     .replace(/^1\s*[º°]?\s*SG\b/i, "1SG")
     .replace(/^2\s*[º°]?\s*SG\b/i, "2SG")
-    .replace(/^3\s*[º°]?\s*SG\b/i, "3SG");
+    .replace(/^3\s*[º°]?\s*SG\b/i, "3SG")
+    // SO-RM1 / 2SG-RM1 / 1SG RM-1 -> SO / 2SG / 1SG
+    .replace(/\s*[-\s]\s*RM\s*-?\s*1\b/i, "")
+    .trim();
 }
+
 
 const RANK_PATTERN = String.raw`(?:C\s*ALTE|V\s*ALTE|CONTRA-ALMIRANTE|CMG|CF|CC|CT|1TEN|2TEN|1T|2T|GM|SO|[1-3]\s*[º°]?\s*SG|CB|MN)`;
 const RANK_ONLY_RE = new RegExp(`^${RANK_PATTERN}$`, "i");
