@@ -126,7 +126,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
 
       {/* Warning message for NEO ≠ EFE discrepancy */}
       {isDifferentNeoEfe && (
-        <p className="text-xs mt-1.5 font-medium text-amber-700 flex items-center gap-1">
+        <p className="text-xs mt-1.5 font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
           <AlertTriangle className="h-3 w-3" />
           NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE ({item.postoEfe || "?"}/{item.quadroEfe || "-"})
         </p>
