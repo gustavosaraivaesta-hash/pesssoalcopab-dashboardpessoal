@@ -3627,7 +3627,7 @@ const DashboardPracas = () => {
                 </TabsTrigger>
                 <TabsTrigger
                   value="trrm"
-                  className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800 data-[state=active]:border-purple-400"
+                  className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800 data-[state=active]:border-purple-400 dark:data-[state=active]:bg-purple-500/20 dark:data-[state=active]:text-purple-300 dark:data-[state=active]:border-purple-500/40"
                 >
                   📅 Previsão de TRRM
                 </TabsTrigger>
