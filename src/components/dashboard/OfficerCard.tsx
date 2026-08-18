@@ -104,7 +104,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
       </div>
 
       {/* Military name with posto-quadro prefix */}
-      <p className={`font-bold text-sm uppercase ${isDifferentNeoEfe ? 'text-amber-700' : 'text-foreground'}`}>
+      <p className={`font-bold text-sm uppercase ${isDifferentNeoEfe ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}`}>
         {item.ocupado && item.nome && item.nome.toUpperCase() !== 'VAGO' 
           ? formatMilitarName() 
           : item.nome || "VAGO"}
