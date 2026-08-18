@@ -52,10 +52,10 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
   };
 
   const getCardBackground = () => {
-    if (isDifferentNeoEfe) return "bg-amber-50 border-amber-400 border-2";
-    if (item.tipoSetor === "EXTRA LOTAÇÃO" || item.setor === "EXTRA LOTAÇÃO") return "bg-orange-100/50 border-orange-200";
-    if (!item.ocupado) return "bg-red-100/50 border-red-200";
-    return "bg-green-100/50 border-green-200";
+    if (isDifferentNeoEfe) return "bg-amber-50 border-amber-400 border-2 dark:bg-amber-500/15 dark:border-amber-500/50";
+    if (item.tipoSetor === "EXTRA LOTAÇÃO" || item.setor === "EXTRA LOTAÇÃO") return "bg-orange-100/50 border-orange-200 dark:bg-orange-500/15 dark:border-orange-500/30";
+    if (!item.ocupado) return "bg-red-100/50 border-red-200 dark:bg-red-500/15 dark:border-red-500/30";
+    return "bg-green-100/50 border-green-200 dark:bg-green-500/15 dark:border-green-500/30";
   };
 
   const getNeoVariantColor = () => {
