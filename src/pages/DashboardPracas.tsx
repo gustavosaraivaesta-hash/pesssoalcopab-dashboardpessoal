@@ -3645,7 +3645,7 @@ const DashboardPracas = () => {
                 </TabsTrigger>
                 <TabsTrigger
                   value="concurso"
-                  className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-800 data-[state=active]:border-emerald-400"
+                  className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-800 data-[state=active]:border-emerald-400 dark:data-[state=active]:bg-emerald-500/20 dark:data-[state=active]:text-emerald-300 dark:data-[state=active]:border-emerald-500/40"
                 >
                   🎓 Previsão de Curso
                 </TabsTrigger>
