@@ -3575,7 +3575,7 @@ const DashboardPracas = () => {
                         )}
                       </div>
                       <p
-                        className={`font-semibold text-sm uppercase ${isDifferentNeoEfe ? "text-amber-700" : "text-foreground"}`}
+                        className={`font-semibold text-sm uppercase ${isDifferentNeoEfe ? "text-amber-700 dark:text-amber-400" : "text-foreground"}`}
                       >
                         {item.ocupado && item.nome && item.nome.toUpperCase() !== "VAGO"
                           ? formatMilitarName()
