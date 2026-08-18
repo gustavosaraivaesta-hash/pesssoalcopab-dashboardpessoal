@@ -3639,7 +3639,7 @@ const DashboardPracas = () => {
                 </TabsTrigger>
                 <TabsTrigger
                   value="destaques"
-                  className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-800 data-[state=active]:border-yellow-400"
+                  className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-800 data-[state=active]:border-yellow-400 dark:data-[state=active]:bg-yellow-500/20 dark:data-[state=active]:text-yellow-300 dark:data-[state=active]:border-yellow-500/40"
                 >
                   ⭐ Destaques
                 </TabsTrigger>
