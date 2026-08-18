@@ -3533,12 +3533,12 @@ const DashboardPracas = () => {
                       key={`posto-${index}`}
                       className={`p-3 border rounded-lg ${
                         isDifferentNeoEfe
-                          ? "bg-amber-50 border-amber-400 border-2"
+                          ? "bg-amber-50 border-amber-400 border-2 dark:bg-amber-500/15 dark:border-amber-500/50"
                           : item.tipoSetor === "EXTRA LOTAÇÃO"
-                            ? "bg-orange-100/50 border-orange-200"
+                            ? "bg-orange-100/50 border-orange-200 dark:bg-orange-500/15 dark:border-orange-500/30"
                             : item.ocupado
-                              ? "bg-green-100/50 border-green-200"
-                              : "bg-red-100/50 border-red-200"
+                              ? "bg-green-100/50 border-green-200 dark:bg-green-500/15 dark:border-green-500/30"
+                              : "bg-red-100/50 border-red-200 dark:bg-red-500/15 dark:border-red-500/30"
                       }`}
                     >
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
