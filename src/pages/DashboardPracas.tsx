@@ -3621,7 +3621,7 @@ const DashboardPracas = () => {
                 </TabsTrigger>
                 <TabsTrigger
                   value="embarque"
-                  className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800 data-[state=active]:border-green-400"
+                  className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800 data-[state=active]:border-green-400 dark:data-[state=active]:bg-green-500/20 dark:data-[state=active]:text-green-300 dark:data-[state=active]:border-green-500/40"
                 >
                   ⛵ Previsão de Embarque
                 </TabsTrigger>
