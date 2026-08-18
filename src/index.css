@@ -11,10 +11,10 @@ All colors MUST be HSL.
     --background: 210 30% 97%;
     --foreground: 213 30% 18%;
 
-    --card: 0 0% 100%;
+    --card: 36 40% 99%;
     --card-foreground: 213 30% 18%;
 
-    --popover: 0 0% 100%;
+    --popover: 36 40% 99%;
     --popover-foreground: 213 30% 18%;
 
     --primary: 209 62% 26%;
@@ -57,7 +57,7 @@ All colors MUST be HSL.
     --chart-5: 262 52% 58%;
 
     --gradient-military: linear-gradient(135deg, hsl(209 62% 26%), hsl(196 60% 34%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 32% 97%));
+    --gradient-card: linear-gradient(145deg, hsl(36 40% 99%), hsl(210 32% 97%));
     --shadow-card: 0 1px 2px hsl(213 30% 18% / 0.05), 0 6px 16px -8px hsl(213 30% 18% / 0.12);
     --shadow-elevated: 0 2px 4px hsl(213 30% 18% / 0.06), 0 16px 32px -12px hsl(213 30% 18% / 0.18);
   }
