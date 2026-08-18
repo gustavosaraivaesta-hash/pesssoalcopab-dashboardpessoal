@@ -3211,7 +3211,7 @@ const DashboardPracas = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {vagosForSelectedOMs.map((item, index) => (
-                  <div key={`vago-${index}`} className="p-3 bg-red-100/50 border border-red-200 rounded-lg">
+                  <div key={`vago-${index}`} className="p-3 bg-red-100/50 border border-red-200 dark:bg-red-500/15 dark:border-red-500/30 rounded-lg">
                     <div className="flex items-center gap-2 mb-1">
                       <Badge variant="outline" className="bg-red-500 text-white border-red-500 text-xs">
                         NEO {item.neo}
