@@ -3615,7 +3615,7 @@ const DashboardPracas = () => {
                 </TabsTrigger>
                 <TabsTrigger
                   value="previsao"
-                  className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-800 data-[state=active]:border-amber-400"
+                  className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-800 data-[state=active]:border-amber-400 dark:data-[state=active]:bg-amber-500/20 dark:data-[state=active]:text-amber-300 dark:data-[state=active]:border-amber-500/40"
                 >
                   🚢 Previsão de Desembarque
                 </TabsTrigger>
