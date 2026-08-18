@@ -3633,7 +3633,7 @@ const DashboardPracas = () => {
                 </TabsTrigger>
                 <TabsTrigger
                   value="licencas"
-                  className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-800 data-[state=active]:border-orange-400"
+                  className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-800 data-[state=active]:border-orange-400 dark:data-[state=active]:bg-orange-500/20 dark:data-[state=active]:text-orange-300 dark:data-[state=active]:border-orange-500/40"
                 >
                   🏠 Licenças
                 </TabsTrigger>
