@@ -4207,7 +4207,7 @@ const DashboardOM = () => {
                             </div>
                           </div>
                           {item.opcao && (
-                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/40">
                               {item.opcao}
                             </Badge>
                           )}
