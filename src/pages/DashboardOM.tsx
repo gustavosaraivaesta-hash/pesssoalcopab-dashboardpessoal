@@ -3552,7 +3552,7 @@ const DashboardOM = () => {
                         <UITableCell>{item.quadroEfe || "-"}</UITableCell>
                         <UITableCell>{item.corpoEfe || "-"}</UITableCell>
                         <UITableCell>
-                          <Badge variant={efetivoSubFilter === "na_neo" ? "default" : "outline"} className={efetivoSubFilter === "na_neo" ? "bg-emerald-600" : "bg-orange-100 text-orange-700 border-orange-300"}>
+                          <Badge variant={efetivoSubFilter === "na_neo" ? "default" : "outline"} className={efetivoSubFilter === "na_neo" ? "bg-emerald-600" : "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/40"}>
                             {efetivoSubFilter === "na_neo" ? "NA NEO" : "FORA DA NEO"}
                           </Badge>
                         </UITableCell>
@@ -4207,7 +4207,7 @@ const DashboardOM = () => {
                             </div>
                           </div>
                           {item.opcao && (
-                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/40">
                               {item.opcao}
                             </Badge>
                           )}

@@ -3070,7 +3070,7 @@ const DashboardPracas = () => {
                   return (
                     <div
                       key={`neo-${index}`}
-                      className={`p-3 border rounded-lg ${showNeoPersonnel === "fora" ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"}`}
+                      className={`p-3 border rounded-lg ${showNeoPersonnel === "fora" ? "bg-amber-50 border-amber-200 dark:bg-amber-500/15 dark:border-amber-500/30" : "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/15 dark:border-emerald-500/30"}`}
                     >
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
                         {(() => {
@@ -3211,7 +3211,7 @@ const DashboardPracas = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {vagosForSelectedOMs.map((item, index) => (
-                  <div key={`vago-${index}`} className="p-3 bg-red-100/50 border border-red-200 rounded-lg">
+                  <div key={`vago-${index}`} className="p-3 bg-red-100/50 border border-red-200 dark:bg-red-500/15 dark:border-red-500/30 rounded-lg">
                     <div className="flex items-center gap-2 mb-1">
                       <Badge variant="outline" className="bg-red-500 text-white border-red-500 text-xs">
                         NEO {item.neo}
@@ -3533,12 +3533,12 @@ const DashboardPracas = () => {
                       key={`posto-${index}`}
                       className={`p-3 border rounded-lg ${
                         isDifferentNeoEfe
-                          ? "bg-amber-50 border-amber-400 border-2"
+                          ? "bg-amber-50 border-amber-400 border-2 dark:bg-amber-500/15 dark:border-amber-500/50"
                           : item.tipoSetor === "EXTRA LOTAÇÃO"
-                            ? "bg-orange-100/50 border-orange-200"
+                            ? "bg-orange-100/50 border-orange-200 dark:bg-orange-500/15 dark:border-orange-500/30"
                             : item.ocupado
-                              ? "bg-green-100/50 border-green-200"
-                              : "bg-red-100/50 border-red-200"
+                              ? "bg-green-100/50 border-green-200 dark:bg-green-500/15 dark:border-green-500/30"
+                              : "bg-red-100/50 border-red-200 dark:bg-red-500/15 dark:border-red-500/30"
                       }`}
                     >
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -3563,7 +3563,7 @@ const DashboardPracas = () => {
                           {item.quadroTmft || item.quadroEfe || "-"}
                         </Badge>
                         {(item.opcaoEfe || item.opcaoTmft) && (
-                          <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                          <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/40">
                             {item.opcaoEfe || item.opcaoTmft}
                           </Badge>
                         )}
@@ -3575,7 +3575,7 @@ const DashboardPracas = () => {
                         )}
                       </div>
                       <p
-                        className={`font-semibold text-sm uppercase ${isDifferentNeoEfe ? "text-amber-700" : "text-foreground"}`}
+                        className={`font-semibold text-sm uppercase ${isDifferentNeoEfe ? "text-amber-700 dark:text-amber-400" : "text-foreground"}`}
                       >
                         {item.ocupado && item.nome && item.nome.toUpperCase() !== "VAGO"
                           ? formatMilitarName()
@@ -3615,37 +3615,37 @@ const DashboardPracas = () => {
                 </TabsTrigger>
                 <TabsTrigger
                   value="previsao"
-                  className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-800 data-[state=active]:border-amber-400"
+                  className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-800 data-[state=active]:border-amber-400 dark:data-[state=active]:bg-amber-500/20 dark:data-[state=active]:text-amber-300 dark:data-[state=active]:border-amber-500/40"
                 >
                   🚢 Previsão de Desembarque
                 </TabsTrigger>
                 <TabsTrigger
                   value="embarque"
-                  className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800 data-[state=active]:border-green-400"
+                  className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800 data-[state=active]:border-green-400 dark:data-[state=active]:bg-green-500/20 dark:data-[state=active]:text-green-300 dark:data-[state=active]:border-green-500/40"
                 >
                   ⛵ Previsão de Embarque
                 </TabsTrigger>
                 <TabsTrigger
                   value="trrm"
-                  className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800 data-[state=active]:border-purple-400"
+                  className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-800 data-[state=active]:border-purple-400 dark:data-[state=active]:bg-purple-500/20 dark:data-[state=active]:text-purple-300 dark:data-[state=active]:border-purple-500/40"
                 >
                   📅 Previsão de TRRM
                 </TabsTrigger>
                 <TabsTrigger
                   value="licencas"
-                  className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-800 data-[state=active]:border-orange-400"
+                  className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-800 data-[state=active]:border-orange-400 dark:data-[state=active]:bg-orange-500/20 dark:data-[state=active]:text-orange-300 dark:data-[state=active]:border-orange-500/40"
                 >
                   🏠 Licenças
                 </TabsTrigger>
                 <TabsTrigger
                   value="destaques"
-                  className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-800 data-[state=active]:border-yellow-400"
+                  className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-800 data-[state=active]:border-yellow-400 dark:data-[state=active]:bg-yellow-500/20 dark:data-[state=active]:text-yellow-300 dark:data-[state=active]:border-yellow-500/40"
                 >
                   ⭐ Destaques
                 </TabsTrigger>
                 <TabsTrigger
                   value="concurso"
-                  className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-800 data-[state=active]:border-emerald-400"
+                  className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-800 data-[state=active]:border-emerald-400 dark:data-[state=active]:bg-emerald-500/20 dark:data-[state=active]:text-emerald-300 dark:data-[state=active]:border-emerald-500/40"
                 >
                   🎓 Previsão de Curso
                 </TabsTrigger>

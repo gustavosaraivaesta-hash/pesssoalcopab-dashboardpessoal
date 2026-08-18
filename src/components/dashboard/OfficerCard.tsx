@@ -52,10 +52,10 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
   };
 
   const getCardBackground = () => {
-    if (isDifferentNeoEfe) return "bg-amber-50 border-amber-400 border-2";
-    if (item.tipoSetor === "EXTRA LOTAÇÃO" || item.setor === "EXTRA LOTAÇÃO") return "bg-orange-100/50 border-orange-200";
-    if (!item.ocupado) return "bg-red-100/50 border-red-200";
-    return "bg-green-100/50 border-green-200";
+    if (isDifferentNeoEfe) return "bg-amber-50 border-amber-400 border-2 dark:bg-amber-500/15 dark:border-amber-500/50";
+    if (item.tipoSetor === "EXTRA LOTAÇÃO" || item.setor === "EXTRA LOTAÇÃO") return "bg-orange-100/50 border-orange-200 dark:bg-orange-500/15 dark:border-orange-500/30";
+    if (!item.ocupado) return "bg-red-100/50 border-red-200 dark:bg-red-500/15 dark:border-red-500/30";
+    return "bg-green-100/50 border-green-200 dark:bg-green-500/15 dark:border-green-500/30";
   };
 
   const getNeoVariantColor = () => {
@@ -76,12 +76,12 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
       {/* Top badges row - TMFT data */}
       <div className="flex items-center gap-1.5 mb-2 flex-wrap">
         {item.neo && String(item.neo).trim() !== '' && String(item.neo) !== '0' && (
-          <Badge variant="outline" className="bg-white border-gray-300 text-gray-700 text-xs font-semibold">
+          <Badge variant="outline" className="bg-white border-gray-300 text-gray-700 dark:bg-white/10 dark:border-white/20 dark:text-white/90 text-xs font-semibold">
             NEO {item.neo}
           </Badge>
         )}
         {item.postoTmft && (
-          <Badge variant="outline" className="bg-white border-gray-300 text-gray-700 text-xs font-medium">
+          <Badge variant="outline" className="bg-white border-gray-300 text-gray-700 dark:bg-white/10 dark:border-white/20 dark:text-white/90 text-xs font-medium">
             {item.postoTmft}
           </Badge>
         )}
@@ -91,11 +91,11 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
           </Badge>
         )}
         {item.opcaoTmft && (
-          <Badge variant="outline" className="bg-white border-gray-300 text-gray-700 text-xs font-medium">
+          <Badge variant="outline" className="bg-white border-gray-300 text-gray-700 dark:bg-white/10 dark:border-white/20 dark:text-white/90 text-xs font-medium">
             {item.opcaoTmft}
           </Badge>
         )}
-        <Badge variant="secondary" className="text-xs bg-gray-200 text-gray-700">
+        <Badge variant="secondary" className="text-xs bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-white/80">
           {item.om}
         </Badge>
         {item.tipoSetor === "EXTRA LOTAÇÃO" && (
@@ -104,7 +104,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
       </div>
 
       {/* Military name with posto-quadro prefix */}
-      <p className={`font-bold text-sm uppercase ${isDifferentNeoEfe ? 'text-amber-700' : 'text-foreground'}`}>
+      <p className={`font-bold text-sm uppercase ${isDifferentNeoEfe ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}`}>
         {item.ocupado && item.nome && item.nome.toUpperCase() !== 'VAGO' 
           ? formatMilitarName() 
           : item.nome || "VAGO"}
@@ -126,7 +126,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
 
       {/* Warning message for NEO ≠ EFE discrepancy */}
       {isDifferentNeoEfe && (
-        <p className="text-xs mt-1.5 font-medium text-amber-700 flex items-center gap-1">
+        <p className="text-xs mt-1.5 font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
           <AlertTriangle className="h-3 w-3" />
           NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE ({item.postoEfe || "?"}/{item.quadroEfe || "-"})
         </p>
