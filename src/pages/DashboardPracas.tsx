@@ -3070,7 +3070,7 @@ const DashboardPracas = () => {
                   return (
                     <div
                       key={`neo-${index}`}
-                      className={`p-3 border rounded-lg ${showNeoPersonnel === "fora" ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"}`}
+                      className={`p-3 border rounded-lg ${showNeoPersonnel === "fora" ? "bg-amber-50 border-amber-200 dark:bg-amber-500/15 dark:border-amber-500/30" : "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/15 dark:border-emerald-500/30"}`}
                     >
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
                         {(() => {
