@@ -27,6 +27,7 @@ import {
   ArrowLeft,
   Search,
   Award,
+  Printer,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -964,16 +965,24 @@ const DashboardPracas = () => {
 
       const brasaoImg = new Image();
       brasaoImg.src = brasaoRepublica;
-      await new Promise((resolve) => {
-        brasaoImg.onload = resolve;
+      const brasaoOk = await new Promise<boolean>((resolve) => {
+        if (brasaoImg.complete && brasaoImg.naturalWidth > 0) return resolve(true);
+        const done = (ok: boolean) => resolve(ok);
+        brasaoImg.onload = () => done(true);
+        brasaoImg.onerror = () => done(false);
+        setTimeout(() => done(false), 3000);
       });
 
       // Faixa institucional
       pdf.setFillColor(15, 35, 63);
       pdf.rect(0, 0, pageWidth, 6, "F");
 
-      pdf.addImage(brasaoImg, "PNG", (pageWidth - 16) / 2, y, 16, 19);
-      y += 23;
+      if (brasaoOk) {
+        pdf.addImage(brasaoImg, "PNG", (pageWidth - 16) / 2, y, 16, 19);
+        y += 23;
+      } else {
+        y += 6;
+      }
 
       pdf.setFontSize(13);
       pdf.setFont("helvetica", "bold");
@@ -3396,6 +3405,16 @@ const DashboardPracas = () => {
                 <Badge variant="outline" className="ml-1">
                   +{especialidadesBalanco.excesso.reduce((s, e) => s + e.dif, 0)}
                 </Badge>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="ml-auto gap-1"
+                  onClick={() => exportBalancoChartPDF("excesso")}
+                  disabled={especialidadesBalanco.excesso.length === 0}
+                >
+                  <Printer className="h-4 w-4" />
+                  Imprimir
+                </Button>
               </CardTitle>
               <p className="text-xs text-muted-foreground">Efetivo acima do TMFT — clique no gráfico para imprimir</p>
             </CardHeader>
@@ -3403,8 +3422,9 @@ const DashboardPracas = () => {
               {especialidadesBalanco.excesso.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-10">Nenhum excesso encontrado</p>
               ) : (
+                <div onClick={() => exportBalancoChartPDF("excesso")} className="cursor-pointer">
                 <ResponsiveContainer width="100%" height={340}>
-                  <BarChart data={especialidadesBalanco.excesso} layout="vertical" margin={{ right: 40 }} onClick={() => exportBalancoChartPDF("excesso")} style={{ cursor: "pointer" }}>
+                  <BarChart data={especialidadesBalanco.excesso} layout="vertical" margin={{ right: 40 }} style={{ cursor: "pointer" }}>
                     <defs>
                       <linearGradient id="gradExcesso" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#34d399" />
@@ -3423,6 +3443,7 @@ const DashboardPracas = () => {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -3435,6 +3456,16 @@ const DashboardPracas = () => {
                 <Badge variant="outline" className="ml-1">
                   -{especialidadesBalanco.falta.reduce((s, e) => s + e.falta, 0)}
                 </Badge>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="ml-auto gap-1"
+                  onClick={() => exportBalancoChartPDF("falta")}
+                  disabled={especialidadesBalanco.falta.length === 0}
+                >
+                  <Printer className="h-4 w-4" />
+                  Imprimir
+                </Button>
               </CardTitle>
               <p className="text-xs text-muted-foreground">Efetivo abaixo do TMFT — clique no gráfico para imprimir</p>
             </CardHeader>
@@ -3442,8 +3473,9 @@ const DashboardPracas = () => {
               {especialidadesBalanco.falta.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-10">Nenhuma falta encontrada</p>
               ) : (
+                <div onClick={() => exportBalancoChartPDF("falta")} className="cursor-pointer">
                 <ResponsiveContainer width="100%" height={340}>
-                  <BarChart data={especialidadesBalanco.falta} layout="vertical" margin={{ right: 40 }} onClick={() => exportBalancoChartPDF("falta")} style={{ cursor: "pointer" }}>
+                  <BarChart data={especialidadesBalanco.falta} layout="vertical" margin={{ right: 40 }} style={{ cursor: "pointer" }}>
                     <defs>
                       <linearGradient id="gradFalta" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#f87171" />
@@ -3462,6 +3494,7 @@ const DashboardPracas = () => {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                </div>
               )}
             </CardContent>
           </Card>
