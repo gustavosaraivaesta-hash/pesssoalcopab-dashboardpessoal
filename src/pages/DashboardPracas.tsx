@@ -27,6 +27,7 @@ import {
   ArrowLeft,
   Search,
   Award,
+  Printer,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -964,8 +965,12 @@ const DashboardPracas = () => {
 
       const brasaoImg = new Image();
       brasaoImg.src = brasaoRepublica;
-      await new Promise((resolve) => {
-        brasaoImg.onload = resolve;
+      const brasaoOk = await new Promise<boolean>((resolve) => {
+        if (brasaoImg.complete && brasaoImg.naturalWidth > 0) return resolve(true);
+        const done = (ok: boolean) => resolve(ok);
+        brasaoImg.onload = () => done(true);
+        brasaoImg.onerror = () => done(false);
+        setTimeout(() => done(false), 3000);
       });
 
       // Faixa institucional
