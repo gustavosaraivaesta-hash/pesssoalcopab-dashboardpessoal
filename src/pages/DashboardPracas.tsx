@@ -3397,14 +3397,14 @@ const DashboardPracas = () => {
                   +{especialidadesBalanco.excesso.reduce((s, e) => s + e.dif, 0)}
                 </Badge>
               </CardTitle>
-              <p className="text-xs text-muted-foreground">Efetivo acima do TMFT</p>
+              <p className="text-xs text-muted-foreground">Efetivo acima do TMFT — clique no gráfico para imprimir</p>
             </CardHeader>
             <CardContent>
               {especialidadesBalanco.excesso.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-10">Nenhum excesso encontrado</p>
               ) : (
                 <ResponsiveContainer width="100%" height={340}>
-                  <BarChart data={especialidadesBalanco.excesso} layout="vertical" margin={{ right: 40 }}>
+                  <BarChart data={especialidadesBalanco.excesso} layout="vertical" margin={{ right: 40 }} onClick={() => exportBalancoChartPDF("excesso")} style={{ cursor: "pointer" }}>
                     <defs>
                       <linearGradient id="gradExcesso" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#34d399" />
@@ -3436,14 +3436,14 @@ const DashboardPracas = () => {
                   -{especialidadesBalanco.falta.reduce((s, e) => s + e.falta, 0)}
                 </Badge>
               </CardTitle>
-              <p className="text-xs text-muted-foreground">Efetivo abaixo do TMFT</p>
+              <p className="text-xs text-muted-foreground">Efetivo abaixo do TMFT — clique no gráfico para imprimir</p>
             </CardHeader>
             <CardContent>
               {especialidadesBalanco.falta.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-10">Nenhuma falta encontrada</p>
               ) : (
                 <ResponsiveContainer width="100%" height={340}>
-                  <BarChart data={especialidadesBalanco.falta} layout="vertical" margin={{ right: 40 }}>
+                  <BarChart data={especialidadesBalanco.falta} layout="vertical" margin={{ right: 40 }} onClick={() => exportBalancoChartPDF("falta")} style={{ cursor: "pointer" }}>
                     <defs>
                       <linearGradient id="gradFalta" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#f87171" />
