@@ -3494,6 +3494,7 @@ const DashboardPracas = () => {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                </div>
               )}
             </CardContent>
           </Card>
