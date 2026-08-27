@@ -977,8 +977,12 @@ const DashboardPracas = () => {
       pdf.setFillColor(15, 35, 63);
       pdf.rect(0, 0, pageWidth, 6, "F");
 
-      pdf.addImage(brasaoImg, "PNG", (pageWidth - 16) / 2, y, 16, 19);
-      y += 23;
+      if (brasaoOk) {
+        pdf.addImage(brasaoImg, "PNG", (pageWidth - 16) / 2, y, 16, 19);
+        y += 23;
+      } else {
+        y += 6;
+      }
 
       pdf.setFontSize(13);
       pdf.setFont("helvetica", "bold");
