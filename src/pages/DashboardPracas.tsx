@@ -3405,6 +3405,16 @@ const DashboardPracas = () => {
                 <Badge variant="outline" className="ml-1">
                   +{especialidadesBalanco.excesso.reduce((s, e) => s + e.dif, 0)}
                 </Badge>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="ml-auto gap-1"
+                  onClick={() => exportBalancoChartPDF("excesso")}
+                  disabled={especialidadesBalanco.excesso.length === 0}
+                >
+                  <Printer className="h-4 w-4" />
+                  Imprimir
+                </Button>
               </CardTitle>
               <p className="text-xs text-muted-foreground">Efetivo acima do TMFT — clique no gráfico para imprimir</p>
             </CardHeader>
@@ -3412,8 +3422,9 @@ const DashboardPracas = () => {
               {especialidadesBalanco.excesso.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-10">Nenhum excesso encontrado</p>
               ) : (
+                <div onClick={() => exportBalancoChartPDF("excesso")} className="cursor-pointer">
                 <ResponsiveContainer width="100%" height={340}>
-                  <BarChart data={especialidadesBalanco.excesso} layout="vertical" margin={{ right: 40 }} onClick={() => exportBalancoChartPDF("excesso")} style={{ cursor: "pointer" }}>
+                  <BarChart data={especialidadesBalanco.excesso} layout="vertical" margin={{ right: 40 }} style={{ cursor: "pointer" }}>
                     <defs>
                       <linearGradient id="gradExcesso" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#34d399" />
