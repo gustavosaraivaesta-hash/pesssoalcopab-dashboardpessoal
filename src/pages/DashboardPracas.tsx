@@ -947,6 +947,115 @@ const DashboardPracas = () => {
     });
   }, [filteredData, selectedPostos, selectedPostoType]);
 
+  // Exporta apenas o gráfico Top 10 (Excesso ou Falta) como PDF com pré-visualização
+  const exportBalancoChartPDF = async (tipo: "excesso" | "falta") => {
+    try {
+      const dados = tipo === "excesso" ? especialidadesBalanco.excesso : especialidadesBalanco.falta;
+      if (dados.length === 0) return;
+
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+        import("jspdf"),
+        import("jspdf-autotable"),
+      ]);
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      let y = 12;
+
+      const brasaoImg = new Image();
+      brasaoImg.src = brasaoRepublica;
+      await new Promise((resolve) => {
+        brasaoImg.onload = resolve;
+      });
+
+      // Faixa institucional
+      pdf.setFillColor(15, 35, 63);
+      pdf.rect(0, 0, pageWidth, 6, "F");
+
+      pdf.addImage(brasaoImg, "PNG", (pageWidth - 16) / 2, y, 16, 19);
+      y += 23;
+
+      pdf.setFontSize(13);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(15, 35, 63);
+      pdf.text("CENTRO DE OPERAÇÕES DO ABASTECIMENTO", pageWidth / 2, y, { align: "center" });
+      y += 7;
+
+      pdf.setFontSize(11);
+      pdf.setTextColor(tipo === "excesso" ? 5 : 220, tipo === "excesso" ? 150 : 38, tipo === "excesso" ? 105 : 38);
+      pdf.text(
+        tipo === "excesso" ? "Top 10 Especialidades com Excesso - PRAÇAS" : "Top 10 Especialidades com Falta - PRAÇAS",
+        pageWidth / 2,
+        y,
+        { align: "center" },
+      );
+      y += 4;
+      pdf.setDrawColor(41, 128, 185);
+      pdf.setLineWidth(0.6);
+      pdf.line(pageWidth / 2 - 50, y, pageWidth / 2 + 50, y);
+      pdf.setTextColor(0, 0, 0);
+      y += 6;
+
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(
+        tipo === "excesso" ? "Efetivo acima do TMFT" : "Efetivo abaixo do TMFT",
+        pageWidth / 2,
+        y,
+        { align: "center" },
+      );
+      y += 4;
+
+      autoTable(pdf, {
+        startY: y,
+        head: [["Especialidade", "TMFT", "EFETIVO", tipo === "excesso" ? "EXCESSO" : "FALTA"]],
+        body: dados.map((e: any) => [
+          e.especialidade,
+          e.tmft,
+          e.efe,
+          tipo === "excesso" ? `+${e.dif}` : `-${e.falta}`,
+        ]),
+        theme: "grid",
+        headStyles: {
+          fillColor: tipo === "excesso" ? [5, 150, 105] : [220, 38, 38],
+          textColor: 255,
+          fontStyle: "bold",
+          halign: "center",
+        },
+        bodyStyles: { halign: "center" },
+        columnStyles: { 0: { halign: "left" } },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+        margin: { left: 14, right: 14 },
+      });
+
+      const total = dados.reduce((s: number, e: any) => s + (tipo === "excesso" ? e.dif : e.falta), 0);
+      let fy = (pdf as any).lastAutoTable.finalY + 8;
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(10);
+      pdf.text(
+        `TOTAL ${tipo === "excesso" ? "EXCESSO" : "FALTA"}: ${tipo === "excesso" ? "+" : "-"}${total}`,
+        pageWidth / 2,
+        fy,
+        { align: "center" },
+      );
+
+      // Rodapé
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(120);
+      pdf.text(
+        `Gerado em ${new Date().toLocaleString("pt-BR")}`,
+        pageWidth / 2,
+        pageHeight - 8,
+        { align: "center" },
+      );
+
+      openPdfPreview(pdf, `top10-especialidades-${tipo}-pracas.pdf`);
+    } catch (err) {
+      console.error("Erro ao exportar gráfico:", err);
+    }
+  };
+
   const exportToPDF = async () => {
     try {
       const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
@@ -3288,14 +3397,14 @@ const DashboardPracas = () => {
                   +{especialidadesBalanco.excesso.reduce((s, e) => s + e.dif, 0)}
                 </Badge>
               </CardTitle>
-              <p className="text-xs text-muted-foreground">Efetivo acima do TMFT</p>
+              <p className="text-xs text-muted-foreground">Efetivo acima do TMFT — clique no gráfico para imprimir</p>
             </CardHeader>
             <CardContent>
               {especialidadesBalanco.excesso.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-10">Nenhum excesso encontrado</p>
               ) : (
                 <ResponsiveContainer width="100%" height={340}>
-                  <BarChart data={especialidadesBalanco.excesso} layout="vertical" margin={{ right: 40 }}>
+                  <BarChart data={especialidadesBalanco.excesso} layout="vertical" margin={{ right: 40 }} onClick={() => exportBalancoChartPDF("excesso")} style={{ cursor: "pointer" }}>
                     <defs>
                       <linearGradient id="gradExcesso" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#34d399" />
@@ -3327,14 +3436,14 @@ const DashboardPracas = () => {
                   -{especialidadesBalanco.falta.reduce((s, e) => s + e.falta, 0)}
                 </Badge>
               </CardTitle>
-              <p className="text-xs text-muted-foreground">Efetivo abaixo do TMFT</p>
+              <p className="text-xs text-muted-foreground">Efetivo abaixo do TMFT — clique no gráfico para imprimir</p>
             </CardHeader>
             <CardContent>
               {especialidadesBalanco.falta.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-10">Nenhuma falta encontrada</p>
               ) : (
                 <ResponsiveContainer width="100%" height={340}>
-                  <BarChart data={especialidadesBalanco.falta} layout="vertical" margin={{ right: 40 }}>
+                  <BarChart data={especialidadesBalanco.falta} layout="vertical" margin={{ right: 40 }} onClick={() => exportBalancoChartPDF("falta")} style={{ cursor: "pointer" }}>
                     <defs>
                       <linearGradient id="gradFalta" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#f87171" />
