@@ -103,7 +103,7 @@ const Index = () => {
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
 
   // Admin password modal state
-  const ADMIN_PASSWORD = "COPABADMIN";
+  const ADMIN_PASSWORD = "ADMIN123";
   const [showAdminPasswordModal, setShowAdminPasswordModal] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
   const [pendingAdminRoute, setPendingAdminRoute] = useState<string | null>(null);
