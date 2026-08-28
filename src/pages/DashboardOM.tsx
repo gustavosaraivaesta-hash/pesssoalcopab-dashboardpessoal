@@ -444,6 +444,20 @@ const DashboardOM = () => {
     }
   };
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleManualRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await fetchData(true);
+      toast.success("Dados atualizados!");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+
   useEffect(() => {
     // Try loading from cache first for instant display
     const cachedData = getFromCache();
@@ -3175,9 +3189,9 @@ const DashboardOM = () => {
                     Limpar Filtros
                   </Button>
                 )}
-                <Button onClick={() => fetchData()} variant="outline" size="sm">
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Atualizar
+                <Button onClick={handleManualRefresh} disabled={isRefreshing} variant="outline" size="sm">
+                  <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                  {isRefreshing ? "Atualizando..." : "Atualizar"}
                 </Button>
                 <Button onClick={exportToPDF} variant="outline">
                   <Download className="mr-2 h-4 w-4" />
