@@ -138,6 +138,11 @@ interface CursoRecord {
   om: string;
 }
 
+const getVinculo = (opcaoEfe: string | undefined, opcaoTmft: string | undefined): "CARREIRA" | "TTC" => {
+  const opcao = (opcaoEfe || opcaoTmft || "").trim().toUpperCase();
+  return opcao === "TTC" || opcao === "RM1" || opcao === "RM-1" ? "TTC" : "CARREIRA";
+};
+
 // Normaliza nome para comparação (evita contar o mesmo militar 2x: EFETIVO + LICENÇA/DESTAQUE)
 const nomeKey = (nome: string | undefined | null): string =>
   (nome || "")
@@ -1688,13 +1693,14 @@ const DashboardPracas = () => {
             stripRankPrefixFromName(item.nome) || "-",
             item.postoEfe || "-",
             item.quadroEfe || "-",
+            getVinculo(item.opcaoEfe, item.opcaoTmft),
             status,
           ];
         });
 
         autoTable(pdf, {
           startY: yPosition,
-          head: [["Nº", "NEO", "SETOR", "CARGO", "GRAD TMFT", "ESP TMFT", "NOME", "GRAD EFE", "ESP EFE", "STATUS"]],
+          head: [["Nº", "NEO", "SETOR", "CARGO", "GRAD TMFT", "ESP TMFT", "NOME", "GRAD EFE", "ESP EFE", "VÍNCULO", "STATUS"]],
           body: tableData,
           theme: "grid",
           styles: { fontSize: 7, cellPadding: 1 },
@@ -1705,7 +1711,7 @@ const DashboardPracas = () => {
             if (data.section === "body") {
               const nome = data.row.raw?.[6];
               const setor = data.row.raw?.[2];
-              const status = data.row.raw?.[9];
+              const status = data.row.raw?.[10];
               const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
               const setorStr = setor ? setor.toString().trim().toUpperCase() : "";
               const statusStr = status ? status.toString().trim().toUpperCase() : "";
