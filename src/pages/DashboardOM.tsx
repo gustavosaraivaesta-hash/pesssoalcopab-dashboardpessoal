@@ -1906,6 +1906,7 @@ const DashboardOM = () => {
             item.quadroEfe || "-",
             item.corpoEfe || "-",
             (item.graduacaoAcademica || "").toString().trim() || "-",
+            normalizeOpcao(item.opcaoEfe || item.opcaoTmft) === "TTC" ? "TTC" : "CARREIRA",
             item.ocupado
 
               ? (() => {
@@ -1944,6 +1945,7 @@ const DashboardOM = () => {
               "QUADRO EFE",
               "CORPO EFE",
               "GRAD. ACAD.",
+              "VÍNCULO",
               "STATUS",
 
             ],
@@ -1962,7 +1964,7 @@ const DashboardOM = () => {
               const quadroEfe = data.row.raw?.[9];
               const corpoTmft = data.row.raw?.[6];
               const corpoEfe = data.row.raw?.[10];
-              const status = data.row.raw?.[12];
+              const status = data.row.raw?.[13];
               const nomeStr = nome ? nome.toString().trim().toUpperCase() : "";
               const setorStr = setor ? setor.toString().trim().toUpperCase() : "";
               const quadroTmftStr = quadroTmft ? quadroTmft.toString().trim().toUpperCase() : "";
