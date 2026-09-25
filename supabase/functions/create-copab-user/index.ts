@@ -26,9 +26,11 @@ serve(async (req) => {
 
     for (const username of ACCOUNT_USERNAMES) {
       const email = `${username}@copab.marinha.mil.br`;
-      const existingUser = existingUsers?.users?.find((u) =>
-        u.email === email || (username === "copab" && u.email === LEGACY_PRIMARY_EMAIL)
-      );
+      const exactUser = existingUsers?.users?.find((u) => u.email === email);
+      const legacyUser = username === "copab"
+        ? existingUsers?.users?.find((u) => u.email === LEGACY_PRIMARY_EMAIL)
+        : undefined;
+      const existingUser = exactUser || legacyUser;
 
       let userId: string;
       let status: string;
