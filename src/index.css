@@ -8,25 +8,25 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 210 30% 97%;
-    --foreground: 213 30% 18%;
+    --background: 210 29% 97%;
+    --foreground: 215 36% 15%;
 
-    --card: 36 40% 99%;
-    --card-foreground: 213 30% 18%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 36% 15%;
 
-    --popover: 36 40% 99%;
-    --popover-foreground: 213 30% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 36% 15%;
 
-    --primary: 209 62% 26%;
+    --primary: 211 72% 25%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 30% 93%;
-    --secondary-foreground: 213 30% 22%;
+    --secondary: 208 28% 93%;
+    --secondary-foreground: 213 43% 20%;
 
-    --muted: 210 28% 95%;
-    --muted-foreground: 212 14% 45%;
+    --muted: 210 24% 95%;
+    --muted-foreground: 213 13% 42%;
 
-    --accent: 196 68% 42%;
+    --accent: 190 68% 32%;
     --accent-foreground: 0 0% 100%;
 
     --info: 205 72% 45%;
@@ -41,14 +41,14 @@ All colors MUST be HSL.
     --success: 158 55% 36%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 36 88% 48%;
+    --warning: 40 88% 45%;
     --warning-foreground: 30 60% 12%;
 
-    --border: 210 24% 88%;
-    --input: 210 24% 88%;
-    --ring: 196 68% 42%;
+    --border: 211 20% 86%;
+    --input: 211 20% 82%;
+    --ring: 190 68% 32%;
 
-    --radius: 0.65rem;
+    --radius: 0.5rem;
 
     --chart-1: 209 62% 32%;
     --chart-2: 196 68% 45%;
@@ -56,29 +56,29 @@ All colors MUST be HSL.
     --chart-4: 36 88% 52%;
     --chart-5: 262 52% 58%;
 
-    --gradient-military: linear-gradient(135deg, hsl(209 62% 26%), hsl(196 60% 34%));
-    --gradient-card: linear-gradient(145deg, hsl(36 40% 99%), hsl(210 32% 97%));
-    --shadow-card: 0 1px 2px hsl(213 30% 18% / 0.05), 0 6px 16px -8px hsl(213 30% 18% / 0.12);
-    --shadow-elevated: 0 2px 4px hsl(213 30% 18% / 0.06), 0 16px 32px -12px hsl(213 30% 18% / 0.18);
+    --gradient-military: linear-gradient(125deg, hsl(215 57% 16%), hsl(208 67% 27%) 58%, hsl(190 58% 28%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 29% 97%));
+    --shadow-card: 0 1px 2px hsl(215 36% 15% / 0.04), 0 8px 24px -14px hsl(215 36% 15% / 0.2);
+    --shadow-elevated: 0 4px 8px hsl(215 36% 15% / 0.06), 0 20px 44px -18px hsl(215 36% 15% / 0.28);
   }
 
   .dark {
-    --background: 214 32% 10%;
-    --foreground: 210 24% 94%;
+    --background: 216 38% 8%;
+    --foreground: 210 24% 95%;
 
-    --card: 214 28% 14%;
+    --card: 215 33% 12%;
     --card-foreground: 210 24% 94%;
 
-    --popover: 214 28% 14%;
+    --popover: 215 33% 12%;
     --popover-foreground: 210 24% 94%;
 
     --primary: 197 70% 52%;
     --primary-foreground: 214 40% 10%;
 
-    --secondary: 214 24% 19%;
+    --secondary: 214 25% 18%;
     --secondary-foreground: 210 24% 94%;
 
-    --muted: 214 22% 20%;
+    --muted: 215 24% 17%;
     --muted-foreground: 212 16% 68%;
 
     --accent: 190 70% 50%;
@@ -99,8 +99,8 @@ All colors MUST be HSL.
     --warning: 38 90% 58%;
     --warning-foreground: 30 60% 12%;
 
-    --border: 214 22% 24%;
-    --input: 214 22% 24%;
+    --border: 214 21% 23%;
+    --input: 214 21% 27%;
     --ring: 197 70% 52%;
 
     --chart-1: 197 70% 55%;
@@ -109,8 +109,8 @@ All colors MUST be HSL.
     --chart-4: 38 90% 58%;
     --chart-5: 262 60% 68%;
 
-    --gradient-military: linear-gradient(135deg, hsl(214 40% 16%), hsl(197 60% 24%));
-    --gradient-card: linear-gradient(145deg, hsl(214 28% 16%), hsl(214 28% 13%));
+    --gradient-military: linear-gradient(125deg, hsl(216 45% 8%), hsl(211 44% 15%) 58%, hsl(190 42% 17%));
+    --gradient-card: linear-gradient(145deg, hsl(215 33% 14%), hsl(215 33% 11%));
     --shadow-card: 0 1px 2px hsl(0 0% 0% / 0.4), 0 6px 16px -8px hsl(0 0% 0% / 0.5);
     --shadow-elevated: 0 2px 4px hsl(0 0% 0% / 0.4), 0 16px 32px -12px hsl(0 0% 0% / 0.55);
   }
@@ -123,6 +123,41 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0;
+    background-image: linear-gradient(to bottom, hsl(var(--background)), hsl(var(--muted) / 0.35));
+    min-width: 320px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Space Grotesk", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0;
+  }
+
+  ::selection {
+    @apply bg-accent/25 text-foreground;
+  }
+
+  :focus-visible {
+    outline: none;
+  }
+}
+
+@layer utilities {
+  .surface-grid {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.28) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.28) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

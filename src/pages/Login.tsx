@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import brasaoCopab from "@/assets/brasao-copab.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -122,34 +122,64 @@ const Login = () => {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative">
-      {/* Background Image */}
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4 sm:p-8">
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${backgroundImage})` }}
       />
+      <div className="fixed inset-0 bg-gradient-military/90" />
+      <div className="surface-grid fixed inset-0 opacity-10" />
 
-      <Card className="w-full max-w-md relative z-10 bg-white/5 backdrop-blur-sm text-white border-white/20 shadow-2xl">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <img src={brasaoCopab} alt="Brasão COpAb" className="h-20 w-auto drop-shadow-lg" />
+      <main className="relative z-10 grid w-full max-w-5xl overflow-hidden rounded-lg border border-primary-foreground/15 bg-card shadow-elevated lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="relative hidden min-h-[610px] flex-col justify-between overflow-hidden bg-gradient-military p-10 text-primary-foreground lg:flex">
+          <div className="surface-grid absolute inset-0 opacity-10" />
+          <div className="relative flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-primary-foreground/20 bg-primary-foreground/10">
+              <img src={brasaoCopab} alt="Brasão COpAb" className="h-12 w-auto" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase text-primary-foreground/70">Marinha do Brasil</p>
+              <p className="font-display text-lg font-semibold">Centro de Operações do Abastecimento</p>
+            </div>
           </div>
-          <CardTitle className="text-2xl text-white">Dashboard COpAb</CardTitle>
-          <CardDescription className="text-white/90">
-            Centro de Operações do Abastecimento - Análise de Militares
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+
+          <div className="relative max-w-md">
+            <div className="mb-6 h-1 w-14 rounded-full bg-warning" />
+            <h1 className="font-display text-4xl font-bold leading-tight">Gestão de pessoal com visão operacional.</h1>
+            <p className="mt-4 max-w-sm text-base leading-relaxed text-primary-foreground/75">
+              Informações consolidadas para acompanhamento do efetivo, distribuição e prontidão das organizações militares.
+            </p>
+          </div>
+
+          <div className="relative flex items-center gap-2 text-sm text-primary-foreground/65">
+            <ShieldCheck className="h-4 w-4 text-warning" />
+            Ambiente institucional de acesso restrito
+          </div>
+        </section>
+
+        <Card className="flex min-h-[560px] flex-col justify-center rounded-none border-0 bg-card px-2 py-8 shadow-none sm:px-8 lg:min-h-[610px]">
+          <CardHeader className="pb-7 text-left">
+            <div className="mb-3 flex items-center gap-3 lg:hidden">
+              <img src={brasaoCopab} alt="Brasão COpAb" className="h-14 w-auto" />
+              <span className="text-xs font-bold uppercase text-primary">COpAb · Marinha do Brasil</span>
+            </div>
+            <p className="text-xs font-bold uppercase text-accent">Acesso institucional</p>
+            <CardTitle className="text-3xl text-foreground">Dashboard COpAb</CardTitle>
+            <CardDescription className="max-w-sm leading-relaxed">
+              Entre com suas credenciais para acessar a análise do pessoal militar e civil.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-white">
+              <Label htmlFor="username" className="font-semibold text-foreground">
                 Login
               </Label>
               <Input
@@ -158,13 +188,13 @@ const Login = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Digite seu login (ex: COPAB)"
-                className="bg-white/90 border-white/50 text-black"
+                autoComplete="username"
                 required
                 disabled={loading}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">
+              <Label htmlFor="password" className="font-semibold text-foreground">
                 Senha
               </Label>
               <div className="relative">
@@ -174,23 +204,27 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Digite sua senha"
-                  className="bg-white/90 border-white/50 text-black pr-10"
+                  className="pr-11"
+                  autoComplete="current-password"
                   required
                   disabled={loading}
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+                </Button>
               </div>
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-white text-blue-600 hover:bg-white/90"
+              size="lg"
+              className="mt-2 w-full"
               disabled={loading}
             >
               {loading ? (
@@ -204,7 +238,8 @@ const Login = () => {
             </Button>
           </form>
         </CardContent>
-      </Card>
+        </Card>
+      </main>
     </div>
   );
 };
