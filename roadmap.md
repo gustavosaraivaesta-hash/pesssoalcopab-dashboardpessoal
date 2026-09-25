@@ -1,3 +1,3 @@
 # Tarefas
 
-- [ ] Alterar os logins das contas COPAB conforme definição do usuário; senha `M@rinha2022` já aplicada.
+- [x] Alterar o login principal para `copab`, preservando COPAB2 e COPAB3; senha informada aplicada às três contas.
