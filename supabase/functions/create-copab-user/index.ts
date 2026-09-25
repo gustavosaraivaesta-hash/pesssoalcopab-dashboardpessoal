@@ -6,11 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const ACCOUNTS = [
-  { username: "copab1", password: "COPAB01" },
-  { username: "copab2", password: "COPAB02" },
-  { username: "copab3", password: "COPAB03" },
-];
+const ACCOUNT_USERNAMES = ["copab1", "copab2", "copab3"];
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -20,13 +16,15 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const defaultPassword = Deno.env.get('COPAB_DEFAULT_PASSWORD');
+    if (!defaultPassword) throw new Error('COPAB_DEFAULT_PASSWORD is not configured');
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: existingUsers } = await adminClient.auth.admin.listUsers();
     const results: any[] = [];
 
-    for (const acc of ACCOUNTS) {
-      const email = `${acc.username}@copab.marinha.mil.br`;
+    for (const username of ACCOUNT_USERNAMES) {
+      const email = `${username}@copab.marinha.mil.br`;
       const existingUser = existingUsers?.users?.find((u) => u.email === email);
 
       let userId: string;
@@ -35,7 +33,7 @@ serve(async (req) => {
       if (existingUser) {
         const { error: updateError } = await adminClient.auth.admin.updateUserById(
           existingUser.id,
-          { password: acc.password, email_confirm: true }
+          { password: defaultPassword, email_confirm: true }
         );
         if (updateError) throw updateError;
         userId = existingUser.id;
@@ -43,7 +41,7 @@ serve(async (req) => {
       } else {
         const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
           email,
-          password: acc.password,
+          password: defaultPassword,
           email_confirm: true,
         });
         if (createError) throw createError;
