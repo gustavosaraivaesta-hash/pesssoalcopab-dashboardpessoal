@@ -167,6 +167,12 @@ const matchesOpcaoFilter = (opcao: string | undefined | null, selectedOpcoes: st
   return selectedOpcoes.includes(normalizeOpcao(opcao));
 };
 
+const matchesQuadroTmftFilter = (item: PersonnelRecord, selectedQuadros: string[]): boolean => {
+  if (selectedQuadros.length === 0) return true;
+  const quadro = item.tipoSetor === "EXTRA LOTAÇÃO" ? item.quadroEfe : item.quadroTmft;
+  return selectedQuadros.includes(quadro || "");
+};
+
 /**
  * Matches a record (concurso/desembarque/trrm/licencas/destaques) against
  * the active structural filters: quadro, corpo, posto.
@@ -513,7 +519,7 @@ const DashboardOM = () => {
 
     // Filtro de Quadro - filtra pela TMFT para que as métricas sejam baseadas nas posições do quadro selecionado
     if (selectedQuadros.length > 0) {
-      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadroTmft));
+      filtered = filtered.filter((item) => matchesQuadroTmftFilter(item, selectedQuadros));
     }
 
     if (selectedOpcoes.length > 0) {

@@ -6,7 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const ACCOUNT_USERNAMES = ["copab1", "copab2", "copab3"];
+const ACCOUNT_USERNAMES = ["copab", "copab2", "copab3"];
+const LEGACY_PRIMARY_EMAIL = "copab1@copab.marinha.mil.br";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -25,7 +26,11 @@ serve(async (req) => {
 
     for (const username of ACCOUNT_USERNAMES) {
       const email = `${username}@copab.marinha.mil.br`;
-      const existingUser = existingUsers?.users?.find((u) => u.email === email);
+      const exactUser = existingUsers?.users?.find((u) => u.email === email);
+      const legacyUser = username === "copab"
+        ? existingUsers?.users?.find((u) => u.email === LEGACY_PRIMARY_EMAIL)
+        : undefined;
+      const existingUser = exactUser || legacyUser;
 
       let userId: string;
       let status: string;
@@ -33,7 +38,7 @@ serve(async (req) => {
       if (existingUser) {
         const { error: updateError } = await adminClient.auth.admin.updateUserById(
           existingUser.id,
-          { password: defaultPassword, email_confirm: true }
+          { email, password: defaultPassword, email_confirm: true }
         );
         if (updateError) throw updateError;
         userId = existingUser.id;
