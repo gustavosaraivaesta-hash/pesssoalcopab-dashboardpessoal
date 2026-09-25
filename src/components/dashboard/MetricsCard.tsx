@@ -81,12 +81,12 @@ export const MetricsCard = ({
   return (
     <div
       onClick={onClick}
-      className={`group relative overflow-hidden rounded-xl border ${s.border} bg-card p-4 shadow-card transition-all hover:shadow-elevated hover:-translate-y-0.5 ${
+      className={`group relative min-h-[132px] overflow-hidden rounded-lg border ${s.border} bg-card p-4 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevated ${
         onClick ? "cursor-pointer" : ""
       } ${active ? `ring-2 ring-offset-2 ${s.ring}` : ""}`}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
-        <span className={`text-[10px] font-bold uppercase tracking-wider leading-tight ${s.label}`}>
+        <span className={`text-[11px] font-bold uppercase leading-tight ${s.label}`}>
           {title}
         </span>
         <div className={`shrink-0 rounded-lg p-1.5 ${s.iconBg}`}>
@@ -94,12 +94,12 @@ export const MetricsCard = ({
         </div>
       </div>
 
-      <div className={`font-mono text-2xl font-bold tracking-tight tabular-nums ${s.value}`}>
+      <div className={`font-display text-3xl font-bold tabular-nums ${s.value}`}>
         {value}
       </div>
 
       {subtitle && (
-        <p className={`mt-1 text-[10px] font-medium uppercase tracking-wider leading-tight ${s.label} opacity-80`}>
+        <p className={`mt-1 text-[10px] font-medium uppercase leading-tight ${s.label} opacity-80`}>
           {subtitle}
         </p>
       )}
