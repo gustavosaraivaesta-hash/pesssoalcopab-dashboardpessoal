@@ -978,7 +978,7 @@ const Index = () => {
                   </DropdownMenu>
                 )}
 
-                <ThemeToggle />
+                <div className="hidden xl:block"><ThemeToggle /></div>
                 <Button variant="destructive" size="icon" onClick={handleLogout} title="Sair" aria-label="Sair">
                   <LogOut size={18} />
                 </Button>
