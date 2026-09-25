@@ -91,13 +91,10 @@ const Login = () => {
       // Convert username to email format (case-insensitive)
       const email = usernameToEmail(username);
       
-      // Convert password to uppercase for case-insensitive comparison
-      const normalizedPassword = password.toUpperCase();
-      
       const { data, error } = await withTimeoutReject(
         supabase.auth.signInWithPassword({
           email,
-          password: normalizedPassword,
+          password,
         }),
         15000,
       );
