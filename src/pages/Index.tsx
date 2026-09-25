@@ -865,45 +865,42 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
-        <div className="text-xl font-semibold text-blue-600">Carregando dados da planilha...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="font-display text-xl font-semibold text-primary">Carregando dados da planilha...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-blue-50 relative">
+    <div className="min-h-screen bg-background relative">
       {/* Background Image with Overlay */}
       <div
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-30 pointer-events-none"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-[0.08] pointer-events-none"
         style={{ backgroundImage: `url(${militaryBg})` }}
       />
-      <div className="fixed inset-0 bg-blue-50/75 pointer-events-none" />
+      <div className="surface-grid fixed inset-0 opacity-30 pointer-events-none" />
 
       {/* Header */}
-      <header className="bg-blue-600 text-primary-foreground shadow-elevated relative z-10">
-        <div className="px-6 py-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex flex-col gap-2 items-start">
-              <ThemeToggle />
-              <div className="flex items-center gap-3">
-                <Shield size={36} className="text-primary-foreground" />
+      <header className="relative z-10 border-b border-primary-foreground/10 bg-gradient-military text-primary-foreground shadow-elevated">
+        <div className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-primary-foreground/15 bg-primary-foreground/10">
+                <Shield size={30} className="text-primary-foreground" />
+              </div>
                 <div>
-                  <h1 className="text-3xl font-bold">Dashboard COpAb</h1>
-                  <p className="text-sm opacity-90">
+                  <p className="text-[11px] font-bold uppercase text-primary-foreground/65">Centro de Operações do Abastecimento</p>
+                  <h1 className="font-display text-2xl font-bold sm:text-3xl">Dashboard COpAb</h1>
+                  <p className="text-sm text-primary-foreground/75">
                     Centro de Operações do Abastecimento - Análise do Pessoal Militar e Civil
                   </p>
                 </div>
-              </div>
-              <Button variant="destructive" className="h-auto whitespace-normal py-2" onClick={handleLogout}>
-                <LogOut size={18} className="mr-2 shrink-0" />
-                Sair
-              </Button>
             </div>
-            <div className="flex flex-col gap-2 items-end">
+            <div className="flex flex-col gap-3 xl:items-end">
               {/* Online/Offline Status */}
-              <div className="flex gap-2">
-                <Badge variant={isOnline ? "default" : "destructive"} className="flex items-center gap-1 justify-center">
+              <div className="flex items-center justify-between gap-2 xl:justify-end">
+                <div className="flex gap-2">
+                <Badge variant={isOnline ? "default" : "destructive"} className="flex items-center justify-center gap-1 border-primary-foreground/15 bg-primary-foreground/10 text-primary-foreground">
                   {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
                   {isOnline ? "Online" : "Offline"}
                 </Badge>
@@ -912,9 +909,11 @@ const Index = () => {
                     Cache
                   </Badge>
                 )}
+                </div>
+                <div className="flex gap-2 xl:hidden"><ThemeToggle /></div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:flex xl:flex-wrap xl:justify-end">
                 <Button variant="secondary" className="h-auto whitespace-normal py-2" onClick={() => navigate("/dashboard-pracas")}>
                   <FileText size={18} className="mr-2 shrink-0" />
                   Praças
@@ -979,6 +978,10 @@ const Index = () => {
                   </DropdownMenu>
                 )}
 
+                <ThemeToggle />
+                <Button variant="destructive" size="icon" onClick={handleLogout} title="Sair" aria-label="Sair">
+                  <LogOut size={18} />
+                </Button>
               </div>
             </div>
           </div>
@@ -1025,7 +1028,7 @@ const Index = () => {
       </Dialog>
 
       {/* Main Content */}
-      <main className="px-6 py-8 space-y-6 relative z-10">
+      <main className="relative z-10 mx-auto max-w-[1600px] space-y-6 px-4 py-6 sm:px-6 sm:py-8">
         {/* Filtros */}
         <DashboardFilters
           filterOptions={filterOptions}
@@ -1042,7 +1045,7 @@ const Index = () => {
         />
 
         {/* Métricas principais */}
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-7">
           <MetricsCard title="Total TMFT" value={metrics.totalTMFT} icon={Shield} variant="default" />
           <div 
             onClick={handleEfetivoCardClick}
@@ -1092,13 +1095,13 @@ const Index = () => {
         {/* Card de Solicitações Pendentes - Apenas para COpAb */}
         {role === "COPAB" && pendingRequestsCount > 0 && (
           <Card 
-            className="bg-gradient-to-r from-amber-500 to-orange-500 text-white cursor-pointer hover:shadow-lg transition-all"
+            className="cursor-pointer border-warning/35 bg-warning text-warning-foreground transition-all hover:shadow-elevated"
             onClick={() => navigate("/admin/solicitacoes")}
           >
             <CardContent className="py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="bg-white/20 rounded-full p-3">
+                   <div className="rounded-md bg-warning-foreground/10 p-3">
                     <ClipboardList className="h-6 w-6" />
                   </div>
                   <div>
@@ -1110,7 +1113,7 @@ const Index = () => {
                 </div>
                 <Button 
                   variant="secondary" 
-                  className="bg-white/90 hover:bg-white text-orange-600 font-semibold border-0 shadow-sm"
+                  className="border-0 bg-card font-semibold text-warning-foreground shadow-sm hover:bg-card/90"
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate("/admin/solicitacoes");
@@ -1249,17 +1252,6 @@ const Index = () => {
         <DifferenceByGraduationChart data={filteredData} categoria={filters.categoria} />
       </main>
 
-      {/* Botão Sair - Canto Inferior Esquerdo */}
-      <div className="fixed bottom-6 left-6 z-20">
-        <Button
-          variant="outline"
-          onClick={handleLogout}
-          className="border-blue-600 bg-white text-blue-600 hover:bg-blue-600 hover:text-white font-semibold shadow-lg"
-        >
-          <LogOut size={18} className="mr-2" />
-          Sair
-        </Button>
-      </div>
     </div>
   );
 };
