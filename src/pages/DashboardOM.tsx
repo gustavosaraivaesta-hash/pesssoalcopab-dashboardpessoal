@@ -109,6 +109,7 @@ interface LicencaRecord {
   deOutraOm: string;
   periodo: string;
   om: string;
+  graduacaoAcademica?: string;
 }
 
 interface DestaqueRecord {
@@ -122,6 +123,7 @@ interface DestaqueRecord {
   deOutraOm: string;
   periodo: string;
   om: string;
+  graduacaoAcademica?: string;
 }
 
 interface ConcursoRecord {
@@ -222,6 +224,50 @@ const dedupeDestLic = <T extends { nome?: string }>(
   const l = filter(licencas);
   const d = filter(destaques);
   return { licencas: l, destaques: d, total: l.length + d.length };
+};
+
+type AuxiliaryPersonnelRecord = {
+  posto?: string;
+  corpo?: string;
+  quadro?: string;
+  opcao?: string;
+  cargo?: string;
+  nome?: string;
+  om?: string;
+  graduacaoAcademica?: string;
+};
+
+const matchesAuxiliaryFilters = (
+  item: AuxiliaryPersonnelRecord,
+  personnelData: PersonnelRecord[],
+  selectedOMs: string[],
+  selectedQuadros: string[],
+  selectedCorpos: string[],
+  selectedPostoFilter: string[],
+  selectedGradAcadFilter: string[],
+  selectedOpcoes: string[],
+  searchQuery: string,
+): boolean => {
+  if (selectedOMs.length > 0 && !selectedOMs.includes(item.om || "")) return false;
+  if (!matchesStructuralFilters(item, selectedQuadros, selectedCorpos, selectedPostoFilter)) return false;
+  if (!matchesOpcaoFilter(item.opcao, selectedOpcoes)) return false;
+
+  if (selectedGradAcadFilter.length > 0) {
+    const directGraduacao = (item.graduacaoAcademica || "").toString().trim();
+    const linkedGraduacao = personnelData.some(
+      (person) =>
+        nomeKey(person.nome) === nomeKey(item.nome) &&
+        (!item.om || person.om === item.om) &&
+        selectedGradAcadFilter.includes((person.graduacaoAcademica || "").toString().trim()),
+    );
+    if (!selectedGradAcadFilter.includes(directGraduacao) && !linkedGraduacao) return false;
+  }
+
+  const query = searchQuery.trim().toLowerCase();
+  if (query && ![item.nome, item.cargo, item.posto, item.corpo, item.quadro, item.om].some((value) => value?.toLowerCase().includes(query))) {
+    return false;
+  }
+  return true;
 };
 
 
@@ -687,21 +733,19 @@ const DashboardOM = () => {
       if (k) efetivoNames.add(k);
     });
 
-    // Contar DESTAQUES e LICENÇAS com os mesmos filtros
-    let filteredLicencas = licencasData;
-    let filteredDestaques = destaquesData;
-    if (selectedOMs.length > 0) {
-      filteredLicencas = filteredLicencas.filter((item) => selectedOMs.includes(item.om));
-      filteredDestaques = filteredDestaques.filter((item) => selectedOMs.includes(item.om));
-    }
-    if (selectedQuadros.length > 0) {
-      filteredLicencas = filteredLicencas.filter((item) => selectedQuadros.includes(item.quadro));
-      filteredDestaques = filteredDestaques.filter((item) => selectedQuadros.includes(item.quadro));
-    }
-    if (selectedOpcoes.length > 0) {
-      filteredLicencas = filteredLicencas.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
-      filteredDestaques = filteredDestaques.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
-    }
+    // Contar DESTAQUES e LICENÇAS somente quando correspondem a todos os filtros ativos.
+    const auxiliaryFilterArgs = [
+      personnelData,
+      selectedOMs,
+      selectedQuadros,
+      selectedCorpos,
+      selectedPostoFilter,
+      selectedGradAcadFilter,
+      selectedOpcoes,
+      searchQuery,
+    ] as const;
+    const filteredLicencas = licencasData.filter((item) => matchesAuxiliaryFilters(item, ...auxiliaryFilterArgs));
+    const filteredDestaques = destaquesData.filter((item) => matchesAuxiliaryFilters(item, ...auxiliaryFilterArgs));
     // Não contar duas vezes quem já aparece no EFETIVO / Extra Lotação
     const totalLicencasDestaques = dedupeDestLic(filteredLicencas, filteredDestaques, efetivoNames).total;
 
@@ -889,40 +933,16 @@ const DashboardOM = () => {
   }, [embarqueData, selectedOMs, selectedQuadros, selectedOpcoes]);
 
   const filteredLicencasData = useMemo(() => {
-    let filtered = licencasData;
-
-    if (selectedOMs.length > 0) {
-      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
-    }
-
-    if (selectedQuadros.length > 0) {
-      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro));
-    }
-
-    if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
-    }
-
-    return filtered;
-  }, [licencasData, selectedOMs, selectedQuadros, selectedOpcoes]);
+    return licencasData.filter((item) =>
+      matchesAuxiliaryFilters(item, personnelData, selectedOMs, selectedQuadros, selectedCorpos, selectedPostoFilter, selectedGradAcadFilter, selectedOpcoes, searchQuery),
+    );
+  }, [licencasData, personnelData, selectedOMs, selectedQuadros, selectedCorpos, selectedPostoFilter, selectedGradAcadFilter, selectedOpcoes, searchQuery]);
 
   const filteredDestaquesData = useMemo(() => {
-    let filtered = destaquesData;
-
-    if (selectedOMs.length > 0) {
-      filtered = filtered.filter((item) => selectedOMs.includes(item.om));
-    }
-
-    if (selectedQuadros.length > 0) {
-      filtered = filtered.filter((item) => selectedQuadros.includes(item.quadro));
-    }
-
-    if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => matchesOpcaoFilter(item.opcao, selectedOpcoes));
-    }
-
-    return filtered;
-  }, [destaquesData, selectedOMs, selectedQuadros, selectedOpcoes]);
+    return destaquesData.filter((item) =>
+      matchesAuxiliaryFilters(item, personnelData, selectedOMs, selectedQuadros, selectedCorpos, selectedPostoFilter, selectedGradAcadFilter, selectedOpcoes, searchQuery),
+    );
+  }, [destaquesData, personnelData, selectedOMs, selectedQuadros, selectedCorpos, selectedPostoFilter, selectedGradAcadFilter, selectedOpcoes, searchQuery]);
 
   const chartDataByPosto = useMemo(() => {
     const POSTO_ORDER = ["C ALTE", "CMG", "CF", "CC", "CT", "1T", "2T", "GM"];
@@ -4123,9 +4143,8 @@ const DashboardOM = () => {
 
             {activeTab === "licencas" && (
               <div className="space-y-4">
-                {licencasData.filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes)).length > 0 ? (
-                  licencasData
-                    .filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes))
+                {filteredLicencasData.length > 0 ? (
+                  filteredLicencasData
                     .map((item, index) => (
                       <div key={index} className="border-l-4 border-l-orange-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
@@ -4148,9 +4167,8 @@ const DashboardOM = () => {
 
             {activeTab === "destaques" && (
               <div className="space-y-4">
-                {destaquesData.filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes)).length > 0 ? (
-                  destaquesData
-                    .filter((item) => (selectedOMs.length === 0 || selectedOMs.includes(item.om)) && matchesOpcaoFilter(item.opcao, selectedOpcoes))
+                {filteredDestaquesData.length > 0 ? (
+                  filteredDestaquesData
                     .map((item, index) => (
                       <div key={index} className="border-l-4 border-l-cyan-500 bg-card rounded-lg p-4 shadow-sm">
                         <div className="flex items-start justify-between">
