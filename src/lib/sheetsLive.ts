@@ -56,8 +56,28 @@ export type AniversarianteRecord = {
   posto: string;
   quadro: string;
   nome: string;
-  nascimento: string; // dd/mm/yyyy
+  nascimento: string; // dd/mm/yyyy (anos com 2 dígitos são normalizados)
 };
+
+function normalizeNascimento(value: unknown): string {
+  const raw = value == null ? "" : String(value).trim();
+  const match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+  if (!match) return "";
+
+  const dia = Number(match[1]);
+  const mes = Number(match[2]);
+  let ano = Number(match[3]);
+  if (match[3].length === 2) ano += 1900;
+
+  const data = new Date(ano, mes - 1, dia);
+  if (
+    data.getFullYear() !== ano ||
+    data.getMonth() !== mes - 1 ||
+    data.getDate() !== dia
+  ) return "";
+
+  return `${String(dia).padStart(2, "0")}/${String(mes).padStart(2, "0")}/${ano}`;
+}
 
 export async function fetchAniversariantes(): Promise<AniversarianteRecord[]> {
   const rows = await fetchGviz(GID_INSPECAO);
@@ -66,9 +86,8 @@ export async function fetchAniversariantes(): Promise<AniversarianteRecord[]> {
     const posto = r[0] ? String(r[0]).trim() : "";
     const quadro = r[1] ? String(r[1]).trim() : "";
     const nome = r[2] ? String(r[2]).trim() : "";
-    const nascimento = r[4] ? String(r[4]).trim() : "";
+    const nascimento = normalizeNascimento(r[4]);
     if (!posto || !nome || !nascimento) continue;
-    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(nascimento)) continue;
     out.push({
       posto: normalizePosto(posto),
       quadro: normalizeQuadro(quadro),
