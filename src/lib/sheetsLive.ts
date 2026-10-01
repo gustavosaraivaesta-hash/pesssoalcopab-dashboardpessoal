@@ -12,7 +12,7 @@ function gvizUrl(gid: string) {
 }
 
 function gvizHtmlUrl(gid: string) {
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/htmlview?gid=${gid}&_=${Date.now()}`;
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?gid=${gid}&_=${Date.now()}`;
 }
 
 async function fetchGviz(gid: string): Promise<any[][]> {
