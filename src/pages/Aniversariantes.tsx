@@ -42,6 +42,11 @@ const formatNome = (r: AniversarianteRecord) => {
   return `${r.posto}${esp ? `-${esp}` : ""} ${r.nome}`;
 };
 
+const formatNomePdf = (r: AniversarianteRecord) => {
+  const esp = (r.quadro || "").trim();
+  return `${r.posto}${esp ? `-${esp}` : ""} ${r.nomeGuerra || r.nome}`;
+};
+
 const toMMDD = (mes: number, dia: number) => mes * 100 + dia;
 
 const Aniversariantes = () => {
@@ -180,7 +185,7 @@ const Aniversariantes = () => {
           ? `${String(r.dia).padStart(2, "0")}/${String(r.mes).padStart(2, "0")}`
           : String(r.dia).padStart(2, "0"),
 
-        formatNome(r),
+        formatNomePdf(r),
         r.nascimento,
         `${r.idade} anos`,
       ]),

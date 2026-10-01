@@ -11,6 +11,10 @@ function gvizUrl(gid: string) {
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}&_=${Date.now()}`;
 }
 
+function gvizHtmlUrl(gid: string) {
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:html&gid=${gid}&_=${Date.now()}`;
+}
+
 async function fetchGviz(gid: string): Promise<any[][]> {
   const res = await fetch(gvizUrl(gid), { cache: "no-store" });
   const text = await res.text();
@@ -56,8 +60,39 @@ export type AniversarianteRecord = {
   posto: string;
   quadro: string;
   nome: string;
+  nomeGuerra?: string;
   nascimento: string; // dd/mm/yyyy (anos com 2 dígitos são normalizados)
 };
+
+async function fetchNomesGuerra(): Promise<Map<string, string>> {
+  try {
+    const res = await fetch(gvizHtmlUrl(GID_INSPECAO), { cache: "no-store" });
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const nomes = new Map<string, string>();
+
+    doc.querySelectorAll("table tr").forEach((row) => {
+      const cells = row.querySelectorAll("td");
+      const nomeCell = cells.item(2);
+      if (!nomeCell) return;
+
+      const nomeCompleto = nomeCell.textContent?.trim() ?? "";
+      const partesEmNegrito = Array.from(
+        nomeCell.querySelectorAll<HTMLElement>("b, strong, span[style*='font-weight:bold'], span[style*='font-weight: bold']"),
+      )
+        .map((el) => el.textContent?.trim() ?? "")
+        .filter(Boolean);
+
+      if (nomeCompleto && partesEmNegrito.length) {
+        nomes.set(nomeCompleto.toUpperCase(), partesEmNegrito.join(" "));
+      }
+    });
+
+    return nomes;
+  } catch {
+    return new Map();
+  }
+}
 
 function normalizeNascimento(value: unknown): string {
   const raw = value == null ? "" : String(value).trim();
@@ -80,7 +115,10 @@ function normalizeNascimento(value: unknown): string {
 }
 
 export async function fetchAniversariantes(): Promise<AniversarianteRecord[]> {
-  const rows = await fetchGviz(GID_INSPECAO);
+  const [rows, nomesGuerra] = await Promise.all([
+    fetchGviz(GID_INSPECAO),
+    fetchNomesGuerra(),
+  ]);
   const out: AniversarianteRecord[] = [];
   for (const r of rows) {
     const posto = r[0] ? String(r[0]).trim() : "";
@@ -92,6 +130,7 @@ export async function fetchAniversariantes(): Promise<AniversarianteRecord[]> {
       posto: normalizePosto(posto),
       quadro: normalizeQuadro(quadro),
       nome,
+      nomeGuerra: nomesGuerra.get(nome.toUpperCase()),
       nascimento,
     });
   }
