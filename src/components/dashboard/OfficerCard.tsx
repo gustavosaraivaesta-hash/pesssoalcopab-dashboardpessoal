@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle } from "lucide-react";
-import { formatMilitarNameWithOpcao } from "@/lib/utils";
+import { formatMilitarNameWithOpcao, isForaDaNeo } from "@/lib/utils";
 
 interface PersonnelRecord {
   id: string;
@@ -30,17 +30,9 @@ interface OfficerCardProps {
 }
 
 const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardProps) => {
-  // Check if quadro TMFT and quadro EFE are different (this determines FORA DA NEO)
-  const quadroTmftNorm = (item.quadroTmft || '').trim().toUpperCase();
-  const quadroEfeNorm = (item.quadroEfe || '').trim().toUpperCase();
-  const opcaoTmftNorm = (item.opcaoTmft || '').trim().toUpperCase();
-  const opcaoEfeNorm = (item.opcaoEfe || '').trim().toUpperCase();
-  const isDifferentQuadro = item.ocupado && quadroTmftNorm && quadroEfeNorm && quadroTmftNorm !== '-' && quadroEfeNorm !== '-' && quadroTmftNorm !== quadroEfeNorm;
-  // TTC vs Carreira divergence - check even if opcao fields are empty
-  const isTTCDivergent = item.ocupado && ((opcaoTmftNorm === 'TTC') !== (opcaoEfeNorm === 'TTC'));
-  
-  // Highlight if quadro is different OR TTC/career mismatch
-  const isDifferentNeoEfe = isDifferentQuadro || isTTCDivergent;
+  const isDifferentNeoEfe = item.ocupado && isForaDaNeo(
+    item.quadroTmft, item.quadroEfe, item.opcaoTmft, item.opcaoEfe,
+  );
 
   // Format military name: graduação-opcao-especialidade nome
   const formatMilitarName = () => {
@@ -128,7 +120,7 @@ const OfficerCard = ({ item, index, keyPrefix, variant = "blue" }: OfficerCardPr
       {isDifferentNeoEfe && (
         <p className="text-xs mt-1.5 font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
           <AlertTriangle className="h-3 w-3" />
-          NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}) ≠ EFE ({item.postoEfe || "?"}/{item.quadroEfe || "-"})
+          NEO ({item.postoTmft || "?"}/{item.quadroTmft || "-"}/{item.opcaoTmft || "CARREIRA"}) ≠ EFE ({item.postoEfe || "?"}/{item.quadroEfe || "-"}/{item.opcaoEfe || "CARREIRA"})
         </p>
       )}
     </div>

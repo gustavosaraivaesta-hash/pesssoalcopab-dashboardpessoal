@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { isForaDaNeo, expandSpecialtyEquivalents, canonicalizeSpecialty, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal } from "@/lib/utils";
+import { isForaDaNeo, expandSpecialtyEquivalents, canonicalizeSpecialty, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal, normalizeVinculo } from "@/lib/utils";
 import OfficerCard from "@/components/dashboard/OfficerCard";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 
@@ -138,10 +138,8 @@ interface CursoRecord {
   om: string;
 }
 
-const getVinculo = (opcaoEfe: string | undefined, opcaoTmft: string | undefined): "CARREIRA" | "TTC" => {
-  const opcao = (opcaoEfe || opcaoTmft || "").trim().toUpperCase();
-  return opcao === "TTC" || opcao === "RM1" || opcao === "RM-1" ? "TTC" : "CARREIRA";
-};
+const getVinculo = (opcaoEfe: string | undefined, opcaoTmft: string | undefined): string =>
+  normalizeVinculo(opcaoEfe || opcaoTmft);
 
 // Normaliza nome para comparação (evita contar o mesmo militar 2x: EFETIVO + LICENÇA/DESTAQUE)
 const nomeKey = (nome: string | undefined | null): string =>

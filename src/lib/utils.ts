@@ -285,15 +285,22 @@ export function canonicalizeSpecialty(code: string | undefined | null): string {
 /**
  * Checks if a person is "FORA DA NEO" based on specialty comparison.
  * Returns true if FORA DA NEO (specialties don't match and aren't equivalent).
- * Also checks opcao: if one is TTC and the other is not, it's divergent (TTC x Carreira).
+ * Different normalized vínculos are divergent, including CARREIRA vs RM2.
  */
+export function normalizeVinculo(value?: string): string {
+  const option = (value || "").trim().toUpperCase();
+  if (!option || option === "-") return "CARREIRA";
+  if (option === "RM1" || option === "RM-1") return "TTC";
+  if (option === "RM-2") return "RM2";
+  return option;
+}
+
 export function isForaDaNeo(quadroTmft: string, quadroEfe: string, opcaoTmft?: string, opcaoEfe?: string): boolean {
-  const oTmft = (opcaoTmft || "").trim().toUpperCase();
-  const oEfe = (opcaoEfe || "").trim().toUpperCase();
-  const tmftIsTTC = oTmft === "TTC" || oTmft === "RM1" || oTmft === "RM-1";
-  const efeIsTTC = oEfe === "TTC" || oEfe === "RM1" || oEfe === "RM-1";
-  // Se qualquer um (TMFT ou EFE) for TTC, considera-se conforme em qualquer especialidade
-  if (tmftIsTTC || efeIsTTC) return false;
+  const oTmft = normalizeVinculo(opcaoTmft);
+  const oEfe = normalizeVinculo(opcaoEfe);
+  if (oTmft !== oEfe) return true;
+  // Vínculos TTC correspondentes dispensam a comparação de especialidades.
+  if (oTmft === "TTC") return false;
 
   const tmft = (quadroTmft || "").trim().toUpperCase();
   const efe = (quadroEfe || "").trim().toUpperCase();
