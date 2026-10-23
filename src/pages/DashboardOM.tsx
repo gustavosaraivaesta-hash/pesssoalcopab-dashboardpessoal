@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { isForaDaNeo, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal, normalizeVinculo, getOfficerFilterValue } from "@/lib/utils";
+import { isForaDaNeo, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal, normalizeVinculo, getOfficerFilterValue, matchesOfficerVinculoFilter } from "@/lib/utils";
 
 import {
   BarChart,
@@ -682,7 +682,7 @@ const DashboardOM = () => {
       }
       // Aplicar filtro de Opção (usa opcaoEfe para filtragem independente)
       if (selectedOpcoes.length > 0) {
-        efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
+        efetivoData = efetivoData.filter((item) => matchesOfficerVinculoFilter(item, selectedOpcoes));
       }
       // Aplicar filtro de busca
       if (searchQuery.trim()) {
@@ -713,7 +713,7 @@ const DashboardOM = () => {
         efetivoData = efetivoData.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
       }
       if (selectedOpcoes.length > 0) {
-        efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
+        efetivoData = efetivoData.filter((item) => matchesOfficerVinculoFilter(item, selectedOpcoes));
       }
 
       totalEXI = efetivoData.length;
@@ -784,7 +784,7 @@ const DashboardOM = () => {
         efetivoData = efetivoData.filter((item) => selectedOMs.includes(item.om));
       }
       if (selectedOpcoes.length > 0) {
-        efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
+        efetivoData = efetivoData.filter((item) => matchesOfficerVinculoFilter(item, selectedOpcoes));
       }
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
@@ -812,7 +812,7 @@ const DashboardOM = () => {
         efetivoData = efetivoData.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
       }
       if (selectedOpcoes.length > 0) {
-        efetivoData = efetivoData.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
+        efetivoData = efetivoData.filter((item) => matchesOfficerVinculoFilter(item, selectedOpcoes));
       }
       return efetivoData;
     } else {
@@ -1401,7 +1401,7 @@ const DashboardOM = () => {
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
             if (selectedGradAcadFilter.length > 0) ef = ef.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
-            if (selectedOpcoes.length > 0) ef = ef.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
+            if (selectedOpcoes.length > 0) ef = ef.filter((item) => matchesOfficerVinculoFilter(item, selectedOpcoes));
             omEfetivo = ef.length;
           } else {
             omEfetivo = omRegularData.filter((item) => item.ocupado).length;
@@ -1782,7 +1782,7 @@ const DashboardOM = () => {
             if (selectedQuadros.length > 0) ef = ef.filter((item) => selectedQuadros.includes(item.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((item) => selectedPostoFilter.includes(item.postoEfe));
             if (selectedGradAcadFilter.length > 0) ef = ef.filter((item) => selectedGradAcadFilter.includes((item.graduacaoAcademica || "").toString().trim()));
-            if (selectedOpcoes.length > 0) ef = ef.filter((item) => matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes));
+            if (selectedOpcoes.length > 0) ef = ef.filter((item) => matchesOfficerVinculoFilter(item, selectedOpcoes));
             filtEfetivo = ef.length;
           } else {
             filtTmft = omRegularData.length;
@@ -1842,7 +1842,7 @@ const DashboardOM = () => {
               matchesTmftFilters = matchesTmftFilters && selectedPostoFilter.includes(item.postoTmft);
             }
             if (selectedOpcoes.length > 0) {
-              matchesEfeFilters = matchesEfeFilters && matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes);
+              matchesEfeFilters = matchesEfeFilters && matchesOfficerVinculoFilter(item, selectedOpcoes);
               matchesTmftFilters = matchesTmftFilters && matchesOpcaoFilter(item.opcaoTmft, selectedOpcoes);
             }
 
@@ -1876,7 +1876,7 @@ const DashboardOM = () => {
               matchesTmft = matchesTmft && selectedPostoFilter.includes(item.postoTmft);
             }
             if (selectedOpcoes.length > 0) {
-              matchesEfe = matchesEfe && matchesOpcaoFilter(item.opcaoEfe, selectedOpcoes);
+              matchesEfe = matchesEfe && matchesOfficerVinculoFilter(item, selectedOpcoes);
               matchesTmft = matchesTmft && matchesOpcaoFilter(item.opcaoTmft, selectedOpcoes);
             }
 
@@ -2191,7 +2191,7 @@ const DashboardOM = () => {
             if (selectedQuadros.length > 0) ef = ef.filter((i) => selectedQuadros.includes(i.quadroEfe));
             if (selectedPostoFilter.length > 0) ef = ef.filter((i) => selectedPostoFilter.includes(i.postoEfe));
             if (selectedGradAcadFilter.length > 0) ef = ef.filter((i) => selectedGradAcadFilter.includes((i.graduacaoAcademica || "").toString().trim()));
-            if (selectedOpcoes.length > 0) ef = ef.filter((i) => matchesOpcaoFilter(i.opcaoEfe, selectedOpcoes));
+            if (selectedOpcoes.length > 0) ef = ef.filter((i) => matchesOfficerVinculoFilter(i, selectedOpcoes));
             eff = ef.length;
           } else {
             eff = omReg.filter((i) => i.ocupado).length;
@@ -2385,7 +2385,7 @@ const DashboardOM = () => {
 
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omTmft = omRegularData.length;
-        const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
+        const omRegularOcupados = omRegularData.filter((item) => item.ocupado && matchesOfficerVinculoFilter(item, selectedOpcoes));
         const omEfetivoTotal = omRegularOcupados.length;
 
         const omForaNeoList = omRegularOcupados.filter((item) => {
@@ -2550,11 +2550,11 @@ const DashboardOM = () => {
         // Calculate metrics
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omTmft = omRegularData.length;
-        const omEfetivo = omRegularData.filter((item) => item.ocupado).length;
+        const omEfetivo = omRegularData.filter((item) => item.ocupado && matchesOfficerVinculoFilter(item, selectedOpcoes)).length;
         const omVagos = omTmft - omEfetivo;
         const omAtendimento = omTmft > 0 ? (omEfetivo / omTmft) * 100 : 0;
 
-        const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
+        const omRegularOcupados = omRegularData.filter((item) => item.ocupado && matchesOfficerVinculoFilter(item, selectedOpcoes));
         const omForaNeoCount = omRegularOcupados.filter((item) => {
           return isForaDaNeo(item.quadroTmft || "", item.quadroEfe || "", item.opcaoTmft || "", item.opcaoEfe || "");
         }).length;
@@ -2929,7 +2929,7 @@ const DashboardOM = () => {
 
         const omRegularData = omData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
         const omTmft = omRegularData.length;
-        const omRegularOcupados = omRegularData.filter((item) => item.ocupado);
+        const omRegularOcupados = omRegularData.filter((item) => item.ocupado && matchesOfficerVinculoFilter(item, selectedOpcoes));
         const omEfetivoTotal = omRegularOcupados.length;
         const omVagos = omTmft - omEfetivoTotal;
 
