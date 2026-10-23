@@ -1340,7 +1340,7 @@ const DashboardOM = () => {
           const omRegularData = omAllData.filter((item) => item.tipoSetor !== "EXTRA LOTAÇÃO");
           const omExtraData = omAllData.filter((item) => item.tipoSetor === "EXTRA LOTAÇÃO" && item.ocupado);
           const omTmft = omRegularData.length;
-          const omEfetivo = omRegularData.filter((item) => item.ocupado && matchesOfficerVinculoFilter(item, selectedOpcoes)).length;
+          const omEfetivo = omRegularData.filter((item) => item.ocupado).length;
           const omExtra = omExtraData.length;
           const dl = countDestLicForOM(om, false);
           const omDestLic = dl.display;
