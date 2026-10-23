@@ -1,5 +1,7 @@
 # Tarefas
 
+- [ ] Ajustar EN + CARREIRA para EFETIVO 2 nas três vagas CARREIRA, excluindo RM2 e ocupantes de vagas TTC.
+
 - [x] Corrigir EN + CARREIRA: excluir SEM NEO RM2 do filtro; planilha confirma TMFT 3, EFETIVO 3, SEM NEO 0 e ATEND. TOTAL 100% (7 testes aprovados; tela autenticada não conferida).
 
 - [x] Corrigir a conformidade da NEO para distinguir CARREIRA de RM2 nos cartões, métricas e relatórios (5 testes aprovados; conferência autenticada indisponível nesta sessão).

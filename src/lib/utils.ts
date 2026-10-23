@@ -295,6 +295,16 @@ export function normalizeVinculo(value?: string): string {
   return option;
 }
 
+export function matchesOfficerVinculoFilter(
+  item: { tipoSetor: string; opcaoTmft?: string; opcaoEfe?: string },
+  selected: string[],
+): boolean {
+  if (selected.length === 0) return true;
+  const options = selected.map(normalizeVinculo);
+  return options.includes(normalizeVinculo(item.opcaoEfe)) &&
+    (item.tipoSetor === "EXTRA LOTAÇÃO" || options.includes(normalizeVinculo(item.opcaoTmft)));
+}
+
 /** SEM NEO has no planned slot: filter its personnel fields, not empty TMFT fields. */
 export function getOfficerFilterValue(
   item: { tipoSetor: string; opcaoTmft?: string; opcaoEfe?: string; postoTmft?: string; postoEfe?: string; corpoTmft?: string; corpoEfe?: string },
