@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { isForaDaNeo, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal, normalizeVinculo } from "@/lib/utils";
+import { isForaDaNeo, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal, normalizeVinculo, getOfficerFilterValue } from "@/lib/utils";
 
 import {
   BarChart,
@@ -569,17 +569,17 @@ const DashboardOM = () => {
     }
 
     if (selectedOpcoes.length > 0) {
-      filtered = filtered.filter((item) => matchesOpcaoFilter(item.opcaoTmft, selectedOpcoes));
+      filtered = filtered.filter((item) => matchesOpcaoFilter(getOfficerFilterValue(item, "opcao"), selectedOpcoes));
     }
 
     // Filtro de posto - filtra pela TMFT para que as métricas sejam baseadas nas posições do posto selecionado
     if (selectedPostoFilter.length > 0) {
-      filtered = filtered.filter((item) => selectedPostoFilter.includes(item.postoTmft));
+      filtered = filtered.filter((item) => selectedPostoFilter.includes(getOfficerFilterValue(item, "posto")));
     }
 
     // Filtro de corpo - filtra pela TMFT para que as métricas sejam baseadas nas posições do corpo selecionado
     if (selectedCorpos.length > 0) {
-      filtered = filtered.filter((item) => selectedCorpos.includes(item.corpoTmft));
+      filtered = filtered.filter((item) => selectedCorpos.includes(getOfficerFilterValue(item, "corpo")));
     }
 
     // Filtro de Graduação Acadêmica - filtra pelo campo graduacaoAcademica

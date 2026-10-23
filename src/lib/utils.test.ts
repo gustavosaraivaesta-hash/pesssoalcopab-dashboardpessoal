@@ -1,8 +1,18 @@
 import { describe, test } from "node:test";
 import { strict as assert } from "node:assert";
-import { isForaDaNeo, normalizeVinculo } from "./utils";
+import { isForaDaNeo, normalizeVinculo, getOfficerFilterValue } from "./utils";
 
 describe("Conformidade de vínculos na NEO", () => {
+  test("SEM NEO RM2 não entra no filtro CARREIRA por ter TMFT vazia", () => {
+    const record = { tipoSetor: "EXTRA LOTAÇÃO", opcaoTmft: "", opcaoEfe: "RM-2", postoTmft: "", postoEfe: "1T", corpoTmft: "", corpoEfe: "CORM" };
+    assert.equal(normalizeVinculo(getOfficerFilterValue(record, "opcao")), "RM2");
+    assert.notEqual(normalizeVinculo(getOfficerFilterValue(record, "opcao")), "CARREIRA");
+    assert.equal(getOfficerFilterValue(record, "posto"), "1T");
+    assert.equal(getOfficerFilterValue(record, "corpo"), "CORM");
+  });
+  test("vaga regular preserva vínculo previsto independentemente do ocupante", () => {
+    assert.equal(getOfficerFilterValue({ tipoSetor: "DIVISÃO", opcaoTmft: "CARREIRA", opcaoEfe: "RM-2" }, "opcao"), "CARREIRA");
+  });
   test("relatórios preservam RM2 como vínculo distinto de CARREIRA", () => {
     assert.equal(normalizeVinculo("RM2"), "RM2");
     assert.equal(normalizeVinculo("RM-2"), "RM2");
