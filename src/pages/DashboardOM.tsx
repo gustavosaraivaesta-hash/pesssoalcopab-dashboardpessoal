@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { isForaDaNeo, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal } from "@/lib/utils";
+import { isForaDaNeo, formatMilitarNameWithOpcao, normalizeGraduacaoFields, stripRankPrefixFromName, formatAtTotal, normalizeVinculo } from "@/lib/utils";
 
 import {
   BarChart,
@@ -1900,7 +1900,7 @@ const DashboardOM = () => {
             item.quadroEfe || "-",
             item.corpoEfe || "-",
             (item.graduacaoAcademica || "").toString().trim() || "-",
-            normalizeOpcao(item.opcaoEfe || item.opcaoTmft) === "TTC" ? "TTC" : "CARREIRA",
+            normalizeVinculo(item.opcaoEfe || item.opcaoTmft),
             item.ocupado
 
               ? (() => {

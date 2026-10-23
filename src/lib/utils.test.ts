@@ -1,8 +1,13 @@
 import { describe, test } from "node:test";
 import { strict as assert } from "node:assert";
-import { isForaDaNeo } from "./utils";
+import { isForaDaNeo, normalizeVinculo } from "./utils";
 
 describe("Conformidade de vínculos na NEO", () => {
+  test("relatórios preservam RM2 como vínculo distinto de CARREIRA", () => {
+    assert.equal(normalizeVinculo("RM2"), "RM2");
+    assert.equal(normalizeVinculo("RM-2"), "RM2");
+    assert.equal(normalizeVinculo("CARREIRA"), "CARREIRA");
+  });
   test("CARREIRA não é igual a RM2, mesmo com especialidade EN igual", () => {
     assert.equal(isForaDaNeo("EN", "EN", "CARREIRA", "RM2"), true);
     assert.equal(isForaDaNeo("EN", "EN", "RM2", "CARREIRA"), true);

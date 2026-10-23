@@ -287,14 +287,15 @@ export function canonicalizeSpecialty(code: string | undefined | null): string {
  * Returns true if FORA DA NEO (specialties don't match and aren't equivalent).
  * Different normalized vínculos are divergent, including CARREIRA vs RM2.
  */
+export function normalizeVinculo(value?: string): string {
+  const option = (value || "").trim().toUpperCase();
+  if (!option || option === "-") return "CARREIRA";
+  if (option === "RM1" || option === "RM-1") return "TTC";
+  if (option === "RM-2") return "RM2";
+  return option;
+}
+
 export function isForaDaNeo(quadroTmft: string, quadroEfe: string, opcaoTmft?: string, opcaoEfe?: string): boolean {
-  const normalizeVinculo = (value?: string): string => {
-    const option = (value || "").trim().toUpperCase();
-    if (!option || option === "-") return "CARREIRA";
-    if (option === "RM1" || option === "RM-1") return "TTC";
-    if (option === "RM-2") return "RM2";
-    return option;
-  };
   const oTmft = normalizeVinculo(opcaoTmft);
   const oEfe = normalizeVinculo(opcaoEfe);
   if (oTmft !== oEfe) return true;
