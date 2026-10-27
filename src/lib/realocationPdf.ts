@@ -61,7 +61,7 @@ export function createRealocationPdf(input: RealocationPdfInput) {
     input.suggestions.reduce((sum, item) => sum + item.quantity, 0),
     input.moves.reduce((sum, item) => sum + item.quantity, 0),
   ]]);
-  const moveHead = ["Etapa", "Categoria", "Especialidade", "Posto/Grad.", "Corpo", "Vínculo", "Origem", "Destino", "Quantidade"];
+  const moveHead = ["Etapa", "Categoria", "Especialidade", "Postos/Grad.", "Corpo", "Vínculo", "Origem", "Destino", "Quantidade"];
   section("Sugestões restantes no recorte selecionado");
   table(moveHead, input.suggestions.length ? input.suggestions.map((move, index) => [index + 1, move.source.category, move.source.specialty, move.source.rank, move.source.corpo || "—", move.source.vinculo, move.source.om, move.target.om, move.quantity]) : [["—", "Nenhuma sugestão compatível disponível", "", "", "", "", "", "", 0]]);
   section("Sequência simulada — todas as categorias e filtros");
@@ -71,10 +71,10 @@ export function createRealocationPdf(input: RealocationPdfInput) {
     return [index + 1, source?.category || "—", source?.specialty || "—", source?.rank || "—", source?.corpo || "—", source?.vinculo || "—", source?.om || "—", target?.om || "—", move.quantity];
   }) : [["—", "Nenhuma realocação simulada", "", "", "", "", "", "", 0]]);
   section("Balanço por OM e perfil — recorte selecionado");
-  table(["OM", "Especialidade", "Posto/Grad.", "Corpo", "Vínculo", "TMFT", "Pessoal real", "Simulado", "Excedente", "Necessidade"], input.filtered.map(item => [item.om, item.specialty, item.rank, item.corpo || "—", item.vinculo, item.planned, original.get(item.id)?.actual ?? 0, item.actual, Math.max(0, item.actual - item.planned), Math.max(0, item.planned - item.actual)]));
+  table(["OM", "Especialidade", "Postos/Grad.", "Corpo", "Vínculo", "TMFT", "Pessoal real", "Simulado", "Excedente", "Necessidade"], input.filtered.map(item => [item.om, item.specialty, item.rank, item.corpo || "—", item.vinculo, item.planned, original.get(item.id)?.actual ?? 0, item.actual, Math.max(0, item.actual - item.planned), Math.max(0, item.planned - item.actual)]));
   section("Critérios e ressalvas");
   doc.setFont("helvetica", "normal"); doc.setFontSize(9);
-  const notes = doc.splitTextToSize("Somente análise: nenhuma realocação altera efetivos, vagas ou planilhas. Compatibilidade por categoria, especialidade equivalente, posto/graduação, vínculo e corpo. Pessoal real inclui SEM NEO e exclui licenças e destaques auxiliares; não equivale à ocupação das vagas da NEO. Disponibilidade individual sujeita à avaliação da OM. Sugestões restantes são calculadas após a sequência simulada.", width - 28);
+  const notes = doc.splitTextToSize("Somente análise: nenhuma realocação altera efetivos, vagas ou planilhas. Compatibilidade por categoria, especialidade equivalente, vínculo e corpo — posto/graduação não separa perfis (listados apenas como referência). Pessoal real inclui SEM NEO e exclui licenças e destaques auxiliares; não equivale à ocupação das vagas da NEO. Disponibilidade individual sujeita à avaliação da OM. Sugestões restantes são calculadas após a sequência simulada.", width - 28);
   doc.text(notes, 14, y);
   const pages = doc.getNumberOfPages();
   for (let page = 1; page <= pages; page++) {
