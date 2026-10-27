@@ -1,5 +1,7 @@
 # Tarefas
 
+- [ ] Gerar PDF da análise de realocação com filtros, sugestões, sequência simulada e balanço, com prévia antes de baixar.
+
 - [x] Criar análise de excedentes e necessidades de especialidades entre OMs, com simulação sucessiva sem alterar dados (12 testes aprovados; fluxo autenticado conferido com dados reais, simulação e reinício).
 
 - [x] Ajustar EN + CARREIRA para EFETIVO 2 nas três vagas CARREIRA, excluindo RM2 e ocupantes de vagas TTC (8 testes aprovados; tela autenticada não conferida).
