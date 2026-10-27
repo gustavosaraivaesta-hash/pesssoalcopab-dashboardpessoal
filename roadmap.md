@@ -1,6 +1,7 @@
 # Tarefas
 
-- [ ] Gerar PDF da análise de realocação com filtros, sugestões, sequência simulada e balanço, com prévia antes de baixar.
+- [x] Gerar PDF da análise de realocação com filtros, sugestões, sequência simulada e balanço; prévia e download testados com dados de teste, seis páginas conferidas sem cortes ou sobreposição (skill PDF), 12 testes aprovados.
+- [ ] Conferir o botão Gerar PDF com dados reais na conta autenticada (bloqueado: sessão indisponível; requer entrada do usuário na prévia).
 
 - [x] Criar análise de excedentes e necessidades de especialidades entre OMs, com simulação sucessiva sem alterar dados (12 testes aprovados; fluxo autenticado conferido com dados reais, simulação e reinício).
 
