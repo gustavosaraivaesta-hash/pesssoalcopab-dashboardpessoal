@@ -31,13 +31,15 @@ export function buildAnalysisBalances(sources: { category: AnalysisCategory; rec
       if (!om) continue;
       const add = (side: "Tmft" | "Efe") => {
         const specialty = canonicalizeSpecialty(record[`quadro${side}`]);
+        if (specialty === "SEM ESPECIALIDADE") return;
         const rank = rankValue(record[`posto${side}`]);
-        if (!rank || rank === "-" || specialty === "SEM ESPECIALIDADE") return;
         const vinculo = normalizeVinculo(record[`opcao${side}`]);
         const corpo = category === "OFICIAIS" ? clean(record[`corpo${side}`]) : "";
-        const profile = JSON.stringify([category, specialty, rank, vinculo, corpo]);
+        // Graduação (posto) não separa perfis: a correspondência usa apenas especialidade, vínculo e corpo.
+        const profile = JSON.stringify([category, specialty, vinculo, corpo]);
         const id = JSON.stringify([om, profile]);
-        const group = groups.get(id) || { id, profile, category, om, specialty, rank, vinculo, corpo, planned: 0, actual: 0 };
+        const group = groups.get(id) || { id, profile, category, om, specialty, rank: "", vinculo, corpo, planned: 0, actual: 0 };
+        if (rank && !group.rank.includes(rank)) group.rank = group.rank ? `${group.rank} / ${rank}` : rank;
         if (side === "Tmft") group.planned += 1;
         else group.actual += 1;
         groups.set(id, group);
