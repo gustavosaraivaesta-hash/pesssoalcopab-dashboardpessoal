@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRightLeft, ArrowRight, RefreshCw, RotateCcw, ShieldCheck, Undo2 } from "lucide-react";
+import { ArrowLeft, ArrowRightLeft, ArrowRight, FileText, RefreshCw, RotateCcw, ShieldCheck, Undo2 } from "lucide-react";
+import { toast } from "sonner";
+import { openPdfPreview } from "@/lib/pdfPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -31,6 +33,7 @@ export default function AnaliseRealocacao() {
   const [om, setOm] = useState("TODAS");
   const [vinculo, setVinculo] = useState("TODOS");
   const [moves, setMoves] = useState<AnalysisMove[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
   const query = useQuery({
     queryKey: ["realocation-analysis", user?.id], enabled: isAuthenticated && Boolean(user?.id),
     queryFn: async () => {
@@ -52,6 +55,16 @@ export default function AnaliseRealocacao() {
   const proposed = moves.reduce((sum, item) => sum + item.quantity, 0);
   const originalById = new Map(balances.map(item => [item.id, item]));
   const refresh = async () => { setMoves([]); await query.refetch(); };
+  const exportPdf = async () => {
+    setIsExporting(true);
+    try {
+      const { createRealocationPdf } = await import("@/lib/realocationPdf");
+      const pdf = createRealocationPdf({ category, specialty, om, vinculo, updatedAt: query.dataUpdatedAt, balances, filtered, suggestions, moves });
+      openPdfPreview(pdf, `Analise_Realocacao_${category}_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch {
+      toast.error("Não foi possível gerar o PDF da análise. Tente novamente.");
+    } finally { setIsExporting(false); }
+  };
 
   return <div className="min-h-screen bg-background text-foreground">
     <header className="border-b border-border bg-card">
@@ -60,7 +73,7 @@ export default function AnaliseRealocacao() {
           <Button variant="outline" size="icon" onClick={() => navigate("/")} aria-label="Voltar ao painel"><ArrowLeft /></Button>
           <div><h1 className="font-display text-xl font-bold sm:text-2xl">Análise de realocação</h1><p className="text-sm text-muted-foreground">Especialidades · OMs com acesso autorizado</p></div>
         </div>
-        <div className="flex items-center gap-2"><Badge variant="outline" className="gap-1 border-success/30 text-success"><ShieldCheck size={14} />Somente análise</Badge><ThemeToggle /><Button variant="outline" size="icon" aria-label="Atualizar dados" onClick={refresh} disabled={query.isFetching}><RefreshCw className={query.isFetching ? "animate-spin" : ""} /></Button></div>
+        <div className="flex flex-wrap items-center gap-2"><Badge variant="outline" className="gap-1 border-success/30 text-success"><ShieldCheck size={14} />Somente análise</Badge><Button variant="outline" onClick={exportPdf} disabled={isExporting || query.isFetching || !query.isSuccess || !filtered.length}>{isExporting ? <RefreshCw className="animate-spin" /> : <FileText />}Gerar PDF</Button><ThemeToggle /><Button variant="outline" size="icon" aria-label="Atualizar dados" onClick={refresh} disabled={query.isFetching}><RefreshCw className={query.isFetching ? "animate-spin" : ""} /></Button></div>
       </div>
     </header>
     <main className="mx-auto max-w-[1600px] space-y-6 px-4 py-6 sm:px-6">
