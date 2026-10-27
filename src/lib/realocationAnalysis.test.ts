@@ -21,12 +21,13 @@ describe("Realocação somente para análise", () => {
     const balances = buildAnalysisBalances([{ category: "PRAÇAS", records: [record({ tipoSetor: "SEM NEO" }), record({ om: "B", ocupado: false, nome: "", opcaoTmft: "RM2" })] }]);
     assert.equal(suggestAnalysisMoves(balances).length, 0);
   });
-  test("equivalências PD/TIC correspondem, mas postos e categorias distintos não", () => {
-    const records = [record({ tipoSetor: "SEM NEO" }), record({ om: "B", ocupado: false, nome: "" }), record({ om: "C", postoTmft: "SO", ocupado: false, nome: "" })];
+  test("correspondência só por especialidade: posto não separa, categoria separa", () => {
+    const records = [record({ tipoSetor: "SEM NEO", postoEfe: "SO" }), record({ om: "B", ocupado: false, nome: "", postoTmft: "SO" }), record({ om: "C", ocupado: false, nome: "", postoTmft: "1T" })];
     const balances = buildAnalysisBalances([{ category: "PRAÇAS", records }, { category: "OFICIAIS", records: [record({ om: "D", ocupado: false, nome: "" })] }]);
     const moves = suggestAnalysisMoves(balances);
     assert.equal(moves.length, 1);
     assert.equal(moves[0]?.target.om, "B");
+    assert.ok(moves[0]?.source.rank.includes("SO"));
   });
   test("simulação rejeita quantidade superior ao excedente da origem", () => {
     const balances = buildAnalysisBalances([{ category: "PRAÇAS", records: [record({ tipoSetor: "SEM NEO" }), record({ om: "B", ocupado: false, nome: "" })] }]);

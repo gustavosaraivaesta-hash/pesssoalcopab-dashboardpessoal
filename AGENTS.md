@@ -1,6 +1,6 @@
 # Project Rules
 
-- Keep specialty redistribution in pure client-side analysis functions with ephemeral simulation state; use existing authenticated, OM-scoped read functions only, so proposals never mutate source data. Match category, canonical specialty, rank, normalized vínculo and officer corpo; count actual profiles independently of planned slots, including SEM NEO and excluding auxiliary licenses/highlights.
+- Keep specialty redistribution in pure client-side analysis functions with ephemeral simulation state; use existing authenticated, OM-scoped read functions only, so proposals never mutate source data. Match category, canonical specialty, normalized vínculo and officer corpo (posto/graduação never separates profiles in realocation matching); count actual profiles independently of planned slots, including SEM NEO and excluding auxiliary licenses/highlights.
 - Generate realocation PDFs from a read-only snapshot of the filtered balances and remaining suggestions, label the full simulation sequence separately, and use the shared PDF preview before download so exports never write source data.
 
 - Use `isForaDaNeo` from `src/lib/utils.ts` for NEO conformity in cards, metrics, and exports so vínculo and specialty comparisons stay consistent.
