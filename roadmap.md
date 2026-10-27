@@ -1,5 +1,7 @@
 # Tarefas
 
+- [x] Criar análise de excedentes e necessidades de especialidades entre OMs, com simulação sucessiva sem alterar dados (12 testes aprovados; fluxo autenticado conferido com dados reais, simulação e reinício).
+
 - [x] Ajustar EN + CARREIRA para EFETIVO 2 nas três vagas CARREIRA, excluindo RM2 e ocupantes de vagas TTC (8 testes aprovados; tela autenticada não conferida).
 
 - [x] Excluir SEM NEO RM2 de CARREIRA; a contagem inicial de 3 EFETIVOS foi substituída pela regra corrigida acima.

@@ -1,5 +1,7 @@
 # Project Rules
 
+- Keep specialty redistribution in pure client-side analysis functions with ephemeral simulation state; use existing authenticated, OM-scoped read functions only, so proposals never mutate source data. Match category, canonical specialty, rank, normalized vínculo and officer corpo; count actual profiles independently of planned slots, including SEM NEO and excluding auxiliary licenses/highlights.
+
 - Use `isForaDaNeo` from `src/lib/utils.ts` for NEO conformity in cards, metrics, and exports so vínculo and specialty comparisons stay consistent.
 - Use `normalizeVinculo` for exported vínculo labels to preserve the same categories used by NEO conformity.
 - For officer slot-based filtering, use EFE fields for SEM NEO records and TMFT fields for regular slots; SEM NEO has no planned fields to compare.

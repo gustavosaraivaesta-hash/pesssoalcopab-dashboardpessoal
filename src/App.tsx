@@ -47,6 +47,7 @@ const Install = lazyWithRetry(() => import("./pages/Install"));
 const Manual = lazyWithRetry(() => import("./pages/Manual"));
 const InspecaoSaude = lazyWithRetry(() => import("./pages/InspecaoSaude"));
 const Aniversariantes = lazyWithRetry(() => import("./pages/Aniversariantes"));
+const AnaliseRealocacao = lazyWithRetry(() => import("./pages/AnaliseRealocacao"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 const PageLoader = () => (
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/manual" element={<Manual />} />
             <Route path="/inspecao-saude" element={<AuthGuard><InspecaoSaude /></AuthGuard>} />
             <Route path="/aniversariantes" element={<AuthGuard><Aniversariantes /></AuthGuard>} />
+            <Route path="/analise-realocacao" element={<AuthGuard><AnaliseRealocacao /></AuthGuard>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
