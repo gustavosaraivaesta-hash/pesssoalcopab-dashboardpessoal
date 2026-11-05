@@ -601,19 +601,25 @@ export default function Solicitacoes() {
                           <Label>Graduação (Efetivo)</Label>
                           <Input
                             value={formData.postoEfe}
+                            aria-invalid={!!errors.postoEfe}
+                            className={errors.postoEfe ? "border-destructive focus-visible:ring-destructive" : ""}
                             onChange={(e) => setFormData(prev => ({ ...prev, postoEfe: e.target.value }))}
                             placeholder="Ex: 3SG, CB, SD"
                             disabled={formType === "EXCLUSAO"}
                           />
+                          {errors.postoEfe && <p className="text-xs text-destructive">{errors.postoEfe}</p>}
                         </div>
                         <div className="space-y-2">
                           <Label>Quadro (Efetivo)</Label>
                           <Input
                             value={formData.quadroEfe}
+                            aria-invalid={!!errors.quadroEfe}
+                            className={errors.quadroEfe ? "border-destructive focus-visible:ring-destructive" : ""}
                             onChange={(e) => setFormData(prev => ({ ...prev, quadroEfe: e.target.value }))}
                             placeholder="Ex: QT, RM"
                             disabled={formType === "EXCLUSAO"}
                           />
+                          {errors.quadroEfe && <p className="text-xs text-destructive">{errors.quadroEfe}</p>}
                         </div>
                       </div>
 
@@ -622,19 +628,25 @@ export default function Solicitacoes() {
                           <Label>Especialidade (Efetivo)</Label>
                           <Input
                             value={formData.especialidadeEfe}
+                            aria-invalid={!!errors.especialidadeEfe}
+                            className={errors.especialidadeEfe ? "border-destructive focus-visible:ring-destructive" : ""}
                             onChange={(e) => setFormData(prev => ({ ...prev, especialidadeEfe: e.target.value }))}
                             placeholder="Ex: MO, MQ, ET"
                             disabled={formType === "EXCLUSAO"}
                           />
+                          {errors.especialidadeEfe && <p className="text-xs text-destructive">{errors.especialidadeEfe}</p>}
                         </div>
                         <div className="space-y-2">
                           <Label>Opção (Efetivo)</Label>
                           <Input
                             value={formData.opcaoEfe}
+                            aria-invalid={!!errors.opcaoEfe}
+                            className={errors.opcaoEfe ? "border-destructive focus-visible:ring-destructive" : ""}
                             onChange={(e) => setFormData(prev => ({ ...prev, opcaoEfe: e.target.value }))}
                             placeholder="Ex: CARREIRA, TTC, RM2"
                             disabled={formType === "EXCLUSAO"}
                           />
+                          {errors.opcaoEfe && <p className="text-xs text-destructive">{errors.opcaoEfe}</p>}
                         </div>
                       </div>
 
