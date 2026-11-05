@@ -722,7 +722,7 @@ export default function Solicitacoes() {
                       <Button 
                         className="w-full" 
                         onClick={handleSubmit}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || hasFieldErrors}
                       >
                         {isSubmitting ? (
                           <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
