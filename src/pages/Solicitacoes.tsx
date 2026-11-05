@@ -100,6 +100,38 @@ export default function Solicitacoes() {
   const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Allowed values = values already present in the NEO/efetivo data (plus officer defaults)
+  const allowedValues = (() => {
+    const norm = (v?: string) => (v || "").trim().toUpperCase();
+    const quadro = new Set(["AA", "AFN", "CD", "CN", "EN", "IM", "MD", "S", "T"]);
+    const opcao = new Set(["CARREIRA", "TTC", "RM2", "RM-2", "RM1", "RM-1"]);
+    const posto = new Set<string>();
+    const esp = new Set<string>();
+    personnelData.forEach((p) => {
+      [p.quadroTmft, p.quadroEfe].forEach((v) => norm(v) && norm(v) !== "-" && quadro.add(norm(v)));
+      [p.opcaoTmft, p.opcaoEfe].forEach((v) => norm(v) && norm(v) !== "-" && opcao.add(norm(v)));
+      [p.postoTmft, p.postoEfe].forEach((v) => norm(v) && norm(v) !== "-" && posto.add(norm(v)));
+      [p.especialidadeTmft, p.especialidadeEfe].forEach((v) => norm(v) && norm(v) !== "-" && esp.add(norm(v)));
+    });
+    return { quadro, opcao, posto, esp };
+  })();
+
+  const fieldError = (field: "quadro" | "opcao" | "posto" | "esp", value: string) => {
+    const v = (value || "").trim().toUpperCase();
+    if (!v || v === "-") return null;
+    const set = allowedValues[field];
+    if (set.size === 0) return null;
+    return set.has(v) ? null : `"${value}" não é válido. Use: ${[...set].sort().join(", ")}`;
+  };
+
+  const errors = {
+    postoEfe: fieldError("posto", formData.postoEfe),
+    quadroEfe: fieldError("quadro", formData.quadroEfe),
+    especialidadeEfe: fieldError("esp", formData.especialidadeEfe),
+    opcaoEfe: fieldError("opcao", formData.opcaoEfe),
+  };
+  const hasFieldErrors = formType !== "EXCLUSAO" && Object.values(errors).some(Boolean);
+
   // Fetch personnel data from NEO (Praças + Oficiais)
   const fetchPersonnelData = async () => {
     setIsLoadingPersonnel(true);
@@ -300,6 +332,11 @@ export default function Solicitacoes() {
   const handleSubmit = async () => {
     if (!formData.nome || !formData.justification) {
       toast.error("Preencha todos os campos obrigatórios");
+      return;
+    }
+
+    if (hasFieldErrors) {
+      toast.error("Há campos com valores inválidos. Corrija antes de enviar.");
       return;
     }
 
