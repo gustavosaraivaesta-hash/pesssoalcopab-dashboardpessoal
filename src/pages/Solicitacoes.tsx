@@ -100,6 +100,38 @@ export default function Solicitacoes() {
   const [originalData, setOriginalData] = useState<Record<string, any> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Allowed values = values already present in the NEO/efetivo data (plus officer defaults)
+  const allowedValues = (() => {
+    const norm = (v?: string) => (v || "").trim().toUpperCase();
+    const quadro = new Set(["AA", "AFN", "CD", "CN", "EN", "IM", "MD", "S", "T"]);
+    const opcao = new Set(["CARREIRA", "TTC", "RM2", "RM-2", "RM1", "RM-1"]);
+    const posto = new Set<string>();
+    const esp = new Set<string>();
+    personnelData.forEach((p) => {
+      [p.quadroTmft, p.quadroEfe].forEach((v) => norm(v) && norm(v) !== "-" && quadro.add(norm(v)));
+      [p.opcaoTmft, p.opcaoEfe].forEach((v) => norm(v) && norm(v) !== "-" && opcao.add(norm(v)));
+      [p.postoTmft, p.postoEfe].forEach((v) => norm(v) && norm(v) !== "-" && posto.add(norm(v)));
+      [p.especialidadeTmft, p.especialidadeEfe].forEach((v) => norm(v) && norm(v) !== "-" && esp.add(norm(v)));
+    });
+    return { quadro, opcao, posto, esp };
+  })();
+
+  const fieldError = (field: "quadro" | "opcao" | "posto" | "esp", value: string) => {
+    const v = (value || "").trim().toUpperCase();
+    if (!v || v === "-") return null;
+    const set = allowedValues[field];
+    if (set.size === 0) return null;
+    return set.has(v) ? null : `"${value}" não é válido. Use: ${[...set].sort().join(", ")}`;
+  };
+
+  const errors = {
+    postoEfe: fieldError("posto", formData.postoEfe),
+    quadroEfe: fieldError("quadro", formData.quadroEfe),
+    especialidadeEfe: fieldError("esp", formData.especialidadeEfe),
+    opcaoEfe: fieldError("opcao", formData.opcaoEfe),
+  };
+  const hasFieldErrors = formType !== "EXCLUSAO" && Object.values(errors).some(Boolean);
+
   // Fetch personnel data from NEO (Praças + Oficiais)
   const fetchPersonnelData = async () => {
     setIsLoadingPersonnel(true);
@@ -300,6 +332,11 @@ export default function Solicitacoes() {
   const handleSubmit = async () => {
     if (!formData.nome || !formData.justification) {
       toast.error("Preencha todos os campos obrigatórios");
+      return;
+    }
+
+    if (hasFieldErrors) {
+      toast.error("Há campos com valores inválidos. Corrija antes de enviar.");
       return;
     }
 
@@ -564,19 +601,25 @@ export default function Solicitacoes() {
                           <Label>Graduação (Efetivo)</Label>
                           <Input
                             value={formData.postoEfe}
+                            aria-invalid={!!errors.postoEfe}
+                            className={errors.postoEfe ? "border-destructive focus-visible:ring-destructive" : ""}
                             onChange={(e) => setFormData(prev => ({ ...prev, postoEfe: e.target.value }))}
                             placeholder="Ex: 3SG, CB, SD"
                             disabled={formType === "EXCLUSAO"}
                           />
+                          {errors.postoEfe && <p className="text-xs text-destructive">{errors.postoEfe}</p>}
                         </div>
                         <div className="space-y-2">
                           <Label>Quadro (Efetivo)</Label>
                           <Input
                             value={formData.quadroEfe}
+                            aria-invalid={!!errors.quadroEfe}
+                            className={errors.quadroEfe ? "border-destructive focus-visible:ring-destructive" : ""}
                             onChange={(e) => setFormData(prev => ({ ...prev, quadroEfe: e.target.value }))}
                             placeholder="Ex: QT, RM"
                             disabled={formType === "EXCLUSAO"}
                           />
+                          {errors.quadroEfe && <p className="text-xs text-destructive">{errors.quadroEfe}</p>}
                         </div>
                       </div>
 
@@ -585,19 +628,25 @@ export default function Solicitacoes() {
                           <Label>Especialidade (Efetivo)</Label>
                           <Input
                             value={formData.especialidadeEfe}
+                            aria-invalid={!!errors.especialidadeEfe}
+                            className={errors.especialidadeEfe ? "border-destructive focus-visible:ring-destructive" : ""}
                             onChange={(e) => setFormData(prev => ({ ...prev, especialidadeEfe: e.target.value }))}
                             placeholder="Ex: MO, MQ, ET"
                             disabled={formType === "EXCLUSAO"}
                           />
+                          {errors.especialidadeEfe && <p className="text-xs text-destructive">{errors.especialidadeEfe}</p>}
                         </div>
                         <div className="space-y-2">
                           <Label>Opção (Efetivo)</Label>
                           <Input
                             value={formData.opcaoEfe}
+                            aria-invalid={!!errors.opcaoEfe}
+                            className={errors.opcaoEfe ? "border-destructive focus-visible:ring-destructive" : ""}
                             onChange={(e) => setFormData(prev => ({ ...prev, opcaoEfe: e.target.value }))}
                             placeholder="Ex: CARREIRA, TTC, RM2"
                             disabled={formType === "EXCLUSAO"}
                           />
+                          {errors.opcaoEfe && <p className="text-xs text-destructive">{errors.opcaoEfe}</p>}
                         </div>
                       </div>
 
@@ -673,7 +722,7 @@ export default function Solicitacoes() {
                       <Button 
                         className="w-full" 
                         onClick={handleSubmit}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || hasFieldErrors}
                       >
                         {isSubmitting ? (
                           <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
