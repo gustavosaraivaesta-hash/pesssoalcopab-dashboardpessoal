@@ -141,6 +141,7 @@ const SHEET_CONFIGS = [
   { gid: '704425953', omName: 'COMRJ' },
   { gid: '581706093', omName: 'COpAb' },
   { gid: '1363629973', omName: 'CSUPAB' },
+  { gid: '1174352425', omName: 'DAbM' },
   { gid: '2111647795', omName: 'DEPCMRJ' },
   { gid: '84203546', omName: 'DEPFMRJ' },
   { gid: '122801537', omName: 'DEPMSMRJ' },
