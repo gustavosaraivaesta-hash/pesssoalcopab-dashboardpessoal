@@ -178,6 +178,8 @@ export type Database = {
         | "DEPFMRJ"
         | "CDU-BAMRJ"
         | "CDU-1DN"
+        | "COMRJ"
+        | "DABM"
       request_status: "PENDENTE" | "EM_ANALISE" | "APROVADO" | "REJEITADO"
       request_type: "INCLUSAO" | "ALTERACAO" | "EXCLUSAO"
     }
@@ -320,6 +322,8 @@ export const Constants = {
         "DEPFMRJ",
         "CDU-BAMRJ",
         "CDU-1DN",
+        "COMRJ",
+        "DABM",
       ],
       request_status: ["PENDENTE", "EM_ANALISE", "APROVADO", "REJEITADO"],
       request_type: ["INCLUSAO", "ALTERACAO", "EXCLUSAO"],

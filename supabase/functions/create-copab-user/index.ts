@@ -6,7 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const ACCOUNT_USERNAMES = ["copab", "copab2", "copab3"];
+const ACCOUNT_USERNAMES = ["copab", "copab2", "copab3", "dabm", "comrj"];
+const ROLE_BY_USERNAME: Record<string, string> = { dabm: "DABM", comrj: "COMRJ" };
 const LEGACY_PRIMARY_EMAIL = "copab1@copab.marinha.mil.br";
 
 serve(async (req) => {
@@ -64,7 +65,7 @@ serve(async (req) => {
       if (!roleData) {
         const { error: roleError } = await adminClient
           .from('user_roles')
-          .insert({ user_id: userId, role: 'COPAB' });
+          .insert({ user_id: userId, role: ROLE_BY_USERNAME[username] || 'COPAB' });
         if (roleError) throw roleError;
       }
 

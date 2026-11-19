@@ -44,7 +44,7 @@ const CSUPAB_ALLOWED_OMS = new Set(['CSUPAB', 'DEPFMRJ', 'DEPMSMRJ', 'DEPSIMRJ',
 // Get allowed OMs based on user role
 function getAllowedOMsForRole(role: string): string[] | 'all' {
   // COPAB sees everything
-  if (role === 'COPAB') return 'all';
+  if (role === 'COPAB' || role === 'DABM') return 'all';
   
   // CSUPAB sees specific OMs under its command
   if (role === 'CSUPAB') return [...CSUPAB_ALLOWED_OMS];

@@ -45,6 +45,8 @@ export const USER_ACCESS_CONFIG: Record<string, UserAccess> = {
   DEPFMRJ: { allowedOMs: ["DEPFMRJ", "CDU-BAMRJ", "CDU-1DN"] },
   "CDU-BAMRJ": { allowedOMs: ["CDU-BAMRJ"] },
   "CDU-1DN": { allowedOMs: ["CDU-1DN"] },
+  DABM: { allowedOMs: "all" },
+  COMRJ: { allowedOMs: ["COMRJ"] },
 };
 
 export const getRoleFromEmail = (email?: string | null): string | null => {
