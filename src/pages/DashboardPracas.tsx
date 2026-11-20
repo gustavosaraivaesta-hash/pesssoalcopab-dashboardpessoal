@@ -257,7 +257,11 @@ const DashboardPracas = () => {
 
       // Extrair graduações disponíveis (postoTmft) para praças
       const graduacoesFromData = [
-        ...new Set(data.map((item: any) => item.postoEfe).filter((g: string) => g && g.trim() !== "" && g !== "-")),
+        ...new Set(
+          data
+            .map((item: any) => item.postoEfe)
+            .filter((g: string) => g && g.trim() !== "" && g !== "-" && g !== "SC"),
+        ),
       ].sort((a, b) => {
         const order = ["SO", "SG", "CB", "MN", "SD"];
         const indexA = order.indexOf(a);
@@ -389,7 +393,11 @@ const DashboardPracas = () => {
         setAvailableQuadros(quadrosFromData as string[]);
         // Extrair graduações disponíveis (postoEfe) para praças
         const graduacoesFromData = [
-          ...new Set(data.map((item: any) => item.postoEfe).filter((g: string) => g && g.trim() !== "" && g !== "-")),
+          ...new Set(
+            data
+              .map((item: any) => item.postoEfe)
+              .filter((g: string) => g && g.trim() !== "" && g !== "-" && g !== "SC"),
+          ),
         ].sort((a, b) => {
           const order = ["SO", "SG", "CB", "MN", "SD"];
           const indexA = order.indexOf(a);
